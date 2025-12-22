@@ -56,6 +56,9 @@ dependencies:
   - split
   - extra
 
+  # Serial communication
+  - serialport
+
 ghc-options:
   - -Wall
   - -Wcompat
@@ -72,6 +75,7 @@ library:
   source-dirs: src
   exposed-modules:
     - Audio.Mixer
+    - Hardware.Serial
     - Hardware.Protocol
     - Config.Types
     - Config.Parser
@@ -91,6 +95,16 @@ executables:
     when:
       - condition: false
         other-modules: Paths_iaruba
+
+  test-serial:
+    main: Main.hs
+    source-dirs: app/test-serial
+    ghc-options:
+      - -threaded
+      - -rtsopts
+      - -with-rtsopts=-N
+    dependencies:
+      - iaruba
 
 tests:
   iaruba-test:

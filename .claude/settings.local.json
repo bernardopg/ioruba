@@ -12,7 +12,15 @@
       "Bash(tee:*)",
       "Bash(git init:*)",
       "Bash(git config:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git commit -m \"$(cat <<''EOF''\nfeat: initial commit - Iarubá functional audio mixer\n\nIarubá is a modern, functional reimplementation of hardware-based \naudio control with a beautiful GUI for Linux.\n\nFeatures:\n- Functional Haskell architecture with pure core\n- PulseAudio/PipeWire integration (scaffolded)\n- GTK+ 3 GUI framework (scaffolded)\n- Arduino serial communication (firmware ready)\n- YAML-based configuration with validation\n- Profile management system\n- Task management system\n- Comprehensive documentation\n\nStructure:\n- 23 Haskell modules organized by domain\n- Complete build system (Stack + GHC 9.6.6)\n- CI/CD pipeline with GitHub Actions\n- Arduino firmware for 5-slider mixer\n- Example configurations and profiles\n\nDocumentation:\n- CLAUDE.md: Architecture guide for AI assistants\n- README.md: User documentation\n- CONTRIBUTING.md: Contribution guidelines\n- QUICKSTART.md: 5-minute setup guide\n- Hardware setup guide\n\n🤖 Generated with Claude Code (claude.ai/code)\n\nCo-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(git tag:*)",
+      "Bash(gh:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(echo:*)",
+      "Bash(chmod:*)",
+      "Bash(./scripts/arduino-simulator.py:*)"
     ]
   }
 }

@@ -1,5 +1,6 @@
 module Hardware.Protocol
   ( SliderState(..)
+  , SliderValue(..)
   , parseSliderData
   , encodeSliderData
   ) where

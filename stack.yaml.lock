@@ -3,7 +3,14 @@
 # For more information, please see the documentation at:
 #   https://docs.haskellstack.org/en/stable/lock_files
 
-packages: []
+packages:
+- completed:
+    hackage: serialport-0.6.0@sha256:b540e3a8d05de8f5d1e28139655fc53d45cdfe3a4c004d47ad19b42ab0e93b43,2142
+    pantry-tree:
+      sha256: e8b0d52b23fb4486f66401751c7e42c8a411778fad9ffc7c140a199973ade3dc
+      size: 889
+  original:
+    hackage: serialport-0.6.0
 snapshots:
 - completed:
     sha256: 1e32b51d9082fdf6f3bd92accc9dfffd4ddaf406404427fb10bf76d2bc03cbbb
