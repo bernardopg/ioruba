@@ -1,0 +1,44 @@
+# Haskell Stack
+.stack-work/
+*.cabal
+dist/
+dist-newstyle/
+
+# GHC
+*.hi
+*.o
+*.dyn_hi
+*.dyn_o
+
+# Profiling
+*.prof
+*.aux
+*.hp
+*.eventlog
+
+# Testing
+.hpc/
+*.tix
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Application
+*.log
+state.yaml
+
+# Temporary
+tmp/
+temp/
+
+# Build artifacts
+bin/
+build/

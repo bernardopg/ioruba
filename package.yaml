@@ -1,0 +1,123 @@
+name: iaruba
+version: 0.1.0.0
+github: "yourusername/iaruba"
+license: MIT
+author: "Your Name"
+maintainer: "your.email@example.com"
+copyright: "2025 Your Name"
+
+extra-source-files:
+  - README.md
+  - CLAUDE.md
+  - CHANGELOG.md
+
+synopsis: Functional audio mixer with hardware control for Linux
+category: Audio
+description: |
+  Iarubá is a modern audio control system that bridges physical hardware
+  (Arduino-based sliders) with your Linux system's audio. Built with Haskell,
+  it provides a clean functional architecture with a GTK-based GUI.
+
+dependencies:
+  # Base
+  - base >= 4.7 && < 5
+  - text
+  - bytestring
+
+  # Concurrency
+  - stm
+  - async
+
+  # Data structures
+  - containers
+  - unordered-containers
+  - vector
+
+  # Serialization
+  - aeson
+  - yaml
+
+  # Error handling
+  - mtl
+  - transformers
+  - exceptions
+
+  # File system
+  - filepath
+  - directory
+
+  # Time
+  - time
+
+  # Testing
+  - QuickCheck
+
+  # Utilities
+  - split
+  - extra
+
+ghc-options:
+  - -Wall
+  - -Wcompat
+  - -Widentities
+  - -Wincomplete-record-updates
+  - -Wincomplete-uni-patterns
+  - -Wmissing-export-lists
+  - -Wmissing-home-modules
+  - -Wpartial-fields
+  - -Wredundant-constraints
+  - -Wno-unused-top-binds
+
+library:
+  source-dirs: src
+  exposed-modules:
+    - Audio.Mixer
+    - Hardware.Protocol
+    - Config.Types
+    - Config.Parser
+    - Config.Validation
+    - Utils.Error
+
+executables:
+  iaruba:
+    main: Main.hs
+    source-dirs: app
+    ghc-options:
+      - -threaded
+      - -rtsopts
+      - -with-rtsopts=-N
+    dependencies:
+      - iaruba
+    when:
+      - condition: false
+        other-modules: Paths_iaruba
+
+tests:
+  iaruba-test:
+    main: Spec.hs
+    source-dirs: test
+    ghc-options:
+      - -threaded
+      - -rtsopts
+      - -with-rtsopts=-N
+    dependencies:
+      - iaruba
+      - hspec
+      - hspec-discover
+      - QuickCheck
+
+default-extensions:
+  - OverloadedStrings
+  - LambdaCase
+  - RecordWildCards
+  - TupleSections
+  - DeriveGeneric
+  - DeriveFunctor
+  - GeneralizedNewtypeDeriving
+  - StandaloneDeriving
+  - FlexibleContexts
+  - FlexibleInstances
+  - MultiParamTypeClasses
+  - TypeApplications
+  - ScopedTypeVariables
+  - BangPatterns

@@ -1,0 +1,16 @@
+resolver: lts-22.41  # GHC 9.6.6
+
+packages:
+  - .
+
+ghc-options:
+  "$locals": -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints
+
+nix:
+  enable: false
+
+system-ghc: false
+
+install-ghc: true
+
+allow-newer: true

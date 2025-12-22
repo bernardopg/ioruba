@@ -1,0 +1,38 @@
+name: "Gaming Profile"
+
+sliders:
+  - id: 0
+    name: "Game Audio"
+    targets:
+      - type: application
+        name: "Steam"
+
+  - id: 1
+    name: "Voice Chat"
+    targets:
+      - type: application
+        name: "Discord"
+      - type: application
+        name: "Mumble"
+
+  - id: 2
+    name: "Music"
+    targets:
+      - type: application
+        name: "Spotify"
+
+  - id: 3
+    name: "System"
+    targets:
+      - type: master
+
+  - id: 4
+    name: "Microphone"
+    targets:
+      - type: source
+        name: "default_microphone"
+
+audio:
+  noise_reduction: low
+  smooth_transitions: true
+  transition_duration_ms: 30

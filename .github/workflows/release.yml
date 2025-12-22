@@ -1,0 +1,70 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  create-release:
+    name: Create Release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libpulse-dev \
+            libgtk-3-dev \
+            libappindicator3-dev \
+            libsqlite3-dev
+
+      - name: Setup Haskell
+        uses: haskell-actions/setup@v2
+        with:
+          ghc-version: '9.6.6'
+          enable-stack: true
+          stack-version: 'latest'
+
+      - name: Build release binary
+        run: |
+          stack build --copy-bins --local-bin-path ./dist
+          strip ./dist/iaruba
+
+      - name: Create tarball
+        run: |
+          mkdir -p iaruba-release
+          cp ./dist/iaruba iaruba-release/
+          cp -r config iaruba-release/
+          cp README.md iaruba-release/
+          cp LICENSE iaruba-release/
+          tar -czf iaruba-linux-x64.tar.gz iaruba-release/
+
+      - name: Generate changelog
+        id: changelog
+        run: |
+          echo "CHANGELOG<<EOF" >> $GITHUB_OUTPUT
+          git log --pretty=format:"- %s" $(git describe --tags --abbrev=0 HEAD^)..HEAD >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            iaruba-linux-x64.tar.gz
+          body: |
+            ## Changes
+            ${{ steps.changelog.outputs.CHANGELOG }}
+
+            ## Installation
+            ```bash
+            tar -xzf iaruba-linux-x64.tar.gz
+            cd iaruba-release
+            ./iaruba
+            ```
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

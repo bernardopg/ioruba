@@ -1,0 +1,55 @@
+serial:
+  port: /dev/ttyUSB0
+  baud_rate: 9600
+
+sliders:
+  - id: 0
+    name: "Master Volume"
+    targets:
+      - type: master
+
+  - id: 1
+    name: "Music"
+    targets:
+      - type: application
+        name: "Spotify"
+      - type: application
+        name: "rhythmbox"
+      - type: application
+        name: "vlc"
+
+  - id: 2
+    name: "Browser"
+    targets:
+      - type: application
+        name: "Firefox"
+      - type: application
+        name: "Google Chrome"
+      - type: application
+        name: "Chromium"
+
+  - id: 3
+    name: "Communications"
+    targets:
+      - type: application
+        name: "Discord"
+      - type: application
+        name: "Slack"
+      - type: application
+        name: "Teams"
+
+  - id: 4
+    name: "Microphone"
+    targets:
+      - type: source
+        name: "default_microphone"
+
+audio:
+  noise_reduction: default
+  smooth_transitions: true
+  transition_duration_ms: 50
+
+gui:
+  theme: dark
+  show_visualizers: true
+  tray_icon: true
