@@ -5,6 +5,9 @@ on:
     tags:
       - 'v*'
 
+permissions:
+  contents: write
+
 jobs:
   create-release:
     name: Create Release
@@ -13,6 +16,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Install system dependencies
         run: |
@@ -30,6 +35,16 @@ jobs:
           enable-stack: true
           stack-version: 'latest'
 
+      - name: Cache Stack dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.stack
+            .stack-work
+          key: ${{ runner.os }}-stack-release-${{ hashFiles('stack.yaml.lock', 'package.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-stack-release-
+
       - name: Build release binary
         run: |
           stack build --copy-bins --local-bin-path ./dist
@@ -37,34 +52,47 @@ jobs:
 
       - name: Create tarball
         run: |
-          mkdir -p iaruba-release
-          cp ./dist/iaruba iaruba-release/
-          cp -r config iaruba-release/
-          cp README.md iaruba-release/
-          cp LICENSE iaruba-release/
-          tar -czf iaruba-linux-x64.tar.gz iaruba-release/
+          VERSION=${GITHUB_REF_NAME#v}
+          mkdir -p iaruba-${VERSION}
+          cp ./dist/iaruba iaruba-${VERSION}/
+          cp -r config iaruba-${VERSION}/
+          cp README.md iaruba-${VERSION}/
+          cp LICENSE iaruba-${VERSION}/
+          tar -czf iaruba-${VERSION}-linux-x86_64.tar.gz iaruba-${VERSION}/
 
       - name: Generate changelog
         id: changelog
         run: |
-          echo "CHANGELOG<<EOF" >> $GITHUB_OUTPUT
-          git log --pretty=format:"- %s" $(git describe --tags --abbrev=0 HEAD^)..HEAD >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
+          {
+            echo "CHANGELOG<<EOF"
+            if git describe --tags --abbrev=0 HEAD^ 2>/dev/null; then
+              PREV_TAG=$(git describe --tags --abbrev=0 HEAD^)
+              git log --pretty=format:"- %s (%h)" ${PREV_TAG}..HEAD
+            else
+              git log --pretty=format:"- %s (%h)"
+            fi
+            echo ""
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
 
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           files: |
-            iaruba-linux-x64.tar.gz
+            iaruba-*-linux-x86_64.tar.gz
           body: |
             ## Changes
             ${{ steps.changelog.outputs.CHANGELOG }}
 
             ## Installation
             ```bash
-            tar -xzf iaruba-linux-x64.tar.gz
-            cd iaruba-release
+            tar -xzf iaruba-*-linux-x86_64.tar.gz
+            cd iaruba-*/
             ./iaruba
             ```
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+            ## System Requirements
+            - Linux (x86_64)
+            - PulseAudio or PipeWire
+            - GTK+ 3
+          generate_release_notes: true

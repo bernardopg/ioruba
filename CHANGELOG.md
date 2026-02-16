@@ -8,42 +8,42 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- Initial project structure
-- Core Haskell modules for audio, GUI, configuration
-- Arduino firmware for 5-slider mixer
-- GTK+ 3 based GUI framework
-- PulseAudio/PipeWire integration
-- YAML-based configuration system
-- Profile management system
-- Task management system
-- Interactive documentation system
-- GitHub Actions CI/CD pipeline
-- Comprehensive documentation (README, CLAUDE.md, CONTRIBUTING)
+- Security policy (SECURITY.md)
+- Dependabot configuration for GitHub Actions
+- GitHub issue templates (bug report, feature request)
+- Pull request template
+- CODEOWNERS file
+- Comprehensive test suite (Audio.Mixer, Hardware.Protocol, Config.Validation)
+- Improved CI pipeline with dedicated lint and formatting jobs
+- Concurrency control for CI workflows
 
 ### Changed
-- N/A
-
-### Deprecated
-- N/A
-
-### Removed
-- N/A
+- Updated GitHub Actions to use dedicated HLint and Ormolu actions
+- Updated release workflow to use softprops/action-gh-release@v2
+- Improved cache keys to include package.yaml hash
+- Fixed all placeholder values in package metadata
 
 ### Fixed
-- N/A
-
-### Security
-- N/A
+- Fixed placeholder GitHub URLs throughout documentation
+- Fixed package.yaml author, maintainer, and github fields
+- Fixed incomplete exposed-modules list in package.yaml
+- Fixed release workflow changelog generation for first release
 
 ## [0.1.0] - 2025-12-22
 
 ### Added
 - Initial release
-- Basic audio mixer functionality
-- Hardware slider support via Arduino
-- Linux support (PulseAudio/PipeWire)
-- Configuration file support
-- Dark/light theme support
+- Core audio mixer functionality with pure functional architecture
+- Hardware slider support via Arduino (USB serial communication)
+- Arduino firmware for 5-slider mixer and 3-knob Nano variant
+- Linux audio support (PulseAudio/PipeWire via libpulse)
+- YAML-based configuration system with validation
+- Audio profile management
+- GTK+ 3 GUI framework with dark/light themes
+- Serial port diagnostic tool (test-serial)
+- Arduino simulator script for testing without hardware
+- GitHub Actions CI/CD pipeline
+- Comprehensive documentation (README, CONTRIBUTING, hardware guides)
 
-[Unreleased]: https://github.com/yourusername/iaruba/compare/v0.1.0...HEAD
-[0.1.0]: https://github.com/yourusername/iaruba/releases/tag/v0.1.0
+[Unreleased]: https://github.com/bernardopg/iaruba/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/bernardopg/iaruba/releases/tag/v0.1.0

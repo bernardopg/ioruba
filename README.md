@@ -1,14 +1,16 @@
-# Iarubá - Functional Audio Mixer for Linux
+# Iaruba - Functional Audio Mixer for Linux
 
 <div align="center">
 
-![License](https://img.shields.io/badge/license-MIT-blue.svg)
+[![CI](https://github.com/bernardopg/iaruba/actions/workflows/ci.yml/badge.svg)](https://github.com/bernardopg/iaruba/actions/workflows/ci.yml)
+![License](https://img.shields.io/github/license/bernardopg/iaruba)
 ![Haskell](https://img.shields.io/badge/language-Haskell-purple.svg)
 ![Platform](https://img.shields.io/badge/platform-Linux-green.svg)
+![GHC](https://img.shields.io/badge/GHC-9.6.6-blue.svg)
 
-**A modern, functional reimplementation of hardware-based audio control with a beautiful GUI**
+**A modern, functional reimplementation of hardware-based audio control with a GTK GUI**
 
-[Features](#features) • [Installation](#installation) • [Quick Start](#quick-start) • [Documentation](#documentation) • [Contributing](#contributing)
+[Features](#features) | [Installation](#installation) | [Quick Start](#quick-start) | [Documentation](#documentation) | [Contributing](#contributing)
 
 </div>
 
@@ -16,12 +18,12 @@
 
 ## Overview
 
-**Iarubá** is a Linux-native audio control system that bridges physical hardware (Arduino-based sliders) with your system's audio. Inspired by [deej](https://github.com/omriharel/deej), Iarubá is built from the ground up in Haskell with a focus on:
+**Iaruba** is a Linux-native audio control system that bridges physical hardware (Arduino-based sliders) with your system's audio. Inspired by [deej](https://github.com/omriharel/deej), Iaruba is built from the ground up in Haskell with a focus on:
 
 - **Functional purity** - Predictable, testable, maintainable code
 - **Modern UI/UX** - Clean GTK-based interface with dark/light themes
 - **Linux-first** - Full PulseAudio and PipeWire support
-- **Extensibility** - Plugin system, profiles, and rich configuration
+- **Extensibility** - Profiles and rich configuration
 
 Control individual application volumes, master output, microphone input, and more with physical sliders connected to an Arduino.
 
@@ -30,32 +32,18 @@ Control individual application volumes, master output, microphone input, and mor
 ### Core Functionality
 - **Hardware Integration** - USB serial communication with Arduino-based sliders
 - **Granular Audio Control** - Per-application volume, master volume, mic input
-- **Real-time Visualization** - Live audio level meters with smooth animations
+- **Real-time Visualization** - Live audio level meters
 - **Profile System** - Quick-switch between audio configurations (work, gaming, streaming)
 
 ### Modern Interface
 - **GTK+ 3 GUI** - Native Linux look and feel
 - **Dark/Light Themes** - Automatic or manual theme switching
 - **System Tray Integration** - Minimize to tray, quick controls
-- **Keyboard Shortcuts** - Fully customizable hotkeys
 
 ### Configuration Management
 - **YAML-based Config** - Human-readable, version-controllable
-- **Live Reload** - Changes apply immediately without restart
 - **Validation** - Detailed error messages for invalid configurations
-- **Auto-rollback** - Automatically reverts to last working config on errors
-
-### Productivity Features
-- **Integrated Task Manager** - Track TODOs with priority and categorization
-- **Desktop Notifications** - Reminders and audio event alerts
-- **Interactive Documentation** - Built-in tutorials and help system
-- **Calendar Integration** - Sync tasks with your calendar
-
-### Developer Experience
-- **Automatic Documentation** - Generated API docs and guides
-- **Comprehensive Testing** - Property-based and integration tests
-- **CI/CD Ready** - GitHub Actions workflows included
-- **Extensible Architecture** - Clean module boundaries for easy contributions
+- **Multiple Profiles** - Named audio scenarios for different use cases
 
 ## Installation
 
@@ -64,13 +52,13 @@ Control individual application volumes, master output, microphone input, and mor
 **System Dependencies:**
 ```bash
 # Debian/Ubuntu
-sudo apt install libpulse-dev libgtk-3-dev libappindicator3-dev
+sudo apt install libpulse-dev libgtk-3-dev libappindicator3-dev libsqlite3-dev
 
 # Fedora
-sudo dnf install pulseaudio-libs-devel gtk3-devel libappindicator-gtk3-devel
+sudo dnf install pulseaudio-libs-devel gtk3-devel libappindicator-gtk3-devel sqlite-devel
 
 # Arch Linux
-sudo pacman -S libpulse gtk3 libappindicator-gtk3
+sudo pacman -S libpulse gtk3 libappindicator-gtk3 sqlite
 ```
 
 **Haskell Stack:**
@@ -89,11 +77,14 @@ sudo usermod -a -G dialout $USER
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/iaruba.git
+git clone https://github.com/bernardopg/iaruba.git
 cd iaruba
 
 # Build
 stack build
+
+# Run tests
+stack test
 
 # Install to ~/.local/bin
 stack install
@@ -105,13 +96,13 @@ iaruba
 ### Hardware Setup
 
 1. **Build the Arduino Circuit:**
-   - Connect 5 potentiometers to analog pins A0-A4
-   - See `docs/guides/hardware-setup.md` for detailed wiring diagrams
+   - Connect potentiometers to analog pins A0-A4
+   - See [`docs/guides/hardware-setup.md`](docs/guides/hardware-setup.md) for wiring diagrams
 
 2. **Upload Arduino Sketch:**
    ```bash
    cd arduino/iaruba-mixer
-   # Using Arduino IDE: Open and upload
+   # Using Arduino IDE: Open iaruba-mixer.ino and upload
    # OR using PlatformIO:
    pio run --target upload
    ```
@@ -122,26 +113,18 @@ iaruba
 
 ## Quick Start
 
-### First Run
-
-1. **Launch Iarubá:**
+1. **Launch Iaruba:**
    ```bash
    iaruba
    ```
 
-2. **Configure Slider Mappings:**
-   - Click the settings icon or press `Ctrl+,`
-   - Map each slider to applications or system outputs
-   - Save configuration
+2. **Test without hardware** (using the simulator):
+   ```bash
+   python3 scripts/arduino-simulator.py
+   ```
 
-3. **Test Sliders:**
-   - Move physical sliders
-   - Watch volume levels change in the GUI
-   - Verify audio output adjusts accordingly
+3. **Configure Slider Mappings** in `config/iaruba.yaml`:
 
-### Example Configuration
-
-`config/iaruba.yaml`:
 ```yaml
 serial:
   port: /dev/ttyUSB0
@@ -158,70 +141,48 @@ sliders:
     targets:
       - type: application
         name: "Spotify"
-      - type: application
-        name: "rhythmbox"
 
   - id: 2
     name: "Browser"
     targets:
       - type: application
         name: "Firefox"
-      - type: application
-        name: "Chrome"
 
   - id: 3
     name: "Communications"
     targets:
       - type: application
         name: "Discord"
-      - type: application
-        name: "Slack"
 
   - id: 4
     name: "Microphone"
     targets:
       - type: source
         name: "default_microphone"
-
-audio:
-  noise_reduction: default
-  smooth_transitions: true
-  transition_duration_ms: 50
-
-gui:
-  theme: dark
-  show_visualizers: true
-  tray_icon: true
 ```
 
-## Documentation
+## Project Structure
 
-- **[User Guide](docs/guides/user-guide.md)** - Complete usage instructions
-- **[Hardware Setup](docs/guides/hardware-setup.md)** - Wiring diagrams and Arduino setup
-- **[Configuration Reference](docs/guides/configuration.md)** - All config options explained
-- **[API Documentation](docs/api/)** - Haddock-generated API docs
-- **[Architecture Overview](CLAUDE.md)** - For developers
+```
+iaruba/
+├── src/
+│   ├── Audio/        # PulseAudio/PipeWire integration
+│   ├── Config/       # Configuration management
+│   ├── GUI/          # GTK interface components
+│   ├── Hardware/     # Serial communication with Arduino
+│   ├── Tasks/        # Task management system
+│   ├── Docs/         # Documentation generation
+│   └── Utils/        # Shared utilities (logging, errors)
+├── app/              # Application entry points
+├── test/             # Test suites (HSpec + QuickCheck)
+├── arduino/          # Arduino firmware sketches
+├── config/           # Example configurations and profiles
+├── docs/             # User documentation and guides
+├── scripts/          # Development and testing utilities
+└── assets/           # Desktop integration files
+```
 
 ## Development
-
-### Project Structure
-
-```
-iarubá/
-├── src/               # Haskell source code
-│   ├── Audio/        # PulseAudio/PipeWire integration
-│   ├── GUI/          # GTK interface components
-│   ├── Config/       # Configuration management
-│   ├── Hardware/     # Serial communication
-│   ├── Tasks/        # Task management system
-│   └── Utils/        # Shared utilities
-├── app/              # Main application entry point
-├── test/             # Test suites
-├── arduino/          # Arduino firmware
-├── docs/             # Documentation
-├── config/           # Example configurations
-└── assets/           # Icons, themes, resources
-```
 
 ### Running Tests
 
@@ -229,11 +190,8 @@ iarubá/
 # All tests
 stack test
 
-# Specific test suite
-stack test :iaruba-test
-
-# With coverage
-stack test --coverage
+# With verbose output
+stack test --ta "--format progress"
 
 # Watch mode (using ghcid)
 ghcid --command "stack ghci iaruba:lib iaruba:test:iaruba-test" --test "main"
@@ -245,40 +203,45 @@ We use [Ormolu](https://github.com/tweag/ormolu) for formatting and [HLint](http
 
 ```bash
 # Format all code
-find src -name "*.hs" -exec ormolu -i {} \;
+make format
 
 # Run linter
-stack exec -- hlint src/
+make lint
+
+# Build and test
+make build test
 ```
 
-## Contributing
+## Documentation
 
-Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
-
-### Development Workflow
-
-1. Fork the repository
-2. Create a feature branch: `git checkout -b feature/my-feature`
-3. Make your changes
-4. Run tests: `stack test`
-5. Format code: `ormolu -i src/**/*.hs`
-6. Commit with descriptive message
-7. Push and create a Pull Request
+- **[Hardware Setup Guide](docs/guides/hardware-setup.md)** - Wiring diagrams and Arduino setup
+- **[Arduino Nano 3-Knob Setup](NANO_SETUP.md)** - Compact 3-knob variant
+- **[Quick Start Guide](QUICKSTART.md)** - Get running in 5 minutes
+- **[Contributing](CONTRIBUTING.md)** - How to contribute
+- **[Changelog](CHANGELOG.md)** - Version history
+- **[Architecture](CLAUDE.md)** - Detailed architecture overview
 
 ## Roadmap
 
 - [ ] Windows support via WASAPI
 - [ ] macOS support via CoreAudio
-- [ ] Plugin system for custom audio processors
-- [ ] Web interface for remote control
 - [ ] MIDI controller support
+- [ ] Web interface for remote control
 - [ ] Equalizer presets per application
-- [ ] Cloud profile sync
-- [ ] Mobile app for remote control
+
+## Contributing
+
+Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature/my-feature`
+3. Make your changes and add tests
+4. Run `stack test && make format && make lint`
+5. Commit and push
+6. Create a Pull Request
 
 ## Inspiration
 
-This project is inspired by:
 - [deej](https://github.com/omriharel/deej) - The original hardware audio mixer
 - [PulseAudio](https://www.freedesktop.org/wiki/Software/PulseAudio/) - Linux audio server
 - [PipeWire](https://pipewire.org/) - Modern multimedia framework
@@ -289,16 +252,6 @@ MIT License - see [LICENSE](LICENSE) for details.
 
 ## Support
 
-- **Issues:** [GitHub Issues](https://github.com/yourusername/iaruba/issues)
-- **Discussions:** [GitHub Discussions](https://github.com/yourusername/iaruba/discussions)
-- **Documentation:** [Wiki](https://github.com/yourusername/iaruba/wiki)
-
----
-
-<div align="center">
-
-**Made with ❤️ using Haskell**
-
-[⬆ Back to Top](#iarubá---functional-audio-mixer-for-linux)
-
-</div>
+- **Issues:** [GitHub Issues](https://github.com/bernardopg/iaruba/issues)
+- **Discussions:** [GitHub Discussions](https://github.com/bernardopg/iaruba/discussions)
+- **Security:** See [SECURITY.md](SECURITY.md)

@@ -1,14 +1,13 @@
 name: iaruba
 version: 0.1.0.0
-github: "yourusername/iaruba"
+github: "bernardopg/iaruba"
 license: MIT
-author: "Your Name"
-maintainer: "your.email@example.com"
-copyright: "2025 Your Name"
+author: "Bernardo Pereira Gomes"
+maintainer: "bernardopg@users.noreply.github.com"
+copyright: "2025-2026 Bernardo Pereira Gomes"
 
 extra-source-files:
   - README.md
-  - CLAUDE.md
   - CHANGELOG.md
 
 synopsis: Functional audio mixer with hardware control for Linux
@@ -49,9 +48,6 @@ dependencies:
   # Time
   - time
 
-  # Testing
-  - QuickCheck
-
   # Utilities
   - split
   - extra
@@ -75,12 +71,27 @@ library:
   source-dirs: src
   exposed-modules:
     - Audio.Mixer
-    - Hardware.Serial
-    - Hardware.Protocol
+    - Audio.PulseAudio
+    - Audio.Sink
+    - Audio.Source
     - Config.Types
     - Config.Parser
+    - Config.Profiles
     - Config.Validation
+    - Docs.Generator
+    - Docs.Interactive
+    - GUI.MainWindow
+    - GUI.Settings
+    - GUI.Themes
+    - GUI.Visualizer
+    - Hardware.Device
+    - Hardware.Protocol
+    - Hardware.Serial
+    - Tasks.Manager
+    - Tasks.Notifications
+    - Tasks.Persistence
     - Utils.Error
+    - Utils.Logging
 
 executables:
   iaruba:

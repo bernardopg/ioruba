@@ -1,0 +1,13 @@
+# Default owner for everything
+* @bernardopg
+
+# Haskell source code
+/src/ @bernardopg
+/app/ @bernardopg
+/test/ @bernardopg
+
+# CI/CD configuration
+/.github/ @bernardopg
+
+# Arduino firmware
+/arduino/ @bernardopg

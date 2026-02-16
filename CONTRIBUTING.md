@@ -1,6 +1,6 @@
-# Contributing to Iarubá
+# Contributing to Iaruba
 
-Thank you for your interest in contributing to Iarubá! This document provides guidelines and instructions for contributing.
+Thank you for your interest in contributing to Iaruba! This document provides guidelines and instructions for contributing.
 
 ## Code of Conduct
 
@@ -10,37 +10,35 @@ Be respectful, inclusive, and constructive in all interactions. We're building t
 
 ### Reporting Bugs
 
-1. Check if the bug has already been reported in [Issues](https://github.com/yourusername/iaruba/issues)
-2. If not, create a new issue with:
+1. Check if the bug has already been reported in [Issues](https://github.com/bernardopg/iaruba/issues)
+2. If not, create a new issue using the **Bug Report** template with:
    - Clear, descriptive title
    - Steps to reproduce
    - Expected vs actual behavior
-   - System information (OS, Haskell version, audio system)
-   - Relevant logs from `~/.config/iaruba/logs/`
+   - System information (OS, audio system, Arduino hardware)
+   - Relevant logs
 
 ### Suggesting Features
 
-1. Check [Discussions](https://github.com/yourusername/iaruba/discussions) for similar ideas
-2. Create a new discussion explaining:
+1. Check [Discussions](https://github.com/bernardopg/iaruba/discussions) for similar ideas
+2. Create a new issue using the **Feature Request** template explaining:
    - The problem you're trying to solve
    - Your proposed solution
    - Alternative approaches considered
-   - Any implementation ideas
 
 ### Contributing Code
 
 #### Prerequisites
 
-- Haskell Stack installed
-- System dependencies (see README.md)
+- [Haskell Stack](https://docs.haskellstack.org/) installed
+- System dependencies (see [README.md](README.md#prerequisites))
 - Familiarity with Haskell and functional programming
-- Understanding of audio systems (PulseAudio/PipeWire) is helpful
 
 #### Development Workflow
 
 1. **Fork and Clone**
    ```bash
-   git clone https://github.com/yourusername/iaruba.git
+   git clone https://github.com/YOUR-USERNAME/iaruba.git
    cd iaruba
    ```
 
@@ -59,33 +57,29 @@ Be respectful, inclusive, and constructive in all interactions. We're building t
 
 4. **Test Your Changes**
    ```bash
-   # Run all tests
-   stack test
+   # Build and run tests
+   make build test
 
    # Run linter
-   stack exec -- hlint src/
+   make lint
 
    # Format code
-   find src -name "*.hs" -exec ormolu -i {} \;
-
-   # Build and test locally
-   stack build
-   stack run
+   make format
    ```
 
 5. **Commit Your Changes**
-   ```bash
-   git add .
-   git commit -m "feat: add slider inversion support"
-   ```
 
-   Commit message format:
+   Commit message format (Conventional Commits):
    - `feat:` - New feature
    - `fix:` - Bug fix
    - `docs:` - Documentation changes
    - `refactor:` - Code refactoring
    - `test:` - Test additions/changes
    - `chore:` - Build/tooling changes
+
+   ```bash
+   git commit -m "feat: add slider inversion support"
+   ```
 
 6. **Push and Create Pull Request**
    ```bash
@@ -94,15 +88,14 @@ Be respectful, inclusive, and constructive in all interactions. We're building t
    Then create a PR on GitHub with:
    - Clear description of changes
    - Reference to related issues
-   - Screenshots for UI changes
    - Test results
 
 ## Code Style
 
 ### Haskell Style
 
-- **Formatting:** Use Ormolu (runs automatically in CI)
-- **Linting:** Fix all HLint suggestions
+- **Formatting:** Use [Ormolu](https://github.com/tweag/ormolu) (runs automatically in CI)
+- **Linting:** Fix all [HLint](https://github.com/ndmitchell/hlint) suggestions
 - **Naming:**
   - Functions: `camelCase`
   - Types: `PascalCase`
@@ -111,8 +104,6 @@ Be respectful, inclusive, and constructive in all interactions. We're building t
 ### Module Structure
 
 ```haskell
-{-# LANGUAGE OverloadedStrings #-}
-
 module Audio.Mixer
   ( -- * Types
     SliderValue(..)
@@ -126,27 +117,11 @@ import Audio.Sink (Sink)
 import Config.Types (Config)
 ```
 
-### Documentation
-
-- Add Haddock comments for all exported functions
-- Include examples for non-obvious functions
-- Document error cases and edge cases
-
-```haskell
--- | Calculate volume from slider value.
---
--- >>> calculateVolume (SliderValue 512)
--- Volume 0.5
---
--- Slider values range from 0-1023, mapping linearly to 0.0-1.0.
-calculateVolume :: SliderValue -> Volume
-```
-
 ### Testing
 
-- Write property-based tests for pure functions
-- Write integration tests for I/O operations
-- Aim for >80% code coverage
+- Write property-based tests (QuickCheck) for pure functions
+- Write unit tests (HSpec) for deterministic behavior
+- Aim for meaningful test coverage on core logic
 
 ```haskell
 spec :: Spec
@@ -157,18 +132,6 @@ spec = describe "Audio.Mixer" $ do
                      in vol >= 0.0 && vol <= 1.0
 ```
 
-## Project Structure
-
-Key directories:
-- `src/Audio/` - PulseAudio/PipeWire integration
-- `src/GUI/` - GTK interface
-- `src/Config/` - Configuration management
-- `src/Hardware/` - Serial communication
-- `test/` - Test suites
-- `docs/` - Documentation
-
-See [CLAUDE.md](CLAUDE.md) for detailed architecture.
-
 ## Adding New Features
 
 ### New Audio Target Type
@@ -178,7 +141,6 @@ See [CLAUDE.md](CLAUDE.md) for detailed architecture.
 3. Add parser in `src/Config/Parser.hs`
 4. Add tests in `test/Audio/`
 5. Update `config/example.yaml` with example
-6. Document in `docs/guides/configuration.md`
 
 ### New GUI Component
 
@@ -186,8 +148,6 @@ See [CLAUDE.md](CLAUDE.md) for detailed architecture.
 2. Define widget structure
 3. Wire up signals to STM state
 4. Integrate in `src/GUI/MainWindow.hs`
-5. Add styling in `assets/themes/`
-6. Test with different themes
 
 ## Review Process
 
@@ -201,12 +161,10 @@ See [CLAUDE.md](CLAUDE.md) for detailed architecture.
    - Code quality and style
    - Test coverage
    - Documentation completeness
-   - Architecture fit
 
 3. **Approval:**
    - At least one maintainer approval required
    - Address all review comments
-   - Squash commits if requested
 
 ## Release Process
 
@@ -218,17 +176,4 @@ See [CLAUDE.md](CLAUDE.md) for detailed architecture.
 4. Push tag: `git push origin v0.2.0`
 5. GitHub Actions automatically builds and creates release
 
-## Getting Help
-
-- **Questions:** [GitHub Discussions](https://github.com/yourusername/iaruba/discussions)
-- **Chat:** Join our Discord (coming soon)
-- **Email:** maintainer@iaruba.dev (coming soon)
-
-## Recognition
-
-Contributors are recognized in:
-- `README.md` contributors section
-- Release notes
-- Project website (coming soon)
-
-Thank you for contributing to Iarubá!
+Thank you for contributing to Iaruba!
