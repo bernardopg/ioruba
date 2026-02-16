@@ -174,7 +174,7 @@ iaruba/
 │   ├── Docs/         # Documentation generation
 │   └── Utils/        # Shared utilities (logging, errors)
 ├── app/              # Application entry points
-├── test/             # Test suites (HSpec + QuickCheck)
+├── test/             # Test suites (Hspec + QuickCheck)
 ├── arduino/          # Arduino firmware sketches
 ├── config/           # Example configurations and profiles
 ├── docs/             # User documentation and guides
