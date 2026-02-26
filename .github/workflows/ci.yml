@@ -55,7 +55,7 @@ jobs:
         run: stack build --test --no-run-tests --pedantic
 
       - name: Run tests
-        run: stack test
+        run: stack test --pedantic
 
   lint:
     name: Lint (HLint)
