@@ -63,11 +63,11 @@ jobs:
       - name: Generate changelog
         id: changelog
         run: |
+          PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || true)
           {
             echo "CHANGELOG<<EOF"
-            if git describe --tags --abbrev=0 HEAD^ 2>/dev/null; then
-              PREV_TAG=$(git describe --tags --abbrev=0 HEAD^)
-              git log --pretty=format:"- %s (%h)" ${PREV_TAG}..HEAD
+            if [ -n "$PREV_TAG" ]; then
+              git log --pretty=format:"- %s (%h)" "${PREV_TAG}"..HEAD
             else
               git log --pretty=format:"- %s (%h)"
             fi
