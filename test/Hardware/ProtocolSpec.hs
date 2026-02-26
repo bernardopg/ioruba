@@ -43,9 +43,9 @@ spec = describe "Hardware.Protocol" $ do
       let result = parseSliderData "abc"
       result `shouldSatisfy` isLeft
 
-    it "rejects empty input" $ do
+    it "parses empty input as empty state" $ do
       let result = parseSliderData ""
-      result `shouldSatisfy` isLeft
+      result `shouldBe` Right (SliderState [])
 
     it "handles values with whitespace" $ do
       let result = parseSliderData " 512 "
