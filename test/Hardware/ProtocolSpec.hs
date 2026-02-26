@@ -1,7 +1,6 @@
 module Hardware.ProtocolSpec (spec) where
 
 import Audio.Mixer (SliderValue (..))
-import qualified Data.ByteString.Char8 as BS
 import Hardware.Protocol
 import Test.Hspec
 import Test.QuickCheck
