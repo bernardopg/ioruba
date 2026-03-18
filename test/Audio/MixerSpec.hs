@@ -6,6 +6,9 @@ import Config.Types (NoiseReduction (..))
 import Test.Hspec
 import Test.QuickCheck
 
+finiteDouble :: Gen Double
+finiteDouble = arbitrary `suchThat` (\x -> not (isNaN x) && not (isInfinite x))
+
 spec :: Spec
 spec = describe "Audio.Mixer" $ do
   describe "calculateVolume" $ do
@@ -95,10 +98,12 @@ spec = describe "Audio.Mixer" $ do
       smoothTransition start end 1.5 `shouldBe` end
 
     it "produces values between start and end for any valid progress" $
-      property $ \(start' :: Double) (end' :: Double) (progress :: Double) -> do
-        let s = abs start'
-            e = abs end'
-            p = abs progress
-            Volume result = smoothTransition (Volume (min s e)) (Volume (max s e)) p
-        result `shouldSatisfy` (>= min s e)
-        result `shouldSatisfy` (<= max s e)
+      property $
+        forAll finiteDouble $ \start' ->
+          forAll finiteDouble $ \end' ->
+            forAll finiteDouble $ \progress ->
+              let s = abs start'
+                  e = abs end'
+                  p = abs progress
+                  Volume result = smoothTransition (Volume (min s e)) (Volume (max s e)) p
+               in result >= min s e && result <= max s e
