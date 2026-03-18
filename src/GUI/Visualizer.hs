@@ -7,18 +7,18 @@ module GUI.Visualizer
 import Audio.Sink (Volume(..))
 
 -- | Audio level visualizer widget
-data Visualizer = Visualizer
+newtype Visualizer = Visualizer
   { visualizerLevel :: Volume
   } deriving (Show)
 
 -- | Create a new visualizer widget
 createVisualizer :: IO Visualizer
-createVisualizer = do
+createVisualizer =
   -- TODO: Implement GTK/Cairo visualizer
-  return $ Visualizer { visualizerLevel = Volume 0.0 }
+  pure $ Visualizer { visualizerLevel = Volume 0.0 }
 
 -- | Update visualizer with new audio level
 updateLevel :: Visualizer -> Volume -> IO ()
-updateLevel viz level = do
+updateLevel _ _ =
   -- TODO: Implement level update and redraw
-  return ()
+  pure ()

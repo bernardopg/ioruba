@@ -7,34 +7,33 @@ module Audio.PulseAudio
   ) where
 
 import Audio.Sink (Volume(..))
-import Control.Monad.IO.Class (MonadIO, liftIO)
 
 -- | PulseAudio connection context
-data PulseContext = PulseContext
+newtype PulseContext = PulseContext
   { pulseConnected :: Bool
   } deriving (Show)
 
 -- | Initialize PulseAudio connection
 initPulseAudio :: IO (Either String PulseContext)
-initPulseAudio = do
+initPulseAudio =
   -- TODO: Initialize actual PulseAudio connection
   -- For now, return a dummy context
-  return $ Right $ PulseContext { pulseConnected = True }
+  pure $ Right $ PulseContext { pulseConnected = True }
 
 -- | Close PulseAudio connection
 closePulseAudio :: PulseContext -> IO ()
-closePulseAudio ctx = do
+closePulseAudio _ =
   -- TODO: Implement cleanup
-  return ()
+  pure ()
 
 -- | Set master volume
 setMasterVolume :: PulseContext -> Volume -> IO ()
-setMasterVolume ctx vol = do
+setMasterVolume _ _ =
   -- TODO: Implement master volume control
-  return ()
+  pure ()
 
 -- | Get master volume
 getMasterVolume :: PulseContext -> IO Volume
-getMasterVolume ctx = do
+getMasterVolume _ =
   -- TODO: Implement master volume reading
-  return $ Volume 0.5
+  pure $ Volume 0.5

@@ -40,10 +40,7 @@ validateSerial serial
 
 -- | Validate slider configurations
 validateSliders :: [SliderConfig] -> [ValidationError]
-validateSliders sliders = concat
-  [ checkDuplicateIds
-  , concatMap validateSlider sliders
-  ]
+validateSliders sliders = checkDuplicateIds ++ concatMap validateSlider sliders
   where
     sliderIds = map sliderId sliders
     checkDuplicateIds =

@@ -6,24 +6,24 @@ module GUI.MainWindow
   ) where
 
 -- | Main application window
-data MainWindow = MainWindow
+newtype MainWindow = MainWindow
   { windowTitle :: String
   } deriving (Show)
 
 -- | Create the main application window
 createMainWindow :: IO MainWindow
-createMainWindow = do
+createMainWindow =
   -- TODO: Implement GTK window creation
-  return $ MainWindow { windowTitle = "Ioruba Audio Mixer" }
+  pure $ MainWindow { windowTitle = "Ioruba Audio Mixer" }
 
 -- | Show the main window
 showWindow :: MainWindow -> IO ()
-showWindow win = do
+showWindow _ =
   -- TODO: Implement window showing
-  return ()
+  pure ()
 
 -- | Hide the main window
 hideWindow :: MainWindow -> IO ()
-hideWindow win = do
+hideWindow _ =
   -- TODO: Implement window hiding
-  return ()
+  pure ()

@@ -5,6 +5,10 @@ on:
     tags:
       - 'v*'
 
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   create-release:
     name: Create Release
@@ -29,6 +33,16 @@ jobs:
           ghc-version: '9.6.6'
           enable-stack: true
           stack-version: 'latest'
+
+      - name: Cache Stack dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.stack
+            .stack-work
+          key: ${{ runner.os }}-stack-${{ hashFiles('stack.yaml.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-stack-
 
       - name: Build release binary
         run: |

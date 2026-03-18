@@ -8,6 +8,7 @@ module Utils.Logging
   ) where
 
 import Data.Text (Text)
+import qualified Data.Text as T
 import qualified Data.Text.IO as TIO
 
 -- | Log level
@@ -20,30 +21,28 @@ data LogLevel
 
 -- | Initialize logger
 initLogger :: LogLevel -> IO ()
-initLogger minLevel = do
+initLogger _ =
   -- TODO: Implement fast-logger setup
-  return ()
+  pure ()
 
 -- | Log debug message
 logDebug :: Text -> IO ()
-logDebug msg = logMessage Debug msg
+logDebug = logMessage Debug
 
 -- | Log info message
 logInfo :: Text -> IO ()
-logInfo msg = logMessage Info msg
+logInfo = logMessage Info
 
 -- | Log warning message
 logWarn :: Text -> IO ()
-logWarn msg = logMessage Warning msg
+logWarn = logMessage Warning
 
 -- | Log error message
 logError :: Text -> IO ()
-logError msg = logMessage Error msg
+logError = logMessage Error
 
 -- | Internal logging function
 logMessage :: LogLevel -> Text -> IO ()
-logMessage level msg = do
+logMessage level msg =
   -- TODO: Implement proper structured logging
-  TIO.putStrLn $ formatLog level msg
-  where
-    formatLog lvl m = "[" <> (read $ show lvl :: Text) <> "] " <> m
+  TIO.putStrLn $ "[" <> T.pack (show level) <> "] " <> msg
