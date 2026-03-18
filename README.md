@@ -52,13 +52,13 @@ Control individual application volumes, master output, microphone input, and mor
 **System Dependencies:**
 ```bash
 # Debian/Ubuntu
-sudo apt install libpulse-dev libgtk-3-dev libappindicator3-dev libsqlite3-dev
+sudo apt install libpulse-dev libgtk-3-dev libappindicator3-dev
 
 # Fedora
-sudo dnf install pulseaudio-libs-devel gtk3-devel libappindicator-gtk3-devel sqlite-devel
+sudo dnf install pulseaudio-libs-devel gtk3-devel libappindicator-gtk3-devel
 
 # Arch Linux
-sudo pacman -S libpulse gtk3 libappindicator-gtk3 sqlite
+sudo pacman -S libpulse gtk3 libappindicator-gtk3
 ```
 
 **Haskell Stack:**
