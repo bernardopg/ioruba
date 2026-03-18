@@ -1,0 +1,13 @@
+#!/usr/bin/env xdg-open
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Controlador de Áudio
+GenericName=Mixer de Áudio Arduino
+Comment=Controle volume do sistema com Arduino Nano
+Icon=audio-controller
+Exec=/home/bitter/development/arduino_audio_controller/audio_controller_gui_wrapper.sh
+Terminal=false
+Categories=AudioVideo;Audio;Mixer;GTK;
+Keywords=audio;volume;mixer;arduino;potentiometer;
+StartupNotify=true

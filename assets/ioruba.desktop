@@ -1,13 +1,14 @@
+#!/usr/bin/env xdg-open
 [Desktop Entry]
 Version=1.0
 Type=Application
-Name=Iarubá Audio Mixer
+Name=Ioruba Audio Mixer
 GenericName=Hardware Audio Mixer
 Comment=Control audio with physical sliders
-Icon=iaruba
-Exec=iaruba
+Icon=ioruba
+Exec=ioruba
 Terminal=false
 Categories=AudioVideo;Audio;Mixer;
 Keywords=audio;mixer;volume;arduino;slider;
 StartupNotify=true
-StartupWMClass=Iaruba
+StartupWMClass=Ioruba

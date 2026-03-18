@@ -1,6 +1,6 @@
-# Contributing to Iarubá
+# Contributing to Ioruba
 
-Thank you for your interest in contributing to Iarubá! This document provides guidelines and instructions for contributing.
+Thank you for your interest in contributing to Ioruba! This document provides guidelines and instructions for contributing.
 
 ## Code of Conduct
 
@@ -10,17 +10,17 @@ Be respectful, inclusive, and constructive in all interactions. We're building t
 
 ### Reporting Bugs
 
-1. Check if the bug has already been reported in [Issues](https://github.com/yourusername/iaruba/issues)
+1. Check if the bug has already been reported in [Issues](https://github.com/bernardopg/ioruba/issues)
 2. If not, create a new issue with:
    - Clear, descriptive title
    - Steps to reproduce
    - Expected vs actual behavior
    - System information (OS, Haskell version, audio system)
-   - Relevant logs from `~/.config/iaruba/logs/`
+   - Relevant logs from `~/.config/ioruba/logs/`
 
 ### Suggesting Features
 
-1. Check [Discussions](https://github.com/yourusername/iaruba/discussions) for similar ideas
+1. Check [Discussions](https://github.com/bernardopg/ioruba/discussions) for similar ideas
 2. Create a new discussion explaining:
    - The problem you're trying to solve
    - Your proposed solution
@@ -40,8 +40,8 @@ Be respectful, inclusive, and constructive in all interactions. We're building t
 
 1. **Fork and Clone**
    ```bash
-   git clone https://github.com/yourusername/iaruba.git
-   cd iaruba
+   git clone https://github.com/bernardopg/ioruba.git
+   cd ioruba
    ```
 
 2. **Create a Branch**
@@ -220,9 +220,9 @@ See [CLAUDE.md](CLAUDE.md) for detailed architecture.
 
 ## Getting Help
 
-- **Questions:** [GitHub Discussions](https://github.com/yourusername/iaruba/discussions)
+- **Questions:** [GitHub Discussions](https://github.com/bernardopg/ioruba/discussions)
 - **Chat:** Join our Discord (coming soon)
-- **Email:** maintainer@iaruba.dev (coming soon)
+- **Email:** maintainer@ioruba.dev (coming soon)
 
 ## Recognition
 
@@ -231,4 +231,4 @@ Contributors are recognized in:
 - Release notes
 - Project website (coming soon)
 
-Thank you for contributing to Iarubá!
+Thank you for contributing to Ioruba!

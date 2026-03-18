@@ -1,4 +1,4 @@
-# Testing Guide for Iarubá
+# Testing Guide for Ioruba
 
 ## Testing Serial Communication
 
@@ -28,7 +28,7 @@ stack exec test-serial /tmp/vserial2
 1. **Upload Firmware:**
    ```bash
    # Open Arduino IDE
-   # File → Open → arduino/iaruba-mixer/iaruba-mixer.ino
+   # File → Open → arduino/ioruba-mixer/ioruba-mixer.ino
    # Tools → Board → Arduino Uno (or your board)
    # Tools → Port → /dev/ttyUSB0 (or your port)
    # Click Upload
@@ -47,7 +47,7 @@ stack exec test-serial /tmp/vserial2
    # You should see: 512|768|1023|0|256
    ```
 
-4. **Run Iarubá Test:**
+4. **Run Ioruba Test:**
    ```bash
    stack exec test-serial /dev/ttyUSB0
    ```
@@ -133,7 +133,7 @@ Once serial communication works, test the full application:
 
 ```bash
 # Run main application
-stack exec iaruba
+stack exec ioruba
 
 # In another terminal, move sliders
 # Application should adjust volume

@@ -1,5 +1,5 @@
 /*
- * Iarubá Audio Mixer - Arduino Nano Firmware
+ * Ioruba Audio Mixer - Arduino Nano Firmware
  *
  * For Arduino Nano (ATmega328P) with 3 potentiometers
  * Reads 3 analog potentiometers and sends values via serial
@@ -29,6 +29,13 @@ void setup() {
     knobValues[i] = 0;
     lastSentValues[i] = 0;
   }
+
+  // Push the initial state so the host starts synchronized.
+  for (int i = 0; i < NUM_KNOBS; i++) {
+    knobValues[i] = analogRead(ANALOG_PINS[i]);
+  }
+  sendValues();
+  copyValues();
 
   // Blink LED quickly on startup
   for (int i = 0; i < 6; i++) {

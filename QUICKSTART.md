@@ -1,6 +1,6 @@
 # Quick Start Guide
 
-Get Iarubá up and running in 5 minutes!
+Get Ioruba up and running in 5 minutes!
 
 ## Prerequisites Check
 
@@ -49,18 +49,18 @@ stack run -- --config config/example.yaml
 
 2. **Edit config:**
    ```bash
-   cp config/example.yaml config/iaruba.yaml
-   nano config/iaruba.yaml
+   cp config/example.yaml config/ioruba.yaml
+   nano config/ioruba.yaml
    # Update serial.port to match your device
    ```
 
 3. **Upload Arduino firmware:**
-   - Open `arduino/iaruba-mixer/iaruba-mixer.ino` in Arduino IDE
+   - Open `arduino/ioruba-mixer/ioruba-mixer.ino` in Arduino IDE
    - Select your board (Tools → Board → Arduino Uno)
    - Select your port (Tools → Port → /dev/ttyUSB0)
    - Click Upload
 
-4. **Run Iarubá:**
+4. **Run Ioruba:**
    ```bash
    stack run
    ```
@@ -69,7 +69,7 @@ stack run -- --config config/example.yaml
 
 1. Move your physical sliders
 2. Check serial output in Arduino IDE Serial Monitor (should show values like `512|768|1023|0|256`)
-3. Launch Iarubá
+3. Launch Ioruba
 4. Play audio and adjust sliders
 5. Verify volume changes in your applications
 

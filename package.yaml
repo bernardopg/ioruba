@@ -1,10 +1,10 @@
-name: iaruba
+name: ioruba
 version: 0.1.0.0
-github: "yourusername/iaruba"
+github: "bernardopg/ioruba"
 license: MIT
-author: "Your Name"
-maintainer: "your.email@example.com"
-copyright: "2025 Your Name"
+author: "Bernardo Gomes"
+maintainer: "bernardopg@users.noreply.github.com"
+copyright: "2025 Bernardo Gomes"
 
 extra-source-files:
   - README.md
@@ -14,7 +14,7 @@ extra-source-files:
 synopsis: Functional audio mixer with hardware control for Linux
 category: Audio
 description: |
-  Iarubá is a modern audio control system that bridges physical hardware
+  Ioruba is a modern audio control system that bridges physical hardware
   (Arduino-based sliders) with your Linux system's audio. Built with Haskell,
   it provides a clean functional architecture with a GTK-based GUI.
 
@@ -83,7 +83,7 @@ library:
     - Utils.Error
 
 executables:
-  iaruba:
+  ioruba:
     main: Main.hs
     source-dirs: app
     ghc-options:
@@ -91,10 +91,10 @@ executables:
       - -rtsopts
       - -with-rtsopts=-N
     dependencies:
-      - iaruba
+      - ioruba
     when:
       - condition: false
-        other-modules: Paths_iaruba
+        other-modules: Paths_ioruba
 
   test-serial:
     main: Main.hs
@@ -104,10 +104,10 @@ executables:
       - -rtsopts
       - -with-rtsopts=-N
     dependencies:
-      - iaruba
+      - ioruba
 
 tests:
-  iaruba-test:
+  ioruba-test:
     main: Spec.hs
     source-dirs: test
     ghc-options:
@@ -115,7 +115,7 @@ tests:
       - -rtsopts
       - -with-rtsopts=-N
     dependencies:
-      - iaruba
+      - ioruba
       - hspec
       - hspec-discover
       - QuickCheck

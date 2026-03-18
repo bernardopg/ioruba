@@ -4,14 +4,16 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**Iarubá** is a functional reimplementation of the deej audio mixer project, designed specifically for Linux with cross-platform support. It provides hardware-based audio control through Arduino with a modern GTK-based GUI.
+**Ioruba** is a functional reimplementation of the deej audio mixer project, designed specifically for Linux with cross-platform support. It provides hardware-based audio control through Arduino with a modern GTK-based GUI.
 
 **Core Technologies:**
 - **Language:** Haskell (Stack build system)
 - **GUI:** GTK+ 3 with gi-gtk bindings
 - **Audio:** PulseAudio/PipeWire via libpulse bindings
 - **Hardware:** Serial communication with Arduino (via serialport library)
-- **Config:** YAML/TOML for configuration files
+- **Config:** YAML for configuration files
+
+The archived Python/GTK4 prototype from `arduino_audio_controller` is preserved under `legacy/arduino-audio-controller/` for reference.
 
 ## Development Commands
 
@@ -39,7 +41,7 @@ stack clean
 stack test
 
 # Run specific test suite
-stack test :iaruba-test
+stack test :ioruba-test
 
 # Run tests with coverage
 stack test --coverage
@@ -194,25 +196,25 @@ sudo usermod -a -G dialout $USER
 
 ## Configuration Files
 
-**Main Config (`config/iaruba.yaml`):**
+**Main Config (`config/ioruba.yaml`):**
 Defines slider mappings, serial port, audio profiles. See example in `config/example.yaml`.
 
 **Profiles (`config/profiles/*.yaml`):**
 Named audio scenarios that can be quickly switched.
 
-**GUI State (`~/.config/iaruba/state.yaml`):**
+**GUI State (`~/.config/ioruba/state.yaml`):**
 Window position, theme preference, last used profile.
 
 ## Arduino Integration
 
-The Arduino sketch is in `arduino/iaruba-mixer/`. It reads analog pins and sends values at 9600 baud:
+The Arduino sketch is in `arduino/ioruba-mixer/`. It reads analog pins and sends values at 9600 baud:
 ```
 0|512|1023|768|256
 ```
 
 Upload to Arduino using Arduino IDE or `platformio`:
 ```bash
-cd arduino/iaruba-mixer
+cd arduino/ioruba-mixer
 pio run --target upload
 ```
 

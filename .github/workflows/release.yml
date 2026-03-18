@@ -33,16 +33,16 @@ jobs:
       - name: Build release binary
         run: |
           stack build --copy-bins --local-bin-path ./dist
-          strip ./dist/iaruba
+          strip ./dist/ioruba
 
       - name: Create tarball
         run: |
-          mkdir -p iaruba-release
-          cp ./dist/iaruba iaruba-release/
-          cp -r config iaruba-release/
-          cp README.md iaruba-release/
-          cp LICENSE iaruba-release/
-          tar -czf iaruba-linux-x64.tar.gz iaruba-release/
+          mkdir -p ioruba-release
+          cp ./dist/ioruba ioruba-release/
+          cp -r config ioruba-release/
+          cp README.md ioruba-release/
+          cp LICENSE ioruba-release/
+          tar -czf ioruba-linux-x64.tar.gz ioruba-release/
 
       - name: Generate changelog
         id: changelog
@@ -55,16 +55,16 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            iaruba-linux-x64.tar.gz
+            ioruba-linux-x64.tar.gz
           body: |
             ## Changes
             ${{ steps.changelog.outputs.CHANGELOG }}
 
             ## Installation
             ```bash
-            tar -xzf iaruba-linux-x64.tar.gz
-            cd iaruba-release
-            ./iaruba
+            tar -xzf ioruba-linux-x64.tar.gz
+            cd ioruba-release
+            ./ioruba
             ```
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

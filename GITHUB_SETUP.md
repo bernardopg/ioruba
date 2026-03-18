@@ -6,7 +6,7 @@
 
 Go to https://github.com/new and create a new repository with:
 
-- **Repository name**: `iaruba`
+- **Repository name**: `ioruba`
 - **Description**: `🎚️ Functional audio mixer with hardware control for Linux`
 - **Visibility**: Public (or Private if you prefer)
 - **❌ DO NOT** initialize with README, .gitignore, or license (we already have them)
@@ -17,14 +17,14 @@ After creating the repository on GitHub, run:
 
 ```bash
 # Add GitHub as remote origin
-git remote add origin https://github.com/YOUR_USERNAME/iaruba.git
+git remote add origin https://github.com/bernardopg/ioruba.git
 
 # Push main branch and tags
 git push -u origin main
 git push origin --tags
 ```
 
-Replace `YOUR_USERNAME` with your actual GitHub username.
+Replace `bernardopg` with your actual GitHub username.
 
 ### 3. Configure Repository Settings
 
@@ -59,7 +59,7 @@ If you have GitHub CLI (`gh`) installed:
 
 ```bash
 # Create repository
-gh repo create iaruba --public --description "🎚️ Functional audio mixer with hardware control for Linux" --source=.
+gh repo create ioruba --public --description "🎚️ Functional audio mixer with hardware control for Linux" --source=.
 
 # Push
 git push -u origin main
@@ -103,7 +103,7 @@ If you get permission errors:
 
 ```bash
 # Use SSH instead of HTTPS
-git remote set-url origin git@github.com:YOUR_USERNAME/iaruba.git
+git remote set-url origin git@github.com:bernardopg/ioruba.git
 ```
 
 Make sure you have SSH keys configured on GitHub.

@@ -1,8 +1,8 @@
-# 🎉 Iarubá - Project Summary
+# 🎉 Ioruba - Project Summary
 
 ## ✅ Project Successfully Created!
 
-**Repository**: https://github.com/bernardopg/iaruba
+**Repository**: https://github.com/bernardopg/ioruba
 
 ---
 
@@ -16,12 +16,14 @@
 - **Git Commit**: `dc31275` (2 commits total)
 - **Version**: v0.1.0
 
+> The core stats above cover the active Haskell project tree; the archived Python prototype lives under `legacy/arduino-audio-controller/` and is preserved separately.
+
 ---
 
 ## 🏗️ Project Structure
 
 ```
-iarubá/
+ioruba/
 ├── src/              # 23 Haskell modules
 │   ├── Audio/       # PulseAudio/Mixer/Sink/Source (4 modules)
 │   ├── Config/      # Types/Parser/Validation/Profiles (4 modules)
@@ -36,6 +38,7 @@ iarubá/
 ├── config/          # YAML configurations + profiles
 ├── docs/            # Guides and tutorials
 ├── .github/         # CI/CD workflows
+├── legacy/arduino-audio-controller/  # Archived Python/GTK4 prototype
 └── test/            # Test suite (scaffolded)
 ```
 
@@ -52,7 +55,7 @@ iarubá/
 - ✅ Logging framework
 
 ### Hardware
-- ✅ Arduino firmware for 5 sliders (iaruba-mixer.ino)
+- ✅ Arduino firmware for 5 sliders (ioruba-mixer.ino)
 - ✅ Serial protocol parser (pipe-separated values)
 - ✅ Device detection utilities
 
@@ -104,9 +107,9 @@ iarubá/
 
 ## 🔗 Quick Links
 
-- **Repository**: https://github.com/bernardopg/iaruba
+- **Repository**: https://github.com/bernardopg/ioruba
 - **Local Path**: `/home/bitter/projects/iarubá`
-- **Executable**: `.stack-work/install/.../bin/iaruba`
+- **Executable**: `.stack-work/install/.../bin/ioruba`
 
 ## 🛠️ Development Commands
 

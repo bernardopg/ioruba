@@ -1,7 +1,7 @@
 .PHONY: build test clean install format lint help
 
 help:
-	@echo "Iarubá - Makefile targets:"
+	@echo "Ioruba - Makefile targets:"
 	@echo "  build      - Build the project"
 	@echo "  test       - Run tests"
 	@echo "  clean      - Clean build artifacts"

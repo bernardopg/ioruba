@@ -1,6 +1,6 @@
 # Hardware Setup Guide
 
-This guide will walk you through building the physical hardware for Iarubá.
+This guide will walk you through building the physical hardware for Ioruba.
 
 ## Required Components
 
@@ -61,8 +61,8 @@ For each potentiometer (repeat 5 times for A0-A4):
 ### 4. Upload Firmware
 
 ```bash
-cd arduino/iaruba-mixer
-# Using Arduino IDE: Open iaruba-mixer.ino and click Upload
+cd arduino/ioruba-mixer
+# Using Arduino IDE: Open ioruba-mixer.ino and click Upload
 # OR using PlatformIO:
 pio run --target upload
 ```
@@ -115,6 +115,6 @@ Files for a reference PCB design will be added in future releases.
 ## Next Steps
 
 Once hardware is working:
-1. Configure `config/iaruba.yaml` with your serial port
-2. Run Iarubá and test slider mapping
+1. Configure `config/ioruba.yaml` with your serial port
+2. Run Ioruba and test slider mapping
 3. Create custom profiles for different use cases

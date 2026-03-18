@@ -1,5 +1,5 @@
 /*
- * Iarubá Audio Mixer - Arduino Firmware
+ * Ioruba Audio Mixer - Arduino Firmware
  *
  * Reads 5 analog potentiometers and sends values via serial
  * Format: value0|value1|value2|value3|value4\n
@@ -22,6 +22,13 @@ void setup() {
     sliderValues[i] = 0;
     lastSentValues[i] = 0;
   }
+
+  // Push the initial state so the host starts synchronized.
+  for (int i = 0; i < NUM_SLIDERS; i++) {
+    sliderValues[i] = analogRead(ANALOG_PINS[i]);
+  }
+  sendValues();
+  copyValues();
 }
 
 void loop() {

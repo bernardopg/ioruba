@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Arduino Simulator for Iarubá
+Arduino Simulator for Ioruba
 Simulates an Arduino sending slider values over serial.
 """
 
@@ -60,7 +60,7 @@ def simulate_sliders(num_sliders=5, mode='random', interval=0.05):
 
 def main():
     parser = argparse.ArgumentParser(
-        description='Simulate Arduino slider output for Iarubá testing',
+        description='Simulate Arduino slider output for Ioruba testing',
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog='''
 Examples:

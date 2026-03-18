@@ -14,7 +14,7 @@ data MainWindow = MainWindow
 createMainWindow :: IO MainWindow
 createMainWindow = do
   -- TODO: Implement GTK window creation
-  return $ MainWindow { windowTitle = "Iarubá Audio Mixer" }
+  return $ MainWindow { windowTitle = "Ioruba Audio Mixer" }
 
 -- | Show the main window
 showWindow :: MainWindow -> IO ()

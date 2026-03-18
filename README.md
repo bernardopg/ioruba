@@ -1,4 +1,4 @@
-# Iarubá - Functional Audio Mixer for Linux
+# Ioruba - Functional Audio Mixer for Linux
 
 <div align="center">
 
@@ -12,11 +12,13 @@
 
 </div>
 
+![Screenshot](assets/screenshot.png)
+
 ---
 
 ## Overview
 
-**Iarubá** is a Linux-native audio control system that bridges physical hardware (Arduino-based sliders) with your system's audio. Inspired by [deej](https://github.com/omriharel/deej), Iarubá is built from the ground up in Haskell with a focus on:
+**Ioruba** is a Linux-native audio control system that bridges physical hardware (Arduino-based sliders) with your system's audio. Inspired by [deej](https://github.com/omriharel/deej), Ioruba is built from the ground up in Haskell with a focus on:
 
 - **Functional purity** - Predictable, testable, maintainable code
 - **Modern UI/UX** - Clean GTK-based interface with dark/light themes
@@ -89,8 +91,8 @@ sudo usermod -a -G dialout $USER
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/iaruba.git
-cd iaruba
+git clone https://github.com/bernardopg/ioruba.git
+cd ioruba
 
 # Build
 stack build
@@ -99,7 +101,19 @@ stack build
 stack install
 
 # Run
-iaruba
+ioruba
+```
+
+### Desktop Integration
+
+```bash
+# Install launcher and icon
+mkdir -p ~/.local/share/applications
+cp assets/ioruba.desktop ~/.local/share/applications/
+
+mkdir -p ~/.local/share/icons/hicolor/128x128/apps
+cp assets/icon.png ~/.local/share/icons/hicolor/128x128/apps/ioruba.png
+gtk-update-icon-cache ~/.local/share/icons/hicolor/
 ```
 
 ### Hardware Setup
@@ -110,23 +124,23 @@ iaruba
 
 2. **Upload Arduino Sketch:**
    ```bash
-   cd arduino/iaruba-mixer
+   cd arduino/ioruba-mixer
    # Using Arduino IDE: Open and upload
    # OR using PlatformIO:
    pio run --target upload
    ```
 
 3. **Configure Serial Port:**
-   - Edit `config/iaruba.yaml`
+   - Edit `config/ioruba.yaml`
    - Set `serial_port` to your Arduino device (e.g., `/dev/ttyUSB0`)
 
 ## Quick Start
 
 ### First Run
 
-1. **Launch Iarubá:**
+1. **Launch Ioruba:**
    ```bash
-   iaruba
+   ioruba
    ```
 
 2. **Configure Slider Mappings:**
@@ -141,7 +155,7 @@ iaruba
 
 ### Example Configuration
 
-`config/iaruba.yaml`:
+`config/ioruba.yaml`:
 ```yaml
 serial:
   port: /dev/ttyUSB0
@@ -207,7 +221,7 @@ gui:
 ### Project Structure
 
 ```
-iarubá/
+ioruba/
 ├── src/               # Haskell source code
 │   ├── Audio/        # PulseAudio/PipeWire integration
 │   ├── GUI/          # GTK interface components
@@ -220,7 +234,8 @@ iarubá/
 ├── arduino/          # Arduino firmware
 ├── docs/             # Documentation
 ├── config/           # Example configurations
-└── assets/           # Icons, themes, resources
+├── assets/           # Icons, themes, resources
+└── legacy/arduino-audio-controller/  # Archived Python/GTK4 prototype
 ```
 
 ### Running Tests
@@ -230,13 +245,13 @@ iarubá/
 stack test
 
 # Specific test suite
-stack test :iaruba-test
+stack test :ioruba-test
 
 # With coverage
 stack test --coverage
 
 # Watch mode (using ghcid)
-ghcid --command "stack ghci iaruba:lib iaruba:test:iaruba-test" --test "main"
+ghcid --command "stack ghci ioruba:lib ioruba:test:ioruba-test" --test "main"
 ```
 
 ### Code Style
@@ -289,9 +304,9 @@ MIT License - see [LICENSE](LICENSE) for details.
 
 ## Support
 
-- **Issues:** [GitHub Issues](https://github.com/yourusername/iaruba/issues)
-- **Discussions:** [GitHub Discussions](https://github.com/yourusername/iaruba/discussions)
-- **Documentation:** [Wiki](https://github.com/yourusername/iaruba/wiki)
+- **Issues:** [GitHub Issues](https://github.com/bernardopg/ioruba/issues)
+- **Discussions:** [GitHub Discussions](https://github.com/bernardopg/ioruba/discussions)
+- **Documentation:** [Wiki](https://github.com/bernardopg/ioruba/wiki)
 
 ---
 

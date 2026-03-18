@@ -8,13 +8,13 @@ import System.Exit (exitFailure)
 -- | Main entry point
 main :: IO ()
 main = do
-  putStrLn "Starting Iarubá Audio Mixer..."
+  putStrLn "Starting Ioruba Audio Mixer..."
 
   -- Parse command line arguments
   args <- getArgs
   let configPath = case args of
         ("--config":path:_) -> path
-        _ -> "config/iaruba.yaml"
+        _ -> "config/ioruba.yaml"
 
   -- Load configuration
   putStrLn $ "Loading configuration from: " ++ configPath

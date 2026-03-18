@@ -72,7 +72,7 @@ newgrp dialout
 ### 3. Upload usando Arduino IDE
 
 1. Abra Arduino IDE
-2. File → Open → `arduino/iaruba-nano-3knobs/iaruba-nano-3knobs.ino`
+2. File → Open → `arduino/ioruba-nano-3knobs/ioruba-nano-3knobs.ino`
 3. Tools → Board → "Arduino Nano"
 4. Tools → Processor → "ATmega328P" (ou "ATmega328P (Old Bootloader)" se necessário)
 5. Tools → Port → "/dev/ttyUSB0" (ou sua porta)
@@ -85,8 +85,8 @@ newgrp dialout
 curl -fsSL https://raw.githubusercontent.com/arduino/arduino-cli/master/install.sh | sh
 
 # Compilar e fazer upload
-arduino-cli compile --fqbn arduino:avr:nano arduino/iaruba-nano-3knobs
-arduino-cli upload -p /dev/ttyUSB0 --fqbn arduino:avr:nano arduino/iaruba-nano-3knobs
+arduino-cli compile --fqbn arduino:avr:nano arduino/ioruba-nano-3knobs
+arduino-cli upload -p /dev/ttyUSB0 --fqbn arduino:avr:nano arduino/ioruba-nano-3knobs
 ```
 
 ## Verificar Funcionamento
@@ -99,7 +99,7 @@ arduino-cli upload -p /dev/ttyUSB0 --fqbn arduino:avr:nano arduino/iaruba-nano-3
 4. Gire os potenciômetros e veja os valores mudarem
 5. LED no Arduino deve piscar quando valores mudam
 
-### 2. Testar com Iarubá
+### 2. Testar com Ioruba
 
 ```bash
 # Descobrir a porta do Arduino Nano

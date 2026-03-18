@@ -58,7 +58,7 @@ jobs:
         with:
           files: ./coverage/coverage.txt
           flags: unittests
-          name: codecov-iaruba
+          name: codecov-ioruba
 
       - name: Run HLint
         run: |
