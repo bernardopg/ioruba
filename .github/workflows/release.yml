@@ -42,7 +42,7 @@ jobs:
           path: |
             ~/.stack
             .stack-work
-          key: ${{ runner.os }}-stack-release-${{ hashFiles('stack.yaml.lock', 'package.yaml', 'ioruba.cabal') }}
+          key: ${{ runner.os }}-stack-release-${{ hashFiles('stack.yaml.lock', 'package.yaml') }}
           restore-keys: |
             ${{ runner.os }}-stack-release-
             ${{ runner.os }}-stack-

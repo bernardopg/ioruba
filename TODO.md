@@ -51,7 +51,7 @@ Updated for the current repository state on `2026-03-19`.
 - [ ] Add Debian/Ubuntu packaging metadata for desktop distribution
 - [ ] Add CI smoke coverage that boots the runtime with a serial simulator
 - [ ] Add release signing and provenance for binaries and firmware bundles
-- [ ] Decide whether `ioruba.cabal` should be untracked or auto-generated during release version bumps
+- [ ] Decide whether release artifacts should include a generated `.cabal` file for external package consumers
 - [ ] Decide whether the first public automated release should be `v0.2.0` or a later cut after more runtime polish
 - [ ] Add a clear support matrix for:
   - Haskell runtime
