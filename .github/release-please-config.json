@@ -7,8 +7,14 @@
       "include-v-in-tag": true,
       "pull-request-title-pattern": "chore: release ${version}",
       "extra-files": [
-        "package.yaml",
-        "ioruba.cabal"
+        {
+          "type": "generic",
+          "path": "package.yaml"
+        },
+        {
+          "type": "generic",
+          "path": "ioruba.cabal"
+        }
       ]
     }
   }
