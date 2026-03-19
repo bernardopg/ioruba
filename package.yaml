@@ -1,16 +1,14 @@
 name: ioruba
-version: 0.1.0
-github: "bernardopg/ioruba"
+version: 0.2.0
+github: bernardopg/ioruba
 license: MIT
-author: "Bernardo Gomes"
-maintainer: "bernardopg@users.noreply.github.com"
-copyright: "2025 Bernardo Gomes"
-
+author: Bernardo Gomes
+maintainer: bernardopg@users.noreply.github.com
+copyright: 2025 Bernardo Gomes
 extra-source-files:
   - README.md
   - CLAUDE.md
   - CHANGELOG.md
-
 synopsis: Hardware-driven Linux audio mixer with a Haskell runtime
 category: Audio
 description: |
@@ -18,61 +16,39 @@ description: |
   (Arduino Nano knobs and sliders) with PipeWire or PulseAudio. Built with
   Haskell, it now focuses on a real runtime, modern release automation, and a
   distribution-friendly product path.
-
 dependencies:
-  # Base
   - base >= 4.7 && < 5
   - text
   - bytestring
-
-  # Concurrency
   - stm
   - async
-
-  # Data structures
   - containers
   - unordered-containers
   - vector
-
-  # Serialization
   - aeson
   - yaml
-
-  # Error handling
   - mtl
   - transformers
   - exceptions
-
-  # File system
   - filepath
   - directory
   - unix
   - process
-
-  # Time
   - time
-
-  # Testing
   - QuickCheck
-
-  # Utilities
   - ansi-terminal
   - split
   - extra
-
-  # Serial communication
   - serialport
-
 ghc-options:
-  - -Wall
-  - -Wcompat
-  - -Widentities
-  - -Wincomplete-record-updates
-  - -Wincomplete-uni-patterns
-  - -Wmissing-export-lists
-  - -Wredundant-constraints
-  - -Wno-unused-top-binds
-
+  - '-Wall'
+  - '-Wcompat'
+  - '-Widentities'
+  - '-Wincomplete-record-updates'
+  - '-Wincomplete-uni-patterns'
+  - '-Wmissing-export-lists'
+  - '-Wredundant-constraints'
+  - '-Wno-unused-top-binds'
 library:
   source-dirs: src
   exposed-modules:
@@ -89,45 +65,41 @@ library:
     - Config.Parser
     - Config.Validation
     - Utils.Error
-
 executables:
   ioruba:
     main: Main.hs
     source-dirs: app
     ghc-options:
-      - -threaded
-      - -rtsopts
-      - -with-rtsopts=-N
+      - '-threaded'
+      - '-rtsopts'
+      - '-with-rtsopts=-N'
     dependencies:
       - ioruba
     when:
       - condition: false
         other-modules: Paths_ioruba
-
   test-serial:
     main: Main.hs
     source-dirs: app/test-serial
     ghc-options:
-      - -threaded
-      - -rtsopts
-      - -with-rtsopts=-N
+      - '-threaded'
+      - '-rtsopts'
+      - '-with-rtsopts=-N'
     dependencies:
       - ioruba
-
 tests:
   ioruba-test:
     main: Spec.hs
     source-dirs: test
     ghc-options:
-      - -threaded
-      - -rtsopts
-      - -with-rtsopts=-N
+      - '-threaded'
+      - '-rtsopts'
+      - '-with-rtsopts=-N'
     dependencies:
       - ioruba
       - hspec
       - hspec-discover
       - QuickCheck
-
 default-extensions:
   - OverloadedStrings
   - LambdaCase
