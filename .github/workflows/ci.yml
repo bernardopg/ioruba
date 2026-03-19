@@ -112,6 +112,23 @@ jobs:
         run: |
           test -f .github/workflows/ci.yml
           test -f .github/workflows/release.yml
+          test -f CONTRIBUTING.md
+          test -f legacy/README.md
+          test -f legacy/haskell-runtime/package.yaml
+          test -f legacy/github-automation/.github/release-please-config.json
           test ! -f .github/workflows/release-please.yml
           test ! -f .github/workflows/pages.yml
           test ! -f .github/workflows/sync-metadata.yml
+          test ! -d app
+          test ! -d src
+          test ! -d test
+          test ! -d config
+          test ! -d arduino
+          test ! -d assets
+          test ! -d scripts
+          test ! -d packaging
+          test ! -f package.yaml
+          test ! -f stack.yaml
+          test ! -f Makefile
+          test ! -f .github/release-please-config.json
+          test ! -f docs/config.yaml

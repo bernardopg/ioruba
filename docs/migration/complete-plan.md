@@ -39,7 +39,8 @@
 5. Replace YAML/UI-state persistence with one persisted JSON model.
 6. Rebuild CI and release workflows around Node, Rust, Arduino, and Tauri.
 7. Update the documentation to reflect the new repository structure.
-8. Test shared logic, desktop state, Rust backend, and firmware build.
+8. Archive the retired runtime and obsolete automation into `legacy/`.
+9. Test shared logic, desktop state, Rust backend, and firmware build.
 
 ## Delivered In This Repository Update
 
@@ -48,9 +49,11 @@
 - new Arduino firmware in `firmware/arduino/ioruba-controller`
 - new GitHub Actions for CI and release
 - migration audit and GitHub rollout plan in `docs/migration`
+- archived Haskell runtime under `legacy/haskell-runtime`
+- archived Pages and Release Please tooling under `legacy/github-automation`
 
 ## Remaining Practical Follow-up
 
 - generate production icon assets for all Tauri bundle formats
 - sign macOS and Windows installers in GitHub using the correct secrets
-- optionally archive the old Haskell runtime into a dedicated legacy subtree
+- decide whether the product copy should explicitly state that real per-target audio control is Linux-first until non-Linux backends exist

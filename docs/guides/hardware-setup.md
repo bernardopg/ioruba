@@ -1,6 +1,6 @@
 # Hardware Setup Guide
 
-This repository targets a practical `Arduino Nano + 3 potentiometers` build that feeds the Haskell runtime.
+This repository targets a practical `Arduino Nano + 3 potentiometers` build that feeds the Tauri desktop app.
 
 ## Required parts
 
@@ -49,19 +49,19 @@ Arduino Nano
 Compile:
 
 ```bash
-arduino-cli compile --fqbn arduino:avr:nano arduino/ioruba-nano-3knobs
+arduino-cli compile --fqbn arduino:avr:nano firmware/arduino/ioruba-controller
 ```
 
 Upload for standard Nano boards:
 
 ```bash
-arduino-cli upload -p /dev/ttyUSB0 --fqbn arduino:avr:nano arduino/ioruba-nano-3knobs
+arduino-cli upload -p /dev/ttyUSB0 --fqbn arduino:avr:nano firmware/arduino/ioruba-controller
 ```
 
 Upload for common clones with the old bootloader:
 
 ```bash
-arduino-cli upload -p /dev/ttyUSB0 --fqbn arduino:avr:nano:cpu=atmega328old arduino/ioruba-nano-3knobs
+arduino-cli upload -p /dev/ttyUSB0 --fqbn arduino:avr:nano:cpu=atmega328old firmware/arduino/ioruba-controller
 ```
 
 ## Expected serial output
@@ -77,17 +77,19 @@ The runtime also accepts the legacy `P1:512` style protocol.
 Once the hardware is wired and flashed:
 
 ```bash
-stack exec test-serial /dev/ttyUSB0
-stack exec ioruba
+cd apps/desktop
+npm run tauri dev
 ```
 
 Expected runtime behavior:
 
 - the Nano is auto-detected
 - packets are shown in the dashboard
-- knob 1 moves `master`
+- knob 1 can move `master`
 - knob 2 can target apps
 - knob 3 can target `default_microphone`
+
+If you need the retired Haskell implementation for comparison, it now lives in `legacy/haskell-runtime`.
 
 ## Troubleshooting
 

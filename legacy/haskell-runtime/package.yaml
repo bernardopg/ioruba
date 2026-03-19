@@ -8,7 +8,6 @@ copyright: 2025 Bernardo Gomes
 extra-source-files:
   - README.md
   - CLAUDE.md
-  - CHANGELOG.md
 synopsis: Hardware-driven Linux audio mixer with a Haskell runtime
 category: Audio
 description: |

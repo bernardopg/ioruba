@@ -5,7 +5,7 @@ This matrix tracks whether the important Python/Haskell behavior was carried int
 ## Serial Protocol
 
 - Python `parse_line` from `legacy/arduino-audio-controller/audio_controller.py`: implemented in `packages/shared/src/protocol.ts`
-- Haskell `sanitizeSerialPayload` and `parseSliderData` from `src/Hardware/Protocol.hs`: implemented in `packages/shared/src/protocol.ts`
+- Haskell `sanitizeSerialPayload` and `parseSliderData` from `legacy/haskell-runtime/src/Hardware/Protocol.hs`: implemented in `packages/shared/src/protocol.ts`
 - Legacy `P1:512` compatibility: preserved in `parseSliderPacket`
 
 ## Slider Math

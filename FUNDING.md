@@ -1,6 +1,6 @@
 # Funding Ioruba
 
-If Ioruba is useful to you, sponsorship helps fund the work required to turn it from a promising hardware mixer into a polished, distributed Linux product.
+If Ioruba is useful to you, sponsorship helps fund the work required to keep the Tauri desktop app, Rust backend, and Arduino firmware maintained.
 
 ## Support options
 
@@ -24,9 +24,9 @@ If you prefer to support directly from your phone, scan the QR code below:
 
 Support goes toward:
 
-- replacing the legacy runtime with a distributable Haskell-first product
-- polishing the Linux desktop experience, visuals, and packaging
-- keeping the release pipeline, documentation, and hardware support public and maintained
+- hardening the Tauri desktop shell and Linux audio backend
+- improving firmware compatibility across Nano variants
+- maintaining CI, release automation, and migration documentation
 
 ## Contact
 

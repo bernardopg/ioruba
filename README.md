@@ -10,7 +10,7 @@ The migration replaces the old Python/Haskell runtime path, with special attenti
 - Linux audio backend rewritten in Rust using `pactl`
 - serial communication moved to the Tauri serial plugin
 - JSON persistence replaces split YAML + UI-state storage
-- GitHub Actions rebuilt around Node, Rust, Arduino, and Tauri installers
+- old Haskell/runtime and repo-surface tooling archived under `legacy/`
 
 [Releases](https://github.com/bernardopg/ioruba/releases) | [Funding](FUNDING.md) | [Quick Start](QUICKSTART.md) | [Testing](TESTING.md)
 
@@ -21,7 +21,9 @@ The migration replaces the old Python/Haskell runtime path, with special attenti
 - `packages/shared`: serial protocol, runtime math, defaults, and migration-safe models
 - `firmware/arduino/ioruba-controller`: Arduino firmware for Nano-compatible boards
 - `docs/migration`: migration plan, GitHub plan, and logic audit
-- `legacy`: historical Python implementation and audit notes used to verify parity
+- `legacy/haskell-runtime`: archived Haskell runtime, configs, release scripts, and GTK/TUI experiments
+- `legacy/github-automation`: archived Pages and Release Please automation from the pre-Tauri repo surface
+- `legacy/arduino-audio-controller`: archived Python/GTK prototype kept for parity reference
 
 ## What Works In The New Stack
 
@@ -65,7 +67,11 @@ The audit of Python/Haskell coverage is tracked here:
 
 ## Legacy Reference
 
-The old Python and Haskell implementations remain in the repository only as migration references. They are no longer the main runtime path.
+The old implementations are kept only as archive material:
+
+- Haskell runtime and packaging: `legacy/haskell-runtime`
+- Python/GTK prototype: `legacy/arduino-audio-controller`
+- Pages and Release Please tooling: `legacy/github-automation`
 
 ## License
 

@@ -6,7 +6,7 @@
 //   P3:1023
 //
 // The desktop app also accepts the newer pipe-separated format from
-// `arduino/ioruba-nano-3knobs/`, but this legacy sketch is kept here as a
+// `legacy/haskell-runtime/arduino/ioruba-nano-3knobs/`, but this legacy sketch is kept here as a
 // reference for the original controller flow.
 
 const int NUM_KNOBS = 3;
