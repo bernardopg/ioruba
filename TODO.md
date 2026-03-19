@@ -1,0 +1,87 @@
+# TODO
+
+Atualizado para o projeto ativo em `2026-03-19`.
+
+Formato:
+
+- descrição `(tag/tag/tag)` - `fácil|médio|difícil`
+
+## Scrum 01
+
+- Trocar o `window.alert` do editor JSON por validação inline com destaque de erro e estado de salvamento `(frontend/ux/error)` - `médio`
+- Melhorar estados de conexão serial com loading, retry manual e mensagens mais claras por fase `(frontend/backend/debug)` - `médio`
+- Respeitar `autoConnect` no boot e consolidar a heurística entre porta preferida, última porta e autodetecção `(backend/serial/runtime)` - `médio`
+- Adicionar testes cobrindo transições de status `booting/ready/searching/connecting/connected/error` na store `(test/coverage/debug)` - `médio`
+- Documentar o fluxo atual do app desktop e o papel de `apps/desktop`, `packages/shared` e `firmware/` `(docs/refs/architecture)` - `fácil`
+
+## Scrum 02
+
+- Criar UI para listar, selecionar, duplicar, renomear e remover perfis sem editar JSON bruto `(frontend/design/state)` - `médio`
+- Adicionar editor estruturado para sliders, targets e preferências do perfil em paralelo ao JSON avançado `(frontend/ux/forms)` - `difícil`
+- Permitir reorder dos knobs e edição do nome/target direto na interface `(frontend/design/usability)` - `médio`
+- Cobrir migração e normalização de perfis persistidos ao adicionar novos campos `(test/migration/coverage)` - `médio`
+- Publicar exemplos reais de perfis JSON para master/app/source/sink `(docs/config/refs)` - `fácil`
+
+## Scrum 03
+
+- Melhorar a resolução de aplicações com nomes duplicados e múltiplos `sink-inputs` no backend Linux `(backend/audio/error)` - `difícil`
+- Evitar reaplicação redundante de volume com deduplicação/debounce de updates por knob `(backend/performance/runtime)` - `médio`
+- Exibir no frontend por que um target falhou ou ficou indisponível sem depender só de texto genérico `(frontend/backend/debug)` - `médio`
+- Adicionar testes de parsing e falha para inventário `pactl` com payloads incompletos ou quebrados `(test/backend/coverage)` - `médio`
+- Documentar regras de matching para `application`, `source`, `sink` e defaults do Linux `(docs/backend/refs)` - `fácil`
+
+## Scrum 04
+
+- Definir a experiência de produto para plataformas sem backend real, incluindo banners, limitações e fallback explícito `(frontend/product/ux)` - `médio`
+- Implementar backend de áudio para Windows com API nativa ou estratégia equivalente `(backend/audio/windows)` - `difícil`
+- Implementar backend de áudio para macOS com API nativa ou estratégia equivalente `(backend/audio/macos)` - `difícil`
+- Adicionar cobertura de CI e smoke checks por plataforma com expectativa clara de suporte `(ci/test/release)` - `médio`
+- Publicar uma matriz oficial de suporte por sistema operacional e recurso `(docs/platform/release)` - `fácil`
+
+## Scrum 05
+
+- Implementar handshake de firmware com nome da placa, versão e protocolo na conexão serial `(firmware/protocol/backend)` - `médio`
+- Adicionar calibração por knob com persistência em EEPROM `(firmware/hardware/calibration)` - `difícil`
+- Permitir dead zones, smoothing e thresholds configuráveis sem editar o sketch manualmente `(firmware/config/performance)` - `difícil`
+- Melhorar o filtro de portas para reduzir ruído de `/dev/tty*` irrelevantes na UI `(frontend/backend/serial)` - `médio`
+- Criar testes de integração com simulador serial para reconexão, heartbeat e frames inválidos `(test/firmware/debug)` - `difícil`
+
+## Scrum 06
+
+- Revisar navegação por teclado, foco visível e ordem de tab em toda a UI `(frontend/accessibility/design)` - `médio`
+- Adicionar labels acessíveis, descrições e regiões ao vivo para mudanças de status e outcomes `(frontend/accessibility/ux)` - `médio`
+- Completar internacionalização PT-BR/EN em toda a interface, inclusive diagnósticos e mensagens de erro `(frontend/i18n/docs)` - `médio`
+- Revisar contraste, estados visuais e variações de tema com foco em legibilidade `(frontend/design/accessibility)` - `médio`
+- Incluir testes e checklist de acessibilidade no pipeline de revisão `(test/accessibility/coverage)` - `médio`
+
+## Scrum 07
+
+- Gerar ícones finais de produção para todos os formatos de bundle do Tauri `(design/release/branding)` - `médio`
+- Configurar assinatura e notarização para Windows e macOS no pipeline `(release/security/ops)` - `difícil`
+- Revisar metadados de empacotamento Linux e qualidade do bundle desktop `(release/linux/distribution)` - `médio`
+- Adicionar checksums, provenance e validações finais de release no workflow `(release/security/ci)` - `médio`
+- Documentar instalação, update e recuperação em caso de bundle quebrado `(docs/release/support)` - `fácil`
+
+## Scrum 08
+
+- Implementar logging estruturado no frontend e no Rust backend para sessões reais `(backend/frontend/observability)` - `médio`
+- Adicionar painel ou export de diagnóstico com snapshot do estado, inventário e erros recentes `(frontend/backend/support)` - `médio`
+- Criar backup/migração segura do estado persistido antes de mudanças de schema `(backend/security/migration)` - `médio`
+- Melhorar mensagens de erro para serial ocupada, `pactl` ausente e perfil inválido `(frontend/backend/error)` - `fácil`
+- Publicar playbook de suporte para bugs de áudio, firmware e serial `(docs/debug/support)` - `fácil`
+
+## Scrum 09
+
+- Otimizar a telemetria para sessões longas e janelas maiores sem inflar memória `(frontend/performance/charts)` - `médio`
+- Revisar bundle do frontend e separar ainda melhor código de gráficos se necessário `(frontend/performance/build)` - `médio`
+- Melhorar a suavização visual dos knobs respeitando `transitionDurationMs` e estado aplicado `(frontend/audio/design)` - `médio`
+- Adicionar medições de tempo de boot, reconexão e refresh de inventário `(debug/performance/observability)` - `médio`
+- Fazer um passe de polish em microcopy, empty states e feedback visual `(frontend/design/polish)` - `fácil`
+
+## Scrum 10
+
+- Criar onboarding inicial com checklist de firmware, porta serial e inventário de áudio `(frontend/onboarding/docs)` - `médio`
+- Adicionar import/export de perfis para backup e compartilhamento `(frontend/backend/data)` - `médio`
+- Permitir presets prontos para casos comuns como streaming, chamadas e música `(frontend/product/config)` - `fácil`
+- Estudar suporte a múltiplos controladores ou mais de 3 knobs no modelo do domínio `(backend/firmware/architecture)` - `difícil`
+- Definir backlog pós-migração com metas de produto além da paridade com o legado `(product/docs/roadmap)` - `fácil`

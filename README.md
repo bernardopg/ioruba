@@ -12,7 +12,7 @@ The migration replaces the old Python/Haskell runtime path, with special attenti
 - JSON persistence replaces split YAML + UI-state storage
 - old Haskell/runtime and repo-surface tooling archived under `legacy/`
 
-[Releases](https://github.com/bernardopg/ioruba/releases) | [Funding](FUNDING.md) | [Quick Start](QUICKSTART.md) | [Testing](TESTING.md)
+[Releases](https://github.com/bernardopg/ioruba/releases) | [Funding](FUNDING.md) | [Quick Start](QUICKSTART.md) | [Testing](TESTING.md) | [Roadmap](TODO.md)
 
 ## Repository Layout
 
