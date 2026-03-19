@@ -105,6 +105,8 @@ The public Pages site and repository metadata are driven by [`docs/config.yaml`]
 - [TESTING.md](TESTING.md): hardware and serial testing
 - [docs/config.yaml](docs/config.yaml): Pages navigation, repository description, topics, and owner metadata
 
+For fully chained automation, set `RELEASE_PLEASE_TOKEN` in GitHub so the release PR, tag, GitHub Release, and downstream artifact workflow can all fan out without manual intervention.
+
 ## Visual Archive
 
 The repository still keeps the legacy desktop screenshots as a design archive and product reference:

@@ -51,6 +51,7 @@ Updated for the current repository state on `2026-03-19`.
 - [ ] Add Debian/Ubuntu packaging metadata for desktop distribution
 - [ ] Add CI smoke coverage that boots the runtime with a serial simulator
 - [ ] Add release signing and provenance for binaries and firmware bundles
+- [ ] Add a dedicated `RELEASE_PLEASE_TOKEN` secret in GitHub so release publication can trigger downstream artifact workflows automatically
 - [ ] Decide whether release artifacts should include a generated `.cabal` file for external package consumers
 - [ ] Decide whether the first public automated release should be `v0.2.0` or a later cut after more runtime polish
 - [ ] Add a clear support matrix for:

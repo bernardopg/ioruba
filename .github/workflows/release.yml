@@ -5,6 +5,11 @@ on:
     types:
       - published
   workflow_dispatch:
+    inputs:
+      tag_name:
+        description: Release tag to build, for example v0.2.0
+        required: true
+        type: string
 
 permissions:
   contents: write
@@ -18,7 +23,7 @@ jobs:
     name: Build Release Bundle
     runs-on: ubuntu-latest
     env:
-      TAG_NAME: ${{ github.event.release.tag_name || github.ref_name }}
+      TAG_NAME: ${{ github.event.release.tag_name || github.event.inputs.tag_name || github.ref_name }}
 
     steps:
       - name: Checkout
