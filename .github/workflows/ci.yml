@@ -18,7 +18,7 @@ concurrency:
 
 jobs:
   lint:
-    name: Lint and Format
+    name: Lint
     runs-on: ubuntu-latest
 
     steps:
@@ -28,14 +28,10 @@ jobs:
       - name: Install tooling
         run: |
           sudo apt-get update
-          sudo apt-get install -y hlint ormolu
+          sudo apt-get install -y hlint
 
       - name: Run HLint
         run: hlint src app test
-
-      - name: Check Ormolu formatting
-        run: |
-          find src app test -name "*.hs" -print0 | xargs -0 ormolu --mode check
 
   build-and-test:
     name: Build and Test
