@@ -20,7 +20,9 @@ build_root="$(mktemp -d "${TMPDIR:-/tmp}/ioruba-arch-package.XXXXXX")"
 context_dir="${build_root}/arch-context"
 
 cleanup() {
-  rm -rf "${build_root}"
+  if [ -d "${build_root}" ]; then
+    rm -rf "${build_root}" 2>/dev/null || true
+  fi
 }
 
 trap cleanup EXIT
@@ -78,18 +80,44 @@ build_with_makepkg() {
 }
 
 build_with_docker() {
+  local host_uid host_gid
+  host_uid="$(id -u)"
+  host_gid="$(id -g)"
+
   docker run --rm \
     -e IORUBA_PKGVER="${version}" \
     -e IORUBA_PKGREL="${pkgrel}" \
+    -e HOST_UID="${host_uid}" \
+    -e HOST_GID="${host_gid}" \
     -v "${context_dir}:/pkg" \
     -w /pkg \
     archlinux:latest \
     /bin/bash -lc '
+      set -euo pipefail
+
       pacman -Syu --noconfirm base-devel >/dev/null
-      useradd -m builder
-      chown -R builder:builder /pkg
-      su builder -s /bin/bash -c "cd /pkg && IORUBA_PKGVER=${IORUBA_PKGVER} IORUBA_PKGREL=${IORUBA_PKGREL} makepkg --force --cleanbuild --nodeps --noconfirm"
-      su builder -s /bin/bash -c "cd /pkg && IORUBA_PKGVER=${IORUBA_PKGVER} IORUBA_PKGREL=${IORUBA_PKGREL} makepkg --printsrcinfo > .SRCINFO"
+      group_name="$(getent group "${HOST_GID}" | cut -d: -f1 || true)"
+      if [ -z "${group_name}" ]; then
+        groupadd -g "${HOST_GID}" builder
+        group_name="builder"
+      fi
+
+      user_name="$(getent passwd "${HOST_UID}" | cut -d: -f1 || true)"
+      if [ -z "${user_name}" ]; then
+        useradd -m -u "${HOST_UID}" -g "${HOST_GID}" builder
+        user_name="builder"
+      else
+        usermod -g "${group_name}" "${user_name}"
+      fi
+
+      user_home="$(getent passwd "${user_name}" | cut -d: -f6)"
+      mkdir -p "${user_home}"
+      chown -R "${HOST_UID}:${HOST_GID}" "${user_home}" /pkg
+
+      su "${user_name}" -s /bin/bash -c "cd /pkg && IORUBA_PKGVER=${IORUBA_PKGVER} IORUBA_PKGREL=${IORUBA_PKGREL} makepkg --force --cleanbuild --nodeps --noconfirm"
+      su "${user_name}" -s /bin/bash -c "cd /pkg && IORUBA_PKGVER=${IORUBA_PKGVER} IORUBA_PKGREL=${IORUBA_PKGREL} makepkg --printsrcinfo > .SRCINFO"
+
+      chown -R "${HOST_UID}:${HOST_GID}" /pkg
     '
 }
 
