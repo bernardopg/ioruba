@@ -1,6 +1,6 @@
 # Arduino Nano Setup with 3 Potentiometers
 
-This guide matches the hardware path that now drives the Haskell runtime:
+This guide matches the hardware path that now drives the Tauri desktop app:
 
 - `Arduino Nano ATmega328P`
 - `3x B10K` potentiometers
@@ -31,15 +31,15 @@ This guide matches the hardware path that now drives the Haskell runtime:
 
 Use:
 
-- [arduino/ioruba-nano-3knobs/ioruba-nano-3knobs.ino](arduino/ioruba-nano-3knobs/ioruba-nano-3knobs.ino)
+- [firmware/arduino/ioruba-controller/ioruba-controller.ino](firmware/arduino/ioruba-controller/ioruba-controller.ino)
 
 That sketch sends:
 
 - smoothed readings
-- heartbeat packets every `500ms`
+- frames every `40ms` when the values move
 - pipe-separated lines like `512|768|1023`
 
-The runtime still accepts the legacy `P1:512` protocol for compatibility.
+The desktop runtime still accepts the legacy `P1:512` protocol for compatibility.
 
 ## Check the device
 
@@ -70,7 +70,7 @@ Then log out and back in.
 ## Compile
 
 ```bash
-arduino-cli compile --fqbn arduino:avr:nano arduino/ioruba-nano-3knobs
+arduino-cli compile --fqbn arduino:avr:nano firmware/arduino/ioruba-controller
 ```
 
 ## Upload
@@ -78,13 +78,13 @@ arduino-cli compile --fqbn arduino:avr:nano arduino/ioruba-nano-3knobs
 Standard Nano profile:
 
 ```bash
-arduino-cli upload -p /dev/ttyUSB0 --fqbn arduino:avr:nano arduino/ioruba-nano-3knobs
+arduino-cli upload -p /dev/ttyUSB0 --fqbn arduino:avr:nano firmware/arduino/ioruba-controller
 ```
 
 Old bootloader profile for clones:
 
 ```bash
-arduino-cli upload -p /dev/ttyUSB0 --fqbn arduino:avr:nano:cpu=atmega328old arduino/ioruba-nano-3knobs
+arduino-cli upload -p /dev/ttyUSB0 --fqbn arduino:avr:nano:cpu=atmega328old firmware/arduino/ioruba-controller
 ```
 
 ## If upload fails
@@ -112,27 +112,12 @@ With the board flashed, you should see:
 512|768|1023
 ```
 
-Quick serial smoke test:
+Quick smoke test:
 
-```bash
-stack exec test-serial /dev/ttyUSB0
-```
-
-## Validate the Haskell runtime
-
-Run:
-
-```bash
-stack exec ioruba
-```
-
-Expected behavior:
-
-- the runtime auto-detects the serial port
-- a live dashboard appears in the terminal
-- knob 1 controls `master`
-- knob 2 can control configured application streams
-- knob 3 controls `default_microphone`
+- open the Tauri desktop app
+- choose the detected port
+- verify the knob values move in the telemetry chart
+- confirm audio targets respond
 
 ## Useful debug checks
 
@@ -147,10 +132,3 @@ List active audio applications:
 ```bash
 pactl list short sink-inputs
 ```
-
-If the runtime connects but reports no readings:
-
-- reflash the Nano
-- verify `9600` baud
-- confirm the firmware is sending output in the serial monitor
-- check whether the knobs are wired to `A0`, `A1`, and `A2`

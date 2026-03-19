@@ -17,72 +17,99 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  lint:
-    name: Lint
+  desktop-and-shared:
+    name: Desktop And Shared
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
 
-      - name: Install tooling
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache Rust
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: |
+            apps/desktop/src-tauri -> target
+
+      - name: Install Linux desktop dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y hlint
+          sudo apt-get install -y \
+            libwebkit2gtk-4.1-dev \
+            libgtk-3-dev \
+            librsvg2-dev \
+            patchelf
 
-      - name: Run HLint
-        run: hlint src app test
+      - name: Install NPM dependencies
+        run: npm ci
 
-  build-and-test:
-    name: Build and Test
-    runs-on: ubuntu-latest
-    needs: lint
+      - name: Typecheck shared package
+        run: npm run shared:typecheck
 
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v6
+      - name: Typecheck desktop app
+        run: npm run desktop:typecheck
 
-      - name: Setup Haskell
-        uses: haskell-actions/setup@v2
-        with:
-          ghc-version: "9.6.6"
-          enable-stack: true
-          stack-version: latest
+      - name: Run shared tests
+        run: npm run shared:test
 
-      - name: Cache Stack
-        uses: actions/cache@v5
-        with:
-          path: |
-            ~/.stack
-            .stack-work
-          key: ${{ runner.os }}-stack-${{ hashFiles('stack.yaml.lock', 'package.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-stack-
+      - name: Run desktop tests
+        run: npm run desktop:test
 
-      - name: Build
-        run: stack build --test --no-run-tests
+      - name: Run Rust tests
+        run: cargo test --manifest-path apps/desktop/src-tauri/Cargo.toml
 
-      - name: Run tests
-        run: stack test
+      - name: Build desktop app
+        run: npm run desktop:build
 
-  pages-smoke:
-    name: Pages Smoke Test
+  firmware:
+    name: Firmware
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
 
-      - name: Setup Python
-        uses: actions/setup-python@v6
-        with:
-          python-version: "3.12"
+      - name: Setup Arduino CLI
+        uses: arduino/setup-arduino-cli@v2
 
-      - name: Install page builder dependencies
-        run: python -m pip install --requirement .github/requirements-pages.txt
+      - name: Install Arduino AVR core
+        run: |
+          arduino-cli config init --overwrite
+          arduino-cli core update-index
+          arduino-cli core install arduino:avr
 
-      - name: Build site
-        run: python .github/scripts/build_pages.py
+      - name: Compile firmware
+        run: npm run firmware:compile
 
-      - name: Dry-run repository metadata sync
-        run: python .github/scripts/sync_repo_metadata.py --dry-run
+  repo-smoke:
+    name: Repo Smoke
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate migration docs
+        run: |
+          test -f docs/migration/complete-plan.md
+          test -f docs/migration/github-plan.md
+          test -f docs/migration/logic-audit.md
+          test -f firmware/arduino/ioruba-controller/ioruba-controller.ino
+          test -f apps/desktop/src-tauri/tauri.conf.json
+
+      - name: Validate workflow surface
+        run: |
+          test -f .github/workflows/ci.yml
+          test -f .github/workflows/release.yml
+          test ! -f .github/workflows/release-please.yml
+          test ! -f .github/workflows/pages.yml
+          test ! -f .github/workflows/sync-metadata.yml

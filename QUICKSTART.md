@@ -1,25 +1,22 @@
 # Quick Start Guide
 
-The main path in this repository is now the Haskell runtime in `app/` and `src/`.
-
-This guide assumes:
+This guide follows the migrated stack:
 
 - `Arduino Nano ATmega328P`
 - `3x B10K` potentiometers on `A0`, `A1`, and `A2`
-- Linux with PipeWire or PulseAudio available through `pactl`
+- `apps/desktop` for the Tauri desktop app
+- `firmware/arduino/ioruba-controller` for the firmware
+- Linux with `pactl` available for real audio control
 
 ## 1. Check prerequisites
 
 ```bash
-stack --version
+node --version
+npm --version
+rustc --version
+cargo --version
 pactl info
 arduino-cli version
-```
-
-If `stack` is missing:
-
-```bash
-curl -sSL https://get.haskellstack.org/ | sh
 ```
 
 ## 2. Confirm serial access
@@ -38,95 +35,87 @@ Then log out and back in.
 Compile:
 
 ```bash
-arduino-cli compile --fqbn arduino:avr:nano arduino/ioruba-nano-3knobs
+arduino-cli compile --fqbn arduino:avr:nano firmware/arduino/ioruba-controller
 ```
 
 Upload for standard Nano boards:
 
 ```bash
-arduino-cli upload -p /dev/ttyUSB0 --fqbn arduino:avr:nano arduino/ioruba-nano-3knobs
+arduino-cli upload -p /dev/ttyUSB0 --fqbn arduino:avr:nano firmware/arduino/ioruba-controller
 ```
 
 Upload for classic Nano clones with the old bootloader:
 
 ```bash
-arduino-cli upload -p /dev/ttyUSB0 --fqbn arduino:avr:nano:cpu=atmega328old arduino/ioruba-nano-3knobs
+arduino-cli upload -p /dev/ttyUSB0 --fqbn arduino:avr:nano:cpu=atmega328old firmware/arduino/ioruba-controller
 ```
 
-## 4. Build the runtime
+## 4. Install dependencies
 
 ```bash
-stack build
-stack test
+npm install
 ```
 
-## 5. Pick a config
-
-The runtime will prefer `config/nano-3knobs.yaml` when it exists.
-
-Useful config files:
-
-- `config/nano-3knobs.yaml`: practical default for the 3-knob Nano setup
-- `config/ioruba.yaml`: alternate root config for local remapping
-- `config/example.yaml`: example schema variant for editing from scratch
-
-To use a custom file explicitly:
+## 5. Run verification
 
 ```bash
-stack exec ioruba -- --config config/ioruba.yaml
+npm run verify
 ```
 
-## 6. Run the runtime
+## 6. Launch the desktop app
+
+Frontend only:
 
 ```bash
-stack exec ioruba
+npm run desktop:dev
+```
+
+Full Tauri desktop shell:
+
+```bash
+cd apps/desktop
+npm run tauri dev
 ```
 
 Expected behavior:
 
-- auto-detects `/dev/ttyUSB0` or `/dev/ttyACM0`
-- reconnects automatically if the board disappears
-- renders a live terminal dashboard
-- maps knob 1 to `master`
-- maps knob 2 to configured applications
-- maps knob 3 to `default_microphone`
+- auto-detects `/dev/ttyUSB*` or `/dev/ttyACM*`
+- accepts `512|768|1023` frames and legacy `P1:512`
+- persists the active profile as JSON
+- exposes a demo mode without touching system audio
+- applies real Linux audio updates through Rust + `pactl`
 
-## 7. Smoke-test the serial path
-
-```bash
-stack exec test-serial /dev/ttyUSB0
-```
-
-If you want to test without hardware:
+## 7. Build installers locally
 
 ```bash
-python3 scripts/arduino-simulator.py --mode static | stack exec test-serial /dev/stdin
+cd apps/desktop
+npm run tauri build -- --no-bundle
 ```
 
 ## Troubleshooting
 
-If upload fails:
+If Tauri fails to compile on Linux, install the WebKit/GTK development packages:
 
-- use `arduino:avr:nano:cpu=atmega328old`
-- press `RESET` right before upload starts
-- make sure no other app is holding `/dev/ttyUSB0`
+```bash
+sudo pacman -S --needed webkit2gtk-4.1 gtk3 librsvg
+```
 
-If the runtime starts but shows no packets:
+If the app starts but shows no packets:
 
-- verify the board is sending `512|768|1023`
+- confirm the board is sending `512|768|1023`
 - confirm `9600` baud
-- run `stack exec test-serial /dev/ttyUSB0` first
 - check the knob wiring on `A0`, `A1`, and `A2`
+- verify the selected serial port inside the desktop app
 
 If audio targets do not move:
 
 - confirm `pactl info` works
-- make sure the target apps actually have active audio streams
-- check the names configured in `config/*.yaml`
+- make sure target applications have active audio streams
+- inspect the profile JSON in the Config tab
 
 ## Next Steps
 
-- Read [README.md](README.md) for the product-level overview
-- Read [NANO_SETUP.md](NANO_SETUP.md) for firmware and wiring details
-- Read [TESTING.md](TESTING.md) for simulator and end-to-end checks
-- Read [TODO.md](TODO.md) for the remaining backlog
+- Read [README.md](README.md) for the new repository layout
+- Read [NANO_SETUP.md](NANO_SETUP.md) for firmware details
+- Read [TESTING.md](TESTING.md) for the validation matrix
+- Read [docs/migration/logic-audit.md](docs/migration/logic-audit.md) for parity coverage

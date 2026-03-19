@@ -3,11 +3,10 @@ resolver: lts-22.41  # GHC 9.6.6
 packages:
   - .
 
-extra-deps:
-  - serialport-0.6.0
-
 ghc-options:
   "$locals": -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wredundant-constraints
+
+apply-ghc-options: everything
 
 nix:
   enable: false

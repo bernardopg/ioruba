@@ -1,123 +1,71 @@
 # Ioruba
 
-Ioruba is a tactile Linux audio mixer for an `Arduino Nano ATmega328P` with `3x B10K` potentiometers on `A0`, `A1`, and `A2`.
+Ioruba is now a desktop control deck built with `Tauri 2 + React + TypeScript`, driven by `Arduino C++` firmware for a 3-knob hardware mixer.
 
-The main product path is now the Haskell runtime:
+The migration replaces the old Python/Haskell runtime path, with special attention to the friction that existed on Arch Linux:
 
-- real serial-to-audio control for PipeWire and PulseAudio
-- live auto-reconnect runtime with a polished terminal dashboard
-- YAML-driven knob mapping for `master`, `applications`, and `microphone`
-- automated Pages, release, and funding surface for a distribution-ready repo
+- desktop runtime moved to `apps/desktop`
+- firmware consolidated in `firmware/arduino/ioruba-controller`
+- shared domain logic ported to `packages/shared`
+- Linux audio backend rewritten in Rust using `pactl`
+- serial communication moved to the Tauri serial plugin
+- JSON persistence replaces split YAML + UI-state storage
+- GitHub Actions rebuilt around Node, Rust, Arduino, and Tauri installers
 
-[Website](https://bernardopg.github.io/ioruba/) | [Releases](https://github.com/bernardopg/ioruba/releases) | [Funding](FUNDING.md) | [Project Summary](PROJECT_SUMMARY.md)
+[Releases](https://github.com/bernardopg/ioruba/releases) | [Funding](FUNDING.md) | [Quick Start](QUICKSTART.md) | [Testing](TESTING.md)
 
-## What Works Now
+## Repository Layout
 
-- Haskell runtime executable: `stack exec ioruba`
-- Arduino Nano 3-knob setup with `512|768|1023` packets
-- Legacy protocol compatibility for `P1:512`, `P2:768`, `P3:1023`
-- Linux audio control through `pactl`, compatible with PipeWire and PulseAudio
-- Serial autodetection for `/dev/ttyUSB*` and `/dev/ttyACM*`
-- Live dashboard with status, meters, targets, and knob outcomes
-- GitHub Pages generated from [`docs/config.yaml`](docs/config.yaml)
-- Release Please, release bundles, funding surface, and repo metadata sync tooling
+- `apps/desktop`: Tauri 2 desktop app, React UI, Zustand store, Recharts telemetry
+- `apps/desktop/src-tauri`: Rust commands for persistence and Linux audio control
+- `packages/shared`: serial protocol, runtime math, defaults, and migration-safe models
+- `firmware/arduino/ioruba-controller`: Arduino firmware for Nano-compatible boards
+- `docs/migration`: migration plan, GitHub plan, and logic audit
+- `legacy`: historical Python implementation and audit notes used to verify parity
 
-## Hardware
+## What Works In The New Stack
 
-Recommended setup:
+- pipe-separated serial packets such as `512|768|1023`
+- legacy packet compatibility for `P1:512`
+- noise reduction and first-packet behavior ported from Haskell logic
+- master, application, source, and sink targets handled by the Rust backend on Linux
+- demo mode with synthetic telemetry
+- JSON profile persistence in the app config directory
+- GitHub Actions for Linux CI, firmware compile, and cross-platform Tauri releases
 
-- `1x Arduino Nano ATmega328P`
-- `3x B10K potentiometers`
-- `A0` -> knob 1 wiper
-- `A1` -> knob 2 wiper
-- `A2` -> knob 3 wiper
-- outer pins -> `5V` and `GND`
+## Local Development
 
-Detailed wiring, upload notes, and troubleshooting live in [NANO_SETUP.md](NANO_SETUP.md).
-
-## Firmware
-
-Use [arduino/ioruba-nano-3knobs/ioruba-nano-3knobs.ino](arduino/ioruba-nano-3knobs/ioruba-nano-3knobs.ino).
-
-Compile:
+Install dependencies and run checks:
 
 ```bash
-arduino-cli compile --fqbn arduino:avr:nano arduino/ioruba-nano-3knobs
+npm install
+npm run verify
 ```
 
-Upload for classic Nano clones with the old bootloader:
+Run the desktop app in development:
 
 ```bash
-arduino-cli upload -p /dev/ttyUSB0 --fqbn arduino:avr:nano:cpu=atmega328old arduino/ioruba-nano-3knobs
+npm run desktop:dev
+cd apps/desktop && npm run tauri dev
 ```
 
-## Run The Haskell Runtime
-
-Build and test:
+Compile firmware:
 
 ```bash
-stack build
-stack test
+arduino-cli compile --fqbn arduino:avr:nano firmware/arduino/ioruba-controller
 ```
 
-Run the mixer:
+## Migration Coverage
 
-```bash
-stack exec ioruba
-```
+The audit of Python/Haskell coverage is tracked here:
 
-If your Nano clone uses the old bootloader, flash the firmware with:
+- [docs/migration/complete-plan.md](docs/migration/complete-plan.md)
+- [docs/migration/github-plan.md](docs/migration/github-plan.md)
+- [docs/migration/logic-audit.md](docs/migration/logic-audit.md)
 
-```bash
-arduino-cli upload -p /dev/ttyUSB0 --fqbn arduino:avr:nano:cpu=atmega328old arduino/ioruba-nano-3knobs
-```
+## Legacy Reference
 
-Use a custom config file:
-
-```bash
-stack exec ioruba -- --config config/ioruba.yaml
-```
-
-Serial smoke tests:
-
-```bash
-stack exec test-serial /dev/ttyUSB0
-```
-
-## Configuration
-
-The runtime is driven by [`config/ioruba.yaml`](config/ioruba.yaml).
-
-Default mapping:
-
-- knob 1: master output
-- knob 2: applications such as Spotify, Google Chrome, and Firefox
-- knob 3: microphone input
-
-The public Pages site and repository metadata are driven by [`docs/config.yaml`](docs/config.yaml).
-
-## Public Surface
-
-- [FUNDING.md](FUNDING.md): sponsor links, Buy Me a Coffee, and QR support
-- [PROJECT_SUMMARY.md](PROJECT_SUMMARY.md): product direction and positioning
-- [TODO.md](TODO.md): current implementation backlog
-- [QUICKSTART.md](QUICKSTART.md): runtime quick start
-- [TESTING.md](TESTING.md): hardware and serial testing
-- [docs/config.yaml](docs/config.yaml): Pages navigation, repository description, topics, and owner metadata
-
-For fully chained automation, set `RELEASE_PLEASE_TOKEN` in GitHub so the release PR, tag, GitHub Release, and downstream artifact workflow can all fan out without manual intervention.
-
-## Visual Archive
-
-The repository still keeps the legacy desktop screenshots as a design archive and product reference:
-
-![Desktop overview](assets/screenshots/desktop-overview-pt-br.png)
-![Knob deck](assets/screenshots/knob-deck-pt-br.png)
-![English layout](assets/screenshots/english-layout.png)
-
-## Legacy Status
-
-`legacy/arduino-audio-controller/` is still preserved for reference, but it is no longer the main path. The repository is being consolidated around the Haskell runtime so the project can be shipped with a cleaner, more maintainable distribution story.
+The old Python and Haskell implementations remain in the repository only as migration references. They are no longer the main runtime path.
 
 ## License
 

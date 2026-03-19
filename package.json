@@ -1,0 +1,22 @@
+{
+  "name": "ioruba",
+  "private": true,
+  "version": "0.3.0",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "desktop:dev": "npm --workspace @ioruba/desktop run dev",
+    "desktop:typecheck": "npm --workspace @ioruba/desktop run typecheck",
+    "desktop:test": "npm --workspace @ioruba/desktop run test",
+    "desktop:build": "npm --workspace @ioruba/desktop run build",
+    "desktop:tauri:build": "npm --workspace @ioruba/desktop run tauri build -- --no-bundle",
+    "shared:typecheck": "npm --workspace @ioruba/shared run typecheck",
+    "shared:test": "npm --workspace @ioruba/shared run test",
+    "rust:test": "cargo test --manifest-path apps/desktop/src-tauri/Cargo.toml",
+    "firmware:compile": "arduino-cli compile --fqbn arduino:avr:nano firmware/arduino/ioruba-controller",
+    "verify": "npm run shared:typecheck && npm run desktop:typecheck && npm run shared:test && npm run desktop:test && npm run rust:test && npm run desktop:build",
+    "ci": "npm run verify && npm run firmware:compile"
+  }
+}

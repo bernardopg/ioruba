@@ -39,7 +39,6 @@ dependencies:
   - ansi-terminal
   - split
   - extra
-  - serialport
 ghc-options:
   - '-Wall'
   - '-Wcompat'
@@ -52,19 +51,55 @@ ghc-options:
 library:
   source-dirs: src
   exposed-modules:
+    - App.Config
+    - App.ConsoleControls
+    - App.I18n
+    - App.Mode
+    - App.Options
+    - App.Settings
+    - App.Runtime.Core
+    - App.Runtime.Commands
+    - App.Runtime.Events
+    - App.Runtime.Service
+    - App.Runtime.State
     - Audio.Backend
     - Audio.Mixer
     - Audio.PulseAudio
     - Audio.Sink
     - Audio.Source
     - GUI.MainWindow
+    - GUI.App
+    - GUI.State
     - Hardware.Device
     - Hardware.Serial
     - Hardware.Protocol
     - Config.Types
     - Config.Parser
     - Config.Validation
+    - TUI.App
+    - TUI.MainWindow
     - Utils.Error
+  other-modules:
+    - Config.Profiles
+    - Docs.Generator
+    - Docs.Interactive
+    - GUI.Bridge
+    - GUI.Dialogs.About
+    - GUI.Dialogs.Settings
+    - GUI.Settings
+    - GUI.Themes
+    - GUI.Visualizer
+    - GUI.Widgets.ConnectionCard
+    - GUI.Widgets.DiagnosticsCard
+    - GUI.Widgets.HeaderBar
+    - GUI.Widgets.KnobCard
+    - GUI.Widgets.StatusBanner
+    - GUI.Widgets.Toast
+    - Paths_ioruba
+    - Tasks.Manager
+    - Tasks.Notifications
+    - Tasks.Persistence
+    - Utils.Logging
 executables:
   ioruba:
     main: Main.hs
@@ -78,6 +113,15 @@ executables:
     when:
       - condition: false
         other-modules: Paths_ioruba
+  ioruba-gui:
+    main: Main.hs
+    source-dirs: app/gui
+    ghc-options:
+      - '-threaded'
+      - '-rtsopts'
+      - '-with-rtsopts=-N'
+    dependencies:
+      - ioruba
   test-serial:
     main: Main.hs
     source-dirs: app/test-serial
@@ -91,6 +135,8 @@ tests:
   ioruba-test:
     main: Spec.hs
     source-dirs: test
+    build-tools:
+      - hspec-discover:hspec-discover
     ghc-options:
       - '-threaded'
       - '-rtsopts'
@@ -100,6 +146,14 @@ tests:
       - hspec
       - hspec-discover
       - QuickCheck
+    other-modules:
+      - App.I18nSpec
+      - App.OptionsSpec
+      - App.SettingsSpec
+      - Audio.MixerSpec
+      - Config.ParserSpec
+      - GUI.StateSpec
+      - Hardware.ProtocolSpec
 default-extensions:
   - OverloadedStrings
   - LambdaCase

@@ -5,23 +5,22 @@
 For a clean local validation pass, run:
 
 ```bash
-stack build
-stack test
-python .github/scripts/build_pages.py
-python .github/scripts/sync_repo_metadata.py --dry-run
+npm run shared:typecheck
+npm run desktop:typecheck
+npm run shared:test
+npm run desktop:test
+cargo test --manifest-path apps/desktop/src-tauri/Cargo.toml
+npm run desktop:build
+npm run firmware:compile
 ```
 
-## Serial communication
+## Serial protocol validation
 
 ### Test with the real Nano
 
-1. Flash [arduino/ioruba-nano-3knobs/ioruba-nano-3knobs.ino](arduino/ioruba-nano-3knobs/ioruba-nano-3knobs.ino)
+1. Flash [firmware/arduino/ioruba-controller/ioruba-controller.ino](firmware/arduino/ioruba-controller/ioruba-controller.ino)
 2. Confirm the board appears as `/dev/ttyUSB0` or `/dev/ttyACM0`
-3. Run:
-
-```bash
-stack exec test-serial /dev/ttyUSB0
-```
+3. Start the desktop app and connect through the preferred port selector
 
 Expected packet format:
 
@@ -29,7 +28,7 @@ Expected packet format:
 512|768|1023
 ```
 
-The runtime also accepts the legacy format:
+The migrated runtime also accepts the legacy format:
 
 ```text
 P1:512
@@ -37,73 +36,53 @@ P2:768
 P3:1023
 ```
 
-### Test without hardware
+## Desktop runtime validation
 
-Pipe simulator output directly into the serial test utility:
-
-```bash
-python3 scripts/arduino-simulator.py --mode static | stack exec test-serial /dev/stdin
-```
-
-Use a named pipe when you want to mimic a more realistic serial source:
+Run the app:
 
 ```bash
-mkfifo /tmp/ioruba-sim
-python3 scripts/arduino-simulator.py > /tmp/ioruba-sim &
-stack exec test-serial /tmp/ioruba-sim
-```
-
-## Runtime validation
-
-Run the full Haskell runtime:
-
-```bash
-stack exec ioruba
+cd apps/desktop
+npm run tauri dev
 ```
 
 What to verify:
 
-- it loads `config/nano-3knobs.yaml` or your explicit `--config` file
-- it auto-detects the Nano serial port
-- it reconnects if the device disappears
-- knob updates change the live dashboard
-- app and microphone targets resolve without crashing
+- the app loads the persisted JSON profile
+- it auto-detects serial ports
+- demo mode generates live telemetry without touching audio
+- real packets update the chart and knob cards
+- Linux audio targets resolve without crashing
+- changing the active profile JSON is persisted across restarts
 
-If you only want a short smoke run:
+## Rust backend checks
 
-```bash
-timeout 5s stack exec ioruba
-```
-
-## Audio backend checks
-
-Before blaming the runtime, check the host audio stack:
+Before blaming the UI, check the host audio stack:
 
 ```bash
 pactl info
-wpctl status
 pactl list short sink-inputs
+pactl list short sinks
+pactl list short sources
 ```
 
 Interpretation:
 
 - `pactl info` must succeed
-- `wpctl status` should show your active PipeWire graph
-- `pactl list short sink-inputs` should list app streams if you expect knob-to-app control
+- `pactl list short sink-inputs` must show live app streams if app-target control is expected
+- default sink and source must exist if `master` or `default_microphone` are mapped
 
-## Pages and metadata
+## Firmware validation
 
-Build the static site locally:
+Compile the firmware:
 
 ```bash
-python .github/scripts/build_pages.py
-find .site-dist -maxdepth 2 -type f | sort
+arduino-cli compile --fqbn arduino:avr:nano firmware/arduino/ioruba-controller
 ```
 
-Dry-run repository metadata sync:
+Upload to a classic Nano clone:
 
 ```bash
-python .github/scripts/sync_repo_metadata.py --dry-run
+arduino-cli upload -p /dev/ttyUSB0 --fqbn arduino:avr:nano:cpu=atmega328old firmware/arduino/ioruba-controller
 ```
 
 ## Troubleshooting
@@ -117,11 +96,13 @@ sudo usermod -a -G uucp $USER
 
 Then log out and back in.
 
-### Upload fails with `not in sync`
+### Tauri build fails on Linux
 
-- try `arduino:avr:nano:cpu=atmega328old`
-- press `RESET` right before upload starts
-- run `fuser -v /dev/ttyUSB0` to confirm nothing else owns the port
+Install the WebKit/GTK development packages:
+
+```bash
+sudo pacman -S --needed webkit2gtk-4.1 gtk3 librsvg
+```
 
 ### No data from the board
 
@@ -133,15 +114,15 @@ Then log out and back in.
 ### No app volume changes
 
 - make sure the target application is actively playing audio
-- confirm the configured application names in `config/*.yaml`
+- confirm the application names inside the profile JSON
 - check `pactl list short sink-inputs`
 
 ## Recommended release gate
 
-Before merging a release PR or cutting a public release, verify:
+Before cutting a public release, verify:
 
-1. `stack build` passes
-2. `stack test` passes
-3. the Nano runtime works on real hardware
-4. `python .github/scripts/build_pages.py` passes
-5. repository metadata dry-run still matches the intended public copy
+1. `npm run verify` passes
+2. `npm run firmware:compile` passes
+3. the desktop app works with a real Nano
+4. the Linux audio backend applies `master`, `application`, and `source` targets
+5. the GitHub Actions matrix succeeds on Linux, Windows, and macOS

@@ -1,15 +1,10 @@
-name: Release Artifacts
+name: Release
 
 on:
-  release:
-    types:
-      - published
+  push:
+    tags:
+      - "v*"
   workflow_dispatch:
-    inputs:
-      tag_name:
-        description: Release tag to build, for example v0.2.0
-        required: true
-        type: string
 
 permissions:
   contents: write
@@ -19,47 +14,87 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build-release:
-    name: Build Release Bundle
-    runs-on: ubuntu-latest
-    env:
-      TAG_NAME: ${{ github.event.release.tag_name || github.event.inputs.tag_name || github.ref_name }}
+  desktop-bundles:
+    name: Desktop Bundles (${{ matrix.platform }})
+    permissions:
+      contents: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: ubuntu-22.04
+            args: "--bundles deb,rpm"
+          - platform: windows-latest
+            args: ""
+          - platform: macos-latest
+            args: ""
+    runs-on: ${{ matrix.platform }}
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Setup Haskell
-        uses: haskell-actions/setup@v2
+      - name: Setup Node
+        uses: actions/setup-node@v4
         with:
-          ghc-version: "9.6.6"
-          enable-stack: true
-          stack-version: latest
+          node-version: 22
+          cache: npm
+
+      - name: Setup Rust stable
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.platform == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
+
+      - name: Cache Rust
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: |
+            apps/desktop/src-tauri -> target
+
+      - name: Install Linux desktop dependencies
+        if: matrix.platform == 'ubuntu-22.04'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libwebkit2gtk-4.1-dev \
+            libgtk-3-dev \
+            librsvg2-dev \
+            patchelf
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build and upload installers
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          projectPath: apps/desktop
+          tagName: ${{ github.ref_name }}
+          releaseName: Ioruba ${{ github.ref_name }}
+          releaseBody: |
+            Cross-platform installers for the Tauri 2 desktop app.
+          releaseDraft: false
+          prerelease: false
+          args: ${{ matrix.args }}
+          uploadWorkflowArtifacts: true
+
+  firmware:
+    name: Firmware Bundle
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
       - name: Setup Arduino CLI
         uses: arduino/setup-arduino-cli@v2
 
-      - name: Cache Stack
-        uses: actions/cache@v5
-        with:
-          path: |
-            ~/.stack
-            .stack-work
-          key: ${{ runner.os }}-stack-release-${{ hashFiles('stack.yaml.lock', 'package.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-stack-release-
-            ${{ runner.os }}-stack-
-
-      - name: Build binaries
-        run: |
-          mkdir -p dist
-          stack build --copy-bins --local-bin-path ./dist
-          strip ./dist/ioruba
-          strip ./dist/test-serial
-
-      - name: Install Arduino core
+      - name: Install Arduino AVR core
         run: |
           arduino-cli config init --overwrite
           arduino-cli core update-index
@@ -67,19 +102,15 @@ jobs:
 
       - name: Build firmware
         run: |
-          mkdir -p dist-firmware
-          arduino-cli compile --fqbn arduino:avr:nano --output-dir ./dist-firmware arduino/ioruba-nano-3knobs
+          mkdir -p release-dist
+          arduino-cli compile \
+            --fqbn arduino:avr:nano \
+            --output-dir release-dist/firmware \
+            firmware/arduino/ioruba-controller
 
-      - name: Build release artifacts
-        run: |
-          set -euo pipefail
-          version="${TAG_NAME#v}"
-          bash ./scripts/release/build_release_artifacts.sh "${version}" ./release-dist
-
-      - name: Upload release assets
+      - name: Upload firmware to release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ env.TAG_NAME }}
+          tag_name: ${{ github.ref_name }}
           files: |
-            release-dist/*
-          generate_release_notes: false
+            release-dist/firmware/*

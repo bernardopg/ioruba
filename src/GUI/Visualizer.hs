@@ -1,24 +1,25 @@
 module GUI.Visualizer
-  ( Visualizer
+  ( Visualizer(..)
   , createVisualizer
+  , renderVisualizer
   , updateLevel
   ) where
 
 import Audio.Sink (Volume(..))
 
--- | Audio level visualizer widget
 newtype Visualizer = Visualizer
   { visualizerLevel :: Volume
   } deriving (Show)
 
--- | Create a new visualizer widget
 createVisualizer :: IO Visualizer
 createVisualizer =
-  -- TODO: Implement GTK/Cairo visualizer
   pure $ Visualizer { visualizerLevel = Volume 0.0 }
 
--- | Update visualizer with new audio level
 updateLevel :: Visualizer -> Volume -> IO ()
-updateLevel _ _ =
-  -- TODO: Implement level update and redraw
-  pure ()
+updateLevel _ _ = pure ()
+
+renderVisualizer :: Int -> String
+renderVisualizer percent =
+  replicate filled '#' ++ replicate (10 - filled) '.'
+  where
+    filled = max 0 (min 10 (percent `div` 10))

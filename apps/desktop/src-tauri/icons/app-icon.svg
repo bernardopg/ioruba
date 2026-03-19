@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="shell" x1="0%" x2="100%" y1="0%" y2="100%">
+      <stop offset="0%" stop-color="#f6efe6" />
+      <stop offset="100%" stop-color="#e6f1ef" />
+    </linearGradient>
+    <linearGradient id="ringA" x1="0%" x2="100%" y1="0%" y2="100%">
+      <stop offset="0%" stop-color="#1f9d88" />
+      <stop offset="100%" stop-color="#0b5972" />
+    </linearGradient>
+    <linearGradient id="ringB" x1="0%" x2="100%" y1="0%" y2="100%">
+      <stop offset="0%" stop-color="#d17d2e" />
+      <stop offset="100%" stop-color="#8d4a11" />
+    </linearGradient>
+  </defs>
+
+  <rect width="512" height="512" rx="120" fill="url(#shell)" />
+  <rect
+    x="56"
+    y="56"
+    width="400"
+    height="400"
+    rx="92"
+    fill="none"
+    opacity="0.24"
+    stroke="#6c6d70"
+    stroke-width="10"
+  />
+
+  <circle cx="168" cy="188" r="86" fill="none" stroke="url(#ringB)" stroke-width="42" />
+  <circle cx="344" cy="188" r="86" fill="none" stroke="url(#ringA)" stroke-width="42" />
+  <circle cx="256" cy="330" r="98" fill="none" stroke="url(#ringB)" stroke-width="46" />
+
+  <circle cx="168" cy="188" r="18" fill="#1f2024" />
+  <circle cx="344" cy="188" r="18" fill="#1f2024" />
+  <circle cx="256" cy="330" r="20" fill="#1f2024" />
+
+  <path
+    d="M168 188 L214 150"
+    stroke="#1f2024"
+    stroke-linecap="round"
+    stroke-width="14"
+  />
+  <path
+    d="M344 188 L384 226"
+    stroke="#1f2024"
+    stroke-linecap="round"
+    stroke-width="14"
+  />
+  <path
+    d="M256 330 L308 292"
+    stroke="#1f2024"
+    stroke-linecap="round"
+    stroke-width="16"
+  />
+</svg>

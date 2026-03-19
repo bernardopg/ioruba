@@ -1,0 +1,80 @@
+@import "tailwindcss";
+
+:root {
+  color-scheme: light;
+  --color-shell: oklch(0.965 0.015 82);
+  --color-panel: oklch(0.985 0.007 80);
+  --color-border: oklch(0.85 0.015 78);
+  --color-ink: oklch(0.23 0.028 65);
+  --color-copy: oklch(0.38 0.022 62);
+  --color-muted: oklch(0.55 0.015 67);
+  --accent-copper: oklch(0.69 0.155 55);
+  --accent-copper-strong: oklch(0.62 0.16 54);
+  --accent-teal: oklch(0.67 0.12 194);
+  --accent-teal-strong: oklch(0.56 0.12 194);
+  --accent-rose: oklch(0.63 0.16 22);
+  --accent-lime: oklch(0.76 0.18 137);
+  --accent-sky: oklch(0.71 0.12 234);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  margin: 0;
+  min-height: 100%;
+}
+
+body {
+  font-family: "Instrument Sans", sans-serif;
+  background:
+    radial-gradient(circle at top left, color-mix(in oklab, var(--accent-copper) 18%, transparent), transparent 38%),
+    radial-gradient(circle at top right, color-mix(in oklab, var(--accent-teal) 16%, transparent), transparent 40%),
+    var(--color-shell);
+}
+
+.font-display {
+  font-family: "Space Grotesk", sans-serif;
+}
+
+.ambient-grid {
+  background-image:
+    linear-gradient(color-mix(in oklab, var(--color-border) 55%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in oklab, var(--color-border) 55%, transparent) 1px, transparent 1px);
+  background-size: 72px 72px;
+  mask-image: radial-gradient(circle at center, black, transparent 88%);
+}
+
+.eyebrow {
+  margin: 0;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--accent-copper-strong);
+}
+
+.field {
+  min-height: 3rem;
+  width: 100%;
+  border-radius: 1.2rem;
+  border: 1px solid var(--color-border);
+  background: var(--color-panel);
+  padding: 0.75rem 1rem;
+  color: var(--color-copy);
+  outline: none;
+  transition: border-color 160ms ease;
+}
+
+.field:focus {
+  border-color: var(--accent-teal);
+}
+
+@media (max-width: 860px) {
+  .ambient-grid {
+    background-size: 48px 48px;
+  }
+}
