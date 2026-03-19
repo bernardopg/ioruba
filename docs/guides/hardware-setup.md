@@ -1,120 +1,100 @@
 # Hardware Setup Guide
 
-This guide will walk you through building the physical hardware for Ioruba.
+This repository currently targets the `Arduino Nano + 3 potentiometers` build.
 
 ## Required Components
 
-- 1x Arduino Uno (or compatible)
-- 5x 10kΩ linear potentiometers
-- 1x USB A-to-B cable
-- Breadboard and jumper wires (optional, for prototyping)
-- Enclosure (optional, for finished build)
+- 1x Arduino Nano ATmega328P
+- 3x 10k linear potentiometers
+- 1x USB cable for the Nano
+- jumper wires
+- breadboard or enclosure
 
-## Wiring Diagram
+## Wiring
 
-### Basic Setup (Breadboard)
+### Potentiometer 1
 
+- left pin -> `GND`
+- middle pin -> `A0`
+- right pin -> `5V`
+
+### Potentiometer 2
+
+- left pin -> `GND`
+- middle pin -> `A1`
+- right pin -> `5V`
+
+### Potentiometer 3
+
+- left pin -> `GND`
+- middle pin -> `A2`
+- right pin -> `5V`
+
+## ASCII Diagram
+
+```text
+Arduino Nano
+┌──────────────────────┐
+│ A0 ───── knob 1      │
+│ A1 ───── knob 2      │
+│ A2 ───── knob 3      │
+│ 5V ───── all right pins
+│ GND ──── all left pins
+│ USB ──── computer
+└──────────────────────┘
 ```
-Arduino Uno
-┌─────────────────┐
-│                 │
-│  A0 ──────┬─────┤  Potentiometer 1
-│           │     │  - Left:  GND
-│  A1 ──────┼──┬──┤  - Middle: Signal (to analog pin)
-│           │  │  │  - Right: 5V
-│  A2 ──────┼──┼─┬┤
-│           │  │ ││
-│  A3 ──────┼──┼─┼┼┐
-│           │  │ │││
-│  A4 ──────┼──┼─┼┼┼┐
-│           │  │ ││││
-│  5V  ─────┴──┴─┴┴┴┴──── All potentiometer right pins
-│                 │
-│  GND ───────────────── All potentiometer left pins
-│                 │
-│  USB ──────────────── To computer
-│                 │
-└─────────────────┘
-```
 
-## Step-by-Step Instructions
+## Firmware
 
-### 1. Connect Power Rails
-
-1. Connect Arduino's **5V** pin to the breadboard's positive rail (red)
-2. Connect Arduino's **GND** pin to the breadboard's negative rail (blue/black)
-
-### 2. Wire Potentiometers
-
-For each potentiometer (repeat 5 times for A0-A4):
-
-1. **Left pin** → GND rail (negative)
-2. **Middle pin** → Arduino analog pin (A0, A1, A2, A3, or A4)
-3. **Right pin** → 5V rail (positive)
-
-### 3. Connect Arduino to Computer
-
-1. Connect USB cable to Arduino
-2. Connect other end to computer
-3. Note the device path (e.g., `/dev/ttyUSB0` on Linux)
-
-### 4. Upload Firmware
+Recommended sketch:
 
 ```bash
-cd arduino/ioruba-mixer
-# Using Arduino IDE: Open ioruba-mixer.ino and click Upload
-# OR using PlatformIO:
-pio run --target upload
+arduino-cli compile --fqbn arduino:avr:nano arduino/ioruba-nano-3knobs
+arduino-cli upload -p /dev/ttyUSB0 --fqbn arduino:avr:nano arduino/ioruba-nano-3knobs
 ```
 
-### 5. Test Hardware
+If a clone needs the old bootloader:
 
-1. Open Arduino IDE Serial Monitor (9600 baud)
-2. Turn potentiometers
-3. You should see values like: `512|768|1023|0|256`
+```bash
+arduino-cli upload -p /dev/ttyUSB0 --fqbn arduino:avr:nano:cpu=atmega328old arduino/ioruba-nano-3knobs
+```
+
+## Expected Serial Output
+
+```text
+512|768|1023
+```
+
+The GTK desktop app also accepts the legacy `P1:512` format.
 
 ## Troubleshooting
 
-### No Serial Output
+### No serial output
 
-- Check USB connection
-- Verify correct COM port selected in Arduino IDE
-- Ensure baud rate is 9600
+- check the USB cable
+- confirm `9600` baud
+- confirm the sketch is flashed
+- try the Arduino serial monitor first
 
-### Erratic Values
+### Upload fails
 
-- Check potentiometer connections
-- Ensure solid breadboard connections
-- Try increasing `NOISE_THRESHOLD` in firmware
+- try the old bootloader variant
+- press reset before upload
+- check whether another app is holding `/dev/ttyUSB0`
 
-### Permission Denied (Linux)
+### Permission denied
 
 ```bash
-# Add user to dialout group
 sudo usermod -a -G dialout $USER
-# Log out and back in
+sudo usermod -a -G uucp $USER
 ```
 
-## Advanced: Custom PCB
-
-For a permanent installation, consider designing a custom PCB with:
-- Screw terminals for potentiometers
-- On-board voltage regulation
-- LED indicators
-- Professional enclosure
-
-Files for a reference PCB design will be added in future releases.
-
-## Enclosure Ideas
-
-- 3D printed case (STL files coming soon)
-- Laser-cut acrylic panels
-- Repurposed project box
-- Custom wood enclosure
+Then log out and back in.
 
 ## Next Steps
 
 Once hardware is working:
-1. Configure `config/ioruba.yaml` with your serial port
-2. Run Ioruba and test slider mapping
-3. Create custom profiles for different use cases
+
+1. Run `stack exec test-serial /dev/ttyUSB0`
+2. Install the GTK desktop app with `legacy/arduino-audio-controller/install_local.sh`
+3. Launch `audio-controller-gui`

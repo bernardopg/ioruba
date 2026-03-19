@@ -1,59 +1,83 @@
-// Controlador de Audio - 3 Potenciômetros
-// Pinos: A0, A1, A2
+// Legacy Arduino Audio Controller firmware
+// Recommended wiring: A0, A1, A2 with three B10K potentiometers.
+// Output protocol:
+//   P1:512
+//   P2:768
+//   P3:1023
+//
+// The desktop app also accepts the newer pipe-separated format from
+// `arduino/ioruba-nano-3knobs/`, but this legacy sketch is kept here as a
+// reference for the original controller flow.
 
-const int POT1 = A0;
-const int POT2 = A1;
-const int POT3 = A2;
+const int NUM_KNOBS = 3;
+const int ANALOG_PINS[NUM_KNOBS] = {A0, A1, A2};
+const int BAUD_RATE = 9600;
+const int CHANGE_THRESHOLD = 4;
+const int SEND_INTERVAL_MS = 50;
+const int HEARTBEAT_INTERVAL_MS = 500;
 
-int lastValue1 = -1;
-int lastValue2 = -1;
-int lastValue3 = -1;
+int knobValues[NUM_KNOBS];
+int lastSentValues[NUM_KNOBS];
+unsigned long lastSendTime = 0;
+unsigned long lastHeartbeatTime = 0;
 
-const int THRESHOLD = 5; // Margem para evitar ruído
+int smoothValue(int previousValue, int rawValue) {
+  return (previousValue * 3 + rawValue) / 4;
+}
+
+bool valuesChanged() {
+  for (int i = 0; i < NUM_KNOBS; i++) {
+    if (abs(knobValues[i] - lastSentValues[i]) > CHANGE_THRESHOLD) {
+      return true;
+    }
+  }
+  return false;
+}
+
+void copyValues() {
+  for (int i = 0; i < NUM_KNOBS; i++) {
+    lastSentValues[i] = knobValues[i];
+  }
+}
+
+void sendValues() {
+  for (int i = 0; i < NUM_KNOBS; i++) {
+    Serial.print("P");
+    Serial.print(i + 1);
+    Serial.print(":");
+    Serial.println(knobValues[i]);
+  }
+}
 
 void setup() {
-  Serial.begin(9600);
-  pinMode(POT1, INPUT);
-  pinMode(POT2, INPUT);
-  pinMode(POT3, INPUT);
+  Serial.begin(BAUD_RATE);
 
-  // Send initial values
-  int val1 = analogRead(POT1);
-  int val2 = analogRead(POT2);
-  int val3 = analogRead(POT3);
+  for (int i = 0; i < NUM_KNOBS; i++) {
+    knobValues[i] = analogRead(ANALOG_PINS[i]);
+    lastSentValues[i] = knobValues[i];
+  }
 
-  Serial.print("P1:"); Serial.println(val1);
-  Serial.print("P2:"); Serial.println(val2);
-  Serial.print("P3:"); Serial.println(val3);
-
-  lastValue1 = val1;
-  lastValue2 = val2;
-  lastValue3 = val3;
+  sendValues();
+  lastHeartbeatTime = millis();
 }
 
 void loop() {
-  int value1 = analogRead(POT1);
-  int value2 = analogRead(POT2);
-  int value3 = analogRead(POT3);
-  
-  // Envia apenas se houver mudança significativa
-  if (abs(value1 - lastValue1) > THRESHOLD) {
-    Serial.print("P1:");
-    Serial.println(value1);
-    lastValue1 = value1;
+  unsigned long now = millis();
+
+  for (int i = 0; i < NUM_KNOBS; i++) {
+    knobValues[i] = smoothValue(knobValues[i], analogRead(ANALOG_PINS[i]));
   }
-  
-  if (abs(value2 - lastValue2) > THRESHOLD) {
-    Serial.print("P2:");
-    Serial.println(value2);
-    lastValue2 = value2;
+
+  if (now - lastSendTime >= SEND_INTERVAL_MS) {
+    bool changed = valuesChanged();
+    bool heartbeatDue = now - lastHeartbeatTime >= HEARTBEAT_INTERVAL_MS;
+
+    if (changed || heartbeatDue) {
+      sendValues();
+      copyValues();
+      lastHeartbeatTime = now;
+    }
+
+    lastSendTime = now;
   }
-  
-  if (abs(value3 - lastValue3) > THRESHOLD) {
-    Serial.print("P3:");
-    Serial.println(value3);
-    lastValue3 = value3;
-  }
-  
-  delay(50); // Leitura a cada 50ms
 }

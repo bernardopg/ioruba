@@ -45,6 +45,7 @@ dependencies:
   # File system
   - filepath
   - directory
+  - unix
 
   # Time
   - time
@@ -75,6 +76,7 @@ library:
   source-dirs: src
   exposed-modules:
     - Audio.Mixer
+    - Audio.Sink
     - Hardware.Serial
     - Hardware.Protocol
     - Config.Types

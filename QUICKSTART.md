@@ -1,6 +1,11 @@
 # Quick Start Guide
 
-Get Ioruba up and running in 5 minutes!
+There are two valid entry points in this repository:
+
+- the functional GTK desktop app in `legacy/arduino-audio-controller/`
+- the Haskell scaffold in `src/` and `app/`
+
+If your goal is to use the Nano with 3 knobs today, use the GTK path. This guide keeps the Haskell flow for development and smoke tests.
 
 ## Prerequisites Check
 
@@ -12,21 +17,14 @@ stack --version
 curl -sSL https://get.haskellstack.org/ | sh
 ```
 
-## Install System Dependencies
+## Serial Access
 
-### Debian/Ubuntu
-```bash
-sudo apt install libpulse-dev libgtk-3-dev libappindicator3-dev
-```
+Make sure your user can read the serial device used by the Arduino/USB adapter:
 
-### Fedora
 ```bash
-sudo dnf install pulseaudio-libs-devel gtk3-devel libappindicator-gtk3-devel
-```
-
-### Arch Linux
-```bash
-sudo pacman -S libpulse gtk3 libappindicator-gtk3
+sudo usermod -a -G dialout $USER
+# Arch-based systems often use uucp instead:
+sudo usermod -a -G uucp $USER
 ```
 
 ## Build and Run
@@ -35,8 +33,8 @@ sudo pacman -S libpulse gtk3 libappindicator-gtk3
 # Build the project
 stack build
 
-# Run with example config
-stack run -- --config config/example.yaml
+# Validate the documented config schema
+stack exec ioruba -- --config config/example.yaml
 ```
 
 ## Configure Your Setup
@@ -55,23 +53,29 @@ stack run -- --config config/example.yaml
    ```
 
 3. **Upload Arduino firmware:**
-   - Open `arduino/ioruba-mixer/ioruba-mixer.ino` in Arduino IDE
-   - Select your board (Tools → Board → Arduino Uno)
+   - Open `arduino/ioruba-nano-3knobs/ioruba-nano-3knobs.ino` in Arduino IDE
+   - Select your board (Tools → Board → Arduino Nano)
    - Select your port (Tools → Port → /dev/ttyUSB0)
    - Click Upload
 
-4. **Run Ioruba:**
+4. **Run the serial monitor utility:**
    ```bash
-   stack run
+   stack exec test-serial /dev/ttyUSB0
    ```
 
 ## Verify It Works
 
 1. Move your physical sliders
-2. Check serial output in Arduino IDE Serial Monitor (should show values like `512|768|1023|0|256`)
-3. Launch Ioruba
-4. Play audio and adjust sliders
-5. Verify volume changes in your applications
+2. Check serial output in Arduino IDE Serial Monitor (should show values like `512|768|1023`)
+3. Run `stack exec test-serial /dev/ttyUSB0`
+4. Confirm the terminal prints slider values and percentages
+5. Run `stack exec ioruba` to validate the configured port path and config file
+
+## Test Without Hardware
+
+```bash
+python3 scripts/arduino-simulator.py --mode static | stack exec test-serial /dev/stdin
+```
 
 ## Troubleshooting
 
@@ -85,19 +89,18 @@ sudo usermod -a -G dialout $USER
 ```
 
 **No audio control?**
-- Check if PulseAudio/PipeWire is running: `pactl info`
-- List sinks: `pactl list sinks short`
+- That is expected in the current Haskell app. The audio-control modules are still scaffolded.
 
-**Can't see sliders moving in app?**
+**Can't see knobs moving in the desktop app?**
 - Verify Arduino serial output in Serial Monitor
 - Check config file has correct serial port
-- Increase log level in config
+- Use `stack exec test-serial /dev/ttyUSB0` first
+- Then launch `audio-controller-gui`; the GTK app is the functional UI path today
 
 ## Next Steps
 
 - Read [README.md](README.md) for full documentation
+- Read [NANO_SETUP.md](NANO_SETUP.md) for the Nano-specific flow
+- Read [TESTING.md](TESTING.md) for simulator and FIFO workflows
 - Check [docs/guides/hardware-setup.md](docs/guides/hardware-setup.md) for hardware details
-- Explore profile system in `config/profiles/`
-- Join our community (links in README)
-
-Happy mixing!
+- Track the full backlog in [TODO.md](TODO.md)

@@ -6,8 +6,8 @@ module Config.Parser
 
 import Config.Types
 import Control.Exception (try, SomeException)
-import Data.Yaml (decodeFileEither, ParseException)
-import qualified Data.Text as T
+import qualified Data.ByteString.Char8 as BS
+import Data.Yaml (decodeEither', decodeFileEither)
 
 -- | Load configuration from YAML file
 loadConfig :: FilePath -> IO (Either String Config)
@@ -20,7 +20,10 @@ loadConfig path = do
 
 -- | Parse configuration from YAML string
 parseConfig :: String -> Either String Config
-parseConfig _ = Right defaultConfig  -- Simplified for now
+parseConfig rawConfig =
+  case decodeEither' (BS.pack rawConfig) of
+    Left parseErr -> Left $ "Failed to parse config: " ++ show parseErr
+    Right config -> Right config
 
 -- | Default configuration
 defaultConfig :: Config

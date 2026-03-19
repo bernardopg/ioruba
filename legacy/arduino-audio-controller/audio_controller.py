@@ -76,6 +76,35 @@ class AudioController:
         if not apps:
             print("  (Nenhuma aplicação de áudio ativa)")
         print()
+
+    def parse_line(self, line):
+        """Aceita tanto o protocolo legado P1:512 quanto 512|768|1023."""
+        if ":" in line and line[:1].upper() == "P":
+            pot, val = line.split(":", 1)
+            try:
+                value = int(val)
+            except ValueError:
+                return []
+            return [(pot.upper(), value)]
+
+        if "|" in line:
+            values = []
+            for chunk in line.split("|"):
+                chunk = chunk.strip()
+                if not chunk:
+                    continue
+                try:
+                    values.append(int(chunk))
+                except ValueError:
+                    return []
+
+            labels = ["P1", "P2", "P3"]
+            return [
+                (labels[index], value)
+                for index, value in enumerate(values[:3])
+            ]
+
+        return []
     
     def run(self, app1="firefox", app2="spotify"):
         if not self.connect_serial():
@@ -95,26 +124,22 @@ class AudioController:
             while True:
                 if self.ser.in_waiting > 0:
                     line = self.ser.readline().decode('utf-8', errors='ignore').strip()
-                    
-                    if ':' not in line:
-                        continue
-                    
-                    pot, val = line.split(':', 1)
-                    value = int(val)
-                    volume = self.map_value(value)
-                    percent = int(volume * 100)
-                    
-                    if pot == 'P1':
-                        self.set_master_volume(volume)
-                        print(f"🔊 Master: {percent:3d}% {'█' * (percent // 5)}")
-                    
-                    elif pot == 'P2':
-                        if self.set_app_volume(app1, volume):
-                            print(f"🎵 {app1.title()}: {percent:3d}% {'█' * (percent // 5)}")
-                    
-                    elif pot == 'P3':
-                        if self.set_app_volume(app2, volume):
-                            print(f"🎵 {app2.title()}: {percent:3d}% {'█' * (percent // 5)}")
+
+                    for pot, value in self.parse_line(line):
+                        volume = self.map_value(value)
+                        percent = int(volume * 100)
+
+                        if pot == 'P1':
+                            self.set_master_volume(volume)
+                            print(f"🔊 Master: {percent:3d}% {'█' * (percent // 5)}")
+
+                        elif pot == 'P2':
+                            if self.set_app_volume(app1, volume):
+                                print(f"🎵 {app1.title()}: {percent:3d}% {'█' * (percent // 5)}")
+
+                        elif pot == 'P3':
+                            if self.set_app_volume(app2, volume):
+                                print(f"🎵 {app2.title()}: {percent:3d}% {'█' * (percent // 5)}")
                 
         except KeyboardInterrupt:
             print("\n\n👋 Encerrando controlador de áudio...")

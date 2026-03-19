@@ -1,7 +1,11 @@
 module Main (main) where
 
+import Control.Concurrent (threadDelay)
+import Control.Monad (forever)
 import Config.Parser (loadConfig, defaultConfig)
+import Config.Types (Config(..), SerialConfig(..))
 import Config.Validation (validateConfig)
+import System.Directory (doesPathExist)
 import System.Environment (getArgs)
 import System.Exit (exitFailure)
 
@@ -33,9 +37,14 @@ main = do
       putStrLn "Configuration validation failed:"
       mapM_ (putStrLn . show) errors
       exitFailure
-    Right _validConfig -> do
+    Right validConfig -> do
       putStrLn "Configuration validated successfully"
-      putStrLn "Application ready!"
+      serialPortExists <- doesPathExist $ serialPort $ configSerial validConfig
+      putStrLn $ "Configured serial port: " ++ serialPort (configSerial validConfig)
+      if serialPortExists
+        then putStrLn "Serial port path is available"
+        else putStrLn "Warning: configured serial port path is not available"
+      putStrLn "Main audio control and GUI loop are still scaffolded."
+      putStrLn "Use `stack exec test-serial /dev/ttyUSB0` (or stdin/FIFO) to test hardware input."
       putStrLn "Press Ctrl+C to exit"
-      _ <- getLine
-      putStrLn "Shutting down..."
+      forever $ threadDelay 1000000

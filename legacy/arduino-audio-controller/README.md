@@ -1,179 +1,161 @@
-# 🎛️ Arduino Audio Controller
+# Arduino Audio Controller
 
-Controlador de áudio físico para Linux usando Arduino Nano e potenciômetros B10K. Desenvolvido com Python (GTK4/LibAdwaita) e Firmware C++.
+Functional GTK4 desktop app for the `Arduino Nano + 3 potentiometers` setup.
 
-![Screenshot](screenshot.png)
+This is the recommended runtime in the repository right now.
 
-## 📋 Descrição do Repositório (GitHub)
+## Gallery
 
-**Descrição:** Controlador de volume físico para Linux usando Arduino Nano e Python/GTK4. Controle volumes de apps individuais (Spotify, Chrome) via potenciômetros.
-**Tags:** `arduino` `linux` `python` `gtk4` `libadwaita` `pulseaudio` `volume-mixer` `maker` `hardware`
+### Main screen
 
-## ✅ TO-DO
+![Main screen](screenshot.png)
 
-- [x] Criar e adicionar `icon.png` ao repositório
-- [x] Adicionar screenshot atualizada da interface (`screenshot.png`)
-- [x] Implementar seletor de aplicativos na GUI
-- [x] Adicionar suporte a PipeWire nativo (via compatibilidade pulsectl/pipewire-pulse)
-- [ ] Criar pacote AUR para fácil instalação no Arch Linux
-- [x] Melhorar tratamento de desconexão USB
+### Knob deck and configured app icons
 
-## 🏗️ Arquitetura e Protocolo
+![Knob deck](screenshots/knob-deck-pt-br.png)
 
-### Comunicação Serial
-O Arduino envia leituras dos potenciômetros via Serial (9600 baud) no formato:
-`P<ID>:<VALOR>`
-- `ID`: Número do potenciômetro (1, 2, 3)
-- `VALOR`: Leitura analógica (0-1023)
+### English layout
 
-Exemplo: `P1:512` (Potenciômetro 1 em 50%)
+![English layout](screenshots/english-layout.png)
 
-### Estrutura do Software
-1. **Firmware (.ino)**: Loop de leitura com *debounce* simples. Envia dados apenas quando há variação significativa (`THRESHOLD = 5`).
-2. **Backend Python**: Thread dedicada lê a porta Serial.
-3. **PulseAudio Bridge**: Mapeia valores 0-1023 para 0.0-1.0 e aplica ao *Sink* (Master) ou *SinkInput* (Apps) correspondente usando `pulsectl`.
-4. **GUI (GTK4)**: Exibe níveis em tempo real e gerencia conexão. Atualizações de UI são feitas via `GLib.idle_add` para thread-safety.
+## Hardware Spec
 
-## ✨ Características
+- Arduino Nano ATmega328P
+- 3 potentiometers on:
+  - `A0`
+  - `A1`
+  - `A2`
+- 9600 baud serial link
 
-- 🔊 Controle de volume master do sistema
-- 🌐 Controle individual do Google Chrome
-- 🎵 Controle individual do Spotify
-- 🎨 Interface gráfica moderna com GTK4/Adwaita
-- 🚀 Inicia automaticamente com o sistema
-- 🔌 Detecção automática do Arduino
+## Supported Firmware Protocols
 
-## 🛠️ Hardware Necessário
+- Legacy:
+  - `P1:512`
+  - `P2:768`
+  - `P3:1023`
+- Current:
+  - `512|768|1023`
 
-- 1x Arduino Nano V3 ATmega328P (USB-C)
-- 3x Potenciômetros B10K (10kΩ)
-- Jumpers
+Recommended sketch:
 
-## 🔌 Esquema de Conexão
-```
-Arduino Nano:
-├─ Potenciômetro 1 (Volume Master)
-│  ├─ Pino central → A0
-│  ├─ Extremo 1 → 5V
-│  └─ Extremo 2 → GND
-│
-├─ Potenciômetro 2 (Google Chrome)
-│  ├─ Pino central → A1
-│  ├─ Extremo 1 → 5V
-│  └─ Extremo 2 → GND
-│
-└─ Potenciômetro 3 (Spotify)
-   ├─ Pino central → A2
-   ├─ Extremo 1 → 5V
-   └─ Extremo 2 → GND
-```
+- [../../arduino/ioruba-nano-3knobs/ioruba-nano-3knobs.ino](../../arduino/ioruba-nano-3knobs/ioruba-nano-3knobs.ino)
 
-## 📦 Instalação (Arch Linux)
+Legacy sketch kept for reference:
 
-### 1. Instalar dependências
+- [arduino_audio_controller.ino](arduino_audio_controller.ino)
+
+## Features
+
+- Serial port autodetection
+- Auto reconnect when the Nano disappears and comes back
+- Mapping for master, microphone, and active applications
+- App icons on each configured knob
+- Animated dials in the UI
+- Responsive layout
+- `pt-BR` and `en`
+- System locale detection with English fallback
+- Live language switcher in the header
+- Demo mode for previews and screenshots
+
+## Install
+
+### Dependencies
+
+On Arch-based systems:
+
 ```bash
 sudo pacman -S arduino-cli python python-gobject gtk4 libadwaita imagemagick
 ```
 
-### 2. Clonar repositório
+The wrapper bootstraps the local `.venv` and installs the Python packages from `requirements.txt` when needed.
+
+### Local install
+
 ```bash
-git clone https://github.com/bernardopg/arduino-audio-controller.git
-cd arduino-audio-controller
+./install_local.sh
 ```
 
-### 3. Criar ambiente virtual
+This installs:
+
+- `~/.local/bin/audio-controller-gui`
+- the desktop entry
+- the application icon
+
+## Run
+
 ```bash
-python -m venv venv
-source venv/bin/activate
-pip install pyserial pulsectl
+audio-controller-gui
 ```
 
-### 4. Carregar código no Arduino
-```bash
-arduino-cli core update-index
-arduino-cli core install arduino:avr
-arduino-cli compile --fqbn arduino:avr:nano:cpu=atmega328old arduino_audio_controller
-arduino-cli upload -p /dev/ttyUSB0 --fqbn arduino:avr:nano:cpu=atmega328old arduino_audio_controller
-```
+Direct wrapper usage:
 
-### 5. Instalar aplicação
-```bash
-# Copiar ícone
-mkdir -p ~/.local/share/icons/hicolor/128x128/apps
-cp icon.png ~/.local/share/icons/hicolor/128x128/apps/audio-controller.png
-gtk-update-icon-cache ~/.local/share/icons/hicolor/
-
-# Instalar .desktop
-mkdir -p ~/.local/share/applications
-cp audio-controller.desktop ~/.local/share/applications/
-update-desktop-database ~/.local/share/applications/
-
-# Ativar autostart
-mkdir -p ~/.config/autostart
-cp audio-controller.desktop ~/.config/autostart/
-```
-
-## 🚀 Uso
-
-### Iniciar manualmente
 ```bash
 ./audio_controller_gui_wrapper.sh
+./audio_controller_gui_wrapper.sh --demo
+./audio_controller_gui_wrapper.sh --lang en
 ```
 
-### Linha de comando (alternativa)
+## Settings
+
+The UI persists preferences in:
+
 ```bash
-cd arduino_audio_controller
-source venv/bin/activate
-python audio_controller.py -a chrome -b spotify
+~/.config/ioruba-controlador/settings.json
 ```
 
-## 🎯 Customização
+Stored values include:
 
-Para controlar outras aplicações, edite `audio_controller_gui.py`:
-```python
-self.app1_name = "firefox"  # Mude para sua aplicação
-self.app2_name = "discord"  # Mude para sua aplicação
-```
+- preferred serial port
+- knob mappings
+- auto-connect state
+- last window size
+- selected language
 
-Ou use a versão CLI:
+## Firmware and Upload
+
+Compile and upload the recommended sketch from the repository root:
+
 ```bash
-python audio_controller.py -a firefox -b vlc
+arduino-cli compile --fqbn arduino:avr:nano arduino/ioruba-nano-3knobs
+arduino-cli upload -p /dev/ttyUSB0 --fqbn arduino:avr:nano arduino/ioruba-nano-3knobs
 ```
 
-## 📋 Troubleshooting
+If a clone Nano fails with the default bootloader:
 
-### Arduino não detectado
 ```bash
-sudo usermod -a -G uucp $USER
-sudo chmod 666 /dev/ttyUSB0
+arduino-cli upload -p /dev/ttyUSB0 --fqbn arduino:avr:nano:cpu=atmega328old arduino/ioruba-nano-3knobs
 ```
 
-### Verificar porta serial
+More hardware notes live in [../../NANO_SETUP.md](../../NANO_SETUP.md).
+
+## Troubleshooting
+
+### Port opens but no readings arrive
+
+- confirm the correct sketch is flashed
+- confirm the Nano is outputting `9600` baud
+- make sure no other app is holding `/dev/ttyUSB0`
+- test with:
+
 ```bash
-ls /dev/tty* | grep -E "USB|ACM"
+stack exec test-serial /dev/ttyUSB0
 ```
 
-### Listar aplicações de áudio ativas
-```bash
-python audio_controller.py --list
-```
+### Upload fails with `not in sync`
 
-## 🤝 Contribuindo
+- try the old bootloader variant
+- press reset right before upload
+- check whether the board is actually a different clone profile
+- verify the USB cable carries data, not only power
 
-Pull requests são bem-vindos! Para mudanças grandes, abra uma issue primeiro.
+### No per-app targets appear
 
-## 📝 Licença
+- start audio playback in the target app
+- refresh the UI
+- confirm PipeWire/PulseAudio is exposing sink inputs
 
-MIT License - veja [LICENSE](LICENSE) para detalhes.
+## Project Status
 
-## 👤 Autor
-
-**Bernardo Gomes (bitter)**
-
-- GitHub: [@bernardopg](https://github.com/bernardopg)
-
-## 🙏 Agradecimentos
-
-- Comunidade Arduino
-- Projeto PulseAudio
-- GTK/GNOME Team
+- This GTK app is the working desktop path today
+- The Haskell app in the repository is still the new implementation track
+- The complete backlog is tracked in [../../TODO.md](../../TODO.md)

@@ -12,7 +12,10 @@ mkfifo /tmp/arduino-sim
 ./scripts/arduino-simulator.py > /tmp/arduino-sim &
 stack exec test-serial /tmp/arduino-sim
 
-# Method B: Using socat (virtual serial ports)
+# Method B: Pipe directly to stdin
+./scripts/arduino-simulator.py --mode static | stack exec test-serial /dev/stdin
+
+# Method C: Using socat (virtual serial ports)
 # Terminal 1: Create virtual serial ports
 socat -d -d pty,raw,echo=0,link=/tmp/vserial1 pty,raw,echo=0,link=/tmp/vserial2
 
@@ -28,8 +31,8 @@ stack exec test-serial /tmp/vserial2
 1. **Upload Firmware:**
    ```bash
    # Open Arduino IDE
-   # File → Open → arduino/ioruba-mixer/ioruba-mixer.ino
-   # Tools → Board → Arduino Uno (or your board)
+   # File → Open → arduino/ioruba-nano-3knobs/ioruba-nano-3knobs.ino
+   # Tools → Board → Arduino Nano
    # Tools → Port → /dev/ttyUSB0 (or your port)
    # Click Upload
    ```
@@ -44,7 +47,7 @@ stack exec test-serial /tmp/vserial2
    ```bash
    # In Arduino IDE: Tools → Serial Monitor
    # Set baud rate to 9600
-   # You should see: 512|768|1023|0|256
+   # You should see: 512|768|1023
    ```
 
 4. **Run Ioruba Test:**
@@ -59,11 +62,11 @@ stack exec test-serial /tmp/vserial2
 ✅ Connected!
 📊 Reading slider values... (Ctrl+C to exit)
 
-🎚️  Sliders: [0: 512] [1: 768] [2:1023] [3:   0] [4: 256]
-   Volumes: [0: 50%] [1: 75%] [2:100%] [3:  0%] [4: 25%]
+🎚️  Sliders: [0: 512] [1: 768] [2:1023]
+   Volumes: [0: 50%] [1: 75%] [2:100%]
 
-🎚️  Sliders: [0: 515] [1: 770] [2:1020] [3:   5] [4: 260]
-   Volumes: [0: 50%] [1: 75%] [2: 99%] [3:  0%] [4: 25%]
+🎚️  Sliders: [0: 515] [1: 770] [2:1020]
+   Volumes: [0: 50%] [1: 75%] [2: 99%]
 ...
 ```
 
@@ -75,22 +78,26 @@ stack exec test-serial /tmp/vserial2
 # Add yourself to dialout group
 sudo usermod -a -G dialout $USER
 
+# Arch-based systems often use uucp instead
+sudo usermod -a -G uucp $USER
+
 # Log out and back in, then verify
-groups | grep dialout
+groups | grep -E 'dialout|uucp'
 ```
 
 ### No Data from Arduino
 
-1. Check wiring - potentiometers connected to A0-A4
+1. Check wiring - potentiometers connected to A0, A1, and A2
 2. Check baud rate (should be 9600)
 3. Try Arduino serial monitor first
 4. Check if firmware is uploaded correctly
+5. If the board is a Nano clone, try the old bootloader upload profile
 
 ### Parse Errors
 
 If you see parse errors, the Arduino might be sending data in wrong format. Expected format:
 ```
-512|768|1023|0|256
+512|768|1023
 ```
 
 ### Simulator Not Working
@@ -132,12 +139,23 @@ Sliders stay at middle position (512).
 Once serial communication works, test the full application:
 
 ```bash
-# Run main application
+# Run the main application scaffold
 stack exec ioruba
 
-# In another terminal, move sliders
-# Application should adjust volume
+# Or run the functional GTK desktop app
+audio-controller-gui
 ```
+
+Current behavior:
+- Loads and validates the YAML config
+- Reports whether the configured serial path exists
+- Stays running until `Ctrl+C`
+- Does not yet change PulseAudio/PipeWire volume or display a GUI
+
+Current GTK behavior:
+- Auto-detects the serial device
+- Supports both legacy and current 3-knob protocols
+- Maps the three knobs to master, microphone, or active applications
 
 ## Next Steps
 

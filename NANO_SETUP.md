@@ -1,186 +1,158 @@
-# Arduino Nano Setup com 3 Potenciômetros
+# Arduino Nano Setup with 3 Potentiometers
 
-## Hardware Necessário
+This guide matches the hardware flow currently supported by the repository:
 
-- 1x Arduino Nano (ATmega328P)
-- 3x Potenciômetros 10kΩ (ou qualquer valor entre 1k-100k)
-- Cabo USB Mini-B (para Nano)
-- Jumpers/fios para conexões
+- Arduino Nano ATmega328P
+- 3 potentiometers
+- `A0`, `A1`, `A2`
+- `9600` baud serial
 
-## Esquema de Conexões
+## Wiring
 
-```
-Arduino Nano
-┌─────────────────┐
-│     [USB]       │
-│                 │
-│  A0 ─────●──────┤  Potenciômetro 1 (Master Volume)
-│          ││     │  - Pino 1: GND
-│  A1 ─────●●─────┤  - Pino 2: Sinal → A0
-│          │││    │  - Pino 3: 5V
-│  A2 ─────●●●────┤
-│          │││    │  Potenciômetro 2 (Applications)
-│  5V  ────┴┴┴────┤  - Pino 1: GND
-│                 │  - Pino 2: Sinal → A1
-│  GND ───────────┤  - Pino 3: 5V
-│                 │
-│  D13 [LED] ●────┤  Potenciômetro 3 (Microphone)
-│                 │  - Pino 1: GND
-└─────────────────┘  - Pino 2: Sinal → A2
-                     - Pino 3: 5V
-```
+### Knob 1
 
-### Conexões Detalhadas
+- left pin -> `GND`
+- center pin -> `A0`
+- right pin -> `5V`
 
-**Potenciômetro 1 (Knob 1 - Master):**
-- Pino esquerdo → GND do Arduino
-- Pino central (wiper) → A0 do Arduino
-- Pino direito → 5V do Arduino
+### Knob 2
 
-**Potenciômetro 2 (Knob 2 - Apps):**
-- Pino esquerdo → GND do Arduino
-- Pino central (wiper) → A1 do Arduino
-- Pino direito → 5V do Arduino
+- left pin -> `GND`
+- center pin -> `A1`
+- right pin -> `5V`
 
-**Potenciômetro 3 (Knob 3 - Mic):**
-- Pino esquerdo → GND do Arduino
-- Pino central (wiper) → A2 do Arduino
-- Pino direito → 5V do Arduino
+### Knob 3
 
-## Passo a Passo - Upload do Firmware
+- left pin -> `GND`
+- center pin -> `A2`
+- right pin -> `5V`
 
-### 1. Conectar Arduino Nano
+## Recommended Firmware
+
+Use:
+
+- [arduino/ioruba-nano-3knobs/ioruba-nano-3knobs.ino](arduino/ioruba-nano-3knobs/ioruba-nano-3knobs.ino)
+
+That sketch now sends:
+
+- smoothed readings
+- heartbeat packets every `500ms`
+- pipe-separated lines like `512|768|1023`
+
+The desktop app also accepts the legacy `P1:512` protocol.
+
+## Check the Device
+
+List serial devices:
 
 ```bash
-# Conecte o Arduino via USB
-# Verifique a porta detectada
-ls /dev/ttyUSB* /dev/ttyACM*
-# Exemplo de saída: /dev/ttyUSB0
+ls -l /dev/ttyUSB* /dev/ttyACM*
+python3 - <<'PY'
+import serial.tools.list_ports
+for port in serial.tools.list_ports.comports():
+    print(port.device, "-", port.description)
+PY
 ```
 
-### 2. Configurar Permissões (se necessário)
+Typical Nano clone outputs include `FT232R USB UART` or `CH340`.
+
+## Linux Permissions
+
+Depending on the distro, add your user to `dialout` or `uucp`:
 
 ```bash
-# Adicionar usuário ao grupo dialout
 sudo usermod -a -G dialout $USER
-
-# Fazer logout e login novamente
-# Ou executar:
-newgrp dialout
+sudo usermod -a -G uucp $USER
 ```
 
-### 3. Upload usando Arduino IDE
+Then log out and back in.
 
-1. Abra Arduino IDE
-2. File → Open → `arduino/ioruba-nano-3knobs/ioruba-nano-3knobs.ino`
-3. Tools → Board → "Arduino Nano"
-4. Tools → Processor → "ATmega328P" (ou "ATmega328P (Old Bootloader)" se necessário)
-5. Tools → Port → "/dev/ttyUSB0" (ou sua porta)
-6. Click "Upload" (→)
-
-### 4. Upload usando arduino-cli (Alternativa)
+## Compile
 
 ```bash
-# Instalar arduino-cli
-curl -fsSL https://raw.githubusercontent.com/arduino/arduino-cli/master/install.sh | sh
-
-# Compilar e fazer upload
 arduino-cli compile --fqbn arduino:avr:nano arduino/ioruba-nano-3knobs
+```
+
+## Upload
+
+Default Nano bootloader:
+
+```bash
 arduino-cli upload -p /dev/ttyUSB0 --fqbn arduino:avr:nano arduino/ioruba-nano-3knobs
 ```
 
-## Verificar Funcionamento
-
-### 1. Testar com Serial Monitor (Arduino IDE)
-
-1. Tools → Serial Monitor
-2. Baud Rate: 9600
-3. Você deve ver algo como: `512|768|1023`
-4. Gire os potenciômetros e veja os valores mudarem
-5. LED no Arduino deve piscar quando valores mudam
-
-### 2. Testar com Ioruba
+Old bootloader variant for clones:
 
 ```bash
-# Descobrir a porta do Arduino Nano
-ls -l /dev/ttyUSB* /dev/ttyACM*
+arduino-cli upload -p /dev/ttyUSB0 --fqbn arduino:avr:nano:cpu=atmega328old arduino/ioruba-nano-3knobs
+```
 
-# Exemplo: /dev/ttyUSB0
+## If Upload Fails
 
-# Testar com test-serial
+The host-side project can still be correct while the board upload fails.
+
+Common symptoms:
+
+- `not in sync`
+- `unable to read signature data`
+- the board appears as `Unknown` in `arduino-cli board list`
+
+Practical fixes:
+
+- try both Nano processor profiles
+- press reset right before upload starts
+- make sure no app is holding `/dev/ttyUSB0`
+- swap the USB cable
+- confirm the board is really a Nano ATmega328P clone and not another FTDI-backed board
+- if needed, reburn the bootloader with an ISP programmer
+
+## Validate Serial Output
+
+With the board flashed, you should see lines like:
+
+```text
+512|768|1023
+```
+
+Quick serial smoke test:
+
+```bash
 stack exec test-serial /dev/ttyUSB0
 ```
 
-**Output esperado:**
-```
-🔌 Connecting to Arduino on /dev/ttyUSB0 at 9600 baud...
-✅ Connected!
-📊 Reading slider values... (Ctrl+C to exit)
+## Validate the Desktop App
 
-🎚️  Sliders: [0: 512] [1: 768] [2:1023]
-   Volumes: [0: 50%] [1: 75%] [2:100%]
-```
-
-## Troubleshooting
-
-### Arduino não detectado
-```bash
-# Verifique se o driver CH340 está instalado (Nano clone)
-lsusb | grep -i "CH340\|FT232\|Arduino"
-
-# Se não aparecer nada, pode precisar do driver CH340
-sudo modprobe ch341
-```
-
-### Permission denied
-```bash
-# Verificar permissões
-ls -l /dev/ttyUSB0
-
-# Dar permissão temporária (para teste)
-sudo chmod 666 /dev/ttyUSB0
-
-# Ou adicionar ao grupo dialout (permanente)
-sudo usermod -a -G dialout $USER
-# Logout e login novamente
-```
-
-### Upload falha com "programmer is not responding"
-- Tente selecionar "ATmega328P (Old Bootloader)" nas ferramentas
-- Verifique o cabo USB (alguns cabos só carregam, não transmitem dados)
-- Pressione o botão reset no Arduino e tente upload novamente
-
-### Valores erráticos
-- Verifique as conexões dos potenciômetros
-- Certifique-se que 5V e GND estão conectados corretamente
-- Tente aumentar o noise_reduction no firmware (linha 60)
-
-### LED não pisca
-- LED integrado pode estar queimado (normal, não afeta funcionamento)
-- Firmware ainda funciona normalmente
-
-## Ajustar Configuração
-
-Edite `config/nano-3knobs.yaml` para:
-- Mudar porta serial
-- Ajustar mapeamento de aplicações
-- Configurar threshold de ruído
-
-## Testar Aplicação Completa
+Install and run:
 
 ```bash
-# Com configuração específica para Nano
-stack run -- --config config/nano-3knobs.yaml
+legacy/arduino-audio-controller/install_local.sh
+audio-controller-gui
 ```
 
-## Próximos Passos
+Expected behavior:
 
-Após verificar que a comunicação funciona:
-1. Integrar com PulseAudio
-2. Testar controle de volume real
-3. Implementar GUI
+- the app detects the port automatically
+- knob 1 can be mapped to master
+- knob 2 and knob 3 can be mapped to apps or microphone
+- the header language can be switched between `pt-BR` and `en`
 
-## Referências
+## Useful Debug Checks
 
-- Arduino Nano Pinout: https://docs.arduino.cc/hardware/nano
-- Potentiômetros: https://www.arduino.cc/en/Tutorial/BuiltInExamples/AnalogInput
+Is something already holding the port?
+
+```bash
+fuser -v /dev/ttyUSB0
+```
+
+List active audio applications:
+
+```bash
+legacy/arduino-audio-controller/audio_controller_gui_wrapper.sh --demo
+```
+
+If the UI connects but reports no readings:
+
+- reflash the Nano
+- verify `9600` baud
+- confirm the firmware is sending output in the serial monitor
+- check whether the knobs are actually wired to `A0`, `A1`, and `A2`

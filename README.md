@@ -1,319 +1,146 @@
-# Ioruba - Functional Audio Mixer for Linux
+# Ioruba
 
-<div align="center">
+Linux audio controller for an Arduino Nano with 3 B10K potentiometers on `A0`, `A1`, and `A2`.
 
-![License](https://img.shields.io/badge/license-MIT-blue.svg)
-![Haskell](https://img.shields.io/badge/language-Haskell-purple.svg)
-![Platform](https://img.shields.io/badge/platform-Linux-green.svg)
+The repository currently has two tracks:
 
-**A modern, functional reimplementation of hardware-based audio control with a beautiful GUI**
+- `legacy/arduino-audio-controller/`: the functional GTK4 desktop app recommended for real use today
+- `src/`, `app/`, and `config/`: the Haskell reimplementation, still useful for config validation and serial smoke tests, but not yet the full mixer runtime
 
-[Features](#features) • [Installation](#installation) • [Quick Start](#quick-start) • [Documentation](#documentation) • [Contributing](#contributing)
+## Screenshot Gallery
 
-</div>
+### Desktop overview (pt-BR)
 
-![Screenshot](assets/screenshot.png)
+![Desktop overview in pt-BR](assets/screenshots/desktop-overview-pt-br.png)
 
----
+### Knob deck with app icons
 
-## Overview
+![Knob deck with animated dials and app icons](assets/screenshots/knob-deck-pt-br.png)
 
-**Ioruba** is a Linux-native audio control system that bridges physical hardware (Arduino-based sliders) with your system's audio. Inspired by [deej](https://github.com/omriharel/deej), Ioruba is built from the ground up in Haskell with a focus on:
+### English layout
 
-- **Functional purity** - Predictable, testable, maintainable code
-- **Modern UI/UX** - Clean GTK-based interface with dark/light themes
-- **Linux-first** - Full PulseAudio and PipeWire support
-- **Extensibility** - Plugin system, profiles, and rich configuration
+![English layout](assets/screenshots/english-layout.png)
 
-Control individual application volumes, master output, microphone input, and more with physical sliders connected to an Arduino.
+## What Works Today
 
-## Features
+- Responsive GTK4/LibAdwaita desktop UI
+- Animated DJ-style dials for the 3 physical knobs
+- Autodetection of serial ports like `/dev/ttyUSB0` and `/dev/ttyACM0`
+- Mapping each knob to master output, microphone input, or active applications
+- App icons for configured targets such as Chrome and Spotify
+- PipeWire/PulseAudio control through `pulsectl`
+- Two firmware protocols:
+  - legacy `P1:512`, `P2:768`, `P3:1023`
+  - current `512|768|1023`
+- Multilanguage UI:
+  - auto-detects system language
+  - supports `pt-BR` and `en`
+  - falls back to English when the system locale is not supported
+  - can be switched live from the header bar
+- Demo mode for previews and screenshot generation
 
-### Core Functionality
-- **Hardware Integration** - USB serial communication with Arduino-based sliders
-- **Granular Audio Control** - Per-application volume, master volume, mic input
-- **Real-time Visualization** - Live audio level meters with smooth animations
-- **Profile System** - Quick-switch between audio configurations (work, gaming, streaming)
+## Recommended Hardware
 
-### Modern Interface
-- **GTK+ 3 GUI** - Native Linux look and feel
-- **Dark/Light Themes** - Automatic or manual theme switching
-- **System Tray Integration** - Minimize to tray, quick controls
-- **Keyboard Shortcuts** - Fully customizable hotkeys
+- 1x Arduino Nano ATmega328P
+- 3x B10K potentiometers
+- Wiring:
+  - knob 1 wiper -> `A0`
+  - knob 2 wiper -> `A1`
+  - knob 3 wiper -> `A2`
+  - side pins -> `5V` and `GND`
 
-### Configuration Management
-- **YAML-based Config** - Human-readable, version-controllable
-- **Live Reload** - Changes apply immediately without restart
-- **Validation** - Detailed error messages for invalid configurations
-- **Auto-rollback** - Automatically reverts to last working config on errors
+Detailed wiring and upload notes live in [NANO_SETUP.md](NANO_SETUP.md).
 
-### Productivity Features
-- **Integrated Task Manager** - Track TODOs with priority and categorization
-- **Desktop Notifications** - Reminders and audio event alerts
-- **Interactive Documentation** - Built-in tutorials and help system
-- **Calendar Integration** - Sync tasks with your calendar
+## Recommended Firmware
 
-### Developer Experience
-- **Automatic Documentation** - Generated API docs and guides
-- **Comprehensive Testing** - Property-based and integration tests
-- **CI/CD Ready** - GitHub Actions workflows included
-- **Extensible Architecture** - Clean module boundaries for easy contributions
+Use [arduino/ioruba-nano-3knobs/ioruba-nano-3knobs.ino](arduino/ioruba-nano-3knobs/ioruba-nano-3knobs.ino).
 
-## Installation
+That sketch now:
 
-### Prerequisites
+- smooths analog noise
+- sends a heartbeat every `500ms`
+- helps the desktop UI distinguish idle knobs from missing firmware
 
-**System Dependencies:**
-```bash
-# Debian/Ubuntu
-sudo apt install libpulse-dev libgtk-3-dev libappindicator3-dev
-
-# Fedora
-sudo dnf install pulseaudio-libs-devel gtk3-devel libappindicator-gtk3-devel
-
-# Arch Linux
-sudo pacman -S libpulse gtk3 libappindicator-gtk3
-```
-
-**Haskell Stack:**
-```bash
-curl -sSL https://get.haskellstack.org/ | sh
-```
-
-**Arduino Setup:**
-```bash
-# Add user to dialout group for serial access
-sudo usermod -a -G dialout $USER
-# Log out and back in for changes to take effect
-```
-
-### Build from Source
-
-```bash
-# Clone the repository
-git clone https://github.com/bernardopg/ioruba.git
-cd ioruba
-
-# Build
-stack build
-
-# Install to ~/.local/bin
-stack install
-
-# Run
-ioruba
-```
-
-### Desktop Integration
-
-```bash
-# Install launcher and icon
-mkdir -p ~/.local/share/applications
-cp assets/ioruba.desktop ~/.local/share/applications/
-
-mkdir -p ~/.local/share/icons/hicolor/128x128/apps
-cp assets/icon.png ~/.local/share/icons/hicolor/128x128/apps/ioruba.png
-gtk-update-icon-cache ~/.local/share/icons/hicolor/
-```
-
-### Hardware Setup
-
-1. **Build the Arduino Circuit:**
-   - Connect 5 potentiometers to analog pins A0-A4
-   - See `docs/guides/hardware-setup.md` for detailed wiring diagrams
-
-2. **Upload Arduino Sketch:**
-   ```bash
-   cd arduino/ioruba-mixer
-   # Using Arduino IDE: Open and upload
-   # OR using PlatformIO:
-   pio run --target upload
-   ```
-
-3. **Configure Serial Port:**
-   - Edit `config/ioruba.yaml`
-   - Set `serial_port` to your Arduino device (e.g., `/dev/ttyUSB0`)
+The legacy sketch at [legacy/arduino-audio-controller/arduino_audio_controller.ino](legacy/arduino-audio-controller/arduino_audio_controller.ino) is still available for the original `P1/P2/P3` protocol.
 
 ## Quick Start
 
-### First Run
+### 1. Flash the Nano
 
-1. **Launch Ioruba:**
-   ```bash
-   ioruba
-   ```
+```bash
+arduino-cli compile --fqbn arduino:avr:nano arduino/ioruba-nano-3knobs
+arduino-cli upload -p /dev/ttyUSB0 --fqbn arduino:avr:nano arduino/ioruba-nano-3knobs
+```
 
-2. **Configure Slider Mappings:**
-   - Click the settings icon or press `Ctrl+,`
-   - Map each slider to applications or system outputs
-   - Save configuration
+If upload fails on a Nano clone:
 
-3. **Test Sliders:**
-   - Move physical sliders
-   - Watch volume levels change in the GUI
-   - Verify audio output adjusts accordingly
+- try `arduino:avr:nano:cpu=atmega328old`
+- press reset right before upload
+- make sure no app is holding the serial port open
 
-### Example Configuration
+### 2. Install the desktop app
 
-`config/ioruba.yaml`:
-```yaml
-serial:
-  port: /dev/ttyUSB0
-  baud_rate: 9600
+```bash
+cd legacy/arduino-audio-controller
+./install_local.sh
+```
 
-sliders:
-  - id: 0
-    name: "Master Volume"
-    targets:
-      - type: master
+This installs:
 
-  - id: 1
-    name: "Music"
-    targets:
-      - type: application
-        name: "Spotify"
-      - type: application
-        name: "rhythmbox"
+- the launcher `audio-controller-gui`
+- the desktop entry `Controlador de Audio`
+- the icon under `~/.local/share/icons/`
 
-  - id: 2
-    name: "Browser"
-    targets:
-      - type: application
-        name: "Firefox"
-      - type: application
-        name: "Chrome"
+### 3. Run it
 
-  - id: 3
-    name: "Communications"
-    targets:
-      - type: application
-        name: "Discord"
-      - type: application
-        name: "Slack"
+```bash
+audio-controller-gui
+```
 
-  - id: 4
-    name: "Microphone"
-    targets:
-      - type: source
-        name: "default_microphone"
+Useful flags:
 
-audio:
-  noise_reduction: default
-  smooth_transitions: true
-  transition_duration_ms: 50
+```bash
+audio-controller-gui --demo
+audio-controller-gui --lang en
+```
 
-gui:
-  theme: dark
-  show_visualizers: true
-  tray_icon: true
+## Haskell Track
+
+The Haskell codebase is still valuable, but it is not the full end-user app yet.
+
+What it currently does:
+
+- parses and validates YAML config
+- supports serial smoke testing from a real device, `stdin`, or FIFO
+- has passing tests for config parsing, protocol parsing, and mixer math
+
+What it does not do yet:
+
+- drive real PipeWire/PulseAudio volumes end-to-end
+- provide the desktop GUI shown in the screenshots above
+
+Use it for development checks:
+
+```bash
+stack test
+stack exec test-serial /dev/ttyUSB0
+stack exec ioruba
 ```
 
 ## Documentation
 
-- **[User Guide](docs/guides/user-guide.md)** - Complete usage instructions
-- **[Hardware Setup](docs/guides/hardware-setup.md)** - Wiring diagrams and Arduino setup
-- **[Configuration Reference](docs/guides/configuration.md)** - All config options explained
-- **[API Documentation](docs/api/)** - Haddock-generated API docs
-- **[Architecture Overview](CLAUDE.md)** - For developers
+- [NANO_SETUP.md](NANO_SETUP.md): wiring, flashing, and serial troubleshooting
+- [TODO.md](TODO.md): complete implementation backlog for the desktop app and Haskell runtime
+- [legacy/arduino-audio-controller/README.md](legacy/arduino-audio-controller/README.md): focused guide for the current GTK app
+- [QUICKSTART.md](QUICKSTART.md): Haskell quick start
+- [TESTING.md](TESTING.md): serial and simulator testing
 
-## Development
+## Current Status
 
-### Project Structure
-
-```
-ioruba/
-├── src/               # Haskell source code
-│   ├── Audio/        # PulseAudio/PipeWire integration
-│   ├── GUI/          # GTK interface components
-│   ├── Config/       # Configuration management
-│   ├── Hardware/     # Serial communication
-│   ├── Tasks/        # Task management system
-│   └── Utils/        # Shared utilities
-├── app/              # Main application entry point
-├── test/             # Test suites
-├── arduino/          # Arduino firmware
-├── docs/             # Documentation
-├── config/           # Example configurations
-├── assets/           # Icons, themes, resources
-└── legacy/arduino-audio-controller/  # Archived Python/GTK4 prototype
-```
-
-### Running Tests
-
-```bash
-# All tests
-stack test
-
-# Specific test suite
-stack test :ioruba-test
-
-# With coverage
-stack test --coverage
-
-# Watch mode (using ghcid)
-ghcid --command "stack ghci ioruba:lib ioruba:test:ioruba-test" --test "main"
-```
-
-### Code Style
-
-We use [Ormolu](https://github.com/tweag/ormolu) for formatting and [HLint](https://github.com/ndmitchell/hlint) for linting:
-
-```bash
-# Format all code
-find src -name "*.hs" -exec ormolu -i {} \;
-
-# Run linter
-stack exec -- hlint src/
-```
-
-## Contributing
-
-Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
-
-### Development Workflow
-
-1. Fork the repository
-2. Create a feature branch: `git checkout -b feature/my-feature`
-3. Make your changes
-4. Run tests: `stack test`
-5. Format code: `ormolu -i src/**/*.hs`
-6. Commit with descriptive message
-7. Push and create a Pull Request
-
-## Roadmap
-
-- [ ] Windows support via WASAPI
-- [ ] macOS support via CoreAudio
-- [ ] Plugin system for custom audio processors
-- [ ] Web interface for remote control
-- [ ] MIDI controller support
-- [ ] Equalizer presets per application
-- [ ] Cloud profile sync
-- [ ] Mobile app for remote control
-
-## Inspiration
-
-This project is inspired by:
-- [deej](https://github.com/omriharel/deej) - The original hardware audio mixer
-- [PulseAudio](https://www.freedesktop.org/wiki/Software/PulseAudio/) - Linux audio server
-- [PipeWire](https://pipewire.org/) - Modern multimedia framework
+- Desktop app: functional and recommended
+- Firmware: compiles locally; host app supports both old and new protocols
+- Haskell runtime: partial and still under implementation
 
 ## License
 
-MIT License - see [LICENSE](LICENSE) for details.
-
-## Support
-
-- **Issues:** [GitHub Issues](https://github.com/bernardopg/ioruba/issues)
-- **Discussions:** [GitHub Discussions](https://github.com/bernardopg/ioruba/discussions)
-- **Documentation:** [Wiki](https://github.com/bernardopg/ioruba/wiki)
-
----
-
-<div align="center">
-
-**Made with ❤️ using Haskell**
-
-[⬆ Back to Top](#iarubá---functional-audio-mixer-for-linux)
-
-</div>
+MIT
