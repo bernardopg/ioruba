@@ -2,6 +2,7 @@
 .stack-work/
 *.cabal
 dist/
+dist-firmware/
 dist-newstyle/
 
 # GHC
@@ -39,6 +40,7 @@ state.yaml
 tmp/
 temp/
 .site-dist/
+release-dist/
 __pycache__/
 .github/scripts/__pycache__/
 

@@ -49,11 +49,12 @@ import GUI.MainWindow
   , showWindow
   )
 import Hardware.Device (detectArduino)
-import Hardware.Protocol (SliderState(..), parseSliderData)
+import Hardware.Protocol (SliderState(..), parseSliderData, sanitizeSerialPayload)
 import Hardware.Serial (SerialConfig(..), SerialPort, closeSerial, openSerial, readLine)
-import System.Directory (doesFileExist)
-import System.Environment (getArgs)
+import System.Directory (XdgDirectory(XdgConfig), doesFileExist, getXdgDirectory)
+import System.Environment (getArgs, getExecutablePath, lookupEnv)
 import System.Exit (exitFailure, exitSuccess)
+import System.FilePath ((</>), takeDirectory)
 import System.IO (BufferMode(NoBuffering), hSetBuffering, stdout)
 
 type SliderMap = Map.Map Int SliderValue
@@ -205,10 +206,24 @@ resolveConfigPath args =
   case args of
     ("--config":path:_) -> pure path
     _ -> do
-      nanoConfigExists <- doesFileExist "config/nano-3knobs.yaml"
-      if nanoConfigExists
-        then pure "config/nano-3knobs.yaml"
-        else pure "config/ioruba.yaml"
+      explicitConfigPath <- lookupEnv "IORUBA_CONFIG_PATH"
+      xdgConfigDir <- getXdgDirectory XdgConfig "ioruba"
+      executablePath <- getExecutablePath
+      let executableDir = takeDirectory executablePath
+          candidatePaths =
+            maybeToList explicitConfigPath
+              ++ [ xdgConfigDir </> "ioruba.yaml"
+                 , xdgConfigDir </> "nano-3knobs.yaml"
+                 , "/etc/ioruba/ioruba.yaml"
+                 , "/etc/ioruba/nano-3knobs.yaml"
+                 , executableDir </> "../share/ioruba/config/ioruba.yaml"
+                 , executableDir </> "../share/ioruba/config/nano-3knobs.yaml"
+                 , executableDir </> "../config/nano-3knobs.yaml"
+                 , executableDir </> "../config/ioruba.yaml"
+                 , "config/nano-3knobs.yaml"
+                 , "config/ioruba.yaml"
+                 ]
+      findFirstExistingPath candidatePaths "config/ioruba.yaml"
 
 loadValidatedConfig :: FilePath -> IO Config
 loadValidatedConfig configPath = do
@@ -250,9 +265,11 @@ resolveAvailableSerialPath config = do
 
 parseSliderEvent :: BS.ByteString -> Either String SliderEvent
 parseSliderEvent rawLine
-  | BS.isPrefixOf "P" rawLine = parseLegacyDelta rawLine
+  | BS.isPrefixOf "P" cleanLine = parseLegacyDelta cleanLine
   | otherwise =
-      FullSliderState . sliderStateToMap <$> parseSliderData rawLine
+      FullSliderState . sliderStateToMap <$> parseSliderData cleanLine
+  where
+    cleanLine = sanitizeSerialPayload rawLine
 
 parseLegacyDelta :: BS.ByteString -> Either String SliderEvent
 parseLegacyDelta rawLine =
@@ -488,3 +505,11 @@ idlePollDelayMicros = 100000
 
 retryDelayMicros :: Int
 retryDelayMicros = 1000000
+
+findFirstExistingPath :: [FilePath] -> FilePath -> IO FilePath
+findFirstExistingPath [] fallbackPath = pure fallbackPath
+findFirstExistingPath (candidatePath:remainingPaths) fallbackPath = do
+  candidateExists <- doesFileExist candidatePath
+  if candidateExists
+    then pure candidatePath
+    else findFirstExistingPath remainingPaths fallbackPath

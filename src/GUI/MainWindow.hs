@@ -100,7 +100,7 @@ renderSliderView sliderView = do
 renderFooter :: IO ()
 renderFooter = do
   setSGR [SetColor Foreground Dull Black]
-  putStrLn "Ctrl+C to exit. Edit config/*.yaml to remap knobs and targets."
+  putStrLn "Ctrl+C to exit. Use --config or ~/.config/ioruba/ioruba.yaml to remap knobs."
   setSGR [Reset]
 
 renderBar :: Int -> String
