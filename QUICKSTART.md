@@ -1,77 +1,103 @@
 # Quick Start Guide
 
-There are two valid entry points in this repository:
+The main path in this repository is now the Haskell runtime in `app/` and `src/`.
 
-- the functional GTK desktop app in `legacy/arduino-audio-controller/`
-- the Haskell scaffold in `src/` and `app/`
+This guide assumes:
 
-If your goal is to use the Nano with 3 knobs today, use the GTK path. This guide keeps the Haskell flow for development and smoke tests.
+- `Arduino Nano ATmega328P`
+- `3x B10K` potentiometers on `A0`, `A1`, and `A2`
+- Linux with PipeWire or PulseAudio available through `pactl`
 
-## Prerequisites Check
+## 1. Check prerequisites
 
 ```bash
-# Check if Stack is installed
 stack --version
+pactl info
+arduino-cli version
+```
 
-# Install Stack if needed
+If `stack` is missing:
+
+```bash
 curl -sSL https://get.haskellstack.org/ | sh
 ```
 
-## Serial Access
+## 2. Confirm serial access
 
-Make sure your user can read the serial device used by the Arduino/USB adapter:
+Depending on the distro, add your user to `dialout` or `uucp`:
 
 ```bash
 sudo usermod -a -G dialout $USER
-# Arch-based systems often use uucp instead:
 sudo usermod -a -G uucp $USER
 ```
 
-## Build and Run
+Then log out and back in.
+
+## 3. Flash the Nano
+
+Compile:
 
 ```bash
-# Build the project
-stack build
-
-# Validate the documented config schema
-stack exec ioruba -- --config config/example.yaml
+arduino-cli compile --fqbn arduino:avr:nano arduino/ioruba-nano-3knobs
 ```
 
-## Configure Your Setup
+Upload for standard Nano boards:
 
-1. **Find your Arduino device:**
-   ```bash
-   ls /dev/ttyUSB* /dev/ttyACM*
-   # Should show something like /dev/ttyUSB0
-   ```
+```bash
+arduino-cli upload -p /dev/ttyUSB0 --fqbn arduino:avr:nano arduino/ioruba-nano-3knobs
+```
 
-2. **Edit config:**
-   ```bash
-   cp config/example.yaml config/ioruba.yaml
-   nano config/ioruba.yaml
-   # Update serial.port to match your device
-   ```
+Upload for classic Nano clones with the old bootloader:
 
-3. **Upload Arduino firmware:**
-   - Open `arduino/ioruba-nano-3knobs/ioruba-nano-3knobs.ino` in Arduino IDE
-   - Select your board (Tools → Board → Arduino Nano)
-   - Select your port (Tools → Port → /dev/ttyUSB0)
-   - Click Upload
+```bash
+arduino-cli upload -p /dev/ttyUSB0 --fqbn arduino:avr:nano:cpu=atmega328old arduino/ioruba-nano-3knobs
+```
 
-4. **Run the serial monitor utility:**
-   ```bash
-   stack exec test-serial /dev/ttyUSB0
-   ```
+## 4. Build the runtime
 
-## Verify It Works
+```bash
+stack build
+stack test
+```
 
-1. Move your physical sliders
-2. Check serial output in Arduino IDE Serial Monitor (should show values like `512|768|1023`)
-3. Run `stack exec test-serial /dev/ttyUSB0`
-4. Confirm the terminal prints slider values and percentages
-5. Run `stack exec ioruba` to validate the configured port path and config file
+## 5. Pick a config
 
-## Test Without Hardware
+The runtime will prefer `config/nano-3knobs.yaml` when it exists.
+
+Useful config files:
+
+- `config/nano-3knobs.yaml`: practical default for the 3-knob Nano setup
+- `config/ioruba.yaml`: alternate root config for local remapping
+- `config/example.yaml`: example schema variant for editing from scratch
+
+To use a custom file explicitly:
+
+```bash
+stack exec ioruba -- --config config/ioruba.yaml
+```
+
+## 6. Run the runtime
+
+```bash
+stack exec ioruba
+```
+
+Expected behavior:
+
+- auto-detects `/dev/ttyUSB0` or `/dev/ttyACM0`
+- reconnects automatically if the board disappears
+- renders a live terminal dashboard
+- maps knob 1 to `master`
+- maps knob 2 to configured applications
+- maps knob 3 to `default_microphone`
+
+## 7. Smoke-test the serial path
+
+```bash
+stack exec test-serial /dev/ttyUSB0
+```
+
+If you want to test without hardware:
 
 ```bash
 python3 scripts/arduino-simulator.py --mode static | stack exec test-serial /dev/stdin
@@ -79,28 +105,28 @@ python3 scripts/arduino-simulator.py --mode static | stack exec test-serial /dev
 
 ## Troubleshooting
 
-**Build fails with missing dependencies?**
-- Run: `stack build --only-dependencies` first
+If upload fails:
 
-**Permission denied accessing /dev/ttyUSB0?**
-```bash
-sudo usermod -a -G dialout $USER
-# Log out and back in
-```
+- use `arduino:avr:nano:cpu=atmega328old`
+- press `RESET` right before upload starts
+- make sure no other app is holding `/dev/ttyUSB0`
 
-**No audio control?**
-- That is expected in the current Haskell app. The audio-control modules are still scaffolded.
+If the runtime starts but shows no packets:
 
-**Can't see knobs moving in the desktop app?**
-- Verify Arduino serial output in Serial Monitor
-- Check config file has correct serial port
-- Use `stack exec test-serial /dev/ttyUSB0` first
-- Then launch `audio-controller-gui`; the GTK app is the functional UI path today
+- verify the board is sending `512|768|1023`
+- confirm `9600` baud
+- run `stack exec test-serial /dev/ttyUSB0` first
+- check the knob wiring on `A0`, `A1`, and `A2`
+
+If audio targets do not move:
+
+- confirm `pactl info` works
+- make sure the target apps actually have active audio streams
+- check the names configured in `config/*.yaml`
 
 ## Next Steps
 
-- Read [README.md](README.md) for full documentation
-- Read [NANO_SETUP.md](NANO_SETUP.md) for the Nano-specific flow
-- Read [TESTING.md](TESTING.md) for simulator and FIFO workflows
-- Check [docs/guides/hardware-setup.md](docs/guides/hardware-setup.md) for hardware details
-- Track the full backlog in [TODO.md](TODO.md)
+- Read [README.md](README.md) for the product-level overview
+- Read [NANO_SETUP.md](NANO_SETUP.md) for firmware and wiring details
+- Read [TESTING.md](TESTING.md) for simulator and end-to-end checks
+- Read [TODO.md](TODO.md) for the remaining backlog

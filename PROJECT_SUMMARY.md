@@ -2,7 +2,7 @@
 
 ## Positioning
 
-Ioruba is being repositioned from an Arduino mixer experiment into a Linux-native audio product with a cleaner distribution story, stronger public-facing assets, and a Haskell-first runtime direction.
+Ioruba has moved from an Arduino mixer experiment into a Linux-native audio product with a cleaner distribution story, stronger public-facing assets, and a Haskell-first runtime direction.
 
 The project now sits at the intersection of:
 
@@ -15,7 +15,7 @@ The project now sits at the intersection of:
 ### What the project is
 
 - A hardware-driven audio controller centered on an Arduino Nano and a 3-knob mixer workflow
-- A Haskell codebase that now builds a real runtime and is becoming the distributable path forward
+- A Haskell codebase that now builds and runs a real runtime against a Nano-backed hardware path
 - A repository with a product surface that includes GitHub Pages, funding support, and automated release tooling
 
 ### What the project is not
@@ -26,7 +26,7 @@ The project now sits at the intersection of:
 
 ## Public surface and automation
 
-The repository automation and marketing surface now includes or is being aligned around:
+The repository automation and marketing surface now includes:
 
 - GitHub Actions CI focused on Haskell quality checks and site smoke tests
 - Release Please for automated release PRs and tagging
@@ -50,7 +50,7 @@ The repository automation and marketing surface now includes or is being aligned
 ### Near term
 
 - harden the Haskell runtime as the default path for real users
-- make release artifacts and Pages reflect the actual shipped runtime
+- make release artifacts reflect the actual shipped runtime
 - keep product presentation and documentation aligned with what actually works
 
 ### Mid term
@@ -70,6 +70,7 @@ The repository automation and marketing surface now includes or is being aligned
 - the old project summary had outdated paths, counts, and setup assumptions
 - Pages, funding, and release metadata now form part of the product story rather than afterthoughts
 - repository metadata, homepage, and Pages configuration now point to the new public-facing surface
+- the runtime path is now strong enough to be the main narrative of the repository instead of a side scaffold
 
 ## Recommended message for the project
 

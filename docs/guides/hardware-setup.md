@@ -1,36 +1,36 @@
 # Hardware Setup Guide
 
-This repository currently targets the `Arduino Nano + 3 potentiometers` build.
+This repository targets a practical `Arduino Nano + 3 potentiometers` build that feeds the Haskell runtime.
 
-## Required Components
+## Required parts
 
-- 1x Arduino Nano ATmega328P
-- 3x 10k linear potentiometers
-- 1x USB cable for the Nano
+- `1x Arduino Nano ATmega328P`
+- `3x 10k linear potentiometers`
+- `1x USB cable`
 - jumper wires
 - breadboard or enclosure
 
 ## Wiring
 
-### Potentiometer 1
+### Knob 1
 
 - left pin -> `GND`
-- middle pin -> `A0`
+- center pin -> `A0`
 - right pin -> `5V`
 
-### Potentiometer 2
+### Knob 2
 
 - left pin -> `GND`
-- middle pin -> `A1`
+- center pin -> `A1`
 - right pin -> `5V`
 
-### Potentiometer 3
+### Knob 3
 
 - left pin -> `GND`
-- middle pin -> `A2`
+- center pin -> `A2`
 - right pin -> `5V`
 
-## ASCII Diagram
+## ASCII diagram
 
 ```text
 Arduino Nano
@@ -38,34 +38,56 @@ Arduino Nano
 │ A0 ───── knob 1      │
 │ A1 ───── knob 2      │
 │ A2 ───── knob 3      │
-│ 5V ───── all right pins
-│ GND ──── all left pins
-│ USB ──── computer
+│ 5V ───── outer pins  │
+│ GND ──── outer pins  │
+│ USB ──── computer    │
 └──────────────────────┘
 ```
 
 ## Firmware
 
-Recommended sketch:
+Compile:
 
 ```bash
 arduino-cli compile --fqbn arduino:avr:nano arduino/ioruba-nano-3knobs
+```
+
+Upload for standard Nano boards:
+
+```bash
 arduino-cli upload -p /dev/ttyUSB0 --fqbn arduino:avr:nano arduino/ioruba-nano-3knobs
 ```
 
-If a clone needs the old bootloader:
+Upload for common clones with the old bootloader:
 
 ```bash
 arduino-cli upload -p /dev/ttyUSB0 --fqbn arduino:avr:nano:cpu=atmega328old arduino/ioruba-nano-3knobs
 ```
 
-## Expected Serial Output
+## Expected serial output
 
 ```text
 512|768|1023
 ```
 
-The GTK desktop app also accepts the legacy `P1:512` format.
+The runtime also accepts the legacy `P1:512` style protocol.
+
+## Validate the host runtime
+
+Once the hardware is wired and flashed:
+
+```bash
+stack exec test-serial /dev/ttyUSB0
+stack exec ioruba
+```
+
+Expected runtime behavior:
+
+- the Nano is auto-detected
+- packets are shown in the dashboard
+- knob 1 moves `master`
+- knob 2 can target apps
+- knob 3 can target `default_microphone`
 
 ## Troubleshooting
 
@@ -79,7 +101,7 @@ The GTK desktop app also accepts the legacy `P1:512` format.
 ### Upload fails
 
 - try the old bootloader variant
-- press reset before upload
+- press `RESET` before upload
 - check whether another app is holding `/dev/ttyUSB0`
 
 ### Permission denied
@@ -90,11 +112,3 @@ sudo usermod -a -G uucp $USER
 ```
 
 Then log out and back in.
-
-## Next Steps
-
-Once hardware is working:
-
-1. Run `stack exec test-serial /dev/ttyUSB0`
-2. Install the GTK desktop app with `legacy/arduino-audio-controller/install_local.sh`
-3. Launch `audio-controller-gui`

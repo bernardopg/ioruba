@@ -1,6 +1,6 @@
 # TODO
 
-Updated for the current repository state on `2026-03-18`.
+Updated for the current repository state on `2026-03-19`.
 
 ## Done Recently
 
@@ -14,6 +14,8 @@ Updated for the current repository state on `2026-03-18`.
 - [x] Metadata sync tooling added for repo description, homepage, and topics
 - [x] Firmware heartbeat keeps the runtime from confusing idle hardware with a dead board
 - [x] Haskell tests for config parsing, protocol parsing, and mixer math
+- [x] GitHub Pages is now deployed through Actions instead of legacy branch publishing
+- [x] Repository description, homepage, and topics are synced from `docs/config.yaml`
 
 ## Firmware and Hardware
 
@@ -29,6 +31,7 @@ Updated for the current repository state on `2026-03-18`.
 - [ ] Add optional target curves, inversion presets, and smoothing profiles per knob
 - [ ] Add better stream selection heuristics for multiple browser profiles or duplicate app names
 - [ ] Add persistent runtime state and last-known target resolution
+- [ ] Add PT-BR and English localization to the Haskell runtime surface
 - [ ] Decide whether to keep the polished TUI as the main shell or layer a native Haskell GUI on top later
 - [ ] If a native GUI is revived, replace the prototype modules in `src/GUI/Settings.hs`, `src/GUI/Themes.hs`, and `src/GUI/Visualizer.hs`
 - [ ] Expand config validation coverage beyond the parser tests already added
@@ -48,6 +51,7 @@ Updated for the current repository state on `2026-03-18`.
 - [ ] Add Debian/Ubuntu packaging metadata for desktop distribution
 - [ ] Add CI smoke coverage that boots the runtime with a serial simulator
 - [ ] Add release signing and provenance for binaries and firmware bundles
+- [ ] Decide whether the first public automated release should be `v0.2.0` or a later cut after more runtime polish
 - [ ] Add a clear support matrix for:
   - Haskell runtime
   - firmware variants

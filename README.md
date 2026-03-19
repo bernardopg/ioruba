@@ -9,7 +9,7 @@ The main product path is now the Haskell runtime:
 - YAML-driven knob mapping for `master`, `applications`, and `microphone`
 - automated Pages, release, and funding surface for a distribution-ready repo
 
-[Website](https://bernardopg.github.io/ioruba/) | [Funding](FUNDING.md) | [Project Summary](PROJECT_SUMMARY.md)
+[Website](https://bernardopg.github.io/ioruba/) | [Releases](https://github.com/bernardopg/ioruba/releases) | [Funding](FUNDING.md) | [Project Summary](PROJECT_SUMMARY.md)
 
 ## What Works Now
 
@@ -66,6 +66,12 @@ Run the mixer:
 stack exec ioruba
 ```
 
+If your Nano clone uses the old bootloader, flash the firmware with:
+
+```bash
+arduino-cli upload -p /dev/ttyUSB0 --fqbn arduino:avr:nano:cpu=atmega328old arduino/ioruba-nano-3knobs
+```
+
 Use a custom config file:
 
 ```bash
@@ -97,6 +103,7 @@ The public Pages site and repository metadata are driven by [`docs/config.yaml`]
 - [TODO.md](TODO.md): current implementation backlog
 - [QUICKSTART.md](QUICKSTART.md): runtime quick start
 - [TESTING.md](TESTING.md): hardware and serial testing
+- [docs/config.yaml](docs/config.yaml): Pages navigation, repository description, topics, and owner metadata
 
 ## Visual Archive
 

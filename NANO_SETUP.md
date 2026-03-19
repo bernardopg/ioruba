@@ -1,10 +1,10 @@
 # Arduino Nano Setup with 3 Potentiometers
 
-This guide matches the hardware flow currently supported by the repository:
+This guide matches the hardware path that now drives the Haskell runtime:
 
-- Arduino Nano ATmega328P
-- 3 potentiometers
-- `A0`, `A1`, `A2`
+- `Arduino Nano ATmega328P`
+- `3x B10K` potentiometers
+- `A0`, `A1`, and `A2`
 - `9600` baud serial
 
 ## Wiring
@@ -27,21 +27,21 @@ This guide matches the hardware flow currently supported by the repository:
 - center pin -> `A2`
 - right pin -> `5V`
 
-## Recommended Firmware
+## Recommended firmware
 
 Use:
 
 - [arduino/ioruba-nano-3knobs/ioruba-nano-3knobs.ino](arduino/ioruba-nano-3knobs/ioruba-nano-3knobs.ino)
 
-That sketch now sends:
+That sketch sends:
 
 - smoothed readings
 - heartbeat packets every `500ms`
 - pipe-separated lines like `512|768|1023`
 
-The desktop app also accepts the legacy `P1:512` protocol.
+The runtime still accepts the legacy `P1:512` protocol for compatibility.
 
-## Check the Device
+## Check the device
 
 List serial devices:
 
@@ -54,9 +54,9 @@ for port in serial.tools.list_ports.comports():
 PY
 ```
 
-Typical Nano clone outputs include `FT232R USB UART` or `CH340`.
+Typical Nano clone labels include `FT232R USB UART` or `CH340`.
 
-## Linux Permissions
+## Linux permissions
 
 Depending on the distro, add your user to `dialout` or `uucp`:
 
@@ -75,21 +75,19 @@ arduino-cli compile --fqbn arduino:avr:nano arduino/ioruba-nano-3knobs
 
 ## Upload
 
-Default Nano bootloader:
+Standard Nano profile:
 
 ```bash
 arduino-cli upload -p /dev/ttyUSB0 --fqbn arduino:avr:nano arduino/ioruba-nano-3knobs
 ```
 
-Old bootloader variant for clones:
+Old bootloader profile for clones:
 
 ```bash
 arduino-cli upload -p /dev/ttyUSB0 --fqbn arduino:avr:nano:cpu=atmega328old arduino/ioruba-nano-3knobs
 ```
 
-## If Upload Fails
-
-The host-side project can still be correct while the board upload fails.
+## If upload fails
 
 Common symptoms:
 
@@ -100,15 +98,15 @@ Common symptoms:
 Practical fixes:
 
 - try both Nano processor profiles
-- press reset right before upload starts
+- press `RESET` right before upload starts
 - make sure no app is holding `/dev/ttyUSB0`
 - swap the USB cable
-- confirm the board is really a Nano ATmega328P clone and not another FTDI-backed board
-- if needed, reburn the bootloader with an ISP programmer
+- confirm the board really is a Nano-compatible `ATmega328P`
+- if necessary, reburn the bootloader with an ISP programmer
 
-## Validate Serial Output
+## Validate serial output
 
-With the board flashed, you should see lines like:
+With the board flashed, you should see:
 
 ```text
 512|768|1023
@@ -120,23 +118,23 @@ Quick serial smoke test:
 stack exec test-serial /dev/ttyUSB0
 ```
 
-## Validate the Desktop App
+## Validate the Haskell runtime
 
-Install and run:
+Run:
 
 ```bash
-legacy/arduino-audio-controller/install_local.sh
-audio-controller-gui
+stack exec ioruba
 ```
 
 Expected behavior:
 
-- the app detects the port automatically
-- knob 1 can be mapped to master
-- knob 2 and knob 3 can be mapped to apps or microphone
-- the header language can be switched between `pt-BR` and `en`
+- the runtime auto-detects the serial port
+- a live dashboard appears in the terminal
+- knob 1 controls `master`
+- knob 2 can control configured application streams
+- knob 3 controls `default_microphone`
 
-## Useful Debug Checks
+## Useful debug checks
 
 Is something already holding the port?
 
@@ -147,12 +145,12 @@ fuser -v /dev/ttyUSB0
 List active audio applications:
 
 ```bash
-legacy/arduino-audio-controller/audio_controller_gui_wrapper.sh --demo
+pactl list short sink-inputs
 ```
 
-If the UI connects but reports no readings:
+If the runtime connects but reports no readings:
 
 - reflash the Nano
 - verify `9600` baud
 - confirm the firmware is sending output in the serial monitor
-- check whether the knobs are actually wired to `A0`, `A1`, and `A2`
+- check whether the knobs are wired to `A0`, `A1`, and `A2`

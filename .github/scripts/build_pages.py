@@ -76,6 +76,14 @@ def render_topics(items: list[str]) -> str:
     return "\n".join(f'<div class="pill">#{html.escape(item)}</div>' for item in items)
 
 
+def compact_text(raw_text: str) -> str:
+    return " ".join(raw_text.split())
+
+
+def absolute_asset_url(base_url: str, relative_path: str) -> str:
+    return base_url.rstrip("/") + "/" + relative_path.lstrip("/")
+
+
 def write_index(config: dict) -> None:
     qr_path = copy_asset(REPO_ROOT / "docs" / "assets" / "qr-code.png", "assets/qr-code.png")
     css_path = copy_asset(REPO_ROOT / "docs" / "assets" / "site.css", "assets/site.css")
@@ -89,6 +97,9 @@ def write_index(config: dict) -> None:
     distribution = config["distribution"]
     support = config["support"]
     social_image_path = copy_asset(REPO_ROOT / site["social_image"], site["social_image"])
+    description_text = compact_text(site["description"])
+    keywords = ", ".join(repository["topics"])
+    social_image_url = absolute_asset_url(site["homepage_url"], social_image_path)
 
     html_output = f"""<!DOCTYPE html>
 <html lang="en">
@@ -96,19 +107,21 @@ def write_index(config: dict) -> None:
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{html.escape(site['title'])}</title>
-    <meta name="description" content="{html.escape(site['description'])}" />
+    <meta name="description" content="{html.escape(description_text)}" />
+    <meta name="keywords" content="{html.escape(keywords)}" />
     <meta name="theme-color" content="{html.escape(site['theme_color'])}" />
     <link rel="canonical" href="{html.escape(site['canonical_url'])}" />
     <link rel="icon" href="{html.escape(icon_path)}" />
+    <meta property="og:site_name" content="{html.escape(site['name'])}" />
     <meta property="og:type" content="website" />
     <meta property="og:title" content="{html.escape(site['title'])}" />
-    <meta property="og:description" content="{html.escape(site['description'])}" />
+    <meta property="og:description" content="{html.escape(description_text)}" />
     <meta property="og:url" content="{html.escape(site['canonical_url'])}" />
-    <meta property="og:image" content="{html.escape(site['homepage_url'] + social_image_path)}" />
+    <meta property="og:image" content="{html.escape(social_image_url)}" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="{html.escape(site['title'])}" />
-    <meta name="twitter:description" content="{html.escape(site['description'])}" />
-    <meta name="twitter:image" content="{html.escape(site['homepage_url'] + social_image_path)}" />
+    <meta name="twitter:description" content="{html.escape(description_text)}" />
+    <meta name="twitter:image" content="{html.escape(social_image_url)}" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet" />
@@ -265,6 +278,37 @@ def write_index(config: dict) -> None:
 """
 
     (DIST_DIR / "index.html").write_text(html_output, encoding="utf-8")
+    write_404_page(site, css_path, icon_path)
+
+
+def write_404_page(site: dict, css_path: str, icon_path: str) -> None:
+    html_output = f"""<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{html.escape(site['title'])} | Not Found</title>
+    <meta name="robots" content="noindex" />
+    <meta name="theme-color" content="{html.escape(site['theme_color'])}" />
+    <link rel="icon" href="{html.escape(icon_path)}" />
+    <link rel="stylesheet" href="{html.escape(css_path)}" />
+  </head>
+  <body>
+    <main class="page-shell" style="min-height: 100vh; display: grid; place-items: center;">
+      <section class="panel hero-copy" style="max-width: 680px; text-align: center;">
+        <span class="eyebrow">404</span>
+        <h1>Page not found</h1>
+        <p>The page you requested does not exist on the Ioruba site. Return to the main project surface to see the runtime, hardware, release, and support information.</p>
+        <div class="cta-row" style="justify-content: center;">
+          <a class="button button-primary" href="./">Go to the homepage</a>
+          <a class="button button-secondary" href="{html.escape(site['repo_url'])}">Open the repository</a>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>
+"""
+
     (DIST_DIR / "404.html").write_text(html_output, encoding="utf-8")
 
 

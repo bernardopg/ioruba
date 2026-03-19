@@ -378,7 +378,14 @@ applyTarget pulseContext targetVolume audioTarget =
       pure $
         if matchCount == 0
           then "app idle: " ++ T.unpack appName
-          else "app updated: " ++ T.unpack appName ++ " (" ++ show matchCount ++ " stream)"
+          else
+            "app updated: "
+              ++ T.unpack appName
+              ++ " ("
+              ++ show matchCount
+              ++ " "
+              ++ pluralize "stream" matchCount
+              ++ ")"
     SourceTarget sourceNameText -> do
       matches <- resolveSources sourceNameText
       mapM_ (`setSourceVolume` targetVolume) matches
@@ -467,6 +474,11 @@ collectJust = foldr step []
       case maybeValue of
         Just value -> value : values
         Nothing -> values
+
+pluralize :: String -> Int -> String
+pluralize noun count
+  | count == 1 = noun
+  | otherwise = noun ++ "s"
 
 idleThresholdTicks :: Int
 idleThresholdTicks = 30

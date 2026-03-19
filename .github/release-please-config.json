@@ -7,7 +7,8 @@
       "include-v-in-tag": true,
       "pull-request-title-pattern": "chore: release ${version}",
       "extra-files": [
-        "package.yaml"
+        "package.yaml",
+        "ioruba.cabal"
       ]
     }
   }

@@ -1,166 +1,147 @@
 # Testing Guide for Ioruba
 
-## Testing Serial Communication
+## Core validation loop
 
-### Option 1: Test with Arduino Simulator (No Hardware Required)
-
-The easiest way to test without Arduino hardware:
+For a clean local validation pass, run:
 
 ```bash
-# Method A: Using named pipes
-mkfifo /tmp/arduino-sim
-./scripts/arduino-simulator.py > /tmp/arduino-sim &
-stack exec test-serial /tmp/arduino-sim
-
-# Method B: Pipe directly to stdin
-./scripts/arduino-simulator.py --mode static | stack exec test-serial /dev/stdin
-
-# Method C: Using socat (virtual serial ports)
-# Terminal 1: Create virtual serial ports
-socat -d -d pty,raw,echo=0,link=/tmp/vserial1 pty,raw,echo=0,link=/tmp/vserial2
-
-# Terminal 2: Run simulator
-./scripts/arduino-simulator.py > /tmp/vserial1
-
-# Terminal 3: Run test program
-stack exec test-serial /tmp/vserial2
+stack build
+stack test
+python .github/scripts/build_pages.py
+python .github/scripts/sync_repo_metadata.py --dry-run
 ```
 
-### Option 2: Test with Real Arduino
+## Serial communication
 
-1. **Upload Firmware:**
-   ```bash
-   # Open Arduino IDE
-   # File → Open → arduino/ioruba-nano-3knobs/ioruba-nano-3knobs.ino
-   # Tools → Board → Arduino Nano
-   # Tools → Port → /dev/ttyUSB0 (or your port)
-   # Click Upload
-   ```
+### Test with the real Nano
 
-2. **Find Arduino Port:**
-   ```bash
-   ls /dev/ttyUSB* /dev/ttyACM*
-   # Should show something like /dev/ttyUSB0
-   ```
+1. Flash [arduino/ioruba-nano-3knobs/ioruba-nano-3knobs.ino](arduino/ioruba-nano-3knobs/ioruba-nano-3knobs.ino)
+2. Confirm the board appears as `/dev/ttyUSB0` or `/dev/ttyACM0`
+3. Run:
 
-3. **Test Serial Monitor:**
-   ```bash
-   # In Arduino IDE: Tools → Serial Monitor
-   # Set baud rate to 9600
-   # You should see: 512|768|1023
-   ```
-
-4. **Run Ioruba Test:**
-   ```bash
-   stack exec test-serial /dev/ttyUSB0
-   ```
-
-## Expected Output
-
+```bash
+stack exec test-serial /dev/ttyUSB0
 ```
-🔌 Connecting to Arduino on /dev/ttyUSB0 at 9600 baud...
-✅ Connected!
-📊 Reading slider values... (Ctrl+C to exit)
 
-🎚️  Sliders: [0: 512] [1: 768] [2:1023]
-   Volumes: [0: 50%] [1: 75%] [2:100%]
+Expected packet format:
 
-🎚️  Sliders: [0: 515] [1: 770] [2:1020]
-   Volumes: [0: 50%] [1: 75%] [2: 99%]
-...
+```text
+512|768|1023
+```
+
+The runtime also accepts the legacy format:
+
+```text
+P1:512
+P2:768
+P3:1023
+```
+
+### Test without hardware
+
+Pipe simulator output directly into the serial test utility:
+
+```bash
+python3 scripts/arduino-simulator.py --mode static | stack exec test-serial /dev/stdin
+```
+
+Use a named pipe when you want to mimic a more realistic serial source:
+
+```bash
+mkfifo /tmp/ioruba-sim
+python3 scripts/arduino-simulator.py > /tmp/ioruba-sim &
+stack exec test-serial /tmp/ioruba-sim
+```
+
+## Runtime validation
+
+Run the full Haskell runtime:
+
+```bash
+stack exec ioruba
+```
+
+What to verify:
+
+- it loads `config/nano-3knobs.yaml` or your explicit `--config` file
+- it auto-detects the Nano serial port
+- it reconnects if the device disappears
+- knob updates change the live dashboard
+- app and microphone targets resolve without crashing
+
+If you only want a short smoke run:
+
+```bash
+timeout 5s stack exec ioruba
+```
+
+## Audio backend checks
+
+Before blaming the runtime, check the host audio stack:
+
+```bash
+pactl info
+wpctl status
+pactl list short sink-inputs
+```
+
+Interpretation:
+
+- `pactl info` must succeed
+- `wpctl status` should show your active PipeWire graph
+- `pactl list short sink-inputs` should list app streams if you expect knob-to-app control
+
+## Pages and metadata
+
+Build the static site locally:
+
+```bash
+python .github/scripts/build_pages.py
+find .site-dist -maxdepth 2 -type f | sort
+```
+
+Dry-run repository metadata sync:
+
+```bash
+python .github/scripts/sync_repo_metadata.py --dry-run
 ```
 
 ## Troubleshooting
 
-### Permission Denied on /dev/ttyUSB0
+### Permission denied on `/dev/ttyUSB0`
 
 ```bash
-# Add yourself to dialout group
 sudo usermod -a -G dialout $USER
-
-# Arch-based systems often use uucp instead
 sudo usermod -a -G uucp $USER
-
-# Log out and back in, then verify
-groups | grep -E 'dialout|uucp'
 ```
 
-### No Data from Arduino
+Then log out and back in.
 
-1. Check wiring - potentiometers connected to A0, A1, and A2
-2. Check baud rate (should be 9600)
-3. Try Arduino serial monitor first
-4. Check if firmware is uploaded correctly
-5. If the board is a Nano clone, try the old bootloader upload profile
+### Upload fails with `not in sync`
 
-### Parse Errors
+- try `arduino:avr:nano:cpu=atmega328old`
+- press `RESET` right before upload starts
+- run `fuser -v /dev/ttyUSB0` to confirm nothing else owns the port
 
-If you see parse errors, the Arduino might be sending data in wrong format. Expected format:
-```
-512|768|1023
-```
+### No data from the board
 
-### Simulator Not Working
+- confirm `9600` baud
+- verify the firmware is flashed
+- check the knob wiring on `A0`, `A1`, and `A2`
+- inspect Arduino IDE Serial Monitor first
 
-```bash
-# Make sure Python 3 is installed
-python3 --version
+### No app volume changes
 
-# Make script executable
-chmod +x scripts/arduino-simulator.py
+- make sure the target application is actively playing audio
+- confirm the configured application names in `config/*.yaml`
+- check `pactl list short sink-inputs`
 
-# Test directly
-./scripts/arduino-simulator.py --mode static
-# Should output: 512|512|512|512|512
-```
+## Recommended release gate
 
-## Testing Different Modes
+Before merging a release PR or cutting a public release, verify:
 
-### Random Mode (Default)
-```bash
-./scripts/arduino-simulator.py --mode random
-```
-Simulates natural slider movements with small random changes.
-
-### Sweep Mode
-```bash
-./scripts/arduino-simulator.py --mode sweep
-```
-All sliders sweep through their full range.
-
-### Static Mode
-```bash
-./scripts/arduino-simulator.py --mode static
-```
-Sliders stay at middle position (512).
-
-## Integration Test
-
-Once serial communication works, test the full application:
-
-```bash
-# Run the main application scaffold
-stack exec ioruba
-
-# Or run the functional GTK desktop app
-audio-controller-gui
-```
-
-Current behavior:
-- Loads and validates the YAML config
-- Reports whether the configured serial path exists
-- Stays running until `Ctrl+C`
-- Does not yet change PulseAudio/PipeWire volume or display a GUI
-
-Current GTK behavior:
-- Auto-detects the serial device
-- Supports both legacy and current 3-knob protocols
-- Maps the three knobs to master, microphone, or active applications
-
-## Next Steps
-
-After serial communication is working:
-1. Test PulseAudio integration
-2. Test volume control
-3. Test profile switching
-4. Test GUI (when implemented)
+1. `stack build` passes
+2. `stack test` passes
+3. the Nano runtime works on real hardware
+4. `python .github/scripts/build_pages.py` passes
+5. repository metadata dry-run still matches the intended public copy

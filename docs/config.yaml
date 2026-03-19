@@ -26,15 +26,6 @@ site:
   theme_color: "#0e1726"
   social_image: assets/screenshots/desktop-overview-pt-br.png
   release_badge: Hardware-backed control, Haskell runtime, modern releases, and a cleaner distribution path.
-  topics:
-    - haskell
-    - linux-audio
-    - pipewire
-    - pulseaudio
-    - arduino-nano
-    - hardware-control
-    - audio-mixer
-    - open-source
 
 owner:
   name: Bernardo Gomes

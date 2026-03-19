@@ -37,7 +37,7 @@ data SliderView = SliderView
 
 createMainWindow :: IO MainWindow
 createMainWindow =
-  pure $ MainWindow { windowTitle = "Ioruba Live Dashboard" }
+  pure $ MainWindow { windowTitle = "Ioruba Runtime Dashboard" }
 
 showWindow :: MainWindow -> IO ()
 showWindow _ = hideCursor
@@ -100,7 +100,7 @@ renderSliderView sliderView = do
 renderFooter :: IO ()
 renderFooter = do
   setSGR [SetColor Foreground Dull Black]
-  putStrLn "Ctrl+C to exit. Configuration is driven by config/ioruba.yaml."
+  putStrLn "Ctrl+C to exit. Edit config/*.yaml to remap knobs and targets."
   setSGR [Reset]
 
 renderBar :: Int -> String
