@@ -17,6 +17,7 @@ import Audio.Backend
   )
 import Audio.Sink (Volume(..))
 import Data.List (find, isPrefixOf)
+import Data.Maybe (fromMaybe)
 import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Word (Word32)
@@ -39,9 +40,8 @@ getDefaultSource = do
         find (\source -> T.strip (sourceName source) == targetName) sources
           <|> find (not . isMonitorSource) sources
   where
-    preferNonMonitor = do
-      sources <- listSources
-      pure $ find (not . isMonitorSource) sources
+    preferNonMonitor =
+      find (not . isMonitorSource) <$> listSources
 
 listSources :: IO [Source]
 listSources = do
@@ -83,7 +83,7 @@ parseSourceBlock block = do
   sourceId <- parseHeaderNumber "Source #" header
   sourceNameText <- T.pack <$> lookupField "Name:" block
   let sourceDescriptionText =
-        T.pack $ maybe (T.unpack sourceNameText) id (lookupField "Description:" block)
+        T.pack $ fromMaybe (T.unpack sourceNameText) (lookupField "Description:" block)
   pure $
     Source
       { sourceIndex = sourceId

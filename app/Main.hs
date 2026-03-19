@@ -33,6 +33,7 @@ import Config.Validation (validateConfig)
 import Control.Concurrent (threadDelay)
 import Control.Exception (SomeException, finally, try)
 import Control.Monad (forM, when)
+import Data.Char (isAsciiUpper, toLower)
 import qualified Data.ByteString.Char8 as BS
 import qualified Data.List as List
 import qualified Data.Map.Strict as Map
@@ -225,7 +226,7 @@ loadValidatedConfig configPath = do
   case validateConfig config of
     Left validationErrors -> do
       putStrLn "Configuration validation failed:"
-      mapM_ (putStrLn . show) validationErrors
+      mapM_ print validationErrors
       exitFailure
     Right validConfig ->
       pure validConfig
@@ -397,29 +398,25 @@ resolveSources :: T.Text -> IO [Source]
 resolveSources sourceNameText
   | normalizeName sourceNameText == "default_microphone" =
       maybeToList <$> getDefaultSource
-  | otherwise = do
-      sources <- listSources
-      pure $
-        filter
-          (\source ->
-            matchesName sourceNameText (sourceName source)
-              || matchesName sourceNameText (sourceDescription source)
-          )
-          sources
+  | otherwise =
+      filter
+        (\source ->
+          matchesName sourceNameText (sourceName source)
+            || matchesName sourceNameText (sourceDescription source)
+        )
+        <$> listSources
 
 resolveSinks :: T.Text -> IO [Sink]
 resolveSinks sinkNameText
   | normalizeName sinkNameText == "default_output" =
       maybeToList <$> getDefaultSink
-  | otherwise = do
-      sinks <- listSinks
-      pure $
-        filter
-          (\sink ->
-            matchesName sinkNameText (sinkName sink)
-              || matchesName sinkNameText (sinkDescription sink)
-          )
-          sinks
+  | otherwise =
+      filter
+        (\sink ->
+          matchesName sinkNameText (sinkName sink)
+            || matchesName sinkNameText (sinkDescription sink)
+        )
+        <$> listSinks
 
 matchesName :: T.Text -> T.Text -> Bool
 matchesName targetName candidate =
@@ -431,8 +428,8 @@ normalizeName = map lowerAscii . T.unpack
 
 lowerAscii :: Char -> Char
 lowerAscii rawChar
-  | rawChar >= 'A' && rawChar <= 'Z' =
-      toEnum (fromEnum rawChar + 32)
+  | isAsciiUpper rawChar =
+      toLower rawChar
   | otherwise = rawChar
 
 sliderToVolume :: SliderConfig -> SliderValue -> Volume

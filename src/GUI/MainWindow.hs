@@ -8,6 +8,7 @@ module GUI.MainWindow
   ) where
 
 import Data.List (intercalate, isInfixOf)
+import Data.Char (isAsciiUpper, toLower)
 import System.Console.ANSI
   ( Color(..)
   , ColorIntensity(..)
@@ -81,7 +82,7 @@ renderStatusPill statusLine = do
       | hasWord ["reconnect", "waiting", "searching", "idle"] = Yellow
       | otherwise = Red
 
-    hasWord needles = any (`isInfixOf` loweredStatus) needles
+    hasWord = any (`isInfixOf` loweredStatus)
     loweredStatus = map toLowerAscii statusLine
 
 renderSliderView :: SliderView -> IO ()
@@ -128,6 +129,6 @@ padLeft size rawValue = replicate (max 0 (size - length rawValue)) ' ' ++ rawVal
 
 toLowerAscii :: Char -> Char
 toLowerAscii rawChar
-  | rawChar >= 'A' && rawChar <= 'Z' =
-      toEnum (fromEnum rawChar + 32)
+  | isAsciiUpper rawChar =
+      toLower rawChar
   | otherwise = rawChar

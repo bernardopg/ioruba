@@ -32,6 +32,7 @@ import qualified Data.Aeson.KeyMap as KeyMap
 import qualified Data.Aeson.Types as AesonTypes
 import Data.Bifunctor (first)
 import qualified Data.ByteString.Char8 as BS
+import Data.Either (fromRight)
 import Data.List (find)
 import Data.Maybe (fromMaybe)
 import Data.Text (Text)
@@ -95,24 +96,22 @@ instance FromJSON SinkInput where
 listSinks :: IO [Sink]
 listSinks = do
   result <- readAudioCommand "pactl" ["-f", "json", "list", "sinks"]
-  pure $ either (const []) id (decodeJsonList result)
+  pure $ fromRight [] (decodeJsonList result)
 
 listSinkInputs :: IO [SinkInput]
 listSinkInputs = do
   result <- readAudioCommand "pactl" ["-f", "json", "list", "sink-inputs"]
-  pure $ either (const []) id (decodeJsonList result)
+  pure $ fromRight [] (decodeJsonList result)
 
 getDefaultSink :: IO (Maybe Sink)
 getDefaultSink = do
   defaultSinkResult <- readAudioCommand "pactl" ["get-default-sink"]
   case defaultSinkResult of
     Left _ -> pure Nothing
-    Right sinkNameText -> do
-      sinks <- listSinks
-      pure $
-        find
-          (\sink -> T.strip (sinkName sink) == T.pack (trim sinkNameText))
-          sinks
+    Right sinkNameText ->
+      find
+        (\sink -> T.strip (sinkName sink) == T.pack (trim sinkNameText))
+        <$> listSinks
 
 setSinkVolume :: Sink -> Volume -> IO ()
 setSinkVolume sink volume =
@@ -153,10 +152,9 @@ setApplicationVolumeByName appName volume = do
 
 getSinkVolume :: Sink -> IO Volume
 getSinkVolume sink = do
-  sinks <- listSinks
-  pure $
-    maybe (Volume 0.5) sinkVolume $
-      find (\candidate -> sinkIndex candidate == sinkIndex sink) sinks
+  maybe (Volume 0.5) sinkVolume
+    . find (\candidate -> sinkIndex candidate == sinkIndex sink)
+    <$> listSinks
 
 parseVolumeValue :: Aeson.Value -> AesonTypes.Parser Volume
 parseVolumeValue =
