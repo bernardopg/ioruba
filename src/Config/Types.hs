@@ -49,9 +49,9 @@ data SliderConfig = SliderConfig
 -- | Audio target (application, master, mic, etc.)
 data AudioTarget
   = MasterTarget
-  | ApplicationTarget { targetAppName :: Text }
-  | SourceTarget { targetSourceName :: Text }
-  | SinkTarget { targetSinkName :: Text }
+  | ApplicationTarget Text
+  | SourceTarget Text
+  | SinkTarget Text
   deriving (Show, Eq, Generic)
 
 -- | Audio system configuration

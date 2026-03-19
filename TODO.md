@@ -4,45 +4,33 @@ Updated for the current repository state on `2026-03-18`.
 
 ## Done Recently
 
-- [x] Functional GTK desktop app for the Arduino Nano 3-knob setup
-- [x] Support for both serial protocols: `P1/P2/P3` and `A0|A1|A2`
-- [x] Animated knob dials and app icons in the GTK UI
-- [x] PT-BR and English UI with system-locale detection and manual switching
-- [x] Demo mode and refreshed README screenshots
-- [x] Firmware heartbeat so the host can distinguish idle knobs from missing firmware
+- [x] Haskell runtime now builds as the primary executable
+- [x] Serial-to-audio event loop implemented in `app/Main.hs`
+- [x] PipeWire and PulseAudio control wired through `pactl`
+- [x] Live terminal dashboard added for runtime status and knob feedback
+- [x] Support for both serial protocols: `P1/P2/P3` and `512|768|1023`
+- [x] Pages site generated from `docs/config.yaml`
+- [x] Release Please, release bundle workflow, and funding surface added
+- [x] Metadata sync tooling added for repo description, homepage, and topics
+- [x] Firmware heartbeat keeps the runtime from confusing idle hardware with a dead board
 - [x] Haskell tests for config parsing, protocol parsing, and mixer math
-
-## Desktop App
-
-- [ ] Render icons inside the target dropdown rows, not only in the selected knob header
-- [ ] Add named presets so users can switch between profiles like streaming, music, and calls
-- [ ] Add first-run onboarding for "Nano not found", "no active apps", and "microphone unavailable"
-- [ ] Add a compact diagnostics drawer with reconnect count, last packet time, and current protocol
-- [ ] Add optional logarithmic curves and inverted knob direction per target
-- [ ] Add a raw serial monitor panel for debugging hardware noise and dead zones
-- [ ] Add keyboard-accessible target remapping and accessibility labels beyond the language switcher
-- [ ] Add automated UI smoke tests for startup, demo mode, and translation switching
 
 ## Firmware and Hardware
 
-- [ ] Make Nano upload more robust for clones by documenting and optionally auto-detecting the correct bootloader profile
-- [ ] Add a firmware banner with protocol name and version so the host can report exactly what is connected
 - [ ] Add EEPROM-backed calibration for per-knob min/max ranges
+- [ ] Add firmware banner/version handshake so the runtime can report board and protocol metadata explicitly
 - [ ] Add configurable dead zones and smoothing constants without editing source
-- [ ] Add a recovery path for boards that need manual reset during upload
+- [ ] Improve Nano clone upload recovery with a more guided reset workflow
 - [ ] Validate and document common Nano clone chipsets like FT232R and CH340
 
 ## Haskell Runtime
 
-- [ ] Implement real PipeWire/PulseAudio control in `src/Audio/PulseAudio.hs`
-- [ ] Implement sink enumeration and volume control in `src/Audio/Sink.hs`
-- [ ] Implement microphone/source enumeration and control in `src/Audio/Source.hs`
-- [ ] Wire `app/Main.hs` into a real serial-to-audio event loop
-- [ ] Replace GUI placeholders with a real GTK window in `src/GUI/MainWindow.hs`
-- [ ] Implement settings UI in `src/GUI/Settings.hs`
-- [ ] Implement theme handling in `src/GUI/Themes.hs`
-- [ ] Implement visualizer rendering in `src/GUI/Visualizer.hs`
-- [ ] Implement profile loading and saving in `src/Config/Profiles.hs`
+- [ ] Add named profiles and profile switching in `src/Config/Profiles.hs`
+- [ ] Add optional target curves, inversion presets, and smoothing profiles per knob
+- [ ] Add better stream selection heuristics for multiple browser profiles or duplicate app names
+- [ ] Add persistent runtime state and last-known target resolution
+- [ ] Decide whether to keep the polished TUI as the main shell or layer a native Haskell GUI on top later
+- [ ] If a native GUI is revived, replace the prototype modules in `src/GUI/Settings.hs`, `src/GUI/Themes.hs`, and `src/GUI/Visualizer.hs`
 - [ ] Expand config validation coverage beyond the parser tests already added
 
 ## Tasks, Docs, and Supporting Modules
@@ -56,17 +44,18 @@ Updated for the current repository state on `2026-03-18`.
 
 ## Packaging and Release
 
-- [ ] Publish an Arch/AUR package for the GTK desktop app
-- [ ] Add a release artifact for the recommended Nano sketch
-- [ ] Add CI coverage for the Python/GTK legacy app alongside the Haskell checks
-- [ ] Decide whether to salvage or retire the large historic housekeeping PR before future release work
+- [ ] Publish Linux install packages beyond raw release tarballs
+- [ ] Add Debian/Ubuntu packaging metadata for desktop distribution
+- [ ] Add CI smoke coverage that boots the runtime with a serial simulator
+- [ ] Add release signing and provenance for binaries and firmware bundles
 - [ ] Add a clear support matrix for:
-  - GTK desktop app
   - Haskell runtime
   - firmware variants
+  - legacy compatibility path
 
 ## Repository Cleanup
 
 - [x] Clean up or close stale branches and PRs that no longer match the current project direction
-- [ ] Decide whether the legacy sketch should eventually move to its own matching Arduino sketch directory
-- [ ] Keep root docs aligned so the working desktop app is not confused with the incomplete Haskell UI
+- [x] Remove obsolete `GITHUB_SETUP.md`
+- [ ] Keep marketing copy, site metadata, and repo settings synced as the product evolves
+- [ ] Decide how aggressively to archive or split the legacy GTK implementation

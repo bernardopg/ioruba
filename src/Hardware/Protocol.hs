@@ -7,7 +7,6 @@ module Hardware.Protocol
 
 import Audio.Mixer (SliderValue(..))
 import Data.ByteString (ByteString)
-import qualified Data.ByteString.Char8 as BS
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as TE

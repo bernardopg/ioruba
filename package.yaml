@@ -1,5 +1,5 @@
 name: ioruba
-version: 0.1.0.0
+version: 0.1.0
 github: "bernardopg/ioruba"
 license: MIT
 author: "Bernardo Gomes"
@@ -11,12 +11,13 @@ extra-source-files:
   - CLAUDE.md
   - CHANGELOG.md
 
-synopsis: Functional audio mixer with hardware control for Linux
+synopsis: Hardware-driven Linux audio mixer with a Haskell runtime
 category: Audio
 description: |
-  Ioruba is a modern audio control system that bridges physical hardware
-  (Arduino-based sliders) with your Linux system's audio. Built with Haskell,
-  it provides a clean functional architecture with a GTK-based GUI.
+  Ioruba is a Linux audio control system that bridges physical hardware
+  (Arduino Nano knobs and sliders) with PipeWire or PulseAudio. Built with
+  Haskell, it now focuses on a real runtime, modern release automation, and a
+  distribution-friendly product path.
 
 dependencies:
   # Base
@@ -46,6 +47,7 @@ dependencies:
   - filepath
   - directory
   - unix
+  - process
 
   # Time
   - time
@@ -54,6 +56,7 @@ dependencies:
   - QuickCheck
 
   # Utilities
+  - ansi-terminal
   - split
   - extra
 
@@ -67,16 +70,19 @@ ghc-options:
   - -Wincomplete-record-updates
   - -Wincomplete-uni-patterns
   - -Wmissing-export-lists
-  - -Wmissing-home-modules
-  - -Wpartial-fields
   - -Wredundant-constraints
   - -Wno-unused-top-binds
 
 library:
   source-dirs: src
   exposed-modules:
+    - Audio.Backend
     - Audio.Mixer
+    - Audio.PulseAudio
     - Audio.Sink
+    - Audio.Source
+    - GUI.MainWindow
+    - Hardware.Device
     - Hardware.Serial
     - Hardware.Protocol
     - Config.Types

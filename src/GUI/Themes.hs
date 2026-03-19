@@ -7,7 +7,7 @@ import Config.Types (Theme(..))
 
 -- | Apply theme to GTK application
 applyTheme :: Theme -> IO ()
-applyTheme theme = do
+applyTheme _ = do
   -- TODO: Implement GTK theme switching
   return ()
 

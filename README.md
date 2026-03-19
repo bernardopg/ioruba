@@ -1,145 +1,114 @@
 # Ioruba
 
-Linux audio controller for an Arduino Nano with 3 B10K potentiometers on `A0`, `A1`, and `A2`.
+Ioruba is a tactile Linux audio mixer for an `Arduino Nano ATmega328P` with `3x B10K` potentiometers on `A0`, `A1`, and `A2`.
 
-The repository currently has two tracks:
+The main product path is now the Haskell runtime:
 
-- `legacy/arduino-audio-controller/`: the functional GTK4 desktop app recommended for real use today
-- `src/`, `app/`, and `config/`: the Haskell reimplementation, still useful for config validation and serial smoke tests, but not yet the full mixer runtime
+- real serial-to-audio control for PipeWire and PulseAudio
+- live auto-reconnect runtime with a polished terminal dashboard
+- YAML-driven knob mapping for `master`, `applications`, and `microphone`
+- automated Pages, release, and funding surface for a distribution-ready repo
 
-## Screenshot Gallery
+[Website](https://bernardopg.github.io/ioruba/) | [Funding](FUNDING.md) | [Project Summary](PROJECT_SUMMARY.md)
 
-### Desktop overview (pt-BR)
+## What Works Now
 
-![Desktop overview in pt-BR](assets/screenshots/desktop-overview-pt-br.png)
+- Haskell runtime executable: `stack exec ioruba`
+- Arduino Nano 3-knob setup with `512|768|1023` packets
+- Legacy protocol compatibility for `P1:512`, `P2:768`, `P3:1023`
+- Linux audio control through `pactl`, compatible with PipeWire and PulseAudio
+- Serial autodetection for `/dev/ttyUSB*` and `/dev/ttyACM*`
+- Live dashboard with status, meters, targets, and knob outcomes
+- GitHub Pages generated from [`docs/config.yaml`](docs/config.yaml)
+- Release Please, release bundles, funding surface, and repo metadata sync tooling
 
-### Knob deck with app icons
+## Hardware
 
-![Knob deck with animated dials and app icons](assets/screenshots/knob-deck-pt-br.png)
+Recommended setup:
 
-### English layout
+- `1x Arduino Nano ATmega328P`
+- `3x B10K potentiometers`
+- `A0` -> knob 1 wiper
+- `A1` -> knob 2 wiper
+- `A2` -> knob 3 wiper
+- outer pins -> `5V` and `GND`
 
-![English layout](assets/screenshots/english-layout.png)
+Detailed wiring, upload notes, and troubleshooting live in [NANO_SETUP.md](NANO_SETUP.md).
 
-## What Works Today
-
-- Responsive GTK4/LibAdwaita desktop UI
-- Animated DJ-style dials for the 3 physical knobs
-- Autodetection of serial ports like `/dev/ttyUSB0` and `/dev/ttyACM0`
-- Mapping each knob to master output, microphone input, or active applications
-- App icons for configured targets such as Chrome and Spotify
-- PipeWire/PulseAudio control through `pulsectl`
-- Two firmware protocols:
-  - legacy `P1:512`, `P2:768`, `P3:1023`
-  - current `512|768|1023`
-- Multilanguage UI:
-  - auto-detects system language
-  - supports `pt-BR` and `en`
-  - falls back to English when the system locale is not supported
-  - can be switched live from the header bar
-- Demo mode for previews and screenshot generation
-
-## Recommended Hardware
-
-- 1x Arduino Nano ATmega328P
-- 3x B10K potentiometers
-- Wiring:
-  - knob 1 wiper -> `A0`
-  - knob 2 wiper -> `A1`
-  - knob 3 wiper -> `A2`
-  - side pins -> `5V` and `GND`
-
-Detailed wiring and upload notes live in [NANO_SETUP.md](NANO_SETUP.md).
-
-## Recommended Firmware
+## Firmware
 
 Use [arduino/ioruba-nano-3knobs/ioruba-nano-3knobs.ino](arduino/ioruba-nano-3knobs/ioruba-nano-3knobs.ino).
 
-That sketch now:
-
-- smooths analog noise
-- sends a heartbeat every `500ms`
-- helps the desktop UI distinguish idle knobs from missing firmware
-
-The legacy sketch at [legacy/arduino-audio-controller/arduino_audio_controller.ino](legacy/arduino-audio-controller/arduino_audio_controller.ino) is still available for the original `P1/P2/P3` protocol.
-
-## Quick Start
-
-### 1. Flash the Nano
+Compile:
 
 ```bash
 arduino-cli compile --fqbn arduino:avr:nano arduino/ioruba-nano-3knobs
-arduino-cli upload -p /dev/ttyUSB0 --fqbn arduino:avr:nano arduino/ioruba-nano-3knobs
 ```
 
-If upload fails on a Nano clone:
-
-- try `arduino:avr:nano:cpu=atmega328old`
-- press reset right before upload
-- make sure no app is holding the serial port open
-
-### 2. Install the desktop app
+Upload for classic Nano clones with the old bootloader:
 
 ```bash
-cd legacy/arduino-audio-controller
-./install_local.sh
+arduino-cli upload -p /dev/ttyUSB0 --fqbn arduino:avr:nano:cpu=atmega328old arduino/ioruba-nano-3knobs
 ```
 
-This installs:
+## Run The Haskell Runtime
 
-- the launcher `audio-controller-gui`
-- the desktop entry `Controlador de Audio`
-- the icon under `~/.local/share/icons/`
-
-### 3. Run it
+Build and test:
 
 ```bash
-audio-controller-gui
-```
-
-Useful flags:
-
-```bash
-audio-controller-gui --demo
-audio-controller-gui --lang en
-```
-
-## Haskell Track
-
-The Haskell codebase is still valuable, but it is not the full end-user app yet.
-
-What it currently does:
-
-- parses and validates YAML config
-- supports serial smoke testing from a real device, `stdin`, or FIFO
-- has passing tests for config parsing, protocol parsing, and mixer math
-
-What it does not do yet:
-
-- drive real PipeWire/PulseAudio volumes end-to-end
-- provide the desktop GUI shown in the screenshots above
-
-Use it for development checks:
-
-```bash
+stack build
 stack test
-stack exec test-serial /dev/ttyUSB0
+```
+
+Run the mixer:
+
+```bash
 stack exec ioruba
 ```
 
-## Documentation
+Use a custom config file:
 
-- [NANO_SETUP.md](NANO_SETUP.md): wiring, flashing, and serial troubleshooting
-- [TODO.md](TODO.md): complete implementation backlog for the desktop app and Haskell runtime
-- [legacy/arduino-audio-controller/README.md](legacy/arduino-audio-controller/README.md): focused guide for the current GTK app
-- [QUICKSTART.md](QUICKSTART.md): Haskell quick start
-- [TESTING.md](TESTING.md): serial and simulator testing
+```bash
+stack exec ioruba -- --config config/ioruba.yaml
+```
 
-## Current Status
+Serial smoke tests:
 
-- Desktop app: functional and recommended
-- Firmware: compiles locally; host app supports both old and new protocols
-- Haskell runtime: partial and still under implementation
+```bash
+stack exec test-serial /dev/ttyUSB0
+```
+
+## Configuration
+
+The runtime is driven by [`config/ioruba.yaml`](config/ioruba.yaml).
+
+Default mapping:
+
+- knob 1: master output
+- knob 2: applications such as Spotify, Google Chrome, and Firefox
+- knob 3: microphone input
+
+The public Pages site and repository metadata are driven by [`docs/config.yaml`](docs/config.yaml).
+
+## Public Surface
+
+- [FUNDING.md](FUNDING.md): sponsor links, Buy Me a Coffee, and QR support
+- [PROJECT_SUMMARY.md](PROJECT_SUMMARY.md): product direction and positioning
+- [TODO.md](TODO.md): current implementation backlog
+- [QUICKSTART.md](QUICKSTART.md): runtime quick start
+- [TESTING.md](TESTING.md): hardware and serial testing
+
+## Visual Archive
+
+The repository still keeps the legacy desktop screenshots as a design archive and product reference:
+
+![Desktop overview](assets/screenshots/desktop-overview-pt-br.png)
+![Knob deck](assets/screenshots/knob-deck-pt-br.png)
+![English layout](assets/screenshots/english-layout.png)
+
+## Legacy Status
+
+`legacy/arduino-audio-controller/` is still preserved for reference, but it is no longer the main path. The repository is being consolidated around the Haskell runtime so the project can be shipped with a cleaner, more maintainable distribution story.
 
 ## License
 

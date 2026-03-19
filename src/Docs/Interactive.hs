@@ -7,12 +7,12 @@ import Data.Text (Text)
 
 -- | Show interactive tutorial
 showTutorial :: Text -> IO ()
-showTutorial tutorialName = do
+showTutorial _ = do
   -- TODO: Implement in-app tutorial system
   return ()
 
 -- | Show context-sensitive help
 showHelp :: Text -> IO ()
-showHelp topic = do
+showHelp _ = do
   -- TODO: Implement help system
   return ()

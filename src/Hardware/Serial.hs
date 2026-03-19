@@ -15,9 +15,7 @@ import qualified System.Hardware.Serialport as SP
 import System.Hardware.Serialport (CommSpeed(..), SerialPortSettings(..), defaultSerialSettings)
 
 -- | Serial port handle (wraps serialport library handle)
-newtype SerialPort = SerialPort
-  { unwrapSerialPort :: SP.SerialPort
-  }
+newtype SerialPort = SerialPort SP.SerialPort
 
 -- | Serial port configuration
 data SerialConfig = SerialConfig

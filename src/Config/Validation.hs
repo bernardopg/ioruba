@@ -4,8 +4,6 @@ module Config.Validation
   ) where
 
 import Config.Types
-import Data.Text (Text)
-
 -- | Configuration validation errors
 data ValidationError
   = InvalidBaudRate Int

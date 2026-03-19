@@ -1,173 +1,76 @@
-# 🎉 Ioruba - Project Summary
+# Ioruba Project Summary
 
-## ✅ Project Successfully Created!
+## Positioning
 
-**Repository**: https://github.com/bernardopg/ioruba
+Ioruba is being repositioned from an Arduino mixer experiment into a Linux-native audio product with a cleaner distribution story, stronger public-facing assets, and a Haskell-first runtime direction.
 
----
+The project now sits at the intersection of:
 
-## 📊 Project Statistics
+- hardware control for Linux audio workflows
+- product-minded engineering for makers, streamers, and power users
+- polished open source presentation across code, releases, Pages, and funding
 
-- **Language**: Haskell (GHC 9.6.6)
-- **Build System**: Stack
-- **Modules**: 23 Haskell modules
-- **Files**: 45 files
-- **Lines of Code**: 2,581
-- **Git Commit**: `dc31275` (2 commits total)
-- **Version**: v0.1.0
+## Current product story
 
-> The core stats above cover the active Haskell project tree; the archived Python prototype lives under `legacy/arduino-audio-controller/` and is preserved separately.
+### What the project is
 
----
+- A hardware-driven audio controller centered on an Arduino Nano and a 3-knob mixer workflow
+- A Haskell codebase that now builds a real runtime and is becoming the distributable path forward
+- A repository with a product surface that includes GitHub Pages, funding support, and automated release tooling
 
-## 🏗️ Project Structure
+### What the project is not
 
-```
-ioruba/
-├── src/              # 23 Haskell modules
-│   ├── Audio/       # PulseAudio/Mixer/Sink/Source (4 modules)
-│   ├── Config/      # Types/Parser/Validation/Profiles (4 modules)
-│   ├── GUI/         # MainWindow/Settings/Themes/Visualizer (4 modules)
-│   ├── Hardware/    # Serial/Protocol/Device (3 modules)
-│   ├── Tasks/       # Manager/Notifications/Persistence (3 modules)
-│   ├── Docs/        # Generator/Interactive (2 modules)
-│   └── Utils/       # Error/Logging (2 modules)
-│
-├── app/             # Main executable
-├── arduino/         # Firmware for 5-slider mixer
-├── config/          # YAML configurations + profiles
-├── docs/            # Guides and tutorials
-├── .github/         # CI/CD workflows
-├── legacy/arduino-audio-controller/  # Archived Python/GTK4 prototype
-└── test/            # Test suite (scaffolded)
-```
+- A throwaway demo with only wiring notes
+- A repo that relies on manual GitHub setup to feel complete
+- A project whose public identity stops at a README
 
----
+## Public surface and automation
 
-## ✨ Features Implemented
+The repository automation and marketing surface now includes or is being aligned around:
 
-### Core Infrastructure
-- ✅ Complete Haskell project with Stack
-- ✅ Compiles successfully (with GHC 9.6.6)
-- ✅ Runs and executes
-- ✅ Configuration system (YAML parsing + validation)
-- ✅ Error handling types
-- ✅ Logging framework
+- GitHub Actions CI focused on Haskell quality checks and site smoke tests
+- Release Please for automated release PRs and tagging
+- Release artifact builds for published releases
+- GitHub Pages deployment generated from YAML-driven project metadata
+- Native GitHub Sponsors plus Buy Me a Coffee support
+- A dedicated funding page with QR-based support
+- A metadata sync path so repo topics, homepage, and description stay consistent with the site copy
 
-### Hardware
-- ✅ Arduino firmware for 5 sliders (ioruba-mixer.ino)
-- ✅ Serial protocol parser (pipe-separated values)
-- ✅ Device detection utilities
+## Brand and owner context
 
-### Documentation
-- ✅ README.md - User documentation
-- ✅ CLAUDE.md - AI assistant architecture guide
-- ✅ CONTRIBUTING.md - Contribution guidelines
-- ✅ QUICKSTART.md - 5-minute setup guide
-- ✅ CHANGELOG.md - Version history
-- ✅ Hardware setup guide
-- ✅ GitHub setup guide
+- Project owner: Bernardo Gomes
+- Company / brand: BeBitter & BeBetter
+- Website: https://bebitterbebetter.com.br/
+- GitHub: https://github.com/bernardopg
+- LinkedIn: https://www.linkedin.com/in/bernardopg/
+- X / Twitter: https://x.com/cooldeflecha
 
-### DevOps
-- ✅ GitHub Actions CI (build, test, lint)
-- ✅ GitHub Actions release workflow
-- ✅ .gitignore configured
-- ✅ Makefile for common tasks
-- ✅ Desktop file for Linux integration
+## Strategic direction
 
----
+### Near term
 
-## 🚧 Next Steps (Scaffolded, Need Implementation)
+- harden the Haskell runtime as the default path for real users
+- make release artifacts and Pages reflect the actual shipped runtime
+- keep product presentation and documentation aligned with what actually works
 
-### Priority 1: Core Functionality
-- [ ] Implement real PulseAudio integration (src/Audio/PulseAudio.hs)
-- [ ] Implement serial port communication (src/Hardware/Serial.hs)
-- [ ] Connect slider values to volume control
-- [ ] Test with real Arduino hardware
+### Mid term
 
-### Priority 2: GUI
-- [ ] Implement GTK+ main window (src/GUI/MainWindow.hs)
-- [ ] Create audio visualizers (src/GUI/Visualizer.hs)
-- [ ] Settings dialog
-- [ ] Theme switching
+- ship release assets automatically on version tags
+- use GitHub Pages as the product-facing landing surface
+- make funding and sponsorship visible without cluttering the codebase
 
-### Priority 3: Advanced Features
-- [ ] Profile switching
-- [ ] Task management system
-- [ ] Desktop notifications
-- [ ] Interactive documentation
+### Long term
 
-### Priority 4: Testing & Quality
-- [ ] Unit tests for pure functions
-- [ ] Integration tests
-- [ ] Property-based tests (QuickCheck)
-- [ ] Code coverage >80%
+- retire the legacy runtime once the Haskell implementation covers the real user workflow
+- distribute Ioruba as a polished Linux-first tool rather than just a development repo
 
----
+## Repository health notes
 
-## 🔗 Quick Links
+- `GITHUB_SETUP.md` was obsolete once the repo already existed and had active automation
+- the old project summary had outdated paths, counts, and setup assumptions
+- Pages, funding, and release metadata now form part of the product story rather than afterthoughts
+- repository metadata, homepage, and Pages configuration now point to the new public-facing surface
 
-- **Repository**: https://github.com/bernardopg/ioruba
-- **Local Path**: `/home/bitter/projects/iarubá`
-- **Executable**: `.stack-work/install/.../bin/ioruba`
+## Recommended message for the project
 
-## 🛠️ Development Commands
-
-```bash
-# Build project
-stack build
-
-# Run application
-stack run
-
-# Run tests
-stack test
-
-# Format code
-make format
-
-# Lint code
-make lint
-
-# Generate docs
-make docs
-```
-
-## 📦 GitHub Repository Setup
-
-✅ **Status**: Fully configured!
-
-- [x] Repository created
-- [x] Initial commit pushed
-- [x] Tag v0.1.0 created
-- [x] Topics/tags added:
-  - haskell
-  - audio
-  - linux
-  - pulseaudio
-  - arduino
-  - gtk
-  - mixer
-  - functional-programming
-
----
-
-## 🎯 Recommended Next Actions
-
-1. **Implement Serial Communication** - Get Arduino talking to Haskell
-2. **Test Hardware** - Upload firmware and test sliders
-3. **PulseAudio Integration** - Control actual system volume
-4. **Create MVP** - End-to-end working prototype
-5. **Add Tests** - Ensure quality as you build
-
----
-
-## 🤝 Contributing
-
-This project is ready for collaboration! See CONTRIBUTING.md for guidelines.
-
----
-
-**Created with** ❤️ **using Haskell and Claude Code**
-
-Last updated: 2025-12-22
+Ioruba is a Linux-native hardware audio controller project being rebuilt around a distributable Haskell runtime, modern release automation, and a stronger product-facing surface for makers and creators who care about tactile control and polished execution.

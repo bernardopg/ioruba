@@ -1,84 +1,89 @@
-name: Release
+name: Release Artifacts
 
 on:
-  push:
-    tags:
-      - 'v*'
+  release:
+    types:
+      - published
+  workflow_dispatch:
+
+permissions:
+  contents: write
 
 concurrency:
   group: release-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  create-release:
-    name: Create Release
+  build-release:
+    name: Build Release Bundle
     runs-on: ubuntu-latest
+    env:
+      TAG_NAME: ${{ github.event.release.tag_name || github.ref_name }}
 
     steps:
-      - name: Checkout code
+      - name: Checkout
         uses: actions/checkout@v4
-
-      - name: Install system dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            libpulse-dev \
-            libgtk-3-dev \
-            libappindicator3-dev \
-            libsqlite3-dev
+        with:
+          fetch-depth: 0
 
       - name: Setup Haskell
         uses: haskell-actions/setup@v2
         with:
-          ghc-version: '9.6.6'
+          ghc-version: "9.6.6"
           enable-stack: true
-          stack-version: 'latest'
+          stack-version: latest
 
-      - name: Cache Stack dependencies
+      - name: Setup Arduino CLI
+        uses: arduino/setup-arduino-cli@v2
+
+      - name: Cache Stack
         uses: actions/cache@v4
         with:
           path: |
             ~/.stack
             .stack-work
-          key: ${{ runner.os }}-stack-${{ hashFiles('stack.yaml.lock') }}
+          key: ${{ runner.os }}-stack-release-${{ hashFiles('stack.yaml.lock', 'package.yaml', 'ioruba.cabal') }}
           restore-keys: |
+            ${{ runner.os }}-stack-release-
             ${{ runner.os }}-stack-
 
-      - name: Build release binary
+      - name: Build binaries
         run: |
+          mkdir -p dist
           stack build --copy-bins --local-bin-path ./dist
           strip ./dist/ioruba
+          strip ./dist/test-serial
 
-      - name: Create tarball
+      - name: Install Arduino core
         run: |
-          mkdir -p ioruba-release
-          cp ./dist/ioruba ioruba-release/
-          cp -r config ioruba-release/
-          cp README.md ioruba-release/
-          cp LICENSE ioruba-release/
-          tar -czf ioruba-linux-x64.tar.gz ioruba-release/
+          arduino-cli config init --overwrite
+          arduino-cli core update-index
+          arduino-cli core install arduino:avr
 
-      - name: Generate changelog
-        id: changelog
+      - name: Build firmware
         run: |
-          echo "CHANGELOG<<EOF" >> $GITHUB_OUTPUT
-          git log --pretty=format:"- %s" $(git describe --tags --abbrev=0 HEAD^)..HEAD >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
+          mkdir -p dist-firmware
+          arduino-cli compile --fqbn arduino:avr:nano --output-dir ./dist-firmware arduino/ioruba-nano-3knobs
 
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v1
+      - name: Assemble release bundle
+        run: |
+          set -euo pipefail
+          version="${TAG_NAME#v}"
+          release_root="ioruba-${version}-linux-x86_64"
+          mkdir -p "${release_root}/firmware"
+          cp ./dist/ioruba "${release_root}/"
+          cp ./dist/test-serial "${release_root}/"
+          cp -r config "${release_root}/config"
+          cp ./dist-firmware/*.hex "${release_root}/firmware/"
+          cp arduino/ioruba-nano-3knobs/ioruba-nano-3knobs.ino "${release_root}/firmware/"
+          cp README.md CHANGELOG.md LICENSE PROJECT_SUMMARY.md "${release_root}/"
+          tar -czf "${release_root}.tar.gz" "${release_root}"
+          sha256sum "${release_root}.tar.gz" > "${release_root}.tar.gz.sha256"
+
+      - name: Upload release assets
+        uses: softprops/action-gh-release@v2
         with:
           files: |
-            ioruba-linux-x64.tar.gz
-          body: |
-            ## Changes
-            ${{ steps.changelog.outputs.CHANGELOG }}
-
-            ## Installation
-            ```bash
-            tar -xzf ioruba-linux-x64.tar.gz
-            cd ioruba-release
-            ./ioruba
-            ```
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+            ioruba-*-linux-x86_64.tar.gz
+            ioruba-*-linux-x86_64.tar.gz.sha256
+          generate_release_notes: false

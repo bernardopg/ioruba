@@ -1,4 +1,4 @@
-module Main where
+module Main (main) where
 
 import Control.Exception (IOException, try)
 import Control.Monad (forever)
@@ -115,7 +115,7 @@ processLine line =
 
 -- | Format slider values for display
 formatSliders :: [SliderValue] -> String
-formatSliders values = unwords $ zipWith formatSlider [0..] values
+formatSliders values = unwords $ zipWith formatSlider ([0 :: Int ..]) values
   where
     formatSlider i (SliderValue v) =
       "[" ++ show i ++ ":" ++ padLeft 4 (show v) ++ "]"
@@ -123,7 +123,7 @@ formatSliders values = unwords $ zipWith formatSlider [0..] values
 
 -- | Format as volume percentages
 formatVolumes :: [SliderValue] -> String
-formatVolumes values = unwords $ zipWith formatVolume [0..] values
+formatVolumes values = unwords $ zipWith formatVolume ([0 :: Int ..]) values
   where
     formatVolume i (SliderValue v) =
       "[" ++ show i ++ ":" ++ padLeft 3 (show percent) ++ "%]"

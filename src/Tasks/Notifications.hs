@@ -8,12 +8,12 @@ import Data.Time (UTCTime)
 
 -- | Send a desktop notification
 sendNotification :: Text -> Text -> IO ()
-sendNotification title body = do
+sendNotification _ _ = do
   -- TODO: Implement DBus notification
   return ()
 
 -- | Schedule a reminder notification
 scheduleReminder :: Text -> Text -> UTCTime -> IO ()
-scheduleReminder title body time = do
+scheduleReminder _ _ _ = do
   -- TODO: Implement scheduled notifications
   return ()

@@ -38,6 +38,9 @@ state.yaml
 # Temporary
 tmp/
 temp/
+.site-dist/
+__pycache__/
+.github/scripts/__pycache__/
 
 # Build artifacts
 bin/

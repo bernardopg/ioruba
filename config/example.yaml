@@ -4,41 +4,21 @@ serial:
 
 sliders:
   - id: 0
-    name: "Master Volume"
+    name: "Master Output"
     targets:
       - type: master
 
   - id: 1
-    name: "Music"
+    name: "Applications"
     targets:
       - type: application
         name: "Spotify"
       - type: application
-        name: "rhythmbox"
-      - type: application
-        name: "vlc"
-
-  - id: 2
-    name: "Browser"
-    targets:
-      - type: application
-        name: "Firefox"
-      - type: application
         name: "Google Chrome"
       - type: application
-        name: "Chromium"
+        name: "Firefox"
 
-  - id: 3
-    name: "Communications"
-    targets:
-      - type: application
-        name: "Discord"
-      - type: application
-        name: "Slack"
-      - type: application
-        name: "Teams"
-
-  - id: 4
+  - id: 2
     name: "Microphone"
     targets:
       - type: source
@@ -51,5 +31,5 @@ audio:
 
 gui:
   theme: dark
-  show_visualizers: true
-  tray_icon: true
+  show_visualizers: false
+  tray_icon: false

@@ -1,5 +1,5 @@
 serial:
-  port: /dev/ttyUSB0  # Adjust to your Arduino Nano port
+  port: /dev/ttyUSB0
   baud_rate: 9600
 
 sliders:
@@ -14,7 +14,7 @@ sliders:
       - type: application
         name: "Firefox"
       - type: application
-        name: "Chrome"
+        name: "Google Chrome"
       - type: application
         name: "Spotify"
 
@@ -31,5 +31,5 @@ audio:
 
 gui:
   theme: dark
-  show_visualizers: true
-  tray_icon: true
+  show_visualizers: false
+  tray_icon: false

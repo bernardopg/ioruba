@@ -39,6 +39,22 @@ defaultConfig = Config
           , sliderTargets = [MasterTarget]
           , sliderInverted = Nothing
           }
+      , SliderConfig
+          { sliderId = 1
+          , sliderName = "Applications"
+          , sliderTargets =
+              [ ApplicationTarget "Spotify"
+              , ApplicationTarget "Google Chrome"
+              , ApplicationTarget "Firefox"
+              ]
+          , sliderInverted = Nothing
+          }
+      , SliderConfig
+          { sliderId = 2
+          , sliderName = "Microphone"
+          , sliderTargets = [SourceTarget "default_microphone"]
+          , sliderInverted = Nothing
+          }
       ]
   , configAudio = AudioConfig
       { audioNoiseReduction = NoiseReductionDefault

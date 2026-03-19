@@ -30,7 +30,7 @@ loadProfile profilesDir name = do
 
 -- | Save a profile to file
 saveProfile :: FilePath -> Profile -> IO (Either String ())
-saveProfile profilesDir profile = do
+saveProfile _ _ = do
   -- TODO: Implement profile saving
   return $ Right ()
 

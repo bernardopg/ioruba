@@ -7,7 +7,7 @@ extra-deps:
   - serialport-0.6.0
 
 ghc-options:
-  "$locals": -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints
+  "$locals": -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wredundant-constraints
 
 nix:
   enable: false
