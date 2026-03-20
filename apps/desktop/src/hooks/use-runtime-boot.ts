@@ -1,72 +1,106 @@
 import { useEffect, useRef } from "react";
 import { SerialPort } from "tauri-plugin-serialplugin-api";
 
-import { listAudioInventory, loadPersistedState } from "@/lib/backend";
+import {
+  listAudioInventory,
+  loadPersistedState,
+  loadWatchLogEntries,
+  saveWatchLogEntries
+} from "@/lib/backend";
+import { normalizeSerialPorts, shouldAutoConnect } from "@/lib/serial";
 import { useIorubaStore } from "@/store/ioruba-store";
-
-function normalizePortPaths(candidate: unknown): string[] {
-  if (Array.isArray(candidate)) {
-    return candidate
-      .map((value) => {
-        if (typeof value === "string") {
-          return value;
-        }
-        if (
-          typeof value === "object" &&
-          value !== null &&
-          "port_name" in value &&
-          typeof value.port_name === "string"
-        ) {
-          return value.port_name;
-        }
-        if (
-          typeof value === "object" &&
-          value !== null &&
-          "path" in value &&
-          typeof value.path === "string"
-        ) {
-          return value.path;
-        }
-        return null;
-      })
-      .filter((value): value is string => value !== null);
-  }
-
-  if (candidate && typeof candidate === "object") {
-    return Object.keys(candidate);
-  }
-
-  return [];
-}
 
 export function useRuntimeBoot() {
   const hydrate = useIorubaStore((state) => state.hydrate);
+  const hydrateWatchLog = useIorubaStore((state) => state.hydrateWatchLog);
+  const setWatchLogPersistenceReady = useIorubaStore(
+    (state) => state.setWatchLogPersistenceReady
+  );
   const refreshInventory = useIorubaStore((state) => state.refreshInventory);
   const setAvailablePorts = useIorubaStore((state) => state.setAvailablePorts);
   const requestConnect = useIorubaStore((state) => state.requestConnect);
   const setDemoMode = useIorubaStore((state) => state.setDemoMode);
+  const appendWatchLog = useIorubaStore((state) => state.appendWatchLog);
   const hydrated = useIorubaStore((state) => state.hydrated);
+  const connectionMode = useIorubaStore((state) => state.connectionMode);
   const autoConnected = useRef(false);
 
   useEffect(() => {
     let cancelled = false;
 
     async function boot() {
-      const [persisted, inventory] = await Promise.all([
-        loadPersistedState(),
-        listAudioInventory()
-      ]);
+      try {
+        const [persisted, inventory, watchLog] = await Promise.all([
+          loadPersistedState(),
+          listAudioInventory(),
+          loadWatchLogEntries()
+        ]);
 
-      if (cancelled) {
-        return;
-      }
+        if (cancelled) {
+          return;
+        }
 
-      hydrate(persisted, inventory);
+        hydrate(persisted, inventory);
+        hydrateWatchLog(watchLog);
 
-      if (persisted.demoMode) {
-        setDemoMode(true);
-      } else if (persisted.profiles[0]?.serial.autoConnect) {
-        requestConnect();
+        let watchLogPersistenceError: string | null = null;
+        try {
+          await saveWatchLogEntries(useIorubaStore.getState().watchLog);
+        } catch (error) {
+          watchLogPersistenceError =
+            error instanceof Error ? error.message : String(error);
+        } finally {
+          setWatchLogPersistenceReady(true);
+        }
+
+        if (cancelled) {
+          return;
+        }
+
+        appendWatchLog({
+          scope: "app",
+          level: "info",
+          message: "Boot do runtime iniciado"
+        });
+
+        appendWatchLog({
+          scope: "backend",
+          level: "info",
+          message: "Runtime hidratado",
+          detail: `${persisted.profiles.length} perfil(is) | inventario ${inventory.summary}`
+        });
+
+        if (persisted.demoMode) {
+          appendWatchLog({
+            scope: "app",
+            level: "warning",
+            message: "Persistencia restaurou modo demo"
+          });
+          setDemoMode(true);
+        } else if (shouldAutoConnect(persisted)) {
+          appendWatchLog({
+            scope: "app",
+            level: "info",
+            message: "Auto-connect habilitado pelo perfil ativo"
+          });
+          requestConnect();
+        }
+
+        if (watchLogPersistenceError) {
+          appendWatchLog({
+            scope: "backend",
+            level: "error",
+            message: "Falha ao persistir watch log",
+            detail: watchLogPersistenceError
+          });
+        }
+      } catch (error) {
+        appendWatchLog({
+          scope: "backend",
+          level: "error",
+          message: "Falha no boot do runtime",
+          detail: error instanceof Error ? error.message : String(error)
+        });
       }
     }
 
@@ -75,7 +109,7 @@ export function useRuntimeBoot() {
     return () => {
       cancelled = true;
     };
-  }, [hydrate, requestConnect, setDemoMode]);
+  }, [appendWatchLog, hydrate, requestConnect, setDemoMode]);
 
   useEffect(() => {
     if (!hydrated) {
@@ -86,20 +120,32 @@ export function useRuntimeBoot() {
 
     async function syncPortsAndInventory() {
       try {
-        const [ports, inventory] = await Promise.all([
-          SerialPort.available_ports(),
-          listAudioInventory()
-        ]);
+        const inventoryPromise = listAudioInventory();
+        const shouldQueryPorts =
+          connectionMode !== "serial" ||
+          useIorubaStore.getState().availablePorts.length === 0;
+        const portsPromise =
+          shouldQueryPorts ? SerialPort.available_ports() : Promise.resolve(null);
+        const [ports, inventory] = await Promise.all([portsPromise, inventoryPromise]);
 
         if (cancelled) {
           return;
         }
 
-        setAvailablePorts(normalizePortPaths(ports));
+        if (ports !== null) {
+          setAvailablePorts(normalizeSerialPorts(ports));
+        }
         refreshInventory(inventory);
       } catch (_error) {
         if (!cancelled) {
-          setAvailablePorts([]);
+          if (connectionMode !== "serial") {
+            setAvailablePorts([]);
+          }
+          appendWatchLog({
+            scope: "serial",
+            level: "error",
+            message: "Falha ao consultar portas seriais"
+          });
         }
       }
     }
@@ -117,5 +163,5 @@ export function useRuntimeBoot() {
       cancelled = true;
       window.clearInterval(portTimer);
     };
-  }, [hydrated, refreshInventory, setAvailablePorts]);
+  }, [appendWatchLog, connectionMode, hydrated, refreshInventory, setAvailablePorts]);
 }

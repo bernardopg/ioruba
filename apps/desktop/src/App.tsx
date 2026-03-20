@@ -20,13 +20,21 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { KnobPanel } from "@/components/dashboard/knob-panel";
+import { OverviewSignalPanel } from "@/components/dashboard/overview-signal-panel";
+import { WatchLogPanel } from "@/components/dashboard/watch-log-panel";
 import { TelemetryChart } from "@/components/dashboard/telemetry-chart";
 import { usePersistence } from "@/hooks/use-persistence";
 import { useRuntimeBoot } from "@/hooks/use-runtime-boot";
 import { useSerialRuntime } from "@/hooks/use-serial-runtime";
+import { useWatchBridge } from "@/hooks/use-watch-bridge";
 import { listAudioInventory } from "@/lib/backend";
+import {
+  parseProfileDraft,
+  serializeProfileDraft
+} from "@/lib/profile-config";
 import { cn } from "@/lib/utils";
 import { useIorubaStore } from "@/store/ioruba-store";
+import { resolveActiveProfile } from "@ioruba/shared";
 
 function toneForStatus(status: string): "neutral" | "positive" | "warning" | "critical" {
   switch (status) {
@@ -45,12 +53,14 @@ function toneForStatus(status: string): "neutral" | "positive" | "warning" | "cr
 }
 
 export default function App() {
+  useWatchBridge();
   useRuntimeBoot();
   usePersistence();
   useSerialRuntime();
 
   const persisted = useIorubaStore((state) => state.persisted);
   const snapshot = useIorubaStore((state) => state.snapshot);
+  const watchLog = useIorubaStore((state) => state.watchLog);
   const configDraft = useIorubaStore((state) => state.configDraft);
   const setConfigDraft = useIorubaStore((state) => state.setConfigDraft);
   const applyConfigDraft = useIorubaStore((state) => state.applyConfigDraft);
@@ -60,9 +70,29 @@ export default function App() {
   const setDemoMode = useIorubaStore((state) => state.setDemoMode);
   const setPreferredPort = useIorubaStore((state) => state.setPreferredPort);
   const refreshInventory = useIorubaStore((state) => state.refreshInventory);
-  const activeProfile =
-    persisted.profiles.find((profile) => profile.id === persisted.selectedProfileId) ??
-    persisted.profiles[0];
+  const clearWatchLog = useIorubaStore((state) => state.clearWatchLog);
+  const appendWatchLog = useIorubaStore((state) => state.appendWatchLog);
+  const audioInventory = useIorubaStore((state) => state.audioInventory);
+  const activeProfile = resolveActiveProfile(persisted);
+  const draftValidation = parseProfileDraft(configDraft);
+  const savedConfigDraft = serializeProfileDraft(activeProfile);
+  const draftIsDirty = configDraft !== savedConfigDraft;
+  const draftStatusTone = draftValidation.ok
+    ? draftIsDirty
+      ? "warning"
+      : "positive"
+    : "critical";
+  const draftStatusLabel = draftValidation.ok
+    ? draftIsDirty
+      ? "Alteracoes pendentes"
+      : "Perfil salvo"
+    : "JSON invalido";
+  const draftStatusHint = draftValidation.ok
+    ? draftIsDirty
+      ? "Salve para persistir o perfil ativo."
+      : "O editor esta sincronizado com o perfil salvo."
+    : draftValidation.error;
+  const draftErrorId = "profile-draft-error";
 
   return (
     <main className="min-h-screen bg-[var(--color-shell)] text-[var(--color-copy)]">
@@ -122,6 +152,11 @@ export default function App() {
                 </Button>
                 <Button
                   onClick={async () => {
+                    appendWatchLog({
+                      scope: "app",
+                      level: "info",
+                      message: "Inventario de audio solicitado"
+                    });
                     const inventory = await listAudioInventory();
                     refreshInventory(inventory);
                   }}
@@ -180,20 +215,40 @@ export default function App() {
         </header>
 
         <Tabs defaultValue="overview">
-          <TabsList>
+          <TabsList className="flex max-w-full flex-wrap justify-start">
             <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="watch">Watch</TabsTrigger>
             <TabsTrigger value="config">Config</TabsTrigger>
             <TabsTrigger value="diagnostics">Diagnostics</TabsTrigger>
           </TabsList>
 
           <TabsContent className="mt-6 space-y-6" value="overview">
-            <TelemetryChart snapshot={snapshot} />
+            <section className="grid gap-5 xl:grid-cols-[minmax(0,1.6fr)_minmax(320px,0.85fr)]">
+              <TelemetryChart snapshot={snapshot} />
+              <OverviewSignalPanel
+                activeProfileName={activeProfile.name}
+                snapshot={snapshot}
+              />
+            </section>
 
-            <section className="grid gap-5 lg:grid-cols-3">
-              {snapshot.knobs.map((knob) => (
-                <KnobPanel key={knob.id} knob={knob} />
+            <section className="grid gap-5 md:grid-cols-2 2xl:grid-cols-3">
+              {snapshot.knobs.map((knob, index) => (
+                <KnobPanel
+                  className={index === 0 ? "md:col-span-2 2xl:col-span-1" : undefined}
+                  key={knob.id}
+                  knob={knob}
+                />
               ))}
             </section>
+          </TabsContent>
+
+          <TabsContent className="mt-6" value="watch">
+            <WatchLogPanel
+              activeProfileName={activeProfile.name}
+              onClear={clearWatchLog}
+              snapshot={snapshot}
+              watchLog={watchLog}
+            />
           </TabsContent>
 
           <TabsContent className="mt-6" value="config">
@@ -208,27 +263,39 @@ export default function App() {
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">
+                <div className="flex flex-wrap items-center gap-3">
+                  <Badge tone={draftStatusTone}>{draftStatusLabel}</Badge>
+                  <p className="text-sm text-[var(--color-muted)]">
+                    {draftStatusHint}
+                  </p>
+                </div>
                 <textarea
                   className={cn(
-                    "min-h-[420px] w-full rounded-[28px] border border-[var(--color-border)] bg-[var(--color-panel)] px-5 py-4 font-mono text-sm text-[var(--color-copy)] outline-none transition focus:border-[var(--accent-teal)]"
+                    "min-h-[420px] w-full rounded-[28px] border bg-[var(--color-panel)] px-5 py-4 font-mono text-sm text-[var(--color-copy)] outline-none transition",
+                    draftValidation.ok
+                      ? "border-[var(--color-border)] focus:border-[var(--accent-teal)]"
+                      : "border-[color-mix(in_oklab,var(--accent-rose)_42%,var(--color-border))] bg-[color-mix(in_oklab,var(--accent-rose)_7%,var(--color-panel))] focus:border-[var(--accent-rose)]"
                   )}
+                  aria-describedby={!draftValidation.ok ? draftErrorId : undefined}
+                  aria-invalid={!draftValidation.ok}
                   onChange={(event) => setConfigDraft(event.currentTarget.value)}
                   value={configDraft}
                 />
+                {!draftValidation.ok ? (
+                  <p
+                    id={draftErrorId}
+                    className="rounded-[20px] border border-[color-mix(in_oklab,var(--accent-rose)_42%,var(--color-border))] bg-[color-mix(in_oklab,var(--accent-rose)_10%,var(--color-panel))] px-4 py-3 text-sm text-[var(--accent-rose)]"
+                  >
+                    {draftValidation.error}
+                  </p>
+                ) : null}
                 <div className="flex flex-wrap gap-3">
                   <Button
-                    onClick={() => {
-                      try {
-                        applyConfigDraft();
-                      } catch (error) {
-                        window.alert(
-                          error instanceof Error ? error.message : String(error)
-                        );
-                      }
-                    }}
+                    disabled={!draftValidation.ok || !draftIsDirty}
+                    onClick={applyConfigDraft}
                   >
                     <Settings2 className="h-4 w-4" />
-                    Salvar perfil
+                    {draftIsDirty ? "Salvar perfil" : "Perfil salvo"}
                   </Button>
                   <Button onClick={resetProfile} variant="secondary">
                     Restaurar padrão
@@ -257,14 +324,12 @@ export default function App() {
                 <InventoryBlock
                   icon={Waves}
                   title="Saídas"
-                  values={useIorubaStore.getState().audioInventory.sinks.map(
-                    (sink) => sink.description
-                  )}
+                  values={audioInventory.sinks.map((sink) => sink.description)}
                 />
                 <InventoryBlock
                   icon={Mic2}
                   title="Entradas"
-                  values={useIorubaStore.getState().audioInventory.sources.map(
+                  values={audioInventory.sources.map(
                     (source) => source.description
                   )}
                 />

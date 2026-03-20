@@ -33,6 +33,7 @@ The migration replaces the old Python/Haskell runtime path, with special attenti
 - master, application, source, and sink targets handled by the Rust backend on Linux
 - demo mode with synthetic telemetry
 - JSON profile persistence in the app config directory
+- persistent watch log in the app config directory, truncated to avoid unbounded growth
 - GitHub Actions for Linux CI, firmware compile, and cross-platform Tauri releases
 
 ## Local Development
@@ -48,8 +49,16 @@ Run the desktop app in development:
 
 ```bash
 npm run desktop:dev
-cd apps/desktop && npm run tauri dev
+npm run desktop:watch
 ```
+
+Watch logs are mirrored in the UI and the Tauri terminal, then persisted as JSONL at the app config directory:
+
+- Linux: `~/.config/io.ioruba.desktop/ioruba-watch.log`
+- macOS: `~/Library/Application Support/io.ioruba.desktop/ioruba-watch.log`
+- Windows: `%APPDATA%\\io.ioruba.desktop\\ioruba-watch.log`
+
+The active profile state stays in `ioruba-state.json` in the same directory. Both files are managed by the app, and the watch log is trimmed automatically to about 1 MiB so it does not grow without bound.
 
 Compile firmware:
 

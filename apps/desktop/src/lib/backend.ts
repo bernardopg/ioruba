@@ -1,4 +1,4 @@
-import { invoke } from "@tauri-apps/api/core";
+import { isTauri, invoke } from "@tauri-apps/api/core";
 import {
   defaultPersistedState,
   normalizePersistedState,
@@ -9,6 +9,8 @@ import {
   type PersistedState,
   type SliderUpdate
 } from "@ioruba/shared";
+
+import { type WatchLogEntry } from "@/lib/watch";
 
 interface SliderBatchRequest {
   sliders: Array<{
@@ -36,6 +38,46 @@ export async function savePersistedState(state: PersistedState): Promise<void> {
   await invoke("save_persisted_state", {
     payload: JSON.stringify(state, null, 2)
   });
+}
+
+export async function loadWatchLogEntries(): Promise<WatchLogEntry[]> {
+  if (!isTauri()) {
+    return [];
+  }
+
+  return invoke<WatchLogEntry[]>("load_watch_log_entries");
+}
+
+export async function saveWatchLogEntries(
+  entries: WatchLogEntry[]
+): Promise<void> {
+  if (!isTauri()) {
+    return;
+  }
+
+  await invoke("save_watch_log_entries", {
+    entries
+  });
+}
+
+export async function appendWatchLogEntry(
+  entry: WatchLogEntry
+): Promise<void> {
+  if (!isTauri()) {
+    return;
+  }
+
+  await invoke("append_watch_log_entry", {
+    entry
+  });
+}
+
+export async function clearWatchLogEntries(): Promise<void> {
+  if (!isTauri()) {
+    return;
+  }
+
+  await invoke("clear_watch_log_entries");
 }
 
 export async function listAudioInventory(): Promise<AudioInventory> {

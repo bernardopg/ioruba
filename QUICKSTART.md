@@ -73,15 +73,21 @@ npm run desktop:dev
 Full Tauri desktop shell:
 
 ```bash
-cd apps/desktop
-npm run tauri dev
+npm run desktop:watch
 ```
+
+The `Watch` tab shows the same structured events that the backend prints to the terminal. The persistent copy is stored in the app config directory as `ioruba-watch.log`, alongside `ioruba-state.json`:
+
+- Linux: `~/.config/io.ioruba.desktop/ioruba-watch.log`
+- macOS: `~/Library/Application Support/io.ioruba.desktop/ioruba-watch.log`
+- Windows: `%APPDATA%\\io.ioruba.desktop\\ioruba-watch.log`
 
 Expected behavior:
 
 - auto-detects `/dev/ttyUSB*` or `/dev/ttyACM*`
 - accepts `512|768|1023` frames and legacy `P1:512`
 - persists the active profile as JSON
+- persists watch events as a capped log file of about 1 MiB
 - exposes a demo mode without touching system audio
 - applies real Linux audio updates through Rust + `pactl`
 

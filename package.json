@@ -8,6 +8,7 @@
   ],
   "scripts": {
     "desktop:dev": "npm --workspace @ioruba/desktop run dev",
+    "desktop:watch": "npm --workspace @ioruba/desktop run tauri dev",
     "desktop:typecheck": "npm --workspace @ioruba/desktop run typecheck",
     "desktop:test": "npm --workspace @ioruba/desktop run test",
     "desktop:build": "npm --workspace @ioruba/desktop run build",
