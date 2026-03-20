@@ -1,25 +1,45 @@
-# Quick Start Guide
+# Quick Start
 
-This guide follows the migrated stack:
+This is the fastest path from a fresh clone to a working Ioruba session on the **active Linux stack**.
+
+> **Heads up**
+> Real system-audio control currently depends on the Linux `pactl` backend. On macOS and Windows, the desktop shell is still useful for UI review and demo mode, but audio control is not implemented yet.
+
+## 1. What you need
+
+### Software
+
+- Node.js `22` recommended (same major version used in CI)
+- `npm`
+- Rust stable + Cargo
+- `arduino-cli`
+- `pactl` available on `PATH`
+
+### Hardware
 
 - `Arduino Nano ATmega328P`
-- `3x B10K` potentiometers on `A0`, `A1`, and `A2`
-- `apps/desktop` for the Tauri desktop app
-- `firmware/arduino/ioruba-controller` for the firmware
-- Linux with `pactl` available for real audio control
+- `3x 10k` linear potentiometers
+- USB data cable
+- jumper wires and a breadboard or enclosure
 
-## 1. Check prerequisites
+Quick version check:
 
 ```bash
 node --version
 npm --version
 rustc --version
 cargo --version
-pactl info
 arduino-cli version
+pactl info
 ```
 
-## 2. Confirm serial access
+## 2. Install repository dependencies
+
+```bash
+npm install
+```
+
+## 3. Prepare Linux serial permissions
 
 Depending on the distro, add your user to `dialout` or `uucp`:
 
@@ -28,38 +48,51 @@ sudo usermod -a -G dialout $USER
 sudo usermod -a -G uucp $USER
 ```
 
-Then log out and back in.
+Log out and back in after changing group membership.
 
-## 3. Flash the Nano
+## 4. Wire and flash the controller
 
-Compile:
+If you still need to assemble the hardware, start with:
+
+- [docs/guides/hardware-setup.md](docs/guides/hardware-setup.md)
+- [NANO_SETUP.md](NANO_SETUP.md)
+
+Detect the board:
+
+```bash
+arduino-cli board list
+```
+
+Compile the current firmware:
 
 ```bash
 arduino-cli compile --fqbn arduino:avr:nano firmware/arduino/ioruba-controller
 ```
 
-Upload for standard Nano boards:
+Upload for a standard Nano:
 
 ```bash
 arduino-cli upload -p /dev/ttyUSB0 --fqbn arduino:avr:nano firmware/arduino/ioruba-controller
 ```
 
-Upload for classic Nano clones with the old bootloader:
+Upload for common Nano clones with the old bootloader:
 
 ```bash
 arduino-cli upload -p /dev/ttyUSB0 --fqbn arduino:avr:nano:cpu=atmega328old firmware/arduino/ioruba-controller
 ```
 
-## 4. Install dependencies
+## 5. Validate the repository
 
-```bash
-npm install
-```
-
-## 5. Run verification
+Run the main automated checks before launching the desktop shell:
 
 ```bash
 npm run verify
+```
+
+If you only want to make sure the firmware still compiles from the root workspace:
+
+```bash
+npm run firmware:compile
 ```
 
 ## 6. Launch the desktop app
@@ -76,52 +109,84 @@ Full Tauri desktop shell:
 npm run desktop:watch
 ```
 
-The `Watch` tab shows the same structured events that the backend prints to the terminal. The persistent copy is stored in the app config directory as `ioruba-watch.log`, alongside `ioruba-state.json`:
+Use the Tauri shell for real serial sessions, persistence, and backend validation.
 
-- Linux: `~/.config/io.ioruba.desktop/ioruba-watch.log`
-- macOS: `~/Library/Application Support/io.ioruba.desktop/ioruba-watch.log`
-- Windows: `%APPDATA%\\io.ioruba.desktop\\ioruba-watch.log`
+## 7. Confirm everything is working
 
-Expected behavior:
+When the app opens, this is the expected flow:
 
-- auto-detects `/dev/ttyUSB*` or `/dev/ttyACM*`
-- accepts `512|768|1023` frames and legacy `P1:512`
-- persists the active profile as JSON
-- persists watch events as a capped log file of about 1 MiB
-- exposes a demo mode without touching system audio
-- applies real Linux audio updates through Rust + `pactl`
+- the app discovers serial ports or respects your preferred port
+- the status card moves through connection states instead of staying idle forever
+- the `Watch` tab shows frames such as `512|768|1023`
+- the telemetry chart reacts when you turn the knobs
+- the active profile is stored as JSON and survives restarts
+- `Atualizar áudio` refreshes the Linux audio inventory
+- turning the knobs updates targets such as master volume, apps, or microphone input
 
-## 7. Build installers locally
+Default profile mapping:
+
+| Knob | Default target |
+| --- | --- |
+| 1 | Default output / master volume |
+| 2 | `Spotify`, `Google Chrome`, `Firefox` |
+| 3 | `default_microphone` |
+
+## 8. Know where the app stores data
+
+The desktop app persists two important files:
+
+- `ioruba-state.json` — active profile and runtime state
+- `ioruba-watch.log` — structured watch events, automatically trimmed to about `1 MiB`
+
+Locations:
+
+- Linux: `~/.config/io.ioruba.desktop/`
+- macOS: `~/Library/Application Support/io.ioruba.desktop/`
+- Windows: `%APPDATA%\\io.ioruba.desktop\\`
+
+## 9. Build the desktop app locally
+
+For a local Tauri build without final installers:
 
 ```bash
-cd apps/desktop
-npm run tauri build -- --no-bundle
+npm run desktop:tauri:build
 ```
 
-## Troubleshooting
+## 10. Quick troubleshooting
 
-If Tauri fails to compile on Linux, install the WebKit/GTK development packages:
+### Tauri fails to compile on Linux
+
+Install the WebKit/GTK development packages required by Tauri:
 
 ```bash
 sudo pacman -S --needed webkit2gtk-4.1 gtk3 librsvg
 ```
 
-If the app starts but shows no packets:
+### The app opens but no packets arrive
 
+- confirm the board is flashing the current sketch
 - confirm the board is sending `512|768|1023`
 - confirm `9600` baud
 - check the knob wiring on `A0`, `A1`, and `A2`
-- verify the selected serial port inside the desktop app
+- verify the selected serial port in the app
+- retry with the old-bootloader Nano profile if you use a clone
 
-If audio targets do not move:
+### Audio targets do not move
 
 - confirm `pactl info` works
-- make sure target applications have active audio streams
-- inspect the profile JSON in the Config tab
+- make sure target applications are actively playing audio
+- refresh the inventory from the desktop app
+- inspect the JSON profile in the `Config` tab
 
-## Next Steps
+### You are on macOS or Windows
 
-- Read [README.md](README.md) for the new repository layout
-- Read [NANO_SETUP.md](NANO_SETUP.md) for firmware details
-- Read [TESTING.md](TESTING.md) for the validation matrix
-- Read [docs/migration/logic-audit.md](docs/migration/logic-audit.md) for parity coverage
+That path is currently best treated as **UI/demo validation only**. The desktop shell may build and open, but the real audio backend is intentionally marked unsupported outside Linux.
+
+## Next reads
+
+- [README.md](README.md) for the repository overview
+- [NANO_SETUP.md](NANO_SETUP.md) for firmware and serial details
+- [docs/guides/profile-examples.md](docs/guides/profile-examples.md) for JSON profile samples
+- [docs/debug/support.md](docs/debug/support.md) for troubleshooting playbooks
+- [TESTING.md](TESTING.md) for the validation matrix
+- [docs/migration/logic-audit.md](docs/migration/logic-audit.md) for migration parity coverage

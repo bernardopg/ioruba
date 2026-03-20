@@ -1,60 +1,55 @@
-# Arduino Nano Setup with 3 Potentiometers
+# Arduino Nano Setup
 
-This guide matches the hardware path that now drives the Tauri desktop app:
+This guide focuses on the controller board used by the current Ioruba stack.
+
+## Target hardware
 
 - `Arduino Nano ATmega328P`
-- `3x B10K` potentiometers
-- `A0`, `A1`, and `A2`
-- `9600` baud serial
+- `3x B10K / 10k linear potentiometers`
+- `A0`, `A1`, and `A2` as analog inputs
+- `9600` baud serial output
 
-## Wiring
+If you still need the physical wiring reference, read [docs/guides/hardware-setup.md](docs/guides/hardware-setup.md) first.
 
-### Knob 1
+## Wiring summary
 
-- left pin -> `GND`
-- center pin -> `A0`
-- right pin -> `5V`
+| Knob | Left pin | Center pin | Right pin |
+| --- | --- | --- | --- |
+| 1 | `GND` | `A0` | `5V` |
+| 2 | `GND` | `A1` | `5V` |
+| 3 | `GND` | `A2` | `5V` |
 
-### Knob 2
-
-- left pin -> `GND`
-- center pin -> `A1`
-- right pin -> `5V`
-
-### Knob 3
-
-- left pin -> `GND`
-- center pin -> `A2`
-- right pin -> `5V`
+> If a knob feels inverted, swap the two outer pins.
 
 ## Recommended firmware
 
-Use:
+Use the active sketch:
 
 - [firmware/arduino/ioruba-controller/ioruba-controller.ino](firmware/arduino/ioruba-controller/ioruba-controller.ino)
 
-That sketch sends:
+What it sends:
 
-- smoothed readings
-- frames every `40ms` when the values move
-- pipe-separated lines like `512|768|1023`
+- smoothed analog readings
+- frames roughly every `40 ms` when values move
+- pipe-separated lines such as `512|768|1023`
 
-The desktop runtime still accepts the legacy `P1:512` protocol for compatibility.
+The desktop runtime still accepts the legacy `P1:512` packet format for compatibility, but the current firmware emits complete frames.
 
-## Check the device
+## Detect the board
 
-List serial devices:
+Use `arduino-cli` first:
 
 ```bash
-ls -l /dev/ttyUSB* /dev/ttyACM*
-python3 - <<'PY'
-import serial.tools.list_ports
-for port in serial.tools.list_ports.comports():
-    print(port.device, "-", port.description)
-PY
+arduino-cli board list
 ```
 
-Typical Nano clone labels include `FT232R USB UART` or `CH340`.
+You can also inspect the Linux device files directly:
+
+```bash
+ls -l /dev/ttyUSB* /dev/ttyACM* 2>/dev/null
+```
+
+Typical Nano clone USB chip labels include `CH340` and `FT232R USB UART`.
 
 ## Linux permissions
 
@@ -65,15 +60,15 @@ sudo usermod -a -G dialout $USER
 sudo usermod -a -G uucp $USER
 ```
 
-Then log out and back in.
+Then log out and back in before testing the serial connection again.
 
-## Compile
+## Compile the firmware
 
 ```bash
 arduino-cli compile --fqbn arduino:avr:nano firmware/arduino/ioruba-controller
 ```
 
-## Upload
+## Upload to the Nano
 
 Standard Nano profile:
 
@@ -81,11 +76,27 @@ Standard Nano profile:
 arduino-cli upload -p /dev/ttyUSB0 --fqbn arduino:avr:nano firmware/arduino/ioruba-controller
 ```
 
-Old bootloader profile for clones:
+Old bootloader profile for common clones:
 
 ```bash
 arduino-cli upload -p /dev/ttyUSB0 --fqbn arduino:avr:nano:cpu=atmega328old firmware/arduino/ioruba-controller
 ```
+
+## Validate serial output
+
+After flashing, the board should emit lines like:
+
+```text
+512|768|1023
+```
+
+Practical smoke test:
+
+1. launch the desktop shell with `npm run desktop:watch`
+2. choose the detected serial port if needed
+3. open the `Watch` tab
+4. turn the knobs and confirm the telemetry updates
+5. on Linux, verify the mapped audio targets respond
 
 ## If upload fails
 
@@ -98,37 +109,28 @@ Common symptoms:
 Practical fixes:
 
 - try both Nano processor profiles
-- press `RESET` right before upload starts
-- make sure no app is holding `/dev/ttyUSB0`
-- swap the USB cable
-- confirm the board really is a Nano-compatible `ATmega328P`
+- press `RESET` right before the upload starts
+- make sure no other app is holding `/dev/ttyUSB0`
+- swap the USB cable for a known data cable
+- confirm the board is really a Nano-compatible `ATmega328P`
 - if necessary, reburn the bootloader with an ISP programmer
-
-## Validate serial output
-
-With the board flashed, you should see:
-
-```text
-512|768|1023
-```
-
-Quick smoke test:
-
-- open the Tauri desktop app
-- choose the detected port
-- verify the knob values move in the telemetry chart
-- confirm audio targets respond
 
 ## Useful debug checks
 
-Is something already holding the port?
+Check whether something is already holding the port:
 
 ```bash
 fuser -v /dev/ttyUSB0
 ```
 
-List active audio applications:
+List active Linux audio applications:
 
 ```bash
 pactl list short sink-inputs
 ```
+
+## Related guides
+
+- [QUICKSTART.md](QUICKSTART.md)
+- [TESTING.md](TESTING.md)
+- [docs/guides/hardware-setup.md](docs/guides/hardware-setup.md)

@@ -114,8 +114,11 @@ jobs:
           test -f .github/workflows/release.yml
           test -f CONTRIBUTING.md
           test -f legacy/README.md
-          test -f legacy/haskell-runtime/package.yaml
-          test -f legacy/github-automation/.github/release-please-config.json
+          test -f legacy/arduino-audio-controller/README.md
+          test -f docs/guides/profile-examples.md
+          test -f docs/debug/support.md
+          test ! -d legacy/haskell-runtime
+          test ! -d legacy/github-automation
           test ! -f .github/workflows/release-please.yml
           test ! -f .github/workflows/pages.yml
           test ! -f .github/workflows/sync-metadata.yml

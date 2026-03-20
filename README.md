@@ -1,89 +1,163 @@
 # Ioruba
 
-Ioruba is now a desktop control deck built with `Tauri 2 + React + TypeScript`, driven by `Arduino C++` firmware for a 3-knob hardware mixer.
+Ioruba transforms an `Arduino Nano + 3 knobs` into a tactile desktop control deck. The active product path is a `Tauri 2 + React + TypeScript` app backed by Rust for system-audio operations and `Arduino C++` firmware for the physical controller.
 
-The migration replaces the old Python/Haskell runtime path, with special attention to the friction that existed on Arch Linux:
+> **Current platform status**
+> Real audio control is implemented for **Linux** through `pactl`. macOS and Windows builds are still useful for UI review, packaging checks, and demo mode, but they do **not** provide a production-ready audio backend yet.
 
-- desktop runtime moved to `apps/desktop`
-- firmware consolidated in `firmware/arduino/ioruba-controller`
-- shared domain logic ported to `packages/shared`
-- Linux audio backend rewritten in Rust using `pactl`
-- serial communication moved to the Tauri serial plugin
-- JSON persistence replaces split YAML + UI-state storage
-- old Haskell/runtime and repo-surface tooling archived under `legacy/`
+[Releases](https://github.com/bernardopg/ioruba/releases) · [Quick Start](QUICKSTART.md) · [Hardware Setup](docs/guides/hardware-setup.md) · [Nano Setup](NANO_SETUP.md) · [Profile Examples](docs/guides/profile-examples.md) · [Support](docs/debug/support.md) · [Testing](TESTING.md) · [Contributing](CONTRIBUTING.md) · [Funding](FUNDING.md) · [Roadmap](TODO.md)
 
-[Releases](https://github.com/bernardopg/ioruba/releases) | [Funding](FUNDING.md) | [Quick Start](QUICKSTART.md) | [Testing](TESTING.md) | [Roadmap](TODO.md)
+<p align="center">
+  <img src="apps/desktop/src-tauri/icons/icon.png" alt="Ioruba app icon" width="112" />
+</p>
 
-## Repository Layout
+## ✨ Visual reference
 
-- `apps/desktop`: Tauri 2 desktop app, React UI, Zustand store, Recharts telemetry
-- `apps/desktop/src-tauri`: Rust commands for persistence and Linux audio control
-- `packages/shared`: serial protocol, runtime math, defaults, and migration-safe models
-- `firmware/arduino/ioruba-controller`: Arduino firmware for Nano-compatible boards
-- `docs/migration`: migration plan, GitHub plan, and logic audit
-- `legacy/haskell-runtime`: archived Haskell runtime, configs, release scripts, and GTK/TUI experiments
-- `legacy/github-automation`: archived Pages and Release Please automation from the pre-Tauri repo surface
-- `legacy/arduino-audio-controller`: archived Python/GTK prototype kept for parity reference
+<p align="center">
+  <img src="legacy/arduino-audio-controller/screenshots/knob-deck-pt-br.png" alt="Ioruba visual reference" width="900" />
+</p>
 
-## What Works In The New Stack
+> 📸 Until a fresh capture of the current Tauri app is published, the archived screen above remains a useful visual reference for the product's tactile dashboard direction.
 
-- pipe-separated serial packets such as `512|768|1023`
-- legacy packet compatibility for `P1:512`
-- noise reduction and first-packet behavior ported from Haskell logic
-- master, application, source, and sink targets handled by the Rust backend on Linux
-- demo mode with synthetic telemetry
-- JSON profile persistence in the app config directory
-- persistent watch log in the app config directory, truncated to avoid unbounded growth
-- GitHub Actions for Linux CI, firmware compile, and cross-platform Tauri releases
+## 🎛️ Why this repository exists
 
-## Local Development
+The project keeps the hardware feel of a small mixer while modernizing the software stack that drives it:
 
-Install dependencies and run checks:
+- the active desktop runtime lives in `apps/desktop`
+- the firmware is consolidated in `firmware/arduino/ioruba-controller`
+- shared protocol and runtime logic live in `packages/shared`
+- the Linux audio backend was rewritten in Rust using `pactl`
+- persistence moved from split YAML/UI state to a local JSON profile model
+- migration history and parity notes now live in `docs/migration`
+- one archived Python/GTK prototype is still kept under `legacy/`
+
+## ✅ What you get today
+
+- serial packets such as `512|768|1023`
+- compatibility with the legacy packet format `P1:512`
+- live telemetry and a persistent watch log inside the desktop app
+- editable JSON profiles stored in the app config directory
+- demo mode for UI validation without touching system audio
+- Linux audio target handling for `master`, `application`, `source`, and `sink`
+- CI for desktop/shared validation plus firmware compilation
+- tagged release workflows for desktop bundles and firmware artifacts
+
+## 🖥️ Platform support
+
+| Platform | Status | Notes |
+| --- | --- | --- |
+| Linux | Supported | Main production path: serial workflow, `pactl` audio backend, demo mode, and hardware validation |
+| macOS | Partial | Desktop shell and demo-mode validation are useful; real audio control is not implemented |
+| Windows | Partial | Desktop shell and demo-mode validation are useful; real audio control is not implemented |
+
+## 🎚️ Default profile at a glance
+
+The shipped default profile is intentionally simple and can be edited from the app's JSON configuration panel:
+
+| Knob | Default label | Target |
+| --- | --- | --- |
+| 1 | `Master Volume` | Default output volume |
+| 2 | `Applications` | `Spotify`, `Google Chrome`, and `Firefox` |
+| 3 | `Microphone` | `default_microphone` |
+
+## 🚀 Quick start
+
+Install dependencies and validate the active stack:
 
 ```bash
 npm install
 npm run verify
-npm run rust:audit
 ```
 
-Run the desktop app in development:
+Compile the firmware for the current controller sketch:
+
+```bash
+npm run firmware:compile
+```
+
+Run the desktop app:
 
 ```bash
 npm run desktop:dev
 npm run desktop:watch
 ```
 
-Watch logs are mirrored in the UI and the Tauri terminal, then persisted as JSONL at the app config directory:
+- `npm run desktop:dev` starts the frontend only
+- `npm run desktop:watch` starts the full Tauri desktop shell
 
-- Linux: `~/.config/io.ioruba.desktop/ioruba-watch.log`
-- macOS: `~/Library/Application Support/io.ioruba.desktop/ioruba-watch.log`
-- Windows: `%APPDATA%\\io.ioruba.desktop\\ioruba-watch.log`
+If you are setting up real hardware, follow these guides next:
 
-The active profile state stays in `ioruba-state.json` in the same directory. Both files are managed by the app, and the watch log is trimmed automatically to about 1 MiB so it does not grow without bound.
+- [QUICKSTART.md](QUICKSTART.md) for the end-to-end Linux workflow
+- [NANO_SETUP.md](NANO_SETUP.md) for board flashing and serial checks
+- [docs/guides/hardware-setup.md](docs/guides/hardware-setup.md) for wiring the physical controller
+- [docs/guides/profile-examples.md](docs/guides/profile-examples.md) for ready-to-paste JSON profiles
 
-The Linux Tauri stack still resolves through GTK3 `glib 0.18.x`, so the repository carries a local backport of `GHSA-wrw7-89jp-8q8g` under `apps/desktop/src-tauri/vendor/glib-0.18.5`. Use `npm run rust:audit` to audit the current lockfile with that backport accounted for.
+## 🧰 Common commands
 
-Compile firmware:
+| Command | What it does |
+| --- | --- |
+| `npm run verify` | Runs shared + desktop typecheck, shared + desktop tests, Rust tests, and the desktop production build |
+| `npm run desktop:dev` | Starts the Vite frontend for UI work |
+| `npm run desktop:watch` | Starts the full Tauri desktop app in development |
+| `npm run desktop:tauri:build` | Builds the Tauri desktop app locally without bundling installers |
+| `npm run firmware:compile` | Compiles the Arduino Nano firmware |
+| `npm run rust:test` | Runs Rust backend tests |
+| `npm run rust:audit` | Audits the Rust lockfile while accounting for the local `glib` backport |
+
+## 🗂️ Repository map
+
+| Path | Purpose |
+| --- | --- |
+| `apps/desktop` | Tauri 2 desktop app, React UI, Zustand state, and telemetry dashboards |
+| `apps/desktop/src-tauri` | Rust commands for persistence, watch logging, and Linux audio control |
+| `packages/shared` | Shared domain types, defaults, runtime math, and protocol parsing |
+| `firmware/arduino/ioruba-controller` | Arduino firmware for Nano-compatible boards |
+| `docs/guides` | Practical setup guides |
+| `docs/migration` | Migration planning and parity audit material |
+| `legacy` | Archived Python/GTK prototype and small historical leftovers |
+
+## 🧪 Persistence and diagnostics
+
+The app stores its runtime files in the platform config directory:
+
+- watch log: `ioruba-watch.log`
+- active profile state: `ioruba-state.json`
+
+Typical locations:
+
+- Linux: `~/.config/io.ioruba.desktop/`
+- macOS: `~/Library/Application Support/io.ioruba.desktop/`
+- Windows: `%APPDATA%\\io.ioruba.desktop\\`
+
+The watch log is trimmed automatically to roughly `1 MiB`, so it stays useful for diagnostics without growing forever.
+
+## 🛡️ Security note for Linux builds
+
+The current Linux Tauri stack still resolves through GTK3 `glib 0.18.x`, so the repository carries a local backport of `GHSA-wrw7-89jp-8q8g` under `apps/desktop/src-tauri/vendor/glib-0.18.5` until upstream moves. Use the following command to audit the current lockfile with that backport in mind:
 
 ```bash
-arduino-cli compile --fqbn arduino:avr:nano firmware/arduino/ioruba-controller
+npm run rust:audit
 ```
 
-## Migration Coverage
+## 📚 Documentation map
 
-The audit of Python/Haskell coverage is tracked here:
+| Document | Use it when you need... |
+| --- | --- |
+| [docs/guides/profile-examples.md](docs/guides/profile-examples.md) | Real JSON profile samples and Linux target matching rules |
+| [QUICKSTART.md](QUICKSTART.md) | The fastest path from zero to a running app |
+| [NANO_SETUP.md](NANO_SETUP.md) | Flashing and validating the Arduino Nano |
+| [docs/guides/hardware-setup.md](docs/guides/hardware-setup.md) | Physical wiring and assembly |
+| [docs/debug/support.md](docs/debug/support.md) | A support playbook for serial, audio, and profile-debug issues |
+| [TESTING.md](TESTING.md) | Automated checks, smoke tests, and release validation |
+| [docs/migration/logic-audit.md](docs/migration/logic-audit.md) | Parity coverage with archived implementations |
 
-- [docs/migration/complete-plan.md](docs/migration/complete-plan.md)
-- [docs/migration/github-plan.md](docs/migration/github-plan.md)
-- [docs/migration/logic-audit.md](docs/migration/logic-audit.md)
+## 🗃️ Legacy archive
 
-## Legacy Reference
+The repository still keeps one archived implementation for historical reference:
 
-The old implementations are kept only as archive material:
+- `legacy/arduino-audio-controller`
 
-- Haskell runtime and packaging: `legacy/haskell-runtime`
-- Python/GTK prototype: `legacy/arduino-audio-controller`
-- Pages and Release Please tooling: `legacy/github-automation`
+Deeper migration context lives in `docs/migration`. The active product surface lives in `apps/desktop`, `packages/shared`, and `firmware/arduino/ioruba-controller`.
 
 ## License
 

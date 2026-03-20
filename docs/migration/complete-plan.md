@@ -48,9 +48,8 @@
 - new shared domain package in `packages/shared`
 - new Arduino firmware in `firmware/arduino/ioruba-controller`
 - new GitHub Actions for CI and release
-- migration audit and GitHub rollout plan in `docs/migration`
-- archived Haskell runtime under `legacy/haskell-runtime`
-- archived Pages and Release Please tooling under `legacy/github-automation`
+- migration audit and rollout notes in `docs/migration`
+- archived Python/GTK prototype kept under `legacy/arduino-audio-controller`
 
 ## Remaining Practical Follow-up
 

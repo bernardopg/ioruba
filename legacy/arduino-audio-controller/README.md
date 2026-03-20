@@ -38,7 +38,7 @@ This is no longer the recommended runtime in the repository. The active product 
 
 Recommended sketch:
 
-- [../haskell-runtime/arduino/ioruba-nano-3knobs/ioruba-nano-3knobs.ino](../haskell-runtime/arduino/ioruba-nano-3knobs/ioruba-nano-3knobs.ino)
+- [../../firmware/arduino/ioruba-controller/ioruba-controller.ino](../../firmware/arduino/ioruba-controller/ioruba-controller.ino)
 
 Legacy sketch kept for reference:
 
@@ -113,17 +113,17 @@ Stored values include:
 
 ## Firmware and Upload
 
-Compile and upload the recommended sketch from the repository root:
+Compile and upload the maintained sketch from the repository root:
 
 ```bash
-arduino-cli compile --fqbn arduino:avr:nano legacy/haskell-runtime/arduino/ioruba-nano-3knobs
-arduino-cli upload -p /dev/ttyUSB0 --fqbn arduino:avr:nano legacy/haskell-runtime/arduino/ioruba-nano-3knobs
+arduino-cli compile --fqbn arduino:avr:nano firmware/arduino/ioruba-controller
+arduino-cli upload -p /dev/ttyUSB0 --fqbn arduino:avr:nano firmware/arduino/ioruba-controller
 ```
 
 If a clone Nano fails with the default bootloader:
 
 ```bash
-arduino-cli upload -p /dev/ttyUSB0 --fqbn arduino:avr:nano:cpu=atmega328old legacy/haskell-runtime/arduino/ioruba-nano-3knobs
+arduino-cli upload -p /dev/ttyUSB0 --fqbn arduino:avr:nano:cpu=atmega328old firmware/arduino/ioruba-controller
 ```
 
 More hardware notes live in [../../NANO_SETUP.md](../../NANO_SETUP.md).
@@ -135,11 +135,7 @@ More hardware notes live in [../../NANO_SETUP.md](../../NANO_SETUP.md).
 - confirm the correct sketch is flashed
 - confirm the Nano is outputting `9600` baud
 - make sure no other app is holding `/dev/ttyUSB0`
-- test with:
-
-```bash
-stack --stack-yaml legacy/haskell-runtime/stack.yaml exec test-serial /dev/ttyUSB0
-```
+- test first in the Arduino IDE serial monitor or the active Tauri app watch tab
 
 ### Upload fails with `not in sync`
 
@@ -158,4 +154,4 @@ stack --stack-yaml legacy/haskell-runtime/stack.yaml exec test-serial /dev/ttyUS
 
 - This GTK app is archived for reference only
 - The active desktop app is the Tauri shell in `apps/desktop`
-- The archived Haskell backlog now lives in [../haskell-runtime/TODO.md](../haskell-runtime/TODO.md)
+- The maintained firmware and setup guides now live under `firmware/arduino/ioruba-controller` and the root docs

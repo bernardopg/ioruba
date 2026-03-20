@@ -1,36 +1,30 @@
 # Hardware Setup Guide
 
-This repository targets a practical `Arduino Nano + 3 potentiometers` build that feeds the Tauri desktop app.
+Use this guide when you want to assemble the **physical controller** for Ioruba.
 
-## Required parts
+## Build target
+
+The active repository is designed around a practical `Arduino Nano + 3 potentiometers` build that feeds the Tauri desktop app.
+
+## Bill of materials
 
 - `1x Arduino Nano ATmega328P`
-- `3x 10k linear potentiometers`
-- `1x USB cable`
+- `3x 10k` linear potentiometers
+- `1x USB data cable`
 - jumper wires
-- breadboard or enclosure
+- breadboard, perfboard, or enclosure
 
-## Wiring
+## Wiring map
 
-### Knob 1
+| Control | Left pin | Center pin | Right pin |
+| --- | --- | --- | --- |
+| Knob 1 | `GND` | `A0` | `5V` |
+| Knob 2 | `GND` | `A1` | `5V` |
+| Knob 3 | `GND` | `A2` | `5V` |
 
-- left pin -> `GND`
-- center pin -> `A0`
-- right pin -> `5V`
+> If clockwise/counter-clockwise movement feels reversed, swap the two outer pins on that potentiometer.
 
-### Knob 2
-
-- left pin -> `GND`
-- center pin -> `A1`
-- right pin -> `5V`
-
-### Knob 3
-
-- left pin -> `GND`
-- center pin -> `A2`
-- right pin -> `5V`
-
-## ASCII diagram
+## Quick ASCII layout
 
 ```text
 Arduino Nano
@@ -44,73 +38,65 @@ Arduino Nano
 └──────────────────────┘
 ```
 
-## Firmware
+## Assembly checklist
 
-Compile:
+- keep all three potentiometers on a shared `GND`
+- keep all three potentiometers on a shared `5V`
+- connect only the center pin of each knob to an analog input
+- use a USB **data** cable, not a charge-only cable
+- leave enough slack if you plan to mount everything in an enclosure
 
-```bash
-arduino-cli compile --fqbn arduino:avr:nano firmware/arduino/ioruba-controller
-```
+## What the firmware expects
 
-Upload for standard Nano boards:
-
-```bash
-arduino-cli upload -p /dev/ttyUSB0 --fqbn arduino:avr:nano firmware/arduino/ioruba-controller
-```
-
-Upload for common clones with the old bootloader:
-
-```bash
-arduino-cli upload -p /dev/ttyUSB0 --fqbn arduino:avr:nano:cpu=atmega328old firmware/arduino/ioruba-controller
-```
-
-## Expected serial output
+The current firmware reads the three analog inputs and emits lines such as:
 
 ```text
 512|768|1023
 ```
 
-The runtime also accepts the legacy `P1:512` style protocol.
+That maps directly to the active desktop runtime. The runtime also accepts the older legacy packet style, but the current build target is the full-frame format above.
 
-## Validate the host runtime
+## After the hardware is wired
 
-Once the hardware is wired and flashed:
+Next steps:
 
-```bash
-cd apps/desktop
-npm run tauri dev
-```
+1. flash the board using [NANO_SETUP.md](../../NANO_SETUP.md)
+2. start the app with `npm run desktop:watch`
+3. verify the `Watch` tab receives serial frames
+4. on Linux, confirm the default targets react as expected
 
-Expected runtime behavior:
+Default profile behavior:
 
-- the Nano is auto-detected
-- packets are shown in the dashboard
-- knob 1 can move `master`
-- knob 2 can target apps
-- knob 3 can target `default_microphone`
-
-If you need the retired Haskell implementation for comparison, it now lives in `legacy/haskell-runtime`.
+- knob 1 controls `master`
+- knob 2 targets applications like `Spotify`, `Google Chrome`, and `Firefox`
+- knob 3 targets `default_microphone`
 
 ## Troubleshooting
 
 ### No serial output
 
-- check the USB cable
+- check the USB cable first
+- confirm the firmware is flashed
 - confirm `9600` baud
-- confirm the sketch is flashed
-- try the Arduino serial monitor first
+- try the Arduino serial monitor before blaming the desktop app
 
 ### Upload fails
 
-- try the old bootloader variant
-- press `RESET` before upload
-- check whether another app is holding `/dev/ttyUSB0`
+- try the old bootloader Nano profile
+- press `RESET` just before upload begins
+- check whether another app is already holding `/dev/ttyUSB0`
 
-### Permission denied
+### Permission denied on Linux
 
 ```bash
 sudo usermod -a -G dialout $USER
 sudo usermod -a -G uucp $USER
 ```
 
-Then log out and back in.
+Log out and back in before testing again.
+
+## Related guides
+
+- [../../QUICKSTART.md](../../QUICKSTART.md)
+- [../../NANO_SETUP.md](../../NANO_SETUP.md)
+- [../../TESTING.md](../../TESTING.md)

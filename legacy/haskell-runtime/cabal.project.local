@@ -1,2 +1,0 @@
--- Local overrides for ad-hoc experiments can go here.
--- Keep the project on Stack/Cabal defaults so dependency builds remain portable.

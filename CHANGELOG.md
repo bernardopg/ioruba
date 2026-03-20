@@ -65,9 +65,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Changed
-- The Haskell runtime is now the main project path, with live serial-to-audio control and an operational terminal dashboard.
-- GitHub Pages is built and deployed through Actions from YAML-driven project metadata.
-- Repository funding, metadata sync, and release automation now match the public-facing product story.
+- Repository documentation was refreshed to better reflect the active Tauri desktop stack, Linux-first audio support, and the current hardware workflow.
 
 ## [0.1.0] - 2025-12-22
 
