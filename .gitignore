@@ -24,6 +24,7 @@ dist-newstyle/
 # IDE
 .vscode/
 .idea/
+.claude/
 *.swp
 *.swo
 *~

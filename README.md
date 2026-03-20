@@ -43,6 +43,7 @@ Install dependencies and run checks:
 ```bash
 npm install
 npm run verify
+npm run rust:audit
 ```
 
 Run the desktop app in development:
@@ -59,6 +60,8 @@ Watch logs are mirrored in the UI and the Tauri terminal, then persisted as JSON
 - Windows: `%APPDATA%\\io.ioruba.desktop\\ioruba-watch.log`
 
 The active profile state stays in `ioruba-state.json` in the same directory. Both files are managed by the app, and the watch log is trimmed automatically to about 1 MiB so it does not grow without bound.
+
+The Linux Tauri stack still resolves through GTK3 `glib 0.18.x`, so the repository carries a local backport of `GHSA-wrw7-89jp-8q8g` under `apps/desktop/src-tauri/vendor/glib-0.18.5`. Use `npm run rust:audit` to audit the current lockfile with that backport accounted for.
 
 Compile firmware:
 

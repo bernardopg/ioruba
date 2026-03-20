@@ -12,6 +12,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 * preserve docker release artifact permissions ([2815390](https://github.com/bernardopg/ioruba/commit/28153905da65343efa4a78954a008b0e30ca1679))
 
+## [0.3.0](https://github.com/bernardopg/ioruba/compare/v0.2.3...v0.3.0) (2026-03-20)
+
+
+### Features
+
+* refresh the desktop control deck UI and live watch workflow
+* persist watch logs and improve serial runtime diagnostics
+
+
+### Bug Fixes
+
+* keep Arduino serial sessions stable during idle periods and port discovery
+* backport the Linux `glib` fix for `GHSA-wrw7-89jp-8q8g`
+
 ## [0.2.2](https://github.com/bernardopg/ioruba/compare/v0.2.1...v0.2.2) (2026-03-19)
 
 
@@ -60,5 +74,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Initial tagged baseline before the current Haskell-first productization pass
 
-[Unreleased]: https://github.com/bernardopg/ioruba/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/bernardopg/ioruba/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/bernardopg/ioruba/releases/tag/v0.3.0
 [0.1.0]: https://github.com/bernardopg/ioruba/releases/tag/v0.1.0

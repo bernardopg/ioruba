@@ -16,6 +16,7 @@
     "shared:typecheck": "npm --workspace @ioruba/shared run typecheck",
     "shared:test": "npm --workspace @ioruba/shared run test",
     "rust:test": "cargo test --manifest-path apps/desktop/src-tauri/Cargo.toml",
+    "rust:audit": "cargo audit --file apps/desktop/src-tauri/Cargo.lock --ignore RUSTSEC-2024-0429",
     "firmware:compile": "arduino-cli compile --fqbn arduino:avr:nano firmware/arduino/ioruba-controller",
     "verify": "npm run shared:typecheck && npm run desktop:typecheck && npm run shared:test && npm run desktop:test && npm run rust:test && npm run desktop:build",
     "ci": "npm run verify && npm run firmware:compile"

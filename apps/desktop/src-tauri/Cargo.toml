@@ -20,3 +20,9 @@ serde_json = "1.0"
 tauri = { version = "2.10.3", features = [] }
 tauri-plugin-serialplugin = "2.21.1"
 thiserror = "2.0"
+
+[patch.crates-io]
+# Linux Tauri still pulls gtk-rs GTK3 through wry/webkit2gtk. Upstream fixed
+# GHSA-wrw7-89jp-8q8g in glib >= 0.20, but the current Tauri Linux stack is on
+# glib 0.18.x, so we backport the one-line fix locally until upstream moves.
+glib = { path = "vendor/glib-0.18.5" }
