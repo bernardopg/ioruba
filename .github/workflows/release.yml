@@ -81,7 +81,6 @@ jobs:
           releaseDraft: false
           prerelease: false
           args: ${{ matrix.args }}
-          uploadWorkflowArtifacts: true
 
   firmware:
     name: Firmware Bundle

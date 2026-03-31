@@ -60,7 +60,7 @@ export function TelemetryChart({ snapshot }: { snapshot: RuntimeSnapshot }) {
 
   return (
     <Card className="overflow-hidden">
-      <CardHeader className="border-b border-[var(--color-border)] pb-5">
+      <CardHeader className="border-b border-(--color-border) pb-5">
         <div className="flex flex-col gap-5">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
@@ -80,16 +80,16 @@ export function TelemetryChart({ snapshot }: { snapshot: RuntimeSnapshot }) {
             {snapshot.knobs.map((knob) => (
               <div
                 key={knob.id}
-                className="inline-flex min-h-10 items-center gap-3 rounded-full border border-[var(--color-border)] bg-[var(--color-panel)] px-3 py-2"
+                className="inline-flex min-h-10 items-center gap-3 rounded-full border border-(--color-border) bg-(--color-panel) px-3 py-2"
               >
                 <span
                   className="h-2.5 w-2.5 rounded-full"
                   style={{ backgroundColor: accentColor(knob.accent) }}
                 />
-                <span className="text-sm font-medium text-[var(--color-copy)]">
+                <span className="text-sm font-medium text-(--color-copy)">
                   {knob.name}
                 </span>
-                <span className="text-sm font-semibold text-[var(--color-ink)]">
+                <span className="text-sm font-semibold text-(--color-ink)">
                   {knob.percent}%
                 </span>
               </div>
@@ -98,7 +98,7 @@ export function TelemetryChart({ snapshot }: { snapshot: RuntimeSnapshot }) {
         </div>
       </CardHeader>
       <CardContent className="pt-6">
-        <div className="h-[280px] w-full sm:h-[340px] xl:h-[380px]">
+        <div className="h-70 w-full sm:h-sm:h-85-[380px]">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={data}>
               <CartesianGrid
@@ -166,11 +166,11 @@ export function TelemetryChart({ snapshot }: { snapshot: RuntimeSnapshot }) {
 
 function ChartStat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-[18px] border border-[var(--color-border)] bg-[var(--color-panel)] px-3 py-2 text-left">
-      <p className="text-[0.65rem] font-semibold uppercase tracking-[0.24em] text-[var(--color-muted)]">
+    <div className="rounded-2xl border border-(--color-border) bg-(--color-panel) px-3 py-2 text-left">
+      <p className="text-[0.65rem] font-semibold uppercase tracking-[0.24em] text-(--color-muted)">
         {label}
       </p>
-      <p className="mt-1 text-base font-semibold text-[var(--color-ink)]">{value}</p>
+      <p className="mt-1 text-base font-semibold text-(--color-ink)">{value}</p>
     </div>
   );
 }

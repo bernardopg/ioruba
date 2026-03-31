@@ -6,7 +6,7 @@ export function Card({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
   return (
     <div
       className={cn(
-        "rounded-[28px] border border-[var(--color-border)] bg-[color-mix(in_oklab,var(--color-panel)_90%,transparent)] shadow-[0_20px_50px_rgba(15,23,42,0.12)] backdrop-blur-sm",
+        "rounded-[28px] border border-(--color-border) bg-[color-mix(in_oklab,var(--color-panel)_90%,transparent)] shadow-[0_20px_50px_rgba(15,23,42,0.12)] backdrop-blur-sm",
         className
       )}
       {...props}
@@ -33,7 +33,7 @@ export function CardTitle({
   return (
     <h3
       className={cn(
-        "font-display text-lg font-semibold tracking-tight text-[var(--color-ink)]",
+        "font-display text-lg font-semibold tracking-tight text-(--color-ink)",
         className
       )}
       {...props}
@@ -47,7 +47,7 @@ export function CardDescription({
 }: HTMLAttributes<HTMLParagraphElement>) {
   return (
     <p
-      className={cn("max-w-2xl text-sm text-[var(--color-muted)]", className)}
+      className={cn("max-w-2xl text-sm text-(--color-muted)", className)}
       {...props}
     />
   );

@@ -95,11 +95,11 @@ export default function App() {
   const draftErrorId = "profile-draft-error";
 
   return (
-    <main className="min-h-screen bg-[var(--color-shell)] text-[var(--color-copy)]">
+    <main className="min-h-screen bg-(--color-shell) text-(--color-copy)">
       <div className="ambient-grid fixed inset-0 opacity-70" />
-      <div className="relative mx-auto flex min-h-screen max-w-[1600px] flex-col gap-8 px-5 py-6 sm:px-8 lg:px-10">
+        <div className="relative mx-auto flex min-h-screen max-w-400 flex-col gap-8 px-5 py-6 sm:px-8 lg:px-10">
         <header className="grid gap-6 lg:grid-cols-[1.35fr_0.9fr]">
-          <section className="rounded-[36px] border border-[var(--color-border)] bg-[linear-gradient(135deg,color-mix(in_oklab,var(--color-shell)_84%,var(--accent-copper)_8%)_0%,color-mix(in_oklab,var(--color-shell)_84%,var(--accent-teal)_12%)_100%)] px-7 py-7 shadow-[0_24px_80px_rgba(10,15,25,0.15)]">
+          <section className="rounded-[36px] border border-(--color-border) bg-[linear-gradient(135deg,color-mix(in_oklab,var(--color-shell)_84%,var(--accent-copper)_8%)_0%,color-mix(in_oklab,var(--color-shell)_84%,var(--accent-teal)_12%)_100%)] px-7 py-7 shadow-[0_24px_80px_rgba(10,15,25,0.15)]">
             <div className="flex flex-wrap items-center gap-3">
               <Badge tone={toneForStatus(snapshot.status)}>{snapshot.status}</Badge>
               <Badge tone="neutral">Tauri 2 + React + TS</Badge>
@@ -107,10 +107,10 @@ export default function App() {
             </div>
             <div className="mt-8 max-w-3xl">
               <p className="eyebrow">Ioruba Control Deck</p>
-              <h1 className="mt-3 font-display text-4xl leading-tight text-[var(--color-ink)] md:text-6xl">
+              <h1 className="mt-3 font-display text-4xl leading-tight text-(--color-ink) md:text-6xl">
                 Mixer físico refeito para sobreviver fora do Haskell e do Python.
               </h1>
-              <p className="mt-5 max-w-2xl text-base text-[var(--color-copy)] md:text-lg">
+              <p className="mt-5 max-w-2xl text-base text-(--color-copy) md:text-lg">
                 A interface nova foi pensada como um painel instrumental: conexão
                 serial, telemetria viva, perfis persistidos em JSON local e
                 aplicação de volume desacoplada do frontend.
@@ -136,7 +136,7 @@ export default function App() {
           </section>
 
           <Card className="overflow-hidden">
-            <CardHeader className="border-b border-[var(--color-border)] pb-5">
+            <CardHeader className="border-b border-(--color-border) pb-5">
               <div>
                 <CardTitle>Conexão e sessão</CardTitle>
                 <CardDescription>
@@ -167,7 +167,7 @@ export default function App() {
                 </Button>
               </div>
               <label className="grid gap-2">
-                <span className="text-xs uppercase tracking-[0.24em] text-[var(--color-muted)]">
+                <span className="text-xs uppercase tracking-[0.24em] text-(--color-muted)">
                   Porta preferida
                 </span>
                 <select
@@ -185,12 +185,12 @@ export default function App() {
                   ))}
                 </select>
               </label>
-              <div className="flex items-center justify-between rounded-[22px] border border-[var(--color-border)] bg-[var(--color-panel)] px-4 py-3">
+              <div className="flex items-center justify-between rounded-[22px] border border-(--color-border) bg-(--color-panel) px-4 py-3">
                 <div>
-                  <p className="text-sm font-semibold text-[var(--color-ink)]">
+                  <p className="text-sm font-semibold text-(--color-ink)">
                     Modo demo
                   </p>
-                  <p className="text-sm text-[var(--color-muted)]">
+                  <p className="text-sm text-(--color-muted)">
                     Simula leituras sem tocar no áudio do sistema.
                   </p>
                 </div>
@@ -199,14 +199,14 @@ export default function App() {
                   onCheckedChange={(checked) => setDemoMode(checked)}
                 />
               </div>
-              <div className="rounded-[22px] border border-[var(--color-border)] bg-[var(--color-panel)] px-4 py-4">
-                <p className="text-xs uppercase tracking-[0.24em] text-[var(--color-muted)]">
+              <div className="rounded-[22px] border border-(--color-border) bg-(--color-panel) px-4 py-4">
+                <p className="text-xs uppercase tracking-[0.24em] text-(--color-muted)">
                   Status atual
                 </p>
-                <p className="mt-2 text-lg font-semibold text-[var(--color-ink)]">
+                <p className="mt-2 text-lg font-semibold text-(--color-ink)">
                   {snapshot.statusText}
                 </p>
-                <p className="mt-2 text-sm text-[var(--color-muted)]">
+                <p className="mt-2 text-sm text-(--color-muted)">
                   {snapshot.diagnostics.hint}
                 </p>
               </div>
@@ -265,16 +265,16 @@ export default function App() {
               <CardContent className="space-y-4">
                 <div className="flex flex-wrap items-center gap-3">
                   <Badge tone={draftStatusTone}>{draftStatusLabel}</Badge>
-                  <p className="text-sm text-[var(--color-muted)]">
+                  <p className="text-sm text-(--color-muted)">
                     {draftStatusHint}
                   </p>
                 </div>
                 <textarea
                   className={cn(
-                    "min-h-[420px] w-full rounded-[28px] border bg-[var(--color-panel)] px-5 py-4 font-mono text-sm text-[var(--color-copy)] outline-none transition",
+                    "min-h-105 w-full rounded-[28px] border bg-(--color-panel) px-5 py-4 font-mono text-sm text-(--color-copy) outline-none transition",
                     draftValidation.ok
-                      ? "border-[var(--color-border)] focus:border-[var(--accent-teal)]"
-                      : "border-[color-mix(in_oklab,var(--accent-rose)_42%,var(--color-border))] bg-[color-mix(in_oklab,var(--accent-rose)_7%,var(--color-panel))] focus:border-[var(--accent-rose)]"
+                      ? "border-(--color-border) focus:border-(--accent-teal)"
+                      : "border-[color-mix(in_oklab,var(--accent-rose)_42%,var(--color-border))] bg-[color-mix(in_oklab,var(--accent-rose)_7%,var(--color-panel))] focus:border-(--accent-rose)"
                   )}
                   aria-describedby={!draftValidation.ok ? draftErrorId : undefined}
                   aria-invalid={!draftValidation.ok}
@@ -284,7 +284,7 @@ export default function App() {
                 {!draftValidation.ok ? (
                   <p
                     id={draftErrorId}
-                    className="rounded-[20px] border border-[color-mix(in_oklab,var(--accent-rose)_42%,var(--color-border))] bg-[color-mix(in_oklab,var(--accent-rose)_10%,var(--color-panel))] px-4 py-3 text-sm text-[var(--accent-rose)]"
+                    className="rounded-[20px] border border-[color-mix(in_oklab,var(--accent-rose)_42%,var(--color-border))] bg-[color-mix(in_oklab,var(--accent-rose)_10%,var(--color-panel))] px-4 py-3 text-sm text-(--accent-rose)"
                   >
                     {draftValidation.error}
                   </p>
@@ -370,16 +370,16 @@ function Metric({
   value: string;
 }) {
   return (
-    <div className="rounded-[26px] border border-[var(--color-border)] bg-[color-mix(in_oklab,var(--color-panel)_88%,transparent)] px-4 py-4">
+    <div className="rounded-[26px] border border-(--color-border) bg-[color-mix(in_oklab,var(--color-panel)_88%,transparent)] px-4 py-4">
       <div className="flex items-center gap-3">
-        <div className="grid h-11 w-11 place-items-center rounded-full border border-[var(--color-border)] bg-[var(--color-shell)]">
-          <Icon className="h-5 w-5 text-[var(--accent-teal)]" />
+        <div className="grid h-11 w-11 place-items-center rounded-full border border-(--color-border) bg-(--color-shell)">
+          <Icon className="h-5 w-5 text-(--accent-teal)" />
         </div>
         <div>
-          <p className="text-xs uppercase tracking-[0.24em] text-[var(--color-muted)]">
+          <p className="text-xs uppercase tracking-[0.24em] text-(--color-muted)">
             {label}
           </p>
-          <p className="mt-1 text-sm font-semibold text-[var(--color-ink)]">
+          <p className="mt-1 text-sm font-semibold text-(--color-ink)">
             {value}
           </p>
         </div>
@@ -398,10 +398,10 @@ function InventoryBlock({
   values: string[];
 }) {
   return (
-    <div className="rounded-[22px] border border-[var(--color-border)] bg-[var(--color-panel)] px-4 py-4">
+    <div className="rounded-[22px] border border-(--color-border) bg-(--color-panel) px-4 py-4">
       <div className="mb-3 flex items-center gap-2">
-        <Icon className="h-4 w-4 text-[var(--accent-copper)]" />
-        <p className="text-sm font-semibold text-[var(--color-ink)]">{title}</p>
+        <Icon className="h-4 w-4 text-(--accent-copper)" />
+        <p className="text-sm font-semibold text-(--color-ink)">{title}</p>
       </div>
       <div className="flex flex-wrap gap-2">
         {values.length === 0 ? (
@@ -420,9 +420,9 @@ function InventoryBlock({
 
 function ChecklistItem({ label }: { label: string }) {
   return (
-    <div className="flex items-center gap-3 rounded-[18px] border border-[var(--color-border)] bg-[var(--color-panel)] px-4 py-3">
-      <div className="h-2.5 w-2.5 rounded-full bg-[var(--accent-teal)]" />
-      <span className="text-sm text-[var(--color-copy)]">{label}</span>
+    <div className="flex items-center gap-3 rounded-[18px] border border-(--color-border) bg-(--color-panel) px-4 py-3">
+      <div className="h-2.5 w-2.5 rounded-full bg-(--accent-teal)" />
+      <span className="text-sm text-(--color-copy)">{label}</span>
     </div>
   );
 }

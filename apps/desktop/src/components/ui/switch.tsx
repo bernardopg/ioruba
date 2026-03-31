@@ -14,14 +14,14 @@ export function Switch({ checked, onCheckedChange }: SwitchProps) {
       className={cn(
         "relative inline-flex h-7 w-12 items-center rounded-full border transition",
         checked
-          ? "border-[var(--accent-teal)] bg-[color-mix(in_oklab,var(--accent-teal)_35%,var(--color-panel))]"
-          : "border-[var(--color-border)] bg-[var(--color-panel)]"
+          ? "border-(--accent-teal) bg-[color-mix(in_oklab,var(--accent-teal)_35%,var(--color-panel))]"
+          : "border-(--color-border) bg-(--color-panel)"
       )}
       onCheckedChange={onCheckedChange}
     >
       <SwitchPrimitive.Thumb
         className={cn(
-          "block h-5 w-5 rounded-full bg-[var(--color-ink)] shadow transition-transform",
+          "block h-5 w-5 rounded-full bg-(--color-ink) shadow transition-transform",
           checked ? "translate-x-6" : "translate-x-1"
         )}
       />

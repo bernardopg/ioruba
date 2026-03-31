@@ -32,7 +32,7 @@ export function KnobPanel({
   return (
     <Card
       className={cn(
-        "relative min-h-[340px] overflow-hidden bg-[linear-gradient(155deg,color-mix(in_oklab,var(--color-panel)_92%,transparent)_0%,color-mix(in_oklab,var(--color-shell)_90%,transparent)_100%)]",
+        "relative min-h-85 overflow-hidden bg-[linear-gradient(155deg,color-mix(in_oklab,var(--color-panel)_92%,transparent)_0%,color-mix(in_oklab,var(--color-shell)_90%,transparent)_100%)]",
         className
       )}
     >
@@ -64,19 +64,19 @@ export function KnobPanel({
       <CardContent className="relative grid gap-6 pt-2 xl:grid-cols-[180px_minmax(0,1fr)] xl:items-start">
         <div className="grid gap-4">
           <div
-            className="relative mx-auto h-40 w-40 rounded-full border border-[var(--color-border)] shadow-[inset_0_1px_0_rgba(255,255,255,0.5)]"
+            className="relative mx-auto h-40 w-40 rounded-full border border-(--color-border) shadow-[inset_0_1px_0_rgba(255,255,255,0.5)]"
             style={{
               background: `conic-gradient(${accent} 0deg ${knob.percent * 3.6
                 }deg, color-mix(in oklab, var(--color-border) 44%, transparent) ${knob.percent * 3.6}deg 360deg)`
             }}
           >
-            <div className="absolute inset-[14px] rounded-full border border-[color-mix(in_oklab,var(--color-border)_75%,transparent)] bg-[color-mix(in_oklab,var(--color-shell)_95%,var(--color-panel)_5%)]" />
-            <div className="absolute inset-[24%] grid place-items-center rounded-full border border-[var(--color-border)] bg-[color-mix(in_oklab,var(--color-panel)_95%,var(--color-shell)_5%)]">
+            <div className="absolute inset-3.5 rounded-full border border-[color-mix(in_oklab,var(--color-border)_75%,transparent)] bg-[color-mix(in_oklab,var(--color-shell)_95%,var(--color-panel)_5%)]" />
+            <div className="absolute inset-[24%] grid place-items-center rounded-full border border-(--color-border) bg-[color-mix(in_oklab,var(--color-panel)_95%,var(--color-shell)_5%)]">
               <div className="text-center">
-                <span className="font-display text-4xl font-semibold text-[var(--color-ink)]">
+                <span className="font-display text-4xl font-semibold text-(--color-ink)">
                   {knob.percent}%
                 </span>
-                <p className="mt-1 text-[0.68rem] font-semibold uppercase tracking-[0.24em] text-[var(--color-muted)]">
+                <p className="mt-1 text-[0.68rem] font-semibold uppercase tracking-[0.24em] text-(--color-muted)">
                   nivel
                 </p>
               </div>
@@ -90,12 +90,12 @@ export function KnobPanel({
         </div>
 
         <div className="grid min-w-0 gap-4">
-          <div className="rounded-[22px] border border-[var(--color-border)] bg-[color-mix(in_oklab,var(--color-panel)_94%,var(--color-shell)_6%)] px-4 py-4">
+          <div className="rounded-[22px] border border-(--color-border) bg-[color-mix(in_oklab,var(--color-panel)_94%,var(--color-shell)_6%)] px-4 py-4">
             <div className="flex items-center justify-between gap-3">
-              <p className="text-xs uppercase tracking-[0.24em] text-[var(--color-muted)]">
+              <p className="text-xs uppercase tracking-[0.24em] text-(--color-muted)">
                 Resposta do canal
               </p>
-              <span className="text-sm font-semibold text-[var(--color-ink)]">
+              <span className="text-sm font-semibold text-(--color-ink)">
                 {knob.percent}%
               </span>
             </div>
@@ -108,20 +108,20 @@ export function KnobPanel({
                 }}
               />
             </div>
-            <p className="mt-3 text-sm leading-6 text-[var(--color-copy)]">
+            <p className="mt-3 text-sm leading-6 text-(--color-copy)">
               Valor aplicado pronto para audio backend e telemetria.
             </p>
           </div>
 
           <div>
-            <p className="text-xs uppercase tracking-[0.24em] text-[var(--color-muted)]">
+            <p className="text-xs uppercase tracking-[0.24em] text-(--color-muted)">
               Destinos ativos
             </p>
             <div className="mt-3 flex flex-wrap gap-2">
               {knob.targets.map((target) => (
                 <span
                   key={target}
-                  className="inline-flex min-h-9 max-w-full items-center rounded-full border border-[var(--color-border)] bg-[var(--color-panel)] px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--color-copy)] break-all"
+                  className="inline-flex min-h-9 max-w-full items-center rounded-full border border-(--color-border) bg-(--color-panel) px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-(--color-copy) break-all"
                 >
                   {target}
                 </span>
@@ -129,11 +129,11 @@ export function KnobPanel({
             </div>
           </div>
 
-          <div className="rounded-[22px] border border-[var(--color-border)] bg-[var(--color-panel)] px-4 py-4">
-            <p className="text-xs uppercase tracking-[0.24em] text-[var(--color-muted)]">
+          <div className="rounded-[22px] border border-(--color-border) bg-(--color-panel) px-4 py-4">
+            <p className="text-xs uppercase tracking-[0.24em] text-(--color-muted)">
               Ultimo resultado
             </p>
-            <p className="mt-3 break-words text-sm leading-6 text-[var(--color-copy)]">
+            <p className="mt-3 wrap-break-word text-sm leading-6 text-(--color-copy)">
               {knob.outcome}
             </p>
           </div>
@@ -153,11 +153,11 @@ function DialStat({
   value: string;
 }) {
   return (
-    <div className="rounded-[18px] border border-[var(--color-border)] bg-[var(--color-panel)] px-3 py-3">
-      <p className="text-[0.66rem] font-semibold uppercase tracking-[0.24em] text-[var(--color-muted)]">
+    <div className="rounded-[18px] border border-(--color-border) bg-(--color-panel) px-3 py-3">
+      <p className="text-[0.66rem] font-semibold uppercase tracking-[0.24em] text-(--color-muted)">
         {label}
       </p>
-      <p className="mt-2 text-lg font-semibold text-[var(--color-ink)]">{value}</p>
+      <p className="mt-2 text-lg font-semibold text-(--color-ink)">{value}</p>
       <div
         className="mt-3 h-1.5 rounded-full"
         style={{

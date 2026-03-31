@@ -56,7 +56,7 @@ export function OverviewSignalPanel({
 
   return (
     <Card className="overflow-hidden">
-      <CardHeader className="border-b border-[var(--color-border)] pb-5">
+      <CardHeader className="border-b border-(--color-border) pb-5">
         <div>
           <CardTitle>Sessao viva</CardTitle>
           <CardDescription>
@@ -96,17 +96,17 @@ export function OverviewSignalPanel({
           />
         </div>
 
-        <div className="rounded-[24px] border border-[var(--color-border)] bg-[color-mix(in_oklab,var(--color-panel)_92%,var(--color-shell)_8%)] px-4 py-4">
+        <div className="rounded-3xl border border-(--color-border) bg-[color-mix(in_oklab,var(--color-panel)_92%,var(--color-shell)_8%)] px-4 py-4">
           <div className="flex items-center justify-between gap-3">
             <div>
-              <p className="text-xs uppercase tracking-[0.24em] text-[var(--color-muted)]">
+              <p className="text-xs uppercase tracking-[0.24em] text-(--color-muted)">
                 Leitura atual
               </p>
-              <p className="mt-1 text-sm text-[var(--color-copy)]">
+              <p className="mt-1 text-sm text-(--color-copy)">
                 Todos os canais espelhados como instrumentos vivos.
               </p>
             </div>
-            <Gauge className="h-4 w-4 text-[var(--accent-copper)]" />
+            <Gauge className="h-4 w-4 text-(--accent-copper)" />
           </div>
 
           <div className="mt-4 grid gap-3">
@@ -134,23 +134,23 @@ function SignalStat({
   mono?: boolean;
 }) {
   return (
-    <div className="rounded-[22px] border border-[var(--color-border)] bg-[color-mix(in_oklab,var(--color-panel)_94%,var(--color-shell)_6%)] px-4 py-4">
+    <div className="rounded-[22px] border border-(--color-border) bg-[color-mix(in_oklab,var(--color-panel)_94%,var(--color-shell)_6%)] px-4 py-4">
       <div className="flex items-start gap-3">
-        <div className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl border border-[var(--color-border)] bg-[var(--color-shell)]">
-          <Icon className="h-4 w-4 text-[var(--accent-teal)]" />
+        <div className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl border border-(--color-border) bg-(--color-shell)">
+          <Icon className="h-4 w-4 text-(--accent-teal)" />
         </div>
         <div className="min-w-0">
-          <p className="text-[0.7rem] font-semibold uppercase tracking-[0.24em] text-[var(--color-muted)]">
+          <p className="text-[0.7rem] font-semibold uppercase tracking-[0.24em] text-(--color-muted)">
             {label}
           </p>
           <p
-            className={`mt-1 break-words text-sm font-semibold text-[var(--color-ink)] ${
+            className={`mt-1 wrap-break-word text-sm font-semibold text-(--color-ink) ${
               mono ? "font-mono text-[13px]" : ""
             }`}
           >
             {value}
           </p>
-          <p className="mt-1 text-sm leading-5 text-[var(--color-muted)]">
+          <p className="mt-1 text-sm leading-5 text-(--color-muted)">
             {hint}
           </p>
         </div>
@@ -163,13 +163,13 @@ function KnobLiveRow({ knob }: { knob: RuntimeKnobSnapshot }) {
   const accent = accentColor(knob.accent);
 
   return (
-    <div className="rounded-[20px] border border-[var(--color-border)] bg-[var(--color-panel)] px-4 py-3">
+    <div className="rounded-[20px] border border-(--color-border) bg-(--color-panel) px-4 py-3">
       <div className="flex items-center justify-between gap-3">
         <div className="min-w-0">
-          <p className="truncate text-sm font-semibold text-[var(--color-ink)]">
+          <p className="truncate text-sm font-semibold text-(--color-ink)">
             {knob.name}
           </p>
-          <p className="text-xs uppercase tracking-[0.2em] text-[var(--color-muted)]">
+          <p className="text-xs uppercase tracking-[0.2em] text-(--color-muted)">
             aplicada {knob.appliedRawValue}
           </p>
         </div>

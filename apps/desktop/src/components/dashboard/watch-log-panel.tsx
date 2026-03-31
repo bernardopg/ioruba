@@ -136,7 +136,7 @@ export function WatchLogPanel({
   return (
     <div className="grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
       <Card className="overflow-hidden">
-        <CardHeader className="border-b border-[var(--color-border)] pb-5">
+        <CardHeader className="border-b border-(--color-border) pb-5">
           <div className="space-y-3">
             <div className="flex flex-wrap items-center gap-3">
               <CardTitle>Watch ao vivo</CardTitle>
@@ -182,8 +182,8 @@ export function WatchLogPanel({
             <Button onClick={onClear} size="small" variant="ghost">
               Limpar
             </Button>
-            <label className="ml-auto flex items-center gap-2 rounded-full border border-[var(--color-border)] bg-[var(--color-panel)] px-3 py-2">
-              <span className="text-[11px] uppercase tracking-[0.22em] text-[var(--color-muted)]">
+            <label className="ml-auto flex items-center gap-2 rounded-full border border-(--color-border) bg-(--color-panel) px-3 py-2">
+              <span className="text-[11px] uppercase tracking-[0.22em] text-(--color-muted)">
                 Seguir fim
               </span>
               <Switch
@@ -203,17 +203,17 @@ export function WatchLogPanel({
           <div className="relative">
             <div
               ref={scrollRef}
-              className="max-h-[620px] space-y-3 overflow-auto pr-1 pb-14"
+              className="max-h-155 space-y-3 overflow-auto pr-1 pb-14"
             >
               {visibleLogs.length === 0 ? (
-                <div className="rounded-[22px] border border-dashed border-[var(--color-border)] bg-[var(--color-panel)] px-5 py-8 text-sm text-[var(--color-muted)]">
+                <div className="rounded-[22px] border border-dashed border-(--color-border) bg-(--color-panel) px-5 py-8 text-sm text-(--color-muted)">
                   Nenhum evento no filtro atual.
                 </div>
               ) : (
                 visibleLogs.map((entry) => (
                   <article
                     key={entry.seq}
-                    className="rounded-[22px] border border-[var(--color-border)] bg-[var(--color-panel)] px-4 py-3"
+                    className="rounded-[22px] border border-(--color-border) bg-(--color-panel) px-4 py-3"
                   >
                     <div className="flex flex-wrap items-center gap-2">
                       <Badge tone={toneForScope(entry.scope)}>
@@ -222,15 +222,15 @@ export function WatchLogPanel({
                       <Badge tone={toneForLevel(entry.level)}>
                         {labelForLevel(entry.level)}
                       </Badge>
-                      <span className="text-xs uppercase tracking-[0.22em] text-[var(--color-muted)]">
+                      <span className="text-xs uppercase tracking-[0.22em] text-(--color-muted)">
                         {formatWatchTimestamp(entry.timestampMs)}
                       </span>
                     </div>
-                    <p className="mt-2 text-sm font-semibold text-[var(--color-ink)]">
+                    <p className="mt-2 text-sm font-semibold text-(--color-ink)">
                       {entry.message}
                     </p>
                     {entry.detail ? (
-                      <p className="mt-1 break-words font-mono text-xs leading-5 text-[var(--color-copy)]">
+                      <p className="mt-1 wrap-break-word font-mono text-xs leading-5 text-(--color-copy)">
                         {entry.detail}
                       </p>
                     ) : null}
@@ -258,7 +258,7 @@ export function WatchLogPanel({
       </Card>
 
       <Card>
-        <CardHeader className="border-b border-[var(--color-border)] pb-5">
+        <CardHeader className="border-b border-(--color-border) pb-5">
           <div>
             <CardTitle>Contexto ao vivo</CardTitle>
             <CardDescription>
@@ -279,7 +279,7 @@ export function WatchLogPanel({
           <KeyValue label="Backend áudio" value={snapshot.diagnostics.backend} />
           <KeyValue label="Perfil ativo" value={activeProfileName} />
 
-          <div className="rounded-[22px] border border-[var(--color-border)] bg-[var(--color-panel)] px-4 py-4 text-sm text-[var(--color-muted)]">
+          <div className="rounded-[22px] border border-(--color-border) bg-(--color-panel) px-4 py-4 text-sm text-(--color-muted)">
             O terminal do Tauri mostra os `println!` do backend. Este painel espelha os
             eventos estruturados emitidos pela app, pela serial e pelo Rust.
           </div>
@@ -291,23 +291,23 @@ export function WatchLogPanel({
 
 function StatChip({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-[18px] border border-[var(--color-border)] bg-[var(--color-panel)] px-4 py-3">
-      <p className="text-[11px] uppercase tracking-[0.22em] text-[var(--color-muted)]">
+    <div className="rounded-[18px] border border-(--color-border) bg-(--color-panel) px-4 py-3">
+      <p className="text-[11px] uppercase tracking-[0.22em] text-(--color-muted)">
         {label}
       </p>
-      <p className="mt-1 text-lg font-semibold text-[var(--color-ink)]">{value}</p>
+      <p className="mt-1 text-lg font-semibold text-(--color-ink)">{value}</p>
     </div>
   );
 }
 
 function KeyValue({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-[22px] border border-[var(--color-border)] bg-[var(--color-panel)] px-4 py-3">
-      <p className="text-[11px] uppercase tracking-[0.22em] text-[var(--color-muted)]">
+    <div className="rounded-[22px] border border-(--color-border) bg-(--color-panel) px-4 py-3">
+      <p className="text-[11px] uppercase tracking-[0.22em] text-(--color-muted)">
         {label}
       </p>
-      <p className={cn("mt-1 text-sm font-semibold text-[var(--color-ink)]", {
-        "break-all font-mono text-xs font-medium text-[var(--color-copy)]":
+      <p className={cn("mt-1 text-sm font-semibold text-(--color-ink)", {
+        "break-all font-mono text-xs font-medium text-(--color-copy)":
           value.length > 32
       })}>
         {value}
