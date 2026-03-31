@@ -66,9 +66,8 @@ export function KnobPanel({
           <div
             className="relative mx-auto h-40 w-40 rounded-full border border-[var(--color-border)] shadow-[inset_0_1px_0_rgba(255,255,255,0.5)]"
             style={{
-              background: `conic-gradient(${accent} 0deg ${
-                knob.percent * 3.6
-              }deg, color-mix(in oklab, var(--color-border) 44%, transparent) ${knob.percent * 3.6}deg 360deg)`
+              background: `conic-gradient(${accent} 0deg ${knob.percent * 3.6
+                }deg, color-mix(in oklab, var(--color-border) 44%, transparent) ${knob.percent * 3.6}deg 360deg)`
             }}
           >
             <div className="absolute inset-[14px] rounded-full border border-[color-mix(in_oklab,var(--color-border)_75%,transparent)] bg-[color-mix(in_oklab,var(--color-shell)_95%,var(--color-panel)_5%)]" />
