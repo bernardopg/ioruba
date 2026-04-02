@@ -3,8 +3,7 @@ import {
   emptyAudioInventory
 } from "./defaults";
 import {
-  sliderToAppliedNormalized,
-  sliderValueToPercent
+  sliderToAppliedPercent,
 } from "./mixer";
 import type {
   AudioInventory,
@@ -66,12 +65,11 @@ export function buildRuntimeSnapshot(args: {
     knobs: profile.sliders.map((slider) => {
       const rawValue = currentValues[slider.id] ?? 0;
       const appliedRawValue = appliedValues[slider.id] ?? rawValue;
-      const normalizedApplied = sliderToAppliedNormalized(slider, appliedRawValue);
 
       return {
         id: slider.id,
         name: slider.name,
-        percent: sliderValueToPercent(normalizedApplied * 1023),
+        percent: sliderToAppliedPercent(slider, rawValue),
         rawValue,
         appliedRawValue,
         targets: slider.targets.map(describeTarget),

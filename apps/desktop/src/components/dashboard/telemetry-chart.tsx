@@ -127,7 +127,7 @@ export function TelemetryChart({ snapshot }: { snapshot: RuntimeSnapshot }) {
                   border: "1px solid var(--color-border)",
                   borderRadius: "18px",
                   background: "color-mix(in oklab, var(--color-panel) 94%, var(--color-shell) 6%)",
-                  boxShadow: "0 18px 40px rgba(15, 23, 42, 0.12)"
+                  boxShadow: "var(--shadow-float)"
                 }}
                 cursor={{
                   stroke: "color-mix(in oklab, var(--accent-teal) 45%, var(--color-border))",

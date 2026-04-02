@@ -2,11 +2,14 @@ import { describe, expect, it } from "vitest";
 
 import {
   applyNoiseReduction,
+  buildRuntimeSnapshot,
   defaultProfile,
+  emptyAudioInventory,
   encodeSliderPacket,
   mergeSliderPacket,
   parseSliderPacket,
   resolveFilteredUpdates,
+  sliderValueToPercent,
   sliderValueToNormalized
 } from "../src/index";
 
@@ -48,7 +51,15 @@ describe("mixer math parity", () => {
   it("maps full range to normalized volume", () => {
     expect(sliderValueToNormalized(0)).toBe(0);
     expect(sliderValueToNormalized(1023)).toBe(1);
+    expect(sliderValueToNormalized(1016)).toBe(1);
+    expect(sliderValueToNormalized(7)).toBe(0);
     expect(sliderValueToNormalized(512)).toBeGreaterThan(0.49);
+  });
+
+  it("maps the top end of the ADC range to 100%", () => {
+    expect(sliderValueToPercent(1023)).toBe(100);
+    expect(sliderValueToPercent(1016)).toBe(100);
+    expect(sliderValueToPercent(1015)).toBe(99);
   });
 
   it("applies default noise reduction", () => {
@@ -68,5 +79,26 @@ describe("mixer math parity", () => {
       { sliderId: 0, rawValue: 512 },
       { sliderId: 2, rawValue: 1023 }
     ]);
+  });
+
+  it("uses the live raw reading for display percent even if the applied value is lagging", () => {
+    const snapshot = buildRuntimeSnapshot({
+      profile: defaultProfile,
+      status: "connected",
+      statusText: "ok",
+      availablePorts: ["/dev/ttyUSB0"],
+      connectionPort: "/dev/ttyUSB0",
+      lastSerialLine: "1016|0|0",
+      demoMode: false,
+      currentValues: { 0: 1016, 1: 0, 2: 0 },
+      appliedValues: { 0: 1008, 1: 0, 2: 0 },
+      outcomes: {},
+      telemetry: [],
+      audioInventory: emptyAudioInventory
+    });
+
+    expect(snapshot.knobs[0]?.rawValue).toBe(1016);
+    expect(snapshot.knobs[0]?.appliedRawValue).toBe(1008);
+    expect(snapshot.knobs[0]?.percent).toBe(100);
   });
 });

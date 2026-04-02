@@ -243,7 +243,7 @@ export function WatchLogPanel({
             {!isAtBottom ? (
               <div className="pointer-events-none absolute inset-x-0 bottom-3 flex justify-end pr-3">
                 <Button
-                  className="pointer-events-auto shadow-[0_14px_30px_rgba(10,15,25,0.18)]"
+                  className="pointer-events-auto [box-shadow:var(--shadow-float)]"
                   onClick={scrollToLatest}
                   size="small"
                   variant="secondary"

@@ -4,12 +4,12 @@ import {
   PlugZap,
   Radar,
   RefreshCcw,
-  Settings2,
   Waves
 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { ProfileWorkbench } from "@/components/config/profile-workbench";
 import {
   Card,
   CardContent,
@@ -26,15 +26,15 @@ import { TelemetryChart } from "@/components/dashboard/telemetry-chart";
 import { usePersistence } from "@/hooks/use-persistence";
 import { useRuntimeBoot } from "@/hooks/use-runtime-boot";
 import { useSerialRuntime } from "@/hooks/use-serial-runtime";
+import { useThemeSync } from "@/hooks/use-theme-sync";
 import { useWatchBridge } from "@/hooks/use-watch-bridge";
 import { listAudioInventory } from "@/lib/backend";
 import {
   parseProfileDraft,
   serializeProfileDraft
 } from "@/lib/profile-config";
-import { cn } from "@/lib/utils";
 import { useIorubaStore } from "@/store/ioruba-store";
-import { resolveActiveProfile } from "@ioruba/shared";
+import { resolveActiveProfile, type ThemeMode } from "@ioruba/shared";
 
 function toneForStatus(status: string): "neutral" | "positive" | "warning" | "critical" {
   switch (status) {
@@ -68,12 +68,22 @@ export default function App() {
   const requestConnect = useIorubaStore((state) => state.requestConnect);
   const disconnect = useIorubaStore((state) => state.disconnect);
   const setDemoMode = useIorubaStore((state) => state.setDemoMode);
+  const selectProfile = useIorubaStore((state) => state.selectProfile);
+  const createProfile = useIorubaStore((state) => state.createProfile);
+  const duplicateActiveProfile = useIorubaStore(
+    (state) => state.duplicateActiveProfile
+  );
+  const removeActiveProfile = useIorubaStore((state) => state.removeActiveProfile);
   const setPreferredPort = useIorubaStore((state) => state.setPreferredPort);
+  const setThemeMode = useIorubaStore((state) => state.setThemeMode);
   const refreshInventory = useIorubaStore((state) => state.refreshInventory);
   const clearWatchLog = useIorubaStore((state) => state.clearWatchLog);
   const appendWatchLog = useIorubaStore((state) => state.appendWatchLog);
   const audioInventory = useIorubaStore((state) => state.audioInventory);
   const activeProfile = resolveActiveProfile(persisted);
+
+  useThemeSync(activeProfile.ui.theme);
+
   const draftValidation = parseProfileDraft(configDraft);
   const savedConfigDraft = serializeProfileDraft(activeProfile);
   const draftIsDirty = configDraft !== savedConfigDraft;
@@ -92,14 +102,13 @@ export default function App() {
       ? "Salve para persistir o perfil ativo."
       : "O editor esta sincronizado com o perfil salvo."
     : draftValidation.error;
-  const draftErrorId = "profile-draft-error";
 
   return (
     <main className="min-h-screen bg-(--color-shell) text-(--color-copy)">
       <div className="ambient-grid fixed inset-0 opacity-70" />
         <div className="relative mx-auto flex min-h-screen max-w-400 flex-col gap-8 px-5 py-6 sm:px-8 lg:px-10">
         <header className="grid gap-6 lg:grid-cols-[1.35fr_0.9fr]">
-          <section className="rounded-[36px] border border-(--color-border) bg-[linear-gradient(135deg,color-mix(in_oklab,var(--color-shell)_84%,var(--accent-copper)_8%)_0%,color-mix(in_oklab,var(--color-shell)_84%,var(--accent-teal)_12%)_100%)] px-7 py-7 shadow-[0_24px_80px_rgba(10,15,25,0.15)]">
+          <section className="rounded-[36px] border border-(--color-border) bg-[linear-gradient(135deg,color-mix(in_oklab,var(--color-shell)_84%,var(--accent-copper)_8%)_0%,color-mix(in_oklab,var(--color-shell)_84%,var(--accent-teal)_12%)_100%)] px-7 py-7 [box-shadow:var(--shadow-hero)]">
             <div className="flex flex-wrap items-center gap-3">
               <Badge tone={toneForStatus(snapshot.status)}>{snapshot.status}</Badge>
               <Badge tone="neutral">Tauri 2 + React + TS</Badge>
@@ -166,25 +175,44 @@ export default function App() {
                   Atualizar áudio
                 </Button>
               </div>
-              <label className="grid gap-2">
-                <span className="text-xs uppercase tracking-[0.24em] text-(--color-muted)">
-                  Porta preferida
-                </span>
-                <select
-                  className="field"
-                  onChange={(event) =>
-                    setPreferredPort(event.currentTarget.value || null)
-                  }
-                  value={activeProfile.serial.preferredPort ?? ""}
-                >
-                  <option value="">Detectar automaticamente</option>
-                  {snapshot.availablePorts.map((port) => (
-                    <option key={port} value={port}>
-                      {port}
-                    </option>
-                  ))}
-                </select>
-              </label>
+              <div className="grid gap-4 md:grid-cols-2">
+                <label className="grid gap-2">
+                  <span className="text-xs uppercase tracking-[0.24em] text-(--color-muted)">
+                    Porta preferida
+                  </span>
+                  <select
+                    className="field"
+                    onChange={(event) =>
+                      setPreferredPort(event.currentTarget.value || null)
+                    }
+                    value={activeProfile.serial.preferredPort ?? ""}
+                  >
+                    <option value="">Detectar automaticamente</option>
+                    {snapshot.availablePorts.map((port) => (
+                      <option key={port} value={port}>
+                        {port}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+
+                <label className="grid gap-2">
+                  <span className="text-xs uppercase tracking-[0.24em] text-(--color-muted)">
+                    Tema da interface
+                  </span>
+                  <select
+                    className="field"
+                    onChange={(event) =>
+                      setThemeMode(event.currentTarget.value as ThemeMode)
+                    }
+                    value={activeProfile.ui.theme}
+                  >
+                    <option value="system">Seguir sistema</option>
+                    <option value="light">Claro de bancada</option>
+                    <option value="dark">Escuro de estúdio</option>
+                  </select>
+                </label>
+              </div>
               <div className="flex items-center justify-between rounded-[22px] border border-(--color-border) bg-(--color-panel) px-4 py-3">
                 <div>
                   <p className="text-sm font-semibold text-(--color-ink)">
@@ -252,57 +280,26 @@ export default function App() {
           </TabsContent>
 
           <TabsContent className="mt-6" value="config">
-            <Card>
-              <CardHeader>
-                <div>
-                  <CardTitle>Perfil ativo em JSON</CardTitle>
-                  <CardDescription>
-                    A configuração nova substitui o YAML antigo por um perfil JSON
-                    persistido localmente. Edite, salve e reinicie a sessão.
-                  </CardDescription>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex flex-wrap items-center gap-3">
-                  <Badge tone={draftStatusTone}>{draftStatusLabel}</Badge>
-                  <p className="text-sm text-(--color-muted)">
-                    {draftStatusHint}
-                  </p>
-                </div>
-                <textarea
-                  className={cn(
-                    "min-h-105 w-full rounded-[28px] border bg-(--color-panel) px-5 py-4 font-mono text-sm text-(--color-copy) outline-none transition",
-                    draftValidation.ok
-                      ? "border-(--color-border) focus:border-(--accent-teal)"
-                      : "border-[color-mix(in_oklab,var(--accent-rose)_42%,var(--color-border))] bg-[color-mix(in_oklab,var(--accent-rose)_7%,var(--color-panel))] focus:border-(--accent-rose)"
-                  )}
-                  aria-describedby={!draftValidation.ok ? draftErrorId : undefined}
-                  aria-invalid={!draftValidation.ok}
-                  onChange={(event) => setConfigDraft(event.currentTarget.value)}
-                  value={configDraft}
-                />
-                {!draftValidation.ok ? (
-                  <p
-                    id={draftErrorId}
-                    className="rounded-[20px] border border-[color-mix(in_oklab,var(--accent-rose)_42%,var(--color-border))] bg-[color-mix(in_oklab,var(--accent-rose)_10%,var(--color-panel))] px-4 py-3 text-sm text-(--accent-rose)"
-                  >
-                    {draftValidation.error}
-                  </p>
-                ) : null}
-                <div className="flex flex-wrap gap-3">
-                  <Button
-                    disabled={!draftValidation.ok || !draftIsDirty}
-                    onClick={applyConfigDraft}
-                  >
-                    <Settings2 className="h-4 w-4" />
-                    {draftIsDirty ? "Salvar perfil" : "Perfil salvo"}
-                  </Button>
-                  <Button onClick={resetProfile} variant="secondary">
-                    Restaurar padrão
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+            <ProfileWorkbench
+              activeProfile={activeProfile}
+              appendWatchLog={appendWatchLog}
+              applyConfigDraft={applyConfigDraft}
+              audioInventory={audioInventory}
+              availablePorts={snapshot.availablePorts}
+              configDraft={configDraft}
+              createProfile={createProfile}
+              draftIsDirty={draftIsDirty}
+              draftStatusHint={draftStatusHint}
+              draftStatusLabel={draftStatusLabel}
+              draftStatusTone={draftStatusTone}
+              draftValidation={draftValidation}
+              duplicateActiveProfile={duplicateActiveProfile}
+              persisted={persisted}
+              removeActiveProfile={removeActiveProfile}
+              resetProfile={resetProfile}
+              selectProfile={selectProfile}
+              setConfigDraft={setConfigDraft}
+            />
           </TabsContent>
 
           <TabsContent className="mt-6 grid gap-6 lg:grid-cols-[1.2fr_0.8fr]" value="diagnostics">

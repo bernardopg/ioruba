@@ -6,7 +6,7 @@ export function Card({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
   return (
     <div
       className={cn(
-        "rounded-[28px] border border-(--color-border) bg-[color-mix(in_oklab,var(--color-panel)_90%,transparent)] shadow-[0_20px_50px_rgba(15,23,42,0.12)] backdrop-blur-sm",
+        "rounded-[28px] border border-(--color-border) bg-[color-mix(in_oklab,var(--color-panel)_90%,transparent)] [box-shadow:var(--shadow-panel)] backdrop-blur-sm",
         className
       )}
       {...props}

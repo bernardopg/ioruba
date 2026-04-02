@@ -15,6 +15,69 @@
   --accent-rose: oklch(0.63 0.16 22);
   --accent-lime: oklch(0.76 0.18 137);
   --accent-sky: oklch(0.71 0.12 234);
+  --color-glow: oklch(0.992 0.012 88);
+  --shadow-ink: oklch(0.33 0.02 60);
+  --shadow-panel: 0 20px 50px color-mix(in oklab, var(--shadow-ink) 12%, transparent);
+  --shadow-float: 0 18px 40px color-mix(in oklab, var(--shadow-ink) 16%, transparent);
+  --shadow-hero: 0 24px 80px color-mix(in oklab, var(--shadow-ink) 18%, transparent);
+  --shadow-button: 0 16px 40px color-mix(in oklab, var(--accent-copper) 24%, transparent);
+  --edge-highlight: color-mix(in oklab, var(--color-glow) 72%, transparent);
+  --ambient-copper: color-mix(in oklab, var(--accent-copper) 18%, transparent);
+  --ambient-teal: color-mix(in oklab, var(--accent-teal) 16%, transparent);
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --color-shell: oklch(0.2 0.018 75);
+  --color-panel: oklch(0.255 0.018 75);
+  --color-border: oklch(0.37 0.018 75);
+  --color-ink: oklch(0.94 0.012 84);
+  --color-copy: oklch(0.81 0.014 82);
+  --color-muted: oklch(0.66 0.015 80);
+  --accent-copper: oklch(0.72 0.13 56);
+  --accent-copper-strong: oklch(0.8 0.11 60);
+  --accent-teal: oklch(0.76 0.096 194);
+  --accent-teal-strong: oklch(0.83 0.08 194);
+  --accent-rose: oklch(0.72 0.14 23);
+  --accent-lime: oklch(0.83 0.15 136);
+  --accent-sky: oklch(0.78 0.095 234);
+  --color-glow: oklch(0.9 0.015 88);
+  --shadow-ink: oklch(0.04 0.01 70);
+  --shadow-panel: 0 26px 60px color-mix(in oklab, var(--shadow-ink) 68%, transparent);
+  --shadow-float: 0 18px 48px color-mix(in oklab, var(--shadow-ink) 76%, transparent);
+  --shadow-hero: 0 28px 90px color-mix(in oklab, var(--shadow-ink) 82%, transparent);
+  --shadow-button: 0 18px 44px color-mix(in oklab, var(--accent-copper) 22%, transparent);
+  --edge-highlight: color-mix(in oklab, var(--color-glow) 20%, transparent);
+  --ambient-copper: color-mix(in oklab, var(--accent-copper) 14%, transparent);
+  --ambient-teal: color-mix(in oklab, var(--accent-teal) 12%, transparent);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    color-scheme: dark;
+    --color-shell: oklch(0.2 0.018 75);
+    --color-panel: oklch(0.255 0.018 75);
+    --color-border: oklch(0.37 0.018 75);
+    --color-ink: oklch(0.94 0.012 84);
+    --color-copy: oklch(0.81 0.014 82);
+    --color-muted: oklch(0.66 0.015 80);
+    --accent-copper: oklch(0.72 0.13 56);
+    --accent-copper-strong: oklch(0.8 0.11 60);
+    --accent-teal: oklch(0.76 0.096 194);
+    --accent-teal-strong: oklch(0.83 0.08 194);
+    --accent-rose: oklch(0.72 0.14 23);
+    --accent-lime: oklch(0.83 0.15 136);
+    --accent-sky: oklch(0.78 0.095 234);
+    --color-glow: oklch(0.9 0.015 88);
+    --shadow-ink: oklch(0.04 0.01 70);
+    --shadow-panel: 0 26px 60px color-mix(in oklab, var(--shadow-ink) 68%, transparent);
+    --shadow-float: 0 18px 48px color-mix(in oklab, var(--shadow-ink) 76%, transparent);
+    --shadow-hero: 0 28px 90px color-mix(in oklab, var(--shadow-ink) 82%, transparent);
+    --shadow-button: 0 18px 44px color-mix(in oklab, var(--accent-copper) 22%, transparent);
+    --edge-highlight: color-mix(in oklab, var(--color-glow) 20%, transparent);
+    --ambient-copper: color-mix(in oklab, var(--accent-copper) 14%, transparent);
+    --ambient-teal: color-mix(in oklab, var(--accent-teal) 12%, transparent);
+  }
 }
 
 * {
@@ -28,12 +91,20 @@ body,
   min-height: 100%;
 }
 
+html {
+  background: var(--color-shell);
+}
+
 body {
   font-family: "Instrument Sans", sans-serif;
+  color: var(--color-copy);
   background:
-    radial-gradient(circle at top left, color-mix(in oklab, var(--accent-copper) 18%, transparent), transparent 38%),
-    radial-gradient(circle at top right, color-mix(in oklab, var(--accent-teal) 16%, transparent), transparent 40%),
+    radial-gradient(circle at top left, var(--ambient-copper), transparent 38%),
+    radial-gradient(circle at top right, var(--ambient-teal), transparent 40%),
     var(--color-shell);
+  transition:
+    background-color 220ms ease,
+    color 220ms ease;
 }
 
 .font-display {
@@ -66,11 +137,21 @@ body {
   padding: 0.75rem 1rem;
   color: var(--color-copy);
   outline: none;
-  transition: border-color 160ms ease;
+  transition:
+    border-color 160ms ease,
+    background-color 160ms ease,
+    color 160ms ease,
+    box-shadow 160ms ease;
 }
 
 .field:focus {
   border-color: var(--accent-teal);
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--accent-teal) 18%, transparent);
+}
+
+.field option {
+  background: var(--color-panel);
+  color: var(--color-copy);
 }
 
 @media (max-width: 860px) {

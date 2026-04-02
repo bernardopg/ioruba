@@ -1,6 +1,6 @@
 # TODO
 
-Atualizado para o projeto ativo em `2026-03-20`, com checks revisados a partir do estado real do código, da documentação e dos assets do repositório.
+Atualizado para o projeto ativo em `2026-04-02`, com checks revisados a partir do estado real do código, da documentação, dos testes e dos assets do repositório.
 
 Formato:
 
@@ -13,15 +13,15 @@ Formato:
 - [x] Trocar o `window.alert` do editor JSON por validação inline com destaque de erro e estado de salvamento `(frontend/ux/error)` - `médio`
 - [x] Melhorar estados de conexão serial com loading, retry manual e mensagens mais claras por fase `(frontend/backend/debug)` - `médio`
 - [x] Respeitar `autoConnect` no boot e consolidar a heurística entre porta preferida, última porta e autodetecção `(backend/serial/runtime)` - `médio`
-- [ ] Adicionar testes cobrindo transições de status `booting/ready/searching/connecting/connected/error` na store `(test/coverage/debug)` - `médio`
+- [x] Adicionar testes cobrindo transições de status `booting/ready/searching/connecting/connected/error` na store `(test/coverage/debug)` - `médio`
 - [x] Documentar o fluxo atual do app desktop e o papel de `apps/desktop`, `packages/shared` e `firmware/` `(docs/refs/architecture)` - `fácil`
 
 ## Scrum 02
 
-- [ ] Criar UI para listar, selecionar, duplicar, renomear e remover perfis sem editar JSON bruto `(frontend/design/state)` - `médio`
-- [ ] Adicionar editor estruturado para sliders, targets e preferências do perfil em paralelo ao JSON avançado `(frontend/ux/forms)` - `difícil`
-- [ ] Permitir reorder dos knobs e edição do nome/target direto na interface `(frontend/design/usability)` - `médio`
-- [ ] Cobrir migração e normalização de perfis persistidos ao adicionar novos campos `(test/migration/coverage)` - `médio`
+- [x] Criar UI para listar, selecionar, duplicar, renomear e remover perfis sem editar JSON bruto `(frontend/design/state)` - `médio`
+- [x] Adicionar editor estruturado para sliders, targets e preferências do perfil em paralelo ao JSON avançado `(frontend/ux/forms)` - `difícil`
+- [x] Permitir reorder dos knobs e edição do nome/target direto na interface `(frontend/design/usability)` - `médio`
+- [x] Cobrir migração e normalização de perfis persistidos ao adicionar novos campos `(test/migration/coverage)` - `médio`
 - [x] Publicar exemplos reais de perfis JSON para master/app/source/sink `(docs/config/refs)` - `fácil`
 
 ## Scrum 03

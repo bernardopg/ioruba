@@ -6,15 +6,33 @@ import type {
   SliderUpdate
 } from "./types";
 
+const SLIDER_MAX = 1023;
+const EDGE_SNAP_THRESHOLD = 7;
+
 export function clampSliderValue(value: number): number {
   if (!Number.isFinite(value)) {
     return 0;
   }
-  return Math.max(0, Math.min(1023, Math.round(value)));
+
+  return Math.max(0, Math.min(SLIDER_MAX, Math.round(value)));
+}
+
+function snapSliderEdge(value: number): number {
+  const clamped = clampSliderValue(value);
+
+  if (clamped <= EDGE_SNAP_THRESHOLD) {
+    return 0;
+  }
+
+  if (clamped >= SLIDER_MAX - EDGE_SNAP_THRESHOLD) {
+    return SLIDER_MAX;
+  }
+
+  return clamped;
 }
 
 export function sliderValueToNormalized(value: number): number {
-  return clampSliderValue(value) / 1023;
+  return snapSliderEdge(value) / SLIDER_MAX;
 }
 
 export function sliderValueToPercent(value: number): number {
@@ -43,6 +61,13 @@ export function sliderToAppliedNormalized(
 ): number {
   const normalized = sliderValueToNormalized(rawValue);
   return slider.inverted ? 1 - normalized : normalized;
+}
+
+export function sliderToAppliedPercent(
+  slider: SliderConfig,
+  rawValue: number
+): number {
+  return sliderValueToPercent(sliderToAppliedNormalized(slider, rawValue) * SLIDER_MAX);
 }
 
 export function mergeSliderPacket(

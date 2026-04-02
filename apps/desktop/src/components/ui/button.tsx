@@ -9,7 +9,7 @@ const buttonVariants = cva(
     variants: {
       variant: {
         primary:
-          "border-transparent bg-[var(--accent-copper)] px-4 py-2 text-[var(--color-ink)] shadow-[0_16px_40px_rgba(215,138,68,0.2)] hover:bg-[var(--accent-copper-strong)] focus-visible:ring-[var(--accent-copper)]",
+          "border-transparent bg-[var(--accent-copper)] px-4 py-2 text-[var(--color-ink)] [box-shadow:var(--shadow-button)] hover:bg-[var(--accent-copper-strong)] focus-visible:ring-[var(--accent-copper)]",
         secondary:
           "border-[var(--color-border)] bg-[var(--color-panel)] px-4 py-2 text-[var(--color-copy)] hover:border-[var(--accent-teal)] hover:text-[var(--color-ink)] focus-visible:ring-[var(--accent-teal)]",
         ghost:

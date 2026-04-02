@@ -189,7 +189,7 @@ function KnobLiveRow({ knob }: { knob: RuntimeKnobSnapshot }) {
           className="h-full rounded-full transition-[width] duration-300"
           style={{
             width: `${knob.percent}%`,
-            background: `linear-gradient(90deg, ${accent}, color-mix(in oklab, ${accent} 68%, white))`
+            background: `linear-gradient(90deg, ${accent}, color-mix(in oklab, ${accent} 68%, var(--color-glow)))`
           }}
         />
       </div>

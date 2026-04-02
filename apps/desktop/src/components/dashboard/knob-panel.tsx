@@ -64,7 +64,7 @@ export function KnobPanel({
       <CardContent className="relative grid gap-6 pt-2 xl:grid-cols-[180px_minmax(0,1fr)] xl:items-start">
         <div className="grid gap-4">
           <div
-            className="relative mx-auto h-40 w-40 rounded-full border border-(--color-border) shadow-[inset_0_1px_0_rgba(255,255,255,0.5)]"
+            className="relative mx-auto h-40 w-40 rounded-full border border-(--color-border) [box-shadow:inset_0_1px_0_var(--edge-highlight)]"
             style={{
               background: `conic-gradient(${accent} 0deg ${knob.percent * 3.6
                 }deg, color-mix(in oklab, var(--color-border) 44%, transparent) ${knob.percent * 3.6}deg 360deg)`
@@ -73,11 +73,11 @@ export function KnobPanel({
             <div className="absolute inset-3.5 rounded-full border border-[color-mix(in_oklab,var(--color-border)_75%,transparent)] bg-[color-mix(in_oklab,var(--color-shell)_95%,var(--color-panel)_5%)]" />
             <div className="absolute inset-[24%] grid place-items-center rounded-full border border-(--color-border) bg-[color-mix(in_oklab,var(--color-panel)_95%,var(--color-shell)_5%)]">
               <div className="text-center">
-                <span className="font-display text-4xl font-semibold text-(--color-ink)">
+                <span className="font-display text-lg font-semibold text-(--color-ink)">
                   {knob.percent}%
                 </span>
                 <p className="mt-1 text-[0.68rem] font-semibold uppercase tracking-[0.24em] text-(--color-muted)">
-                  nivel
+                  nível
                 </p>
               </div>
             </div>
@@ -104,7 +104,7 @@ export function KnobPanel({
                 className="h-full rounded-full transition-[width] duration-300"
                 style={{
                   width: `${knob.percent}%`,
-                  background: `linear-gradient(90deg, ${accent}, color-mix(in oklab, ${accent} 68%, white))`
+                  background: `linear-gradient(90deg, ${accent}, color-mix(in oklab, ${accent} 68%, var(--color-glow)))`
                 }}
               />
             </div>

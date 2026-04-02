@@ -9,6 +9,8 @@ import {
   pushTelemetry,
   resolveActiveProfile,
   resolveFilteredUpdates,
+  sliderToAppliedPercent,
+  sliderValueToPercent,
   type AudioInventory,
   type PersistedState,
   type MixerProfile,
@@ -19,8 +21,13 @@ import {
 } from "@ioruba/shared";
 
 import {
+  cloneProfile,
+  createProfileFromDefault,
+  duplicateProfileConfig,
   parseProfileDraft,
+  removeProfileById,
   replaceActiveProfile,
+  selectProfileById,
   serializeProfileDraft
 } from "@/lib/profile-config";
 import {
@@ -67,7 +74,13 @@ interface IorubaState {
   requestConnect: () => void;
   disconnect: (reason?: string) => void;
   setDemoMode: (enabled: boolean) => void;
+  selectProfile: (profileId: string) => void;
+  createProfile: () => void;
+  duplicateActiveProfile: () => void;
+  removeActiveProfile: () => void;
+  updateActiveProfileConfig: (profile: MixerProfile) => void;
   setPreferredPort: (port: string | null) => void;
+  setThemeMode: (theme: MixerProfile["ui"]["theme"]) => void;
   setConfigDraft: (draft: string) => void;
   applyConfigDraft: () => void;
   resetProfile: () => void;
@@ -113,6 +126,31 @@ function createSnapshot(state: Pick<
 
 function serializeActiveProfile(persisted: PersistedState) {
   return serializeProfileDraft(resolveActiveProfile(persisted));
+}
+
+function createPersistedSnapshotUpdate(
+  state: IorubaState,
+  persisted: PersistedState,
+  overrides?: Partial<Pick<IorubaState, "currentValues" | "appliedValues" | "outcomes" | "telemetry" | "lastSerialLine">>
+) {
+  const nextState = {
+    ...state,
+    ...overrides,
+    persisted
+  };
+
+  return {
+    persisted,
+    configDraft: serializeActiveProfile(persisted),
+    ...(overrides ?? {}),
+    snapshot: createSnapshot({
+      ...nextState,
+      connectionMode: state.connectionMode,
+      status: state.snapshot.status,
+      statusText: state.snapshot.statusText,
+      connectionPort: state.snapshot.connectionPort
+    })
+  };
 }
 
 function sliderNameForId(profile: MixerProfile, sliderId: number): string {
@@ -376,6 +414,119 @@ export const useIorubaStore = create<IorubaState>((set, get) => {
         })
       });
     },
+    selectProfile: (profileId) => {
+      const state = get();
+      const persisted = selectProfileById(state.persisted, profileId);
+
+      if (persisted.selectedProfileId === state.persisted.selectedProfileId) {
+        return;
+      }
+
+      set(
+        createPersistedSnapshotUpdate(state, persisted, {
+          currentValues: {},
+          appliedValues: {},
+          outcomes: {},
+          telemetry: [],
+          lastSerialLine: null
+        })
+      );
+      get().appendWatchLog({
+        scope: "app",
+        level: "info",
+        message: "Perfil ativo selecionado",
+        detail: resolveActiveProfile(persisted).name
+      });
+    },
+    createProfile: () => {
+      const state = get();
+      const nextProfile = createProfileFromDefault(state.persisted.profiles);
+      const persisted = {
+        ...state.persisted,
+        selectedProfileId: nextProfile.id,
+        profiles: [...state.persisted.profiles, nextProfile]
+      };
+
+      set(
+        createPersistedSnapshotUpdate(state, persisted, {
+          currentValues: {},
+          appliedValues: {},
+          outcomes: {},
+          telemetry: [],
+          lastSerialLine: null
+        })
+      );
+      get().appendWatchLog({
+        scope: "app",
+        level: "info",
+        message: "Novo perfil criado",
+        detail: nextProfile.name
+      });
+    },
+    duplicateActiveProfile: () => {
+      const state = get();
+      const nextProfile = duplicateProfileConfig(
+        resolveActiveProfile(state.persisted),
+        state.persisted.profiles
+      );
+      const persisted = {
+        ...state.persisted,
+        selectedProfileId: nextProfile.id,
+        profiles: [...state.persisted.profiles, nextProfile]
+      };
+
+      set(
+        createPersistedSnapshotUpdate(state, persisted, {
+          currentValues: {},
+          appliedValues: {},
+          outcomes: {},
+          telemetry: [],
+          lastSerialLine: null
+        })
+      );
+      get().appendWatchLog({
+        scope: "app",
+        level: "info",
+        message: "Perfil duplicado",
+        detail: nextProfile.name
+      });
+    },
+    removeActiveProfile: () => {
+      const state = get();
+      const activeProfile = resolveActiveProfile(state.persisted);
+      const persisted = removeProfileById(state.persisted, activeProfile.id);
+
+      if (persisted.profiles.length === state.persisted.profiles.length) {
+        get().appendWatchLog({
+          scope: "app",
+          level: "warning",
+          message: "Remocao ignorada",
+          detail: "O ultimo perfil nao pode ser removido"
+        });
+        return;
+      }
+
+      set(
+        createPersistedSnapshotUpdate(state, persisted, {
+          currentValues: {},
+          appliedValues: {},
+          outcomes: {},
+          telemetry: [],
+          lastSerialLine: null
+        })
+      );
+      get().appendWatchLog({
+        scope: "app",
+        level: "warning",
+        message: "Perfil removido",
+        detail: activeProfile.name
+      });
+    },
+    updateActiveProfileConfig: (profile) => {
+      const state = get();
+      const persisted = replaceActiveProfile(state.persisted, profile);
+      set(createPersistedSnapshotUpdate(state, persisted));
+    },
     setPreferredPort: (port) => {
       const state = get();
       const persisted = replaceActiveProfile(state.persisted, {
@@ -397,6 +548,28 @@ export const useIorubaStore = create<IorubaState>((set, get) => {
         level: "info",
         message: "Porta preferida atualizada",
         detail: port ?? "detectar automaticamente"
+      });
+    },
+    setThemeMode: (theme) => {
+      const state = get();
+      const persisted = replaceActiveProfile(state.persisted, {
+        ...resolveActiveProfile(state.persisted),
+        ui: {
+          ...resolveActiveProfile(state.persisted).ui,
+          theme
+        }
+      });
+
+      set({
+        persisted,
+        configDraft: serializeActiveProfile(persisted)
+      });
+
+      get().appendWatchLog({
+        scope: "app",
+        level: "info",
+        message: "Tema da interface atualizado",
+        detail: theme
       });
     },
     setConfigDraft: (draft) => set({ configDraft: draft }),
@@ -436,21 +609,34 @@ export const useIorubaStore = create<IorubaState>((set, get) => {
     },
     resetProfile: () => {
       const state = get();
+      const activeProfile = resolveActiveProfile(state.persisted);
+      const restoredProfile = {
+        ...cloneProfile(defaultPersistedState.profiles[0]),
+        id: activeProfile.id,
+        name: activeProfile.name
+      };
+      const persisted = replaceActiveProfile(state.persisted, restoredProfile);
+
       set({
-        persisted: defaultPersistedState,
-        configDraft: serializeActiveProfile(defaultPersistedState),
+        ...createPersistedSnapshotUpdate(state, persisted, {
+          currentValues: {},
+          appliedValues: {},
+          outcomes: {},
+          telemetry: [],
+          lastSerialLine: null
+        }),
         currentValues: {},
         appliedValues: {},
         outcomes: {},
         telemetry: [],
         snapshot: buildRuntimeSnapshot({
-          profile: resolveActiveProfile(defaultPersistedState),
-          status: "ready",
+          profile: resolveActiveProfile(persisted),
+          status: state.snapshot.status,
           statusText: "Perfil padrão restaurado",
           availablePorts: state.availablePorts,
-          connectionPort: null,
+          connectionPort: state.snapshot.connectionPort,
           lastSerialLine: null,
-          demoMode: false,
+          demoMode: state.connectionMode === "demo",
           currentValues: {},
           appliedValues: {},
           outcomes: {},
@@ -461,7 +647,8 @@ export const useIorubaStore = create<IorubaState>((set, get) => {
       get().appendWatchLog({
         scope: "app",
         level: "warning",
-        message: "Perfil restaurado para o padrao"
+        message: "Perfil restaurado para o padrao",
+        detail: activeProfile.name
       });
     },
     processSerialLine: (rawLine) => {
@@ -486,13 +673,22 @@ export const useIorubaStore = create<IorubaState>((set, get) => {
         state.appliedValues
       );
 
-      const telemetryPoints = updates.map((update) => ({
-        tick: state.tick + 1,
-        knobId: update.sliderId,
-        rawValue: nextCurrentValues[update.sliderId] ?? 0,
-        appliedValue: update.rawValue,
-        percent: Math.round((update.rawValue / 1023) * 100)
-      }));
+      const telemetryPoints = updates.map((update) => {
+        const slider = activeProfile.sliders.find(
+          (candidate) => candidate.id === update.sliderId
+        );
+        const rawValue = nextCurrentValues[update.sliderId] ?? 0;
+
+        return {
+          tick: state.tick + 1,
+          knobId: update.sliderId,
+          rawValue,
+          appliedValue: update.rawValue,
+          percent: slider
+            ? sliderToAppliedPercent(slider, rawValue)
+            : sliderValueToPercent(rawValue)
+        };
+      });
 
       const telemetry = pushTelemetry(
         state.telemetry,
@@ -593,7 +789,7 @@ export const useIorubaStore = create<IorubaState>((set, get) => {
           knobId: slider.id,
           rawValue,
           appliedValue: rawValue,
-          percent: Math.round((rawValue / 1023) * 100)
+          percent: sliderToAppliedPercent(slider, rawValue)
         };
       });
       const telemetry = pushTelemetry(

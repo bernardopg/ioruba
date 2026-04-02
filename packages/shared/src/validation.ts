@@ -6,26 +6,34 @@ import type {
   SliderConfig
 } from "./types";
 
+type PersistedStateCandidate = Partial<Omit<PersistedState, "profiles">> & {
+  profiles?: Array<Partial<MixerProfile>> | null;
+};
+
 export function normalizePersistedState(
-  candidate: Partial<PersistedState> | null | undefined
+  candidate: PersistedStateCandidate | null | undefined
 ): PersistedState {
   if (!candidate) {
-    return defaultPersistedState;
+    return clonePersistedState(defaultPersistedState);
   }
 
-  const profiles = Array.isArray(candidate.profiles)
+  const fallbackProfiles = defaultPersistedState.profiles.map(cloneProfile);
+  const normalizedProfiles = Array.isArray(candidate.profiles)
     ? candidate.profiles
         .map(normalizeProfile)
         .filter((profile): profile is MixerProfile => profile !== null)
-    : defaultPersistedState.profiles;
+    : fallbackProfiles;
+  const profiles = normalizedProfiles.length > 0 ? normalizedProfiles : fallbackProfiles;
 
   const fallbackProfile = profiles[0] ?? defaultPersistedState.profiles[0];
+  const selectedProfileId =
+    typeof candidate.selectedProfileId === "string" &&
+    profiles.some((profile) => profile.id === candidate.selectedProfileId)
+      ? candidate.selectedProfileId
+      : fallbackProfile.id;
 
   return {
-    selectedProfileId:
-      typeof candidate.selectedProfileId === "string"
-        ? candidate.selectedProfileId
-        : fallbackProfile.id,
+    selectedProfileId,
     profiles,
     lastWindow: {
       width:
@@ -142,4 +150,33 @@ function normalizeTarget(candidate: Partial<AudioTarget>): AudioTarget | null {
     default:
       return null;
   }
+}
+
+function clonePersistedState(state: PersistedState): PersistedState {
+  return {
+    ...state,
+    profiles: state.profiles.map(cloneProfile),
+    lastWindow: {
+      ...state.lastWindow
+    }
+  };
+}
+
+function cloneProfile(profile: MixerProfile): MixerProfile {
+  return {
+    ...profile,
+    serial: {
+      ...profile.serial
+    },
+    audio: {
+      ...profile.audio
+    },
+    ui: {
+      ...profile.ui
+    },
+    sliders: profile.sliders.map((slider) => ({
+      ...slider,
+      targets: slider.targets.map((target) => ({ ...target }))
+    }))
+  };
 }

@@ -84,6 +84,90 @@ export function serializeProfileDraft(profile: MixerProfile): string {
   return JSON.stringify(profile, null, 2);
 }
 
+export function cloneProfile(profile: MixerProfile): MixerProfile {
+  return {
+    ...profile,
+    serial: {
+      ...profile.serial
+    },
+    audio: {
+      ...profile.audio
+    },
+    ui: {
+      ...profile.ui
+    },
+    sliders: profile.sliders.map((slider) => ({
+      ...slider,
+      targets: slider.targets.map((target) => ({ ...target }))
+    }))
+  };
+}
+
+export function createProfileFromDefault(profiles: MixerProfile[]): MixerProfile {
+  const name = buildUniqueProfileName("Novo perfil", profiles);
+  const profile = cloneProfile(defaultProfile);
+
+  return {
+    ...profile,
+    id: buildUniqueProfileId(name, profiles),
+    name
+  };
+}
+
+export function duplicateProfileConfig(
+  sourceProfile: MixerProfile,
+  profiles: MixerProfile[]
+): MixerProfile {
+  const name = buildUniqueProfileName(`${sourceProfile.name} copia`, profiles);
+  const profile = cloneProfile(sourceProfile);
+
+  return {
+    ...profile,
+    id: buildUniqueProfileId(name, profiles),
+    name
+  };
+}
+
+export function selectProfileById(
+  persisted: PersistedState,
+  profileId: string
+): PersistedState {
+  if (!persisted.profiles.some((profile) => profile.id === profileId)) {
+    return persisted;
+  }
+
+  return {
+    ...persisted,
+    selectedProfileId: profileId
+  };
+}
+
+export function removeProfileById(
+  persisted: PersistedState,
+  profileId: string
+): PersistedState {
+  if (persisted.profiles.length <= 1) {
+    return persisted;
+  }
+
+  const nextProfiles = persisted.profiles.filter((profile) => profile.id !== profileId);
+  if (nextProfiles.length === 0) {
+    return persisted;
+  }
+
+  const selectedProfileId =
+    persisted.selectedProfileId === profileId ||
+    !nextProfiles.some((profile) => profile.id === persisted.selectedProfileId)
+      ? nextProfiles[0].id
+      : persisted.selectedProfileId;
+
+  return {
+    ...persisted,
+    profiles: nextProfiles,
+    selectedProfileId
+  };
+}
+
 export function replaceActiveProfile(
   persisted: PersistedState,
   nextProfile: MixerProfile
@@ -467,4 +551,42 @@ function failure(error: string): ValidationFailure {
 
 function toErrorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
+}
+
+function buildUniqueProfileName(baseName: string, profiles: MixerProfile[]): string {
+  const existingNames = new Set(profiles.map((profile) => profile.name.toLowerCase()));
+  let candidate = baseName;
+  let suffix = 2;
+
+  while (existingNames.has(candidate.toLowerCase())) {
+    candidate = `${baseName} ${suffix}`;
+    suffix += 1;
+  }
+
+  return candidate;
+}
+
+function buildUniqueProfileId(baseName: string, profiles: MixerProfile[]): string {
+  const existingIds = new Set(profiles.map((profile) => profile.id));
+  const slugBase = slugifyProfileId(baseName);
+  let candidate = slugBase;
+  let suffix = 2;
+
+  while (existingIds.has(candidate)) {
+    candidate = `${slugBase}-${suffix}`;
+    suffix += 1;
+  }
+
+  return candidate;
+}
+
+function slugifyProfileId(value: string): string {
+  const normalized = value
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+
+  return normalized || "profile";
 }
