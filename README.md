@@ -13,9 +13,7 @@ Ioruba transforms an `Arduino Nano + 3 knobs` into a tactile desktop control dec
 
 ## ✨ Visual reference
 
-<p align="center">
-  <img src="legacy/arduino-audio-controller/screenshots/knob-deck-pt-br.png" alt="Ioruba visual reference" width="900" />
-</p>
+![Ioruba visual reference](legacy/arduino-audio-controller/screenshots/knob-deck-pt-br.png)
 
 > 📸 Until a fresh capture of the current Tauri app is published, the archived screen above remains a useful visual reference for the product's tactile dashboard direction.
 
@@ -44,21 +42,21 @@ The project keeps the hardware feel of a small mixer while modernizing the softw
 
 ## 🖥️ Platform support
 
-| Platform | Status | Notes |
-| --- | --- | --- |
-| Linux | Supported | Main production path: serial workflow, `pactl` audio backend, demo mode, and hardware validation |
-| macOS | Partial | Desktop shell and demo-mode validation are useful; real audio control is not implemented |
-| Windows | Partial | Desktop shell and demo-mode validation are useful; real audio control is not implemented |
+| Platform | Status    | Notes                                                                                            |
+| -------- | --------- | ------------------------------------------------------------------------------------------------ |
+| Linux    | Supported | Main production path: serial workflow, `pactl` audio backend, demo mode, and hardware validation |
+| macOS    | Partial   | Desktop shell and demo-mode validation are useful; real audio control is not implemented         |
+| Windows  | Partial   | Desktop shell and demo-mode validation are useful; real audio control is not implemented         |
 
 ## 🎚️ Default profile at a glance
 
 The shipped default profile is intentionally simple and can be edited from the app's JSON configuration panel:
 
-| Knob | Default label | Target |
-| --- | --- | --- |
-| 1 | `Master Volume` | Default output volume |
-| 2 | `Applications` | `Spotify`, `Google Chrome`, and `Firefox` |
-| 3 | `Microphone` | `default_microphone` |
+| Knob | Default label   | Target                                    |
+| ---- | --------------- | ----------------------------------------- |
+| 1    | `Master Volume` | Default output volume                     |
+| 2    | `Applications`  | `Spotify`, `Google Chrome`, and `Firefox` |
+| 3    | `Microphone`    | `default_microphone`                      |
 
 ## 🚀 Quick start
 
@@ -94,27 +92,27 @@ If you are setting up real hardware, follow these guides next:
 
 ## 🧰 Common commands
 
-| Command | What it does |
-| --- | --- |
-| `npm run verify` | Runs shared + desktop typecheck, shared + desktop tests, Rust tests, and the desktop production build |
-| `npm run desktop:dev` | Starts the Vite frontend for UI work |
-| `npm run desktop:watch` | Starts the full Tauri desktop app in development |
-| `npm run desktop:tauri:build` | Builds the Tauri desktop app locally without bundling installers |
-| `npm run firmware:compile` | Compiles the Arduino Nano firmware |
-| `npm run rust:test` | Runs Rust backend tests |
-| `npm run rust:audit` | Audits the Rust lockfile while accounting for the local `glib` backport |
+| Command                       | What it does                                                                                          |
+| ----------------------------- | ----------------------------------------------------------------------------------------------------- |
+| `npm run verify`              | Runs shared + desktop typecheck, shared + desktop tests, Rust tests, and the desktop production build |
+| `npm run desktop:dev`         | Starts the Vite frontend for UI work                                                                  |
+| `npm run desktop:watch`       | Starts the full Tauri desktop app in development                                                      |
+| `npm run desktop:tauri:build` | Builds the Tauri desktop app locally without bundling installers                                      |
+| `npm run firmware:compile`    | Compiles the Arduino Nano firmware                                                                    |
+| `npm run rust:test`           | Runs Rust backend tests                                                                               |
+| `npm run rust:audit`          | Audits the Rust lockfile while accounting for the local `glib` backport                               |
 
 ## 🗂️ Repository map
 
-| Path | Purpose |
-| --- | --- |
-| `apps/desktop` | Tauri 2 desktop app, React UI, Zustand state, and telemetry dashboards |
-| `apps/desktop/src-tauri` | Rust commands for persistence, watch logging, and Linux audio control |
-| `packages/shared` | Shared domain types, defaults, runtime math, and protocol parsing |
-| `firmware/arduino/ioruba-controller` | Arduino firmware for Nano-compatible boards |
-| `docs/guides` | Practical setup guides |
-| `docs/migration` | Migration planning and parity audit material |
-| `legacy` | Archived Python/GTK prototype and small historical leftovers |
+| Path                                 | Purpose                                                                |
+| ------------------------------------ | ---------------------------------------------------------------------- |
+| `apps/desktop`                       | Tauri 2 desktop app, React UI, Zustand state, and telemetry dashboards |
+| `apps/desktop/src-tauri`             | Rust commands for persistence, watch logging, and Linux audio control  |
+| `packages/shared`                    | Shared domain types, defaults, runtime math, and protocol parsing      |
+| `firmware/arduino/ioruba-controller` | Arduino firmware for Nano-compatible boards                            |
+| `docs/guides`                        | Practical setup guides                                                 |
+| `docs/migration`                     | Migration planning and parity audit material                           |
+| `legacy`                             | Archived Python/GTK prototype and small historical leftovers           |
 
 ## 🧪 Persistence and diagnostics
 
@@ -141,15 +139,15 @@ npm run rust:audit
 
 ## 📚 Documentation map
 
-| Document | Use it when you need... |
-| --- | --- |
-| [docs/guides/profile-examples.md](docs/guides/profile-examples.md) | Real JSON profile samples and Linux target matching rules |
-| [QUICKSTART.md](QUICKSTART.md) | The fastest path from zero to a running app |
-| [NANO_SETUP.md](NANO_SETUP.md) | Flashing and validating the Arduino Nano |
-| [docs/guides/hardware-setup.md](docs/guides/hardware-setup.md) | Physical wiring and assembly |
-| [docs/debug/support.md](docs/debug/support.md) | A support playbook for serial, audio, and profile-debug issues |
-| [TESTING.md](TESTING.md) | Automated checks, smoke tests, and release validation |
-| [docs/migration/logic-audit.md](docs/migration/logic-audit.md) | Parity coverage with archived implementations |
+| Document                                                           | Use it when you need...                                        |
+| ------------------------------------------------------------------ | -------------------------------------------------------------- |
+| [docs/guides/profile-examples.md](docs/guides/profile-examples.md) | Real JSON profile samples and Linux target matching rules      |
+| [QUICKSTART.md](QUICKSTART.md)                                     | The fastest path from zero to a running app                    |
+| [NANO_SETUP.md](NANO_SETUP.md)                                     | Flashing and validating the Arduino Nano                       |
+| [docs/guides/hardware-setup.md](docs/guides/hardware-setup.md)     | Physical wiring and assembly                                   |
+| [docs/debug/support.md](docs/debug/support.md)                     | A support playbook for serial, audio, and profile-debug issues |
+| [TESTING.md](TESTING.md)                                           | Automated checks, smoke tests, and release validation          |
+| [docs/migration/logic-audit.md](docs/migration/logic-audit.md)     | Parity coverage with archived implementations                  |
 
 ## 🗃️ Legacy archive
 
