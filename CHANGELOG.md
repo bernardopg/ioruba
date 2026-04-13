@@ -67,6 +67,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Repository documentation was refreshed to better reflect the active Tauri desktop stack, Linux-first audio support, and the current hardware workflow.
 
+### Security
+- upgraded `vite` from `7.3.1` to `7.3.2` in the desktop toolchain
+- resolved GitHub/Dependabot advisories `GHSA-p9ff-h696-f583`, `GHSA-v2wj-q39q-566r`, and `GHSA-4w7w-66w2-5vf9`
+- confirmed the npm toolchain reports `0` open audit vulnerabilities after the upgrade
+- documented that the remaining Rust audit findings are upstream/transitive warnings in the current Tauri + GTK3 Linux stack, not newly introduced project-level advisories
+
 ## [0.1.0] - 2025-12-22
 
 ### Added
