@@ -7,6 +7,7 @@ import {
   emptyAudioInventory,
   encodeSliderPacket,
   mergeSliderPacket,
+  parseSerialPacket,
   parseSliderPacket,
   resolveFilteredUpdates,
   sliderValueToPercent,
@@ -44,6 +45,26 @@ describe("serial protocol parity", () => {
 
   it("encodes packet values", () => {
     expect(encodeSliderPacket([1, 2, 3])).toBe("1|2|3");
+  });
+
+  it("parses firmware handshake packets", () => {
+    expect(
+      parseSerialPacket("HELLO board=Ioruba Nano; fw=0.3.0; protocol=1; knobs=3")
+    ).toEqual({
+      kind: "handshake",
+      info: {
+        boardName: "Ioruba Nano",
+        firmwareVersion: "0.3.0",
+        protocolVersion: 1,
+        knobCount: 3
+      }
+    });
+  });
+
+  it("rejects handshake payloads when parsed as slider frames", () => {
+    expect(() =>
+      parseSliderPacket("HELLO board=Ioruba Nano; fw=0.3.0; protocol=1; knobs=3")
+    ).toThrow("Expected slider packet, received handshake data");
   });
 });
 

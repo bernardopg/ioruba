@@ -7,6 +7,7 @@ import {
   type AudioTarget,
   type MixerProfile,
   type PersistedState,
+  type SliderOutcome,
   type SliderUpdate
 } from "@ioruba/shared";
 
@@ -22,7 +23,7 @@ interface SliderBatchRequest {
 }
 
 interface SliderBatchResponse {
-  outcomes: Record<number, string>;
+  outcomes: Record<number, SliderOutcome>;
 }
 
 export async function loadPersistedState(): Promise<PersistedState> {
@@ -87,7 +88,7 @@ export async function listAudioInventory(): Promise<AudioInventory> {
 export async function applySliderTargetsBatch(
   profile: MixerProfile,
   updates: SliderUpdate[]
-): Promise<Record<number, string>> {
+): Promise<Record<number, SliderOutcome>> {
   if (updates.length === 0) {
     return {};
   }

@@ -68,6 +68,7 @@ What to verify:
 Current expected packet format:
 
 ```text
+HELLO board=Ioruba Nano; fw=0.3.0; protocol=1; knobs=3
 512|768|1023
 ```
 

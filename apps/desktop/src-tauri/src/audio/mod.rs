@@ -32,9 +32,45 @@ pub struct ApplySliderTargetsRequest {
 }
 
 #[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "lowercase")]
+pub enum OutcomeSeverity {
+    Info,
+    Success,
+    Warning,
+    Error,
+}
+
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "lowercase")]
+pub enum TargetOutcomeStatus {
+    Updated,
+    Idle,
+    Unavailable,
+    Skipped,
+    Error,
+}
+
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct RuntimeTargetOutcome {
+    pub target: String,
+    pub status: TargetOutcomeStatus,
+    pub detail: String,
+    pub matched: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SliderOutcome {
+    pub summary: String,
+    pub severity: OutcomeSeverity,
+    pub targets: Vec<RuntimeTargetOutcome>,
+}
+
+#[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ApplySliderTargetsResponse {
-    pub outcomes: HashMap<u32, String>,
+    pub outcomes: HashMap<u32, SliderOutcome>,
 }
 
 #[derive(Debug, Clone, Serialize)]

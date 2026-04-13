@@ -3,7 +3,7 @@ import type { HTMLAttributes } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-import type { RuntimeKnobSnapshot } from "@ioruba/shared";
+import type { RuntimeKnobSnapshot, RuntimeTargetOutcome, SliderOutcome } from "@ioruba/shared";
 
 function accentColor(accent: string): string {
   switch (accent) {
@@ -17,6 +17,52 @@ function accentColor(accent: string): string {
       return "var(--accent-lime)";
     default:
       return "var(--accent-sky)";
+  }
+}
+
+function toneForOutcome(
+  severity: SliderOutcome["severity"]
+): "neutral" | "positive" | "warning" | "critical" {
+  switch (severity) {
+    case "success":
+      return "positive";
+    case "warning":
+      return "warning";
+    case "error":
+      return "critical";
+    default:
+      return "neutral";
+  }
+}
+
+function labelForTargetStatus(status: RuntimeTargetOutcome["status"]) {
+  switch (status) {
+    case "updated":
+      return "atualizado";
+    case "idle":
+      return "ocioso";
+    case "unavailable":
+      return "indisponível";
+    case "skipped":
+      return "ignorado";
+    case "error":
+      return "erro";
+  }
+}
+
+function toneForTargetStatus(
+  status: RuntimeTargetOutcome["status"]
+): "neutral" | "positive" | "warning" | "critical" {
+  switch (status) {
+    case "updated":
+      return "positive";
+    case "error":
+      return "critical";
+    case "idle":
+    case "unavailable":
+      return "warning";
+    default:
+      return "neutral";
   }
 }
 
@@ -130,12 +176,53 @@ export function KnobPanel({
           </div>
 
           <div className="rounded-[22px] border border-(--color-border) bg-(--color-panel) px-4 py-4">
-            <p className="text-xs uppercase tracking-[0.24em] text-(--color-muted)">
-              Ultimo resultado
-            </p>
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <p className="text-xs uppercase tracking-[0.24em] text-(--color-muted)">
+                Ultimo resultado
+              </p>
+              <Badge tone={toneForOutcome(knob.outcome.severity)}>
+                {knob.outcome.severity}
+              </Badge>
+            </div>
             <p className="mt-3 wrap-break-word text-sm leading-6 text-(--color-copy)">
-              {knob.outcome}
+              {knob.outcome.summary}
             </p>
+
+            {knob.outcome.targets.length > 0 ? (
+              <div className="mt-4 grid gap-3">
+                {knob.outcome.targets.map((targetOutcome) => (
+                  <div
+                    className="rounded-[18px] border border-(--color-border) bg-[color-mix(in_oklab,var(--color-shell)_75%,var(--color-panel)_25%)] px-3 py-3"
+                    key={`${targetOutcome.target}-${targetOutcome.status}`}
+                  >
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-(--color-ink)">
+                        {targetOutcome.target}
+                      </p>
+                      <Badge tone={toneForTargetStatus(targetOutcome.status)}>
+                        {labelForTargetStatus(targetOutcome.status)}
+                      </Badge>
+                    </div>
+                    <p className="mt-2 wrap-break-word text-sm leading-6 text-(--color-copy)">
+                      {targetOutcome.detail}
+                    </p>
+
+                    {targetOutcome.matched.length > 0 ? (
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        {targetOutcome.matched.map((matched) => (
+                          <span
+                            className="inline-flex max-w-full items-center rounded-full border border-(--color-border) bg-(--color-panel) px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-(--color-muted) break-all"
+                            key={matched}
+                          >
+                            {matched}
+                          </span>
+                        ))}
+                      </div>
+                    ) : null}
+                  </div>
+                ))}
+              </div>
+            ) : null}
           </div>
         </div>
       </CardContent>

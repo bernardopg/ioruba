@@ -117,6 +117,7 @@ When the app opens, this is the expected flow:
 
 - the app discovers serial ports or respects your preferred port
 - the status card moves through connection states instead of staying idle forever
+- the runtime receives a firmware handshake before or alongside knob frames
 - the `Watch` tab shows frames such as `512|768|1023`
 - the telemetry chart reacts when you turn the knobs
 - the active profile is stored as JSON and survives restarts
@@ -165,6 +166,7 @@ sudo pacman -S --needed webkit2gtk-4.1 gtk3 librsvg
 ### The app opens but no packets arrive
 
 - confirm the board is flashing the current sketch
+- confirm the board answers with `HELLO board=...; fw=...; protocol=...; knobs=...`
 - confirm the board is sending `512|768|1023`
 - confirm `9600` baud
 - check the knob wiring on `A0`, `A1`, and `A2`

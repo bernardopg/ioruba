@@ -4,7 +4,7 @@ import { SerialPort } from "tauri-plugin-serialplugin-api";
 import { applySliderTargetsBatch } from "@/lib/backend";
 import { resolveSerialPort } from "@/lib/serial";
 import { useIorubaStore } from "@/store/ioruba-store";
-import { resolveActiveProfile } from "@ioruba/shared";
+import { resolveActiveProfile, type SliderUpdate } from "@ioruba/shared";
 
 function normalizeIncomingData(data: string | Uint8Array): string {
   if (typeof data === "string") {
@@ -29,6 +29,9 @@ export function useSerialRuntime() {
   const portRef = useRef<SerialPort | null>(null);
   const unsubscribeRef = useRef<(() => void) | null>(null);
   const demoTimerRef = useRef<number | null>(null);
+  const applyTimerRef = useRef<number | null>(null);
+  const pendingUpdatesRef = useRef<Map<number, SliderUpdate>>(new Map());
+  const inFlightUpdatesRef = useRef<Map<number, number>>(new Map());
   const queueRef = useRef(Promise.resolve());
   const heartbeatWarningRef = useRef(false);
   const serialBufferRef = useRef("");
@@ -39,6 +42,104 @@ export function useSerialRuntime() {
     }
 
     const profile = resolveActiveProfile(persisted);
+    const applyDebounceMs = profile.audio.smoothTransitions
+      ? Math.max(0, profile.audio.transitionDurationMs)
+      : 0;
+
+    const clearApplyTimer = () => {
+      if (applyTimerRef.current !== null) {
+        window.clearTimeout(applyTimerRef.current);
+        applyTimerRef.current = null;
+      }
+    };
+
+    const resetPendingAudioUpdates = () => {
+      clearApplyTimer();
+      pendingUpdatesRef.current.clear();
+      inFlightUpdatesRef.current.clear();
+    };
+
+    const stageAudioUpdates = (updates: SliderUpdate[]) => {
+      let changed = false;
+
+      for (const update of updates) {
+        if (inFlightUpdatesRef.current.get(update.sliderId) === update.rawValue) {
+          continue;
+        }
+
+        const pending = pendingUpdatesRef.current.get(update.sliderId);
+        if (pending?.rawValue === update.rawValue) {
+          continue;
+        }
+
+        pendingUpdatesRef.current.set(update.sliderId, update);
+        changed = true;
+      }
+
+      return changed;
+    };
+
+    const flushPendingAudioUpdates = async () => {
+      const updates = [...pendingUpdatesRef.current.values()];
+      if (updates.length === 0) {
+        return;
+      }
+
+      pendingUpdatesRef.current.clear();
+      for (const update of updates) {
+        inFlightUpdatesRef.current.set(update.sliderId, update.rawValue);
+      }
+
+      try {
+        const outcomes = await applySliderTargetsBatch(profile, updates);
+        commitAppliedResults(updates, outcomes);
+      } catch (error) {
+        appendWatchLog({
+          scope: "serial",
+          level: "error",
+          message: "Falha ao aplicar lote de áudio",
+          detail: error instanceof Error ? error.message : String(error)
+        });
+
+        if (!cancelled) {
+          setStatus(
+            "error",
+            error instanceof Error ? error.message : String(error),
+            portPath
+          );
+        }
+      } finally {
+        for (const update of updates) {
+          if (inFlightUpdatesRef.current.get(update.sliderId) === update.rawValue) {
+            inFlightUpdatesRef.current.delete(update.sliderId);
+          }
+        }
+      }
+    };
+
+    const enqueueAudioFlush = () => {
+      clearApplyTimer();
+      queueRef.current = queueRef.current.then(async () => {
+        await flushPendingAudioUpdates();
+      });
+    };
+
+    const scheduleAudioFlush = () => {
+      if (pendingUpdatesRef.current.size === 0) {
+        return;
+      }
+
+      if (applyDebounceMs <= 0) {
+        enqueueAudioFlush();
+        return;
+      }
+
+      clearApplyTimer();
+      applyTimerRef.current = window.setTimeout(() => {
+        applyTimerRef.current = null;
+        enqueueAudioFlush();
+      }, applyDebounceMs);
+    };
 
     const stopDemo = () => {
       if (demoTimerRef.current !== null) {
@@ -47,9 +148,32 @@ export function useSerialRuntime() {
       }
     };
 
+    const requestFirmwareHandshake = async (
+      port: SerialPort,
+      reason: string
+    ) => {
+      try {
+        await port.write("HELLO?\n");
+        appendWatchLog({
+          scope: "serial",
+          level: "info",
+          message: "Handshake do firmware solicitado",
+          detail: `${port.options.path} | ${reason}`
+        });
+      } catch (error) {
+        appendWatchLog({
+          scope: "serial",
+          level: "warning",
+          message: "Falha ao solicitar handshake do firmware",
+          detail: error instanceof Error ? error.message : String(error)
+        });
+      }
+    };
+
     const stopSerial = async () => {
       heartbeatWarningRef.current = false;
       serialBufferRef.current = "";
+      resetPendingAudioUpdates();
 
       if (unsubscribeRef.current) {
         unsubscribeRef.current();
@@ -150,7 +274,21 @@ export function useSerialRuntime() {
         await port.startListening();
         await port.enableAutoReconnect({
           interval: 3000,
-          maxAttempts: null
+          maxAttempts: null,
+          onReconnect: (success, attempt) => {
+            appendWatchLog({
+              scope: "serial",
+              level: success ? "info" : "warning",
+              message: success
+                ? "Reconexao serial concluida"
+                : "Tentativa de reconexao serial",
+              detail: `${portPath} | tentativa ${attempt}`
+            });
+
+            if (success) {
+              void requestFirmwareHandshake(port, `reconnect-${attempt}`);
+            }
+          }
         });
         appendWatchLog({
           scope: "serial",
@@ -177,10 +315,16 @@ export function useSerialRuntime() {
 
           queueRef.current = queueRef.current
             .then(async () => {
+              let hasPendingAudioChanges = false;
+
               for (const rawLine of completeLines) {
                 const updates = processSerialLine(rawLine);
-                const outcomes = await applySliderTargetsBatch(profile, updates);
-                commitAppliedResults(updates, outcomes);
+                hasPendingAudioChanges =
+                  stageAudioUpdates(updates) || hasPendingAudioChanges;
+              }
+
+              if (hasPendingAudioChanges) {
+                scheduleAudioFlush();
               }
             })
             .catch((error: unknown) => {
@@ -206,7 +350,8 @@ export function useSerialRuntime() {
 
         portRef.current = port;
         unsubscribeRef.current = unsubscribe;
-        setStatus("connected", "Aguardando leituras do firmware", portPath);
+        await requestFirmwareHandshake(port, "connect");
+        setStatus("connected", "Aguardando handshake do firmware", portPath);
         appendWatchLog({
           scope: "serial",
           level: "info",
@@ -256,6 +401,7 @@ export function useSerialRuntime() {
     return () => {
       cancelled = true;
       window.clearInterval(heartbeatTimer);
+      resetPendingAudioUpdates();
       void stopSerial();
     };
   }, [
