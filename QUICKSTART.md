@@ -126,11 +126,11 @@ When the app opens, this is the expected flow:
 
 Default profile mapping:
 
-| Knob | Default target |
-| --- | --- |
-| 1 | Default output / master volume |
-| 2 | `Spotify`, `Google Chrome`, `Firefox` |
-| 3 | `default_microphone` |
+| Knob | Default target                        |
+| ---- | ------------------------------------- |
+| 1    | Default output / master volume        |
+| 2    | `Spotify`, `Google Chrome`, `Firefox` |
+| 3    | `default_microphone`                  |
 
 ## 8. Know where the app stores data
 
@@ -151,6 +151,12 @@ For a local Tauri build without final installers:
 
 ```bash
 npm run desktop:tauri:build
+```
+
+If you change the source app icon in [apps/desktop/src-tauri/icons/app-icon.svg](apps/desktop/src-tauri/icons/app-icon.svg), regenerate every derived asset first:
+
+```bash
+npm run desktop:icons
 ```
 
 ## 10. Quick troubleshooting

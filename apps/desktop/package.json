@@ -10,7 +10,8 @@
     "preview": "vite preview",
     "typecheck": "tsc --project tsconfig.json --noEmit",
     "test": "vitest run",
-    "tauri": "tauri"
+    "tauri": "tauri",
+    "icons:generate": "npm exec tauri -- icon \"$PWD/src-tauri/icons/app-icon.svg\" -o \"$PWD/src-tauri/icons\""
   },
   "dependencies": {
     "@fontsource/instrument-sans": "^5.2.8",

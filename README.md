@@ -98,6 +98,7 @@ If you are setting up real hardware, follow these guides next:
 | `npm run verify`              | Runs shared + desktop typecheck, shared + desktop tests, Rust tests, and the desktop production build |
 | `npm run desktop:dev`         | Starts the Vite frontend for UI work                                                                  |
 | `npm run desktop:watch`       | Starts the full Tauri desktop app in development                                                      |
+| `npm run desktop:icons`       | Regenerates every desktop icon asset from `apps/desktop/src-tauri/icons/app-icon.svg`                 |
 | `npm run desktop:tauri:build` | Builds the Tauri desktop app locally without bundling installers                                      |
 | `npm run firmware:compile`    | Compiles the Arduino Nano firmware                                                                    |
 | `npm run rust:test`           | Runs Rust backend tests                                                                               |
@@ -129,6 +130,16 @@ Typical locations:
 - Windows: `%APPDATA%\\io.ioruba.desktop\\`
 
 The watch log is trimmed automatically to roughly `1 MiB`, so it stays useful for diagnostics without growing forever.
+
+## 🖼️ Desktop icons
+
+When you edit [apps/desktop/src-tauri/icons/app-icon.svg](apps/desktop/src-tauri/icons/app-icon.svg), regenerate the desktop, Android, iOS, `icns`, and `ico` assets with:
+
+```bash
+npm run desktop:icons
+```
+
+That command rewrites the generated files under [apps/desktop/src-tauri/icons](apps/desktop/src-tauri/icons).
 
 ## 🛡️ Security note for Linux builds
 
