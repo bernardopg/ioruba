@@ -53,6 +53,6 @@
 
 ## Remaining Practical Follow-up
 
-- generate production icon assets for all Tauri bundle formats
 - sign macOS and Windows installers in GitHub using the correct secrets
 - decide whether the product copy should explicitly state that real per-target audio control is Linux-first until non-Linux backends exist
+- add release checksums, provenance, and a post-build validation pass

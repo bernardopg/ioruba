@@ -7,6 +7,7 @@
 //
 // Serial contract:
 // - 9600 baud
+// - handshake command: "HELLO?" -> "HELLO board=...; fw=...; protocol=...; knobs=..."
 // - full frames such as "512|768|1023"
 // - smoothed readings
 // - snaps near the ADC edges so full travel can still reach 0 / 1023
@@ -16,17 +17,62 @@
 const int NUM_KNOBS = 3;
 const int ANALOG_PINS[NUM_KNOBS] = {A0, A1, A2};
 const long BAUD_RATE = 9600;
+const char BOARD_NAME[] = "Ioruba Nano";
+const char FIRMWARE_VERSION[] = "0.3.0";
+const int PROTOCOL_VERSION = 1;
 const int CHANGE_THRESHOLD = 4;
 const int ADC_MIN = 0;
 const int ADC_MAX = 1023;
 const int EDGE_SNAP_THRESHOLD = 7;
 const unsigned long SEND_INTERVAL_MS = 40;
 const unsigned long HEARTBEAT_INTERVAL_MS = 500;
+const unsigned long STARTUP_SERIAL_DELAY_MS = 120;
 
 int knobValues[NUM_KNOBS];
 int lastSentValues[NUM_KNOBS];
 unsigned long lastSendTime = 0;
 unsigned long lastHeartbeatTime = 0;
+
+void sendHandshake() {
+  Serial.print("HELLO board=");
+  Serial.print(BOARD_NAME);
+  Serial.print("; fw=");
+  Serial.print(FIRMWARE_VERSION);
+  Serial.print("; protocol=");
+  Serial.print(PROTOCOL_VERSION);
+  Serial.print("; knobs=");
+  Serial.println(NUM_KNOBS);
+}
+
+void processIncomingSerial() {
+  static char commandBuffer[24];
+  static int commandLength = 0;
+
+  while (Serial.available() > 0) {
+    const char incoming = static_cast<char>(Serial.read());
+
+    if (incoming == '\r') {
+      continue;
+    }
+
+    if (incoming == '\n') {
+      commandBuffer[commandLength] = '\0';
+
+      if (commandLength > 0 && strcmp(commandBuffer, "HELLO?") == 0) {
+        sendHandshake();
+      }
+
+      commandLength = 0;
+      continue;
+    }
+
+    if (commandLength < static_cast<int>(sizeof(commandBuffer)) - 1) {
+      commandBuffer[commandLength++] = incoming;
+    } else {
+      commandLength = 0;
+    }
+  }
+}
 
 int clampAdcValue(int value) {
   return constrain(value, ADC_MIN, ADC_MAX);
@@ -80,12 +126,14 @@ void sendFrame() {
 
 void setup() {
   Serial.begin(BAUD_RATE);
+  delay(STARTUP_SERIAL_DELAY_MS);
 
   for (int index = 0; index < NUM_KNOBS; index++) {
     knobValues[index] = snapToEdge(analogRead(ANALOG_PINS[index]));
     lastSentValues[index] = knobValues[index];
   }
 
+  sendHandshake();
   sendFrame();
   lastSendTime = millis();
   lastHeartbeatTime = lastSendTime;
@@ -93,6 +141,8 @@ void setup() {
 
 void loop() {
   const unsigned long now = millis();
+
+  processIncomingSerial();
 
   for (int index = 0; index < NUM_KNOBS; index++) {
     const int rawValue = snapToEdge(analogRead(ANALOG_PINS[index]));

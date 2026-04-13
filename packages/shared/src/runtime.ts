@@ -7,9 +7,11 @@ import {
 } from "./mixer";
 import type {
   AudioInventory,
+  FirmwareInfo,
   MixerProfile,
   OutcomeMap,
   PersistedState,
+  SliderOutcome,
   RuntimeSnapshot,
   RuntimeStatus,
   SliderStateMap,
@@ -41,6 +43,7 @@ export function buildRuntimeSnapshot(args: {
   outcomes: OutcomeMap;
   telemetry: TelemetryPoint[];
   audioInventory?: AudioInventory;
+  firmwareInfo?: FirmwareInfo | null;
 }): RuntimeSnapshot {
   const {
     profile,
@@ -54,7 +57,8 @@ export function buildRuntimeSnapshot(args: {
     appliedValues,
     outcomes,
     telemetry,
-    audioInventory = emptyAudioInventory
+    audioInventory = emptyAudioInventory,
+    firmwareInfo = null
   } = args;
 
   return {
@@ -73,7 +77,7 @@ export function buildRuntimeSnapshot(args: {
         rawValue,
         appliedRawValue,
         targets: slider.targets.map(describeTarget),
-        outcome: outcomes[slider.id] ?? "waiting for data",
+        outcome: outcomes[slider.id] ?? createWaitingOutcome(),
         accent: accentPalette[slider.id % accentPalette.length]
       };
     }),
@@ -82,10 +86,19 @@ export function buildRuntimeSnapshot(args: {
       activeApplications: audioInventory.applications,
       lastSerialLine,
       hint: buildHint(status, statusText),
-      backend: audioInventory.backend
+      backend: audioInventory.backend,
+      firmware: firmwareInfo
     },
     demoMode,
     telemetry
+  };
+}
+
+export function createWaitingOutcome(): SliderOutcome {
+  return {
+    summary: "waiting for data",
+    severity: "info",
+    targets: []
   };
 }
 

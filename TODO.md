@@ -1,12 +1,14 @@
 # TODO
 
-Atualizado para o projeto ativo em `2026-04-02`, com checks revisados a partir do estado real do código, da documentação, dos testes e dos assets do repositório.
+Atualizado para o projeto ativo em `2026-04-10`, com checks revisados a partir do estado real do código, da documentação, dos testes e dos assets do repositório.
 
 Formato:
 
 - `[x]` concluído
 - `[ ]` pendente
 - descrição `(tag/tag/tag)` - `fácil|médio|difícil`
+
+Prioridade atual: concluir primeiro tudo que é Linux/firmware/desktop. O backlog multiplataforma do Scrum 04 fica para o final.
 
 ## Scrum 01
 
@@ -26,26 +28,18 @@ Formato:
 
 ## Scrum 03
 
-- [ ] Melhorar a resolução de aplicações com nomes duplicados e múltiplos `sink-inputs` no backend Linux `(backend/audio/error)` - `difícil`
-- [ ] Evitar reaplicação redundante de volume com deduplicação/debounce de updates por knob `(backend/performance/runtime)` - `médio`
-- [ ] Exibir no frontend por que um target falhou ou ficou indisponível sem depender só de texto genérico `(frontend/backend/debug)` - `médio`
-- [ ] Adicionar testes de parsing e falha para inventário `pactl` com payloads incompletos ou quebrados `(test/backend/coverage)` - `médio`
+- [x] Melhorar a resolução de aplicações com nomes duplicados e múltiplos `sink-inputs` no backend Linux `(backend/audio/error)` - `difícil`
+- [x] Evitar reaplicação redundante de volume com deduplicação/debounce de updates por knob `(backend/performance/runtime)` - `médio`
+- [x] Exibir no frontend por que um target falhou ou ficou indisponível sem depender só de texto genérico `(frontend/backend/debug)` - `médio`
+- [x] Adicionar testes de parsing e falha para inventário `pactl` com payloads incompletos ou quebrados `(test/backend/coverage)` - `médio`
 - [x] Documentar regras de matching para `application`, `source`, `sink` e defaults do Linux `(docs/backend/refs)` - `fácil`
-
-## Scrum 04
-
-- [ ] Definir a experiência de produto para plataformas sem backend real, incluindo banners, limitações e fallback explícito `(frontend/product/ux)` - `médio`
-- [ ] Implementar backend de áudio para Windows com API nativa ou estratégia equivalente `(backend/audio/windows)` - `difícil`
-- [ ] Implementar backend de áudio para macOS com API nativa ou estratégia equivalente `(backend/audio/macos)` - `difícil`
-- [ ] Adicionar cobertura de CI e smoke checks por plataforma com expectativa clara de suporte `(ci/test/release)` - `médio`
-- [x] Publicar uma matriz oficial de suporte por sistema operacional e recurso `(docs/platform/release)` - `fácil`
 
 ## Scrum 05
 
-- [ ] Implementar handshake de firmware com nome da placa, versão e protocolo na conexão serial `(firmware/protocol/backend)` - `médio`
+- [x] Implementar handshake de firmware com nome da placa, versão e protocolo na conexão serial `(firmware/protocol/backend)` - `médio`
 - [ ] Adicionar calibração por knob com persistência em EEPROM `(firmware/hardware/calibration)` - `difícil`
 - [ ] Permitir dead zones, smoothing e thresholds configuráveis sem editar o sketch manualmente `(firmware/config/performance)` - `difícil`
-- [ ] Melhorar o filtro de portas para reduzir ruído de `/dev/tty*` irrelevantes na UI `(frontend/backend/serial)` - `médio`
+- [x] Melhorar o filtro de portas para reduzir ruído de `/dev/tty*` irrelevantes na UI `(frontend/backend/serial)` - `médio`
 - [ ] Criar testes de integração com simulador serial para reconexão, heartbeat e frames inválidos `(test/firmware/debug)` - `difícil`
 
 ## Scrum 06
@@ -87,3 +81,11 @@ Formato:
 - [ ] Permitir presets prontos para casos comuns como streaming, chamadas e música `(frontend/product/config)` - `fácil`
 - [ ] Estudar suporte a múltiplos controladores ou mais de 3 knobs no modelo do domínio `(backend/firmware/architecture)` - `difícil`
 - [ ] Definir backlog pós-migração com metas de produto além da paridade com o legado `(product/docs/roadmap)` - `fácil`
+
+## Scrum 04 — Multiplataforma (deixar para o final)
+
+- [ ] Definir a experiência de produto para plataformas sem backend real, incluindo banners, limitações e fallback explícito `(frontend/product/ux)` - `médio`
+- [ ] Implementar backend de áudio para Windows com API nativa ou estratégia equivalente `(backend/audio/windows)` - `difícil`
+- [ ] Implementar backend de áudio para macOS com API nativa ou estratégia equivalente `(backend/audio/macos)` - `difícil`
+- [ ] Adicionar cobertura de CI e smoke checks por plataforma com expectativa clara de suporte `(ci/test/release)` - `médio`
+- [x] Publicar uma matriz oficial de suporte por sistema operacional e recurso `(docs/platform/release)` - `fácil`

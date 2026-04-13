@@ -94,6 +94,72 @@ describe("ioruba store", () => {
 
     expect(useIorubaStore.getState().snapshot.status).toBe("demo");
     expect(useIorubaStore.getState().snapshot.telemetry.length).toBeGreaterThan(0);
+    expect(useIorubaStore.getState().snapshot.knobs[0]?.outcome.severity).toBe(
+      "success"
+    );
+    expect(
+      useIorubaStore.getState().snapshot.knobs[0]?.outcome.targets.length
+    ).toBeGreaterThan(0);
+  });
+
+  it("stores structured target diagnostics after applying results", () => {
+    const store = useIorubaStore.getState();
+    store.hydrate(store.persisted, store.audioInventory);
+
+    const updates = useIorubaStore.getState().processSerialLine("512|768|1023");
+
+    useIorubaStore.getState().commitAppliedResults(updates, {
+      0: {
+        summary: "Updated the default output to 50%",
+        severity: "success",
+        targets: [
+          {
+            target: "master",
+            status: "updated",
+            detail: "Updated the default output to 50%",
+            matched: ["alsa_output.usb"]
+          }
+        ]
+      }
+    });
+
+    const knobOutcome = useIorubaStore.getState().snapshot.knobs[0]?.outcome;
+
+    expect(knobOutcome?.summary).toBe("Updated the default output to 50%");
+    expect(knobOutcome?.severity).toBe("success");
+    expect(knobOutcome?.targets).toEqual([
+      {
+        target: "master",
+        status: "updated",
+        detail: "Updated the default output to 50%",
+        matched: ["alsa_output.usb"]
+      }
+    ]);
+  });
+
+  it("stores firmware metadata after receiving a handshake frame", () => {
+    const store = useIorubaStore.getState();
+    store.hydrate(store.persisted, store.audioInventory);
+
+    const updates = useIorubaStore
+      .getState()
+      .processSerialLine("HELLO board=Ioruba Nano; fw=0.3.0; protocol=1; knobs=3");
+
+    expect(updates).toEqual([]);
+    expect(useIorubaStore.getState().firmwareInfo).toEqual({
+      boardName: "Ioruba Nano",
+      firmwareVersion: "0.3.0",
+      protocolVersion: 1,
+      knobCount: 3
+    });
+    expect(useIorubaStore.getState().snapshot.status).toBe("connected");
+    expect(useIorubaStore.getState().snapshot.statusText).toContain("Handshake OK");
+    expect(useIorubaStore.getState().snapshot.diagnostics.firmware).toEqual({
+      boardName: "Ioruba Nano",
+      firmwareVersion: "0.3.0",
+      protocolVersion: 1,
+      knobCount: 3
+    });
   });
 
   it("updates the persisted theme preference and keeps the draft in sync", () => {

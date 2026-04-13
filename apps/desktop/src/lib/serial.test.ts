@@ -17,7 +17,7 @@ describe("serial helpers", () => {
         { port_name: "/dev/ttyACM0" },
         { path: "/dev/ttyS1" }
       ])
-    ).toEqual(["/dev/ttyUSB0", "/dev/ttyACM0", "/dev/ttyS1"]);
+    ).toEqual(["/dev/ttyUSB0", "/dev/ttyACM0"]);
   });
 
   it("ranks real USB serial devices ahead of onboard ttyS ports", () => {
@@ -42,7 +42,7 @@ describe("serial helpers", () => {
           vid: "0403"
         }
       })
-    ).toEqual(["/dev/ttyUSB0", "/dev/ttyS13"]);
+    ).toEqual(["/dev/ttyUSB0"]);
   });
 
   it("uses the active profile for auto connect and port resolution", () => {

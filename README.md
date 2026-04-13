@@ -32,6 +32,7 @@ The project keeps the hardware feel of a small mixer while modernizing the softw
 ## ✅ What you get today
 
 - serial packets such as `512|768|1023`
+- firmware handshake metadata with board name, firmware version, protocol version, and knob count
 - compatibility with the legacy packet format `P1:512`
 - live telemetry and a persistent watch log inside the desktop app
 - editable JSON profiles stored in the app config directory

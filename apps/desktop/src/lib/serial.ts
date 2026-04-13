@@ -115,6 +115,57 @@ function hasKnownText(candidate: string | null): boolean {
   return candidate !== null && candidate.toLowerCase() !== "unknown";
 }
 
+function hasUsbHints(candidate: SerialPortDetails): boolean {
+  return (
+    candidate.type?.toLowerCase() === "usb" ||
+    hasKnownText(candidate.serialNumber) ||
+    hasKnownText(candidate.pid) ||
+    hasKnownText(candidate.vid) ||
+    (candidate.manufacturer !== null &&
+      /arduino|ftdi|ch340|ch341|cp210|usb serial|usbserial/i.test(candidate.manufacturer)) ||
+    (candidate.product !== null &&
+      /arduino|ftdi|ch340|ch341|cp210|usb serial|usbserial|usbmodem/i.test(candidate.product))
+  );
+}
+
+function isNoisySerialPath(path: string): boolean {
+  return (
+    /\/dev\/ttys\d+$/i.test(path) ||
+    /\/dev\/ttyama\d+$/i.test(path) ||
+    /\/dev\/tty\d+$/i.test(path) ||
+    /\/dev\/ttyprintk$/i.test(path) ||
+    path.includes("bluetooth") ||
+    path.includes("rfcomm") ||
+    path.includes("/dev/pts/")
+  );
+}
+
+function isPreferredSerialPath(path: string): boolean {
+  return (
+    path.includes("/serial/by-id/") ||
+    path.includes("/serial/by-path/") ||
+    /^com\d+$/i.test(path) ||
+    /\/dev\/ttyusb\d+$/i.test(path) ||
+    /\/dev\/ttyacm\d+$/i.test(path) ||
+    /\/dev\/cu\.(usb|usbmodem|usbserial)/i.test(path) ||
+    /\/dev\/tty\.(usb|usbmodem|usbserial)/i.test(path)
+  );
+}
+
+function isLikelyRelevantSerialPort(candidate: SerialPortDetails): boolean {
+  const path = candidate.path.toLowerCase();
+
+  if (isPreferredSerialPath(path)) {
+    return true;
+  }
+
+  if (isNoisySerialPath(path)) {
+    return false;
+  }
+
+  return hasUsbHints(candidate);
+}
+
 function scoreSerialPort(candidate: SerialPortDetails): number {
   const path = candidate.path.toLowerCase();
   let score = 0;
@@ -201,8 +252,12 @@ function scoreSerialPort(candidate: SerialPortDetails): number {
 }
 
 function rankSerialPorts(candidate: unknown): string[] {
-  return readSerialPortCandidates(candidate)
-    .sort((left, right) => {
+  const candidates = readSerialPortCandidates(candidate);
+  const relevantCandidates = candidates.filter(isLikelyRelevantSerialPort);
+  const rankedCandidates = (relevantCandidates.length > 0
+    ? relevantCandidates
+    : candidates.filter((entry) => !isNoisySerialPath(entry.path.toLowerCase()))
+  ).sort((left, right) => {
       const scoreDiff = scoreSerialPort(right) - scoreSerialPort(left);
       if (scoreDiff !== 0) {
         return scoreDiff;
@@ -214,8 +269,9 @@ function rankSerialPorts(candidate: unknown): string[] {
       }
 
       return left.path.localeCompare(right.path);
-    })
-    .map((entry) => entry.path);
+    });
+
+  return [...new Set(rankedCandidates.map((entry) => entry.path))];
 }
 
 export function normalizeSerialPorts(candidate: unknown): string[] {

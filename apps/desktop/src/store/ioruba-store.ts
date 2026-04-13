@@ -2,19 +2,23 @@ import { create } from "zustand";
 import {
   buildDemoFrame,
   buildRuntimeSnapshot,
+  createWaitingOutcome,
   defaultPersistedState,
   emptyAudioInventory,
   mergeSliderPacket,
-  parseSliderPacket,
+  parseSerialPacket,
   pushTelemetry,
   resolveActiveProfile,
   resolveFilteredUpdates,
   sliderToAppliedPercent,
   sliderValueToPercent,
   type AudioInventory,
+  type FirmwareInfo,
+  type OutcomeMap,
   type PersistedState,
   type MixerProfile,
   type RuntimeStatus,
+  type SliderOutcome,
   type SliderStateMap,
   type SliderUpdate,
   type TelemetryPoint
@@ -45,9 +49,10 @@ interface IorubaState {
   hydrated: boolean;
   persisted: PersistedState;
   audioInventory: AudioInventory;
+  firmwareInfo: FirmwareInfo | null;
   currentValues: SliderStateMap;
   appliedValues: SliderStateMap;
-  outcomes: Record<number, string>;
+  outcomes: OutcomeMap;
   availablePorts: string[];
   lastSerialLine: string | null;
   telemetry: TelemetryPoint[];
@@ -87,7 +92,7 @@ interface IorubaState {
   processSerialLine: (rawLine: string) => SliderUpdate[];
   commitAppliedResults: (
     updates: SliderUpdate[],
-    outcomes: Record<number, string>
+    outcomes: OutcomeMap
   ) => void;
   runDemoStep: () => void;
 }
@@ -96,6 +101,7 @@ function createSnapshot(state: Pick<
   IorubaState,
   | "persisted"
   | "audioInventory"
+  | "firmwareInfo"
   | "availablePorts"
   | "currentValues"
   | "appliedValues"
@@ -120,7 +126,8 @@ function createSnapshot(state: Pick<
     appliedValues: state.appliedValues,
     outcomes: state.outcomes,
     telemetry: state.telemetry,
-    audioInventory: state.audioInventory
+    audioInventory: state.audioInventory,
+    firmwareInfo: state.firmwareInfo
   });
 }
 
@@ -131,7 +138,7 @@ function serializeActiveProfile(persisted: PersistedState) {
 function createPersistedSnapshotUpdate(
   state: IorubaState,
   persisted: PersistedState,
-  overrides?: Partial<Pick<IorubaState, "currentValues" | "appliedValues" | "outcomes" | "telemetry" | "lastSerialLine">>
+  overrides?: Partial<Pick<IorubaState, "currentValues" | "appliedValues" | "outcomes" | "telemetry" | "lastSerialLine" | "firmwareInfo">>
 ) {
   const nextState = {
     ...state,
@@ -157,11 +164,27 @@ function sliderNameForId(profile: MixerProfile, sliderId: number): string {
   return profile.sliders.find((candidate) => candidate.id === sliderId)?.name ?? `slider ${sliderId}`;
 }
 
+function formatFirmwareLabel(firmwareInfo: FirmwareInfo): string {
+  return `${firmwareInfo.boardName} v${firmwareInfo.firmwareVersion} · protocolo ${firmwareInfo.protocolVersion}`;
+}
+
 function normalizeWatchEntries(entries: WatchLogEntry[]): WatchLogEntry[] {
   return entries.map((entry, index) => ({
     ...entry,
     seq: index + 1
   }));
+}
+
+function createFallbackOutcome(summary = "target updated"): SliderOutcome {
+  return {
+    summary,
+    severity: "success",
+    targets: []
+  };
+}
+
+function outcomeSummary(outcome: SliderOutcome | undefined): string {
+  return outcome?.summary ?? "target updated";
 }
 
 function appendWatchEntry(
@@ -202,13 +225,15 @@ export const useIorubaStore = create<IorubaState>((set, get) => {
     appliedValues: {},
     outcomes: {},
     telemetry: [],
-    audioInventory: emptyAudioInventory
+    audioInventory: emptyAudioInventory,
+    firmwareInfo: null
   });
 
   return {
     hydrated: false,
     persisted: defaultPersistedState,
     audioInventory: emptyAudioInventory,
+    firmwareInfo: null,
     currentValues: {},
     appliedValues: {},
     outcomes: {},
@@ -267,6 +292,7 @@ export const useIorubaStore = create<IorubaState>((set, get) => {
         hydrated: true,
         persisted,
         audioInventory,
+        firmwareInfo: null,
         configDraft: serializeActiveProfile(persisted),
         connectionMode: nextConnectionMode,
         snapshot: buildRuntimeSnapshot({
@@ -283,7 +309,8 @@ export const useIorubaStore = create<IorubaState>((set, get) => {
           appliedValues: {},
           outcomes: {},
           telemetry: [],
-          audioInventory
+          audioInventory,
+          firmwareInfo: null
         })
       });
     },
@@ -350,12 +377,14 @@ export const useIorubaStore = create<IorubaState>((set, get) => {
       });
       set({
         connectionMode: "serial",
+        firmwareInfo: null,
         persisted: {
           ...state.persisted,
           demoMode: false
         },
         snapshot: createSnapshot({
           ...state,
+          firmwareInfo: null,
           connectionMode: "serial",
           status: "searching",
           statusText: "Procurando uma porta serial do Arduino",
@@ -373,8 +402,10 @@ export const useIorubaStore = create<IorubaState>((set, get) => {
       });
       set({
         connectionMode: "idle",
+        firmwareInfo: null,
         snapshot: createSnapshot({
           ...state,
+          firmwareInfo: null,
           connectionMode: "idle",
           status: "ready",
           statusText: reason,
@@ -396,6 +427,7 @@ export const useIorubaStore = create<IorubaState>((set, get) => {
       set({
         persisted,
         connectionMode: enabled ? "demo" : "idle",
+        firmwareInfo: null,
         currentValues: enabled ? state.currentValues : {},
         appliedValues: enabled ? state.appliedValues : {},
         outcomes: enabled ? state.outcomes : {},
@@ -403,6 +435,7 @@ export const useIorubaStore = create<IorubaState>((set, get) => {
         snapshot: createSnapshot({
           ...state,
           persisted,
+          firmwareInfo: null,
           connectionMode: enabled ? "demo" : "idle",
           currentValues: enabled ? state.currentValues : {},
           appliedValues: enabled ? state.appliedValues : {},
@@ -428,7 +461,7 @@ export const useIorubaStore = create<IorubaState>((set, get) => {
           appliedValues: {},
           outcomes: {},
           telemetry: [],
-          lastSerialLine: null
+          firmwareInfo: null
         })
       );
       get().appendWatchLog({
@@ -453,7 +486,8 @@ export const useIorubaStore = create<IorubaState>((set, get) => {
           appliedValues: {},
           outcomes: {},
           telemetry: [],
-          lastSerialLine: null
+          lastSerialLine: null,
+          firmwareInfo: null
         })
       );
       get().appendWatchLog({
@@ -481,7 +515,8 @@ export const useIorubaStore = create<IorubaState>((set, get) => {
           appliedValues: {},
           outcomes: {},
           telemetry: [],
-          lastSerialLine: null
+          lastSerialLine: null,
+          firmwareInfo: null
         })
       );
       get().appendWatchLog({
@@ -512,7 +547,8 @@ export const useIorubaStore = create<IorubaState>((set, get) => {
           appliedValues: {},
           outcomes: {},
           telemetry: [],
-          lastSerialLine: null
+          lastSerialLine: null,
+          firmwareInfo: null
         })
       );
       get().appendWatchLog({
@@ -641,7 +677,8 @@ export const useIorubaStore = create<IorubaState>((set, get) => {
           appliedValues: {},
           outcomes: {},
           telemetry: [],
-          audioInventory: state.audioInventory
+          audioInventory: state.audioInventory,
+          firmwareInfo: state.firmwareInfo
         })
       });
       get().appendWatchLog({
@@ -653,8 +690,58 @@ export const useIorubaStore = create<IorubaState>((set, get) => {
     },
     processSerialLine: (rawLine) => {
       const state = get();
-      const packet = parseSliderPacket(rawLine);
+      const packet = parseSerialPacket(rawLine);
       const activeProfile = resolveActiveProfile(state.persisted);
+
+      if (packet.kind === "handshake") {
+        const trimmedLine = rawLine.trim();
+        const firmwareInfo = packet.info;
+
+        get().appendWatchLog({
+          scope: "serial",
+          level: "info",
+          message: "Handshake do firmware recebido",
+          detail: formatFirmwareLabel(firmwareInfo)
+        });
+
+        if (
+          firmwareInfo.knobCount !== null &&
+          firmwareInfo.knobCount !== activeProfile.sliders.length
+        ) {
+          get().appendWatchLog({
+            scope: "serial",
+            level: "warning",
+            message: "Quantidade de knobs do firmware difere do perfil ativo",
+            detail: `firmware ${firmwareInfo.knobCount} | perfil ${activeProfile.sliders.length}`
+          });
+        }
+
+        set({
+          firmwareInfo,
+          lastSerialLine: rawLine,
+          snapshot: createSnapshot({
+            ...state,
+            firmwareInfo,
+            lastSerialLine: rawLine,
+            status: "connected",
+            statusText: `Handshake OK | ${formatFirmwareLabel(firmwareInfo)}`,
+            connectionPort: state.snapshot.connectionPort,
+            connectionMode: state.connectionMode
+          })
+        });
+
+        if (trimmedLine) {
+          get().appendWatchLog({
+            scope: "serial",
+            level: "info",
+            message: "Payload bruto do handshake",
+            detail: trimmedLine
+          });
+        }
+
+        return [];
+      }
+
       const nextCurrentValues =
         packet.kind === "state"
           ? mergeSliderPacket(
@@ -745,7 +832,7 @@ export const useIorubaStore = create<IorubaState>((set, get) => {
       for (const update of updates) {
         appliedValues[update.sliderId] = update.rawValue;
         outcomes[update.sliderId] =
-          nextOutcomes[update.sliderId] ?? "target updated";
+          nextOutcomes[update.sliderId] ?? createFallbackOutcome();
       }
 
       if (updates.length > 0) {
@@ -757,7 +844,7 @@ export const useIorubaStore = create<IorubaState>((set, get) => {
           detail: updates
             .map(
               (update) =>
-                `${sliderNameForId(activeProfile, update.sliderId)} -> ${outcomes[update.sliderId] ?? "target updated"}`
+                `${sliderNameForId(activeProfile, update.sliderId)} -> ${outcomeSummary(outcomes[update.sliderId])}`
             )
             .join(" | ")
         });
@@ -798,9 +885,21 @@ export const useIorubaStore = create<IorubaState>((set, get) => {
         activeProfile.ui.telemetryWindow
       );
       const appliedValues = { ...currentValues };
-      const outcomes = activeProfile.sliders.reduce<Record<number, string>>(
+      const outcomes = activeProfile.sliders.reduce<Record<number, SliderOutcome>>(
         (accumulator, slider) => {
-          accumulator[slider.id] = `demo -> ${slider.name}`;
+          accumulator[slider.id] = {
+            summary: `demo -> ${slider.name}`,
+            severity: "success",
+            targets: slider.targets.map((target) => ({
+              target:
+                target.kind === "master"
+                  ? "master"
+                  : `${target.kind}:${target.name}`,
+              status: "updated",
+              detail: "Simulado localmente sem backend de áudio real.",
+              matched: []
+            }))
+          };
           return accumulator;
         },
         {}

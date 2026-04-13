@@ -51,6 +51,7 @@ Arduino Nano
 The current firmware reads the three analog inputs and emits lines such as:
 
 ```text
+HELLO board=Ioruba Nano; fw=0.3.0; protocol=1; knobs=3
 512|768|1023
 ```
 

@@ -82,12 +82,41 @@ export interface AudioInventory {
   diagnostics: string[];
 }
 
+export interface FirmwareInfo {
+  boardName: string;
+  firmwareVersion: string;
+  protocolVersion: number;
+  knobCount: number | null;
+}
+
+export type OutcomeSeverity = "info" | "success" | "warning" | "error";
+export type TargetOutcomeStatus =
+  | "updated"
+  | "idle"
+  | "unavailable"
+  | "skipped"
+  | "error";
+
+export interface RuntimeTargetOutcome {
+  target: string;
+  status: TargetOutcomeStatus;
+  detail: string;
+  matched: string[];
+}
+
+export interface SliderOutcome {
+  summary: string;
+  severity: OutcomeSeverity;
+  targets: RuntimeTargetOutcome[];
+}
+
 export interface RuntimeDiagnostics {
   audioSummary: string;
   activeApplications: string[];
   lastSerialLine: string | null;
   hint: string;
   backend: AudioInventory["backend"];
+  firmware: FirmwareInfo | null;
 }
 
 export interface RuntimeKnobSnapshot {
@@ -97,7 +126,7 @@ export interface RuntimeKnobSnapshot {
   rawValue: number;
   appliedRawValue: number;
   targets: string[];
-  outcome: string;
+  outcome: SliderOutcome;
   accent: string;
 }
 
@@ -121,11 +150,15 @@ export interface RuntimeSnapshot {
 }
 
 export type SliderStateMap = Record<number, number>;
-export type OutcomeMap = Record<number, string>;
+export type OutcomeMap = Record<number, SliderOutcome>;
 
 export type SliderPacket =
   | { kind: "state"; values: number[] }
   | { kind: "delta"; sliderId: number; value: number };
+
+export type SerialPacket =
+  | SliderPacket
+  | { kind: "handshake"; info: FirmwareInfo };
 
 export interface SliderUpdate {
   sliderId: number;
