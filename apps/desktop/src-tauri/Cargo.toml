@@ -27,3 +27,7 @@ thiserror = "2.0"
 # GHSA-wrw7-89jp-8q8g in glib >= 0.20, but the current Tauri Linux stack is on
 # glib 0.18.x, so we backport the one-line fix locally until upstream moves.
 glib = { path = "vendor/glib-0.18.5" }
+
+# Patch PHF generator to a local backport that uses rand 0.9, eliminating the
+# vulnerable rand 0.7.x line pulled by the legacy phf tooling chain.
+phf_generator = { path = "vendor/phf_generator-0.8.0" }

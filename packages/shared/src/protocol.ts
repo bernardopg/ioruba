@@ -7,8 +7,29 @@ import type {
   SliderPacket
 } from "./types";
 
-const legacyPattern = /^P(\d+):(\d+)$/i;
 const handshakePrefix = "HELLO";
+
+function parseLegacySliderPacket(payload: string): { sliderId: number; value: number } | null {
+  if (!payload.length || payload[0] !== "P") {
+    return null;
+  }
+
+  const separatorIndex = payload.indexOf(":");
+  if (separatorIndex <= 1 || separatorIndex === payload.length - 1) {
+    return null;
+  }
+
+  const sliderIdText = payload.slice(1, separatorIndex);
+  const valueText = payload.slice(separatorIndex + 1);
+  if (!/^[0-9]+$/.test(sliderIdText) || !/^[0-9]+$/.test(valueText)) {
+    return null;
+  }
+
+  return {
+    sliderId: Number.parseInt(sliderIdText, 10) - 1,
+    value: Number.parseInt(valueText, 10)
+  };
+}
 
 export function sanitizeSerialPayload(payload: string | Uint8Array): string {
   const text =
@@ -16,7 +37,7 @@ export function sanitizeSerialPayload(payload: string | Uint8Array): string {
       ? payload
       : new TextDecoder().decode(payload);
 
-  return text.replace(/\0/g, "").trim();
+  return text.split("\0").join("").trim();
 }
 
 export function parseSliderPacket(payload: string | Uint8Array): SliderPacket {
@@ -44,10 +65,10 @@ export function parseSerialPacket(payload: string | Uint8Array): SerialPacket {
     };
   }
 
-  const legacyMatch = clean.match(legacyPattern);
+  const legacyMatch = parseLegacySliderPacket(clean);
   if (legacyMatch) {
-    const sliderId = Number.parseInt(legacyMatch[1], 10) - 1;
-    const value = Number.parseInt(legacyMatch[2], 10);
+    const sliderId = legacyMatch.sliderId;
+    const value = legacyMatch.value;
     assertSliderValue(value, clean);
 
     if (sliderId < 0) {
