@@ -22,7 +22,7 @@ concurrency:
 
 jobs:
   analyze:
-    name: Analyze (c-cpp)
+    name: Analyze (js-ts)
     runs-on: ubuntu-latest
 
     steps:
@@ -30,27 +30,17 @@ jobs:
         uses: actions/checkout@v6.0.2
 
       - name: Setup CodeQL
-        uses: github/codeql-action/init@v3
+        uses: github/codeql-action/init@v4
         with:
-          languages: c-cpp
-          build-mode: manual
+          languages: javascript-typescript
 
       - name: Setup Node
         uses: actions/setup-node@v6.3.0
         with:
           node-version: 22
 
-      - name: Setup Arduino CLI
-        uses: arduino/setup-arduino-cli@v2.0.0
-
-      - name: Install Arduino AVR core
-        run: |
-          arduino-cli config init --overwrite
-          arduino-cli core update-index
-          arduino-cli core install arduino:avr
-
-      - name: Build firmware
-        run: npm run firmware:compile
+      - name: Install dependencies
+        run: npm ci
 
       - name: Analyze CodeQL
-        uses: github/codeql-action/analyze@v3
+        uses: github/codeql-action/analyze@v4
