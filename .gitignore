@@ -57,3 +57,4 @@ apps/desktop/src-tauri/gen/
 #cache
 .cache/
 /.mypy_cache/
+.worktrees/
