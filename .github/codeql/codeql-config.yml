@@ -1,0 +1,3 @@
+name: Ioruba CodeQL config
+paths-ignore:
+  - apps/desktop/src-tauri/vendor/**

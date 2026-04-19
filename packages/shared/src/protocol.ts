@@ -7,8 +7,8 @@ import type {
   SliderPacket
 } from "./types";
 
-const legacyPattern = /^P(?<slider>\d+):(?<value>\d+)$/i;
-const handshakePattern = /^HELLO\s+(?<payload>.+)$/i;
+const legacyPattern = /^P(\d+):(\d+)$/i;
+const handshakePrefix = "HELLO";
 
 export function sanitizeSerialPayload(payload: string | Uint8Array): string {
   const text =
@@ -45,10 +45,11 @@ export function parseSerialPacket(payload: string | Uint8Array): SerialPacket {
   }
 
   const legacyMatch = clean.match(legacyPattern);
-  if (legacyMatch?.groups) {
-    const sliderId = Number.parseInt(legacyMatch.groups.slider, 10) - 1;
-    const value = Number.parseInt(legacyMatch.groups.value, 10);
+  if (legacyMatch) {
+    const sliderId = Number.parseInt(legacyMatch[1], 10) - 1;
+    const value = Number.parseInt(legacyMatch[2], 10);
     assertSliderValue(value, clean);
+
     if (sliderId < 0) {
       throw new Error("Invalid legacy slider id");
     }
@@ -142,12 +143,17 @@ function assertSliderValue(value: number, label: string): void {
 }
 
 function parseHandshakePacket(payload: string): FirmwareInfo | null {
-  const match = payload.match(handshakePattern);
-  if (!match?.groups?.payload) {
+  const normalized = payload.trimStart();
+  if (!normalized.toUpperCase().startsWith(`${handshakePrefix} `)) {
     return null;
   }
 
-  const fields = match.groups.payload
+  const handshakePayload = normalized.slice(handshakePrefix.length).trimStart();
+  if (!handshakePayload) {
+    return null;
+  }
+
+  const fields = handshakePayload
     .split(";")
     .map((entry) => entry.trim())
     .filter(Boolean)
