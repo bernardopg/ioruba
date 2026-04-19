@@ -1,24 +1,70 @@
-[![Release workflow](https://github.com/bernardopg/ioruba/actions/workflows/release.yml/badge.svg)](https://github.com/bernardopg/ioruba/actions/workflows/release.yml)
-[![CI workflow](https://github.com/bernardopg/ioruba/actions/workflows/ci.yml/badge.svg)](https://github.com/bernardopg/ioruba/actions/workflows/ci.yml)
-[![Version](https://img.shields.io/github/package-json/v/bernardopg/ioruba?filename=package.json&label=version)](package.json)
-[![Project status](https://img.shields.io/badge/status-active%20development-2ea043)](TODO.md)
-[![Last commit](https://img.shields.io/github/last-commit/bernardopg/ioruba?label=last%20commit)](https://github.com/bernardopg/ioruba/commits/main)
-[![License: MIT](https://img.shields.io/badge/license-MIT-0A66C2)](LICENSE)
+<div align="center">
 
-[![GitHub Sponsors](https://img.shields.io/badge/GitHub%20Sponsors-30363D?logo=GitHub-Sponsors&logoColor=EA4AAA)](https://github.com/sponsors/bernardopg)
-[![Buy Me a Coffee](https://img.shields.io/badge/Buy%20Me%20a%20Coffee-FFDD00?logo=buy-me-a-coffee&logoColor=black)](https://www.buymeacoffee.com/WctwoM9eMU)
+<a href="https://github.com/bernardopg/ioruba/actions/workflows/release.yml">
+  <img alt="Release workflow" src="https://github.com/bernardopg/ioruba/actions/workflows/release.yml/badge.svg" />
+</a>
+<a href="https://github.com/bernardopg/ioruba/actions/workflows/ci.yml">
+  <img alt="CI workflow" src="https://github.com/bernardopg/ioruba/actions/workflows/ci.yml/badge.svg" />
+</a>
+<a href="package.json">
+  <img alt="Version" src="https://img.shields.io/github/package-json/v/bernardopg/ioruba?filename=package.json&label=version" />
+</a>
+<a href="TODO.md">
+  <img alt="Project status" src="https://img.shields.io/badge/status-active%20development-2ea043" />
+</a>
+<a href="https://github.com/bernardopg/ioruba/commits/main">
+  <img alt="Last commit" src="https://img.shields.io/github/last-commit/bernardopg/ioruba?label=last%20commit" />
+</a>
+<a href="LICENSE">
+  <img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-0A66C2" />
+</a>
 
-[![Tauri 2](https://img.shields.io/badge/Tauri-2-24C8DB?logo=tauri&logoColor=fff)](https://tauri.app/)
-[![Rust](https://img.shields.io/badge/Rust-%23000000.svg?logo=rust&logoColor=white)](https://www.rust-lang.org/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=fff)](https://www.typescriptlang.org/)
-[![C++](https://img.shields.io/badge/C++-%2300599C.svg?logo=c%2B%2B&logoColor=white)](https://isocpp.org/)
-[![Arduino Nano](https://img.shields.io/badge/Arduino%20Nano-00979D?logo=arduino&logoColor=white)](https://www.arduino.cc/)
-[![Node.js 22](https://img.shields.io/badge/Node.js-22-5FA04E?logo=node.js&logoColor=white)](https://nodejs.org/en)
+<br />
 
-[![Linux: Supported](https://img.shields.io/badge/Linux-supported-3FB950?logo=linux&logoColor=black)](#platform-support)
-[![macOS: Partial](https://img.shields.io/badge/macOS-partial-A0A0A0?logo=apple&logoColor=white)](#platform-support)
-[![Windows: Partial](https://img.shields.io/badge/Windows-partial-0078D6?logo=windows11&logoColor=white)](#platform-support)
-[![Arch Linux](https://img.shields.io/badge/Arch%20Linux-compatible-1793D1?logo=arch-linux&logoColor=fff)](#platform-support)
+<a href="https://github.com/sponsors/bernardopg">
+  <img alt="GitHub Sponsors" src="https://img.shields.io/badge/GitHub%20Sponsors-30363D?logo=GitHub-Sponsors&logoColor=EA4AAA" />
+</a>
+<a href="https://www.buymeacoffee.com/WctwoM9eMU">
+  <img alt="Buy Me a Coffee" src="https://img.shields.io/badge/Buy%20Me%20a%20Coffee-FFDD00?logo=buy-me-a-coffee&logoColor=black" />
+</a>
+
+<br />
+
+<a href="https://tauri.app/">
+  <img alt="Tauri 2" src="https://img.shields.io/badge/Tauri-2-24C8DB?logo=tauri&logoColor=fff" />
+</a>
+<a href="https://www.rust-lang.org/">
+  <img alt="Rust" src="https://img.shields.io/badge/Rust-%23000000.svg?logo=rust&logoColor=white" />
+</a>
+<a href="https://www.typescriptlang.org/">
+  <img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=fff" />
+</a>
+<a href="https://isocpp.org/">
+  <img alt="C++" src="https://img.shields.io/badge/C++-%2300599C.svg?logo=c%2B%2B&logoColor=white" />
+</a>
+<a href="https://www.arduino.cc/">
+  <img alt="Arduino Nano" src="https://img.shields.io/badge/Arduino%20Nano-00979D?logo=arduino&logoColor=white" />
+</a>
+<a href="https://nodejs.org/en">
+  <img alt="Node.js 22" src="https://img.shields.io/badge/Node.js-22-5FA04E?logo=node.js&logoColor=white" />
+</a>
+
+<br />
+
+<a href="#platform-support">
+  <img alt="Linux: Supported" src="https://img.shields.io/badge/Linux-supported-3FB950?logo=linux&logoColor=black" />
+</a>
+<a href="#platform-support">
+  <img alt="macOS: Partial" src="https://img.shields.io/badge/macOS-partial-A0A0A0?logo=apple&logoColor=white" />
+</a>
+<a href="#platform-support">
+  <img alt="Windows: Partial" src="https://img.shields.io/badge/Windows-partial-0078D6?logo=windows11&logoColor=white" />
+</a>
+<a href="#platform-support">
+  <img alt="Arch Linux" src="https://img.shields.io/badge/Arch%20Linux-compatible-1793D1?logo=arch-linux&logoColor=fff" />
+</a>
+
+</div>
 
 # Ioruba
 
