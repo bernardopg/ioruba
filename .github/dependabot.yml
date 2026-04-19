@@ -15,7 +15,11 @@ updates:
     labels:
       - dependencies
       - github-actions
+    ignore:
+      - dependency-name: dtolnay/rust-toolchain
     groups:
       actions:
         patterns:
           - "*"
+        exclude-patterns:
+          - dtolnay/rust-toolchain
