@@ -4,7 +4,12 @@ import { SerialPort } from "tauri-plugin-serialplugin-api";
 import { applySliderTargetsBatch } from "@/lib/backend";
 import { resolveSerialPort } from "@/lib/serial";
 import { useIorubaStore } from "@/store/ioruba-store";
-import { resolveActiveProfile, type SliderUpdate } from "@ioruba/shared";
+import {
+  encodeFirmwareConfigCommand,
+  firmwareConfigMatchesProfile,
+  resolveActiveProfile,
+  type SliderUpdate
+} from "@ioruba/shared";
 
 function normalizeIncomingData(data: string | Uint8Array): string {
   if (typeof data === "string") {
@@ -18,6 +23,7 @@ export function useSerialRuntime() {
   const persisted = useIorubaStore((state) => state.persisted);
   const availablePorts = useIorubaStore((state) => state.availablePorts);
   const connectionMode = useIorubaStore((state) => state.connectionMode);
+  const firmwareInfo = useIorubaStore((state) => state.firmwareInfo);
   const setStatus = useIorubaStore((state) => state.setStatus);
   const appendWatchLog = useIorubaStore((state) => state.appendWatchLog);
   const processSerialLine = useIorubaStore((state) => state.processSerialLine);
@@ -35,6 +41,7 @@ export function useSerialRuntime() {
   const queueRef = useRef(Promise.resolve());
   const heartbeatWarningRef = useRef(false);
   const serialBufferRef = useRef("");
+  const lastFirmwareConfigRef = useRef<string | null>(null);
 
   useEffect(() => {
     if (!hydrated) {
@@ -173,6 +180,7 @@ export function useSerialRuntime() {
     const stopSerial = async () => {
       heartbeatWarningRef.current = false;
       serialBufferRef.current = "";
+      lastFirmwareConfigRef.current = null;
       resetPendingAudioUpdates();
 
       if (unsubscribeRef.current) {
@@ -415,4 +423,42 @@ export function useSerialRuntime() {
     runDemoStep,
     setStatus
   ]);
+
+  useEffect(() => {
+    if (connectionMode !== "serial" || !portRef.current || !firmwareInfo) {
+      return;
+    }
+
+    const profile = resolveActiveProfile(persisted);
+    if (firmwareConfigMatchesProfile(profile, firmwareInfo)) {
+      lastFirmwareConfigRef.current = null;
+      return;
+    }
+
+    const nextCommand = encodeFirmwareConfigCommand(profile);
+    if (lastFirmwareConfigRef.current === nextCommand) {
+      return;
+    }
+
+    lastFirmwareConfigRef.current = nextCommand;
+    void portRef.current
+      .write(`${nextCommand}\n`)
+      .then(() => {
+        appendWatchLog({
+          scope: "serial",
+          level: "info",
+          message: "Configuracao do firmware enviada",
+          detail: nextCommand
+        });
+      })
+      .catch((error) => {
+        lastFirmwareConfigRef.current = null;
+        appendWatchLog({
+          scope: "serial",
+          level: "error",
+          message: "Falha ao enviar configuracao do firmware",
+          detail: error instanceof Error ? error.message : String(error)
+        });
+      });
+  }, [appendWatchLog, connectionMode, firmwareInfo, persisted]);
 }

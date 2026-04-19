@@ -95,16 +95,16 @@ pub fn load_entries(path: &Path) -> Result<Vec<WatchLogEntry>, String> {
     let mut entries = Vec::new();
 
     for line in payload.lines() {
-      if line.trim().is_empty() {
-          continue;
-      }
+        if line.trim().is_empty() {
+            continue;
+        }
 
-      match serde_json::from_str::<WatchLogEntry>(line) {
-          Ok(entry) => entries.push(entry),
-          Err(_error) => {
-              continue;
-          }
-      }
+        match serde_json::from_str::<WatchLogEntry>(line) {
+            Ok(entry) => entries.push(entry),
+            Err(_error) => {
+                continue;
+            }
+        }
     }
 
     Ok(trim_watch_entries(&entries, WATCH_LOG_MAX_BYTES))

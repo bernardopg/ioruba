@@ -17,11 +17,17 @@ export type AudioTarget =
   | { kind: "source"; name: string }
   | { kind: "sink"; name: string };
 
+export interface FirmwareCalibration {
+  minRaw: number;
+  maxRaw: number;
+}
+
 export interface SliderConfig {
   id: number;
   name: string;
   targets: AudioTarget[];
   inverted?: boolean;
+  calibration?: FirmwareCalibration;
 }
 
 export interface SerialSettings {
@@ -37,6 +43,12 @@ export interface AudioSettings {
   transitionDurationMs: number;
 }
 
+export interface FirmwareSettings {
+  changeThreshold: number;
+  edgeDeadzone: number;
+  smoothingStrength: number;
+}
+
 export interface UiSettings {
   language: UiLanguage;
   theme: ThemeMode;
@@ -50,6 +62,7 @@ export interface MixerProfile {
   serial: SerialSettings;
   sliders: SliderConfig[];
   audio: AudioSettings;
+  firmware: FirmwareSettings;
   ui: UiSettings;
 }
 
@@ -63,6 +76,7 @@ export interface PersistedState {
   profiles: MixerProfile[];
   lastWindow: WindowState;
   demoMode: boolean;
+  launchOnLogin: boolean;
   lastPort: string | null;
 }
 
@@ -87,6 +101,11 @@ export interface FirmwareInfo {
   firmwareVersion: string;
   protocolVersion: number;
   knobCount: number | null;
+  controllerConfig: FirmwareControllerConfig | null;
+}
+
+export interface FirmwareControllerConfig extends FirmwareSettings {
+  calibrations: FirmwareCalibration[];
 }
 
 export type OutcomeSeverity = "info" | "success" | "warning" | "error";

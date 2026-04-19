@@ -1,3 +1,5 @@
+import { useState } from "react";
+
 import {
   LaptopMinimal,
   Mic2,
@@ -23,12 +25,16 @@ import { KnobPanel } from "@/components/dashboard/knob-panel";
 import { OverviewSignalPanel } from "@/components/dashboard/overview-signal-panel";
 import { WatchLogPanel } from "@/components/dashboard/watch-log-panel";
 import { TelemetryChart } from "@/components/dashboard/telemetry-chart";
+import { useBackgroundTray } from "@/hooks/use-background-tray";
 import { usePersistence } from "@/hooks/use-persistence";
 import { useRuntimeBoot } from "@/hooks/use-runtime-boot";
 import { useSerialRuntime } from "@/hooks/use-serial-runtime";
 import { useThemeSync } from "@/hooks/use-theme-sync";
 import { useWatchBridge } from "@/hooks/use-watch-bridge";
-import { listAudioInventory } from "@/lib/backend";
+import {
+  listAudioInventory,
+  setLaunchOnLoginEnabled
+} from "@/lib/backend";
 import {
   parseProfileDraft,
   serializeProfileDraft
@@ -53,6 +59,7 @@ function toneForStatus(status: string): "neutral" | "positive" | "warning" | "cr
 }
 
 export default function App() {
+  useBackgroundTray();
   useWatchBridge();
   useRuntimeBoot();
   usePersistence();
@@ -68,6 +75,7 @@ export default function App() {
   const requestConnect = useIorubaStore((state) => state.requestConnect);
   const disconnect = useIorubaStore((state) => state.disconnect);
   const setDemoMode = useIorubaStore((state) => state.setDemoMode);
+  const setLaunchOnLogin = useIorubaStore((state) => state.setLaunchOnLogin);
   const selectProfile = useIorubaStore((state) => state.selectProfile);
   const createProfile = useIorubaStore((state) => state.createProfile);
   const duplicateActiveProfile = useIorubaStore(
@@ -81,6 +89,7 @@ export default function App() {
   const appendWatchLog = useIorubaStore((state) => state.appendWatchLog);
   const audioInventory = useIorubaStore((state) => state.audioInventory);
   const activeProfile = resolveActiveProfile(persisted);
+  const [launchOnLoginPending, setLaunchOnLoginPending] = useState(false);
 
   useThemeSync(activeProfile.ui.theme);
 
@@ -225,6 +234,38 @@ export default function App() {
                 <Switch
                   checked={persisted.demoMode}
                   onCheckedChange={(checked) => setDemoMode(checked)}
+                />
+              </div>
+              <div className="flex items-center justify-between rounded-[22px] border border-(--color-border) bg-(--color-panel) px-4 py-3">
+                <div>
+                  <p className="text-sm font-semibold text-(--color-ink)">
+                    Iniciar com a sessão
+                  </p>
+                  <p className="text-sm text-(--color-muted)">
+                    Abre o Ioruba no login e mantém o app disponível no tray.
+                  </p>
+                </div>
+                <Switch
+                  checked={persisted.launchOnLogin}
+                  disabled={launchOnLoginPending}
+                  onCheckedChange={(checked) => {
+                    setLaunchOnLoginPending(true);
+                    void setLaunchOnLoginEnabled(checked)
+                      .then((actual) => {
+                        setLaunchOnLogin(actual);
+                      })
+                      .catch((error) => {
+                        appendWatchLog({
+                          scope: "app",
+                          level: "error",
+                          message: "Falha ao atualizar inicializacao com a sessao",
+                          detail: error instanceof Error ? error.message : String(error)
+                        });
+                      })
+                      .finally(() => {
+                        setLaunchOnLoginPending(false);
+                      });
+                  }}
                 />
               </div>
               <div className="rounded-[22px] border border-(--color-border) bg-(--color-panel) px-4 py-4">

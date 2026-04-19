@@ -81,6 +81,26 @@ export async function clearWatchLogEntries(): Promise<void> {
   await invoke("clear_watch_log_entries");
 }
 
+export async function getLaunchOnLoginEnabled(): Promise<boolean> {
+  if (!isTauri()) {
+    return false;
+  }
+
+  return invoke<boolean>("get_launch_on_login_enabled");
+}
+
+export async function setLaunchOnLoginEnabled(
+  enabled: boolean
+): Promise<boolean> {
+  if (!isTauri()) {
+    return enabled;
+  }
+
+  return invoke<boolean>("set_launch_on_login_enabled", {
+    enabled
+  });
+}
+
 export async function listAudioInventory(): Promise<AudioInventory> {
   return invoke<AudioInventory>("list_audio_inventory");
 }

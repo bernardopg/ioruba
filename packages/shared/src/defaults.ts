@@ -15,7 +15,11 @@ export const defaultProfile: MixerProfile = {
     {
       id: 0,
       name: "Master Volume",
-      targets: [{ kind: "master" }]
+      targets: [{ kind: "master" }],
+      calibration: {
+        minRaw: 0,
+        maxRaw: 1023
+      }
     },
     {
       id: 1,
@@ -24,18 +28,31 @@ export const defaultProfile: MixerProfile = {
         { kind: "application", name: "Spotify" },
         { kind: "application", name: "Google Chrome" },
         { kind: "application", name: "Firefox" }
-      ]
+      ],
+      calibration: {
+        minRaw: 0,
+        maxRaw: 1023
+      }
     },
     {
       id: 2,
       name: "Microphone",
-      targets: [{ kind: "source", name: "default_microphone" }]
+      targets: [{ kind: "source", name: "default_microphone" }],
+      calibration: {
+        minRaw: 0,
+        maxRaw: 1023
+      }
     }
   ],
   audio: {
     noiseReduction: "default",
     smoothTransitions: true,
     transitionDurationMs: 50
+  },
+  firmware: {
+    changeThreshold: 4,
+    edgeDeadzone: 7,
+    smoothingStrength: 75
   },
   ui: {
     language: "pt-BR",
@@ -53,6 +70,7 @@ export const defaultPersistedState: PersistedState = {
     height: 920
   },
   demoMode: false,
+  launchOnLogin: false,
   lastPort: null
 };
 

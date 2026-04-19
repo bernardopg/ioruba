@@ -17,10 +17,10 @@ The active repository is designed around a practical `Arduino Nano + 3 potentiom
 ## Wiring map
 
 | Control | Left pin | Center pin | Right pin |
-| --- | --- | --- | --- |
-| Knob 1 | `GND` | `A0` | `5V` |
-| Knob 2 | `GND` | `A1` | `5V` |
-| Knob 3 | `GND` | `A2` | `5V` |
+| ------- | -------- | ---------- | --------- |
+| Knob 1  | `GND`    | `A0`       | `5V`      |
+| Knob 2  | `GND`    | `A1`       | `5V`      |
+| Knob 3  | `GND`    | `A2`       | `5V`      |
 
 > If clockwise/counter-clockwise movement feels reversed, swap the two outer pins on that potentiometer.
 
@@ -48,14 +48,14 @@ Arduino Nano
 
 ## What the firmware expects
 
-The current firmware reads the three analog inputs and emits lines such as:
+The current firmware reads the three analog inputs, persists tuning and calibration in EEPROM, and emits lines such as:
 
 ```text
-HELLO board=Ioruba Nano; fw=0.3.0; protocol=1; knobs=3
+HELLO board=Ioruba Nano; fw=0.4.0; protocol=2; knobs=3; threshold=4; deadzone=7; smooth=75; mins=0,0,0; maxs=1023,1023,1023
 512|768|1023
 ```
 
-That maps directly to the active desktop runtime. The runtime also accepts the older legacy packet style, but the current build target is the full-frame format above.
+That maps directly to the active desktop runtime. The runtime also accepts the older legacy packet style, but the current build target is the full-frame format above plus the handshake metadata used to sync controller tuning.
 
 ## After the hardware is wired
 

@@ -79,6 +79,7 @@ interface IorubaState {
   requestConnect: () => void;
   disconnect: (reason?: string) => void;
   setDemoMode: (enabled: boolean) => void;
+  setLaunchOnLogin: (enabled: boolean) => void;
   selectProfile: (profileId: string) => void;
   createProfile: () => void;
   duplicateActiveProfile: () => void;
@@ -445,6 +446,22 @@ export const useIorubaStore = create<IorubaState>((set, get) => {
           statusText: enabled ? "Modo demo ativo" : "Modo demo desativado",
           connectionPort: enabled ? null : state.snapshot.connectionPort
         })
+      });
+    },
+    setLaunchOnLogin: (enabled) => {
+      const state = get();
+      set({
+        persisted: {
+          ...state.persisted,
+          launchOnLogin: enabled
+        }
+      });
+      get().appendWatchLog({
+        scope: "app",
+        level: enabled ? "info" : "warning",
+        message: enabled
+          ? "Inicializacao com a sessao ativada"
+          : "Inicializacao com a sessao desativada"
       });
     },
     selectProfile: (profileId) => {

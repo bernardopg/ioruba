@@ -5,6 +5,31 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+## [0.4.0](https://github.com/bernardopg/ioruba/compare/v0.3.0...v0.4.0) (2026-04-19)
+
+### Changed
+- refreshed the repository documentation to match the active Tauri desktop stack, Linux-first audio support, and current hardware workflow
+- added the Arduino Nano Type-C circuit diagram and updated the Nano, hardware, testing, and release docs for the new firmware handshake and Arch smoke-test flow
+
+### Features
+- persist knob calibration and firmware tuning in EEPROM
+- add tray/background handling and launch-on-login support on Linux
+- expose firmware thresholds, deadzone, smoothing, and per-knob calibration in the desktop profile workbench
+- expand the serial handshake to report controller config with protocol v2
+
+### Bug Fixes
+- keep the release and CI workflows pinned to current GitHub Actions versions
+- preserve legacy `P1:512` packets while adding controller config support to the serial parser
+- align Linux desktop packaging metadata with tray and indicator requirements
+
+### Security
+- upgraded `vite` from `7.3.1` to `7.3.2` in the desktop toolchain
+- resolved GitHub/Dependabot advisories `GHSA-p9ff-h696-f583`, `GHSA-v2wj-q39q-566r`, and `GHSA-4w7w-66w2-5vf9`
+- confirmed the npm toolchain reports `0` open audit vulnerabilities after the upgrade
+- documented that the remaining Rust audit findings are upstream/transitive warnings in the current Tauri + GTK3 Linux stack, not newly introduced project-level advisories
+
 ## [0.2.3](https://github.com/bernardopg/ioruba/compare/v0.2.2...v0.2.3) (2026-03-19)
 
 
@@ -62,22 +87,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * make release-please update generic version files ([d7c871d](https://github.com/bernardopg/ioruba/commit/d7c871d8cb5d361c2ff5b759e785aebdc0a90728))
 * stabilize automation and hlint compliance ([0c7c114](https://github.com/bernardopg/ioruba/commit/0c7c11461a621bea55e568c7514f5ae5e374ba6a))
 
-## [Unreleased]
-
-### Changed
-- Repository documentation was refreshed to better reflect the active Tauri desktop stack, Linux-first audio support, and the current hardware workflow.
-
-### Security
-- upgraded `vite` from `7.3.1` to `7.3.2` in the desktop toolchain
-- resolved GitHub/Dependabot advisories `GHSA-p9ff-h696-f583`, `GHSA-v2wj-q39q-566r`, and `GHSA-4w7w-66w2-5vf9`
-- confirmed the npm toolchain reports `0` open audit vulnerabilities after the upgrade
-- documented that the remaining Rust audit findings are upstream/transitive warnings in the current Tauri + GTK3 Linux stack, not newly introduced project-level advisories
-
 ## [0.1.0] - 2025-12-22
 
 ### Added
 - Initial tagged baseline before the current Haskell-first productization pass
 
-[Unreleased]: https://github.com/bernardopg/ioruba/compare/v0.3.0...HEAD
+[Unreleased]: https://github.com/bernardopg/ioruba/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/bernardopg/ioruba/releases/tag/v0.4.0
 [0.3.0]: https://github.com/bernardopg/ioruba/releases/tag/v0.3.0
 [0.1.0]: https://github.com/bernardopg/ioruba/releases/tag/v0.1.0

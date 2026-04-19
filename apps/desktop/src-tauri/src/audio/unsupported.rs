@@ -1,8 +1,9 @@
 use std::collections::HashMap;
 
 use super::{
-    ApplySliderTargetsRequest, ApplySliderTargetsResponse, AudioEndpoint, AudioError, AudioInventory,
-    AudioTarget, OutcomeSeverity, RuntimeTargetOutcome, SliderOutcome, TargetOutcomeStatus,
+    ApplySliderTargetsRequest, ApplySliderTargetsResponse, AudioEndpoint, AudioError,
+    AudioInventory, AudioTarget, OutcomeSeverity, RuntimeTargetOutcome, SliderOutcome,
+    TargetOutcomeStatus,
 };
 
 pub fn list_audio_inventory() -> AudioInventory {
@@ -14,7 +15,9 @@ pub fn list_audio_inventory() -> AudioInventory {
         default_sink: None,
         default_source: None,
         summary: "Audio backend unavailable on this platform".to_string(),
-        diagnostics: vec!["Only the Linux pactl backend is implemented in this migration".to_string()],
+        diagnostics: vec![
+            "Only the Linux pactl backend is implemented in this migration".to_string(),
+        ],
     }
 }
 

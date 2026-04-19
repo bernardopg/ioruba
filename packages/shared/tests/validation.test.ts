@@ -15,6 +15,15 @@ describe("persisted state normalization", () => {
     expect(normalized.profiles[0]).not.toBe(defaultPersistedState.profiles[0]);
   });
 
+  it("defaults launch-on-login to false when the persisted payload is stale", () => {
+    const normalized = normalizePersistedState({
+      selectedProfileId: defaultProfile.id,
+      profiles: [defaultProfile]
+    });
+
+    expect(normalized.launchOnLogin).toBe(false);
+  });
+
   it("fills missing nested profile settings with defaults", () => {
     const normalized = normalizePersistedState({
       selectedProfileId: "custom-profile",
@@ -36,7 +45,12 @@ describe("persisted state normalization", () => {
     expect(normalized.selectedProfileId).toBe("custom-profile");
     expect(normalized.profiles[0]?.serial).toEqual(defaultProfile.serial);
     expect(normalized.profiles[0]?.audio).toEqual(defaultProfile.audio);
+    expect(normalized.profiles[0]?.firmware).toEqual(defaultProfile.firmware);
     expect(normalized.profiles[0]?.ui).toEqual(defaultProfile.ui);
+    expect(normalized.profiles[0]?.sliders[0]?.calibration).toEqual({
+      minRaw: 0,
+      maxRaw: 1023
+    });
   });
 
   it("recovers from invalid profiles and stale selections", () => {

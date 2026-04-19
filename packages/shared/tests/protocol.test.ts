@@ -3,9 +3,12 @@ import { describe, expect, it } from "vitest";
 import {
   applyNoiseReduction,
   buildRuntimeSnapshot,
+  buildFirmwareControllerConfig,
   defaultProfile,
+  encodeFirmwareConfigCommand,
   emptyAudioInventory,
   encodeSliderPacket,
+  firmwareConfigMatchesProfile,
   mergeSliderPacket,
   parseSerialPacket,
   parseSliderPacket,
@@ -49,22 +52,52 @@ describe("serial protocol parity", () => {
 
   it("parses firmware handshake packets", () => {
     expect(
-      parseSerialPacket("HELLO board=Ioruba Nano; fw=0.3.0; protocol=1; knobs=3")
+      parseSerialPacket(
+        "HELLO board=Ioruba Nano; fw=0.4.0; protocol=2; knobs=3; threshold=4; deadzone=7; smooth=75; mins=0,12,24; maxs=1000,1010,1023"
+      )
     ).toEqual({
       kind: "handshake",
       info: {
         boardName: "Ioruba Nano",
-        firmwareVersion: "0.3.0",
-        protocolVersion: 1,
-        knobCount: 3
+        firmwareVersion: "0.4.0",
+        protocolVersion: 2,
+        knobCount: 3,
+        controllerConfig: {
+          changeThreshold: 4,
+          edgeDeadzone: 7,
+          smoothingStrength: 75,
+          calibrations: [
+            { minRaw: 0, maxRaw: 1000 },
+            { minRaw: 12, maxRaw: 1010 },
+            { minRaw: 24, maxRaw: 1023 }
+          ]
+        }
       }
     });
   });
 
   it("rejects handshake payloads when parsed as slider frames", () => {
     expect(() =>
-      parseSliderPacket("HELLO board=Ioruba Nano; fw=0.3.0; protocol=1; knobs=3")
+      parseSliderPacket("HELLO board=Ioruba Nano; fw=0.4.0; protocol=2; knobs=3")
     ).toThrow("Expected slider packet, received handshake data");
+  });
+
+  it("builds a firmware config command from the active profile", () => {
+    expect(encodeFirmwareConfigCommand(defaultProfile)).toBe(
+      "CONFIG threshold=4; deadzone=7; smooth=75; mins=0,0,0; maxs=1023,1023,1023"
+    );
+  });
+
+  it("compares firmware config reported by the controller with the active profile", () => {
+    const firmwareInfo = {
+      boardName: "Ioruba Nano",
+      firmwareVersion: "0.4.0",
+      protocolVersion: 2,
+      knobCount: 3,
+      controllerConfig: buildFirmwareControllerConfig(defaultProfile)
+    };
+
+    expect(firmwareConfigMatchesProfile(defaultProfile, firmwareInfo)).toBe(true);
   });
 });
 

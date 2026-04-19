@@ -166,8 +166,51 @@ npm run desktop:icons
 Install the WebKit/GTK development packages required by Tauri:
 
 ```bash
-sudo pacman -S --needed webkit2gtk-4.1 gtk3 librsvg
+sudo pacman -S --needed \
+  webkit2gtk-4.1 \
+  gtk3 \
+  librsvg \
+  appmenu-gtk-module \
+  libappindicator-gtk3 \
+  xdotool
 ```
+
+On Arch, the tray path depends on `libappindicator-gtk3`. This matches the current Tauri 2 Linux prerequisites.
+
+## 11. Smoke test as an end user on Arch
+
+Try to build an installable Linux artifact from the repository root:
+
+```bash
+npm --workspace @ioruba/desktop run tauri build -- --bundles appimage
+```
+
+The AppImage is written under:
+
+```bash
+apps/desktop/src-tauri/target/release/bundle/appimage/
+```
+
+Run it as a user would:
+
+```bash
+./apps/desktop/src-tauri/target/release/bundle/appimage/Ioruba_*.AppImage
+```
+
+What to verify in this pass:
+
+- the app opens normally outside `tauri dev`
+- closing the main window does not kill the process
+- the app remains available in the tray
+- left click or the `Abrir Ioruba` tray action restores the window
+- `Sair` from the tray really exits the process
+- persistence, serial connection, and `Atualizar áudio` still behave the same
+
+Known limitation on current Arch hosts:
+
+- the AppImage bundling step can still fail inside `linuxdeploy` because the embedded `strip` does not understand newer Arch libraries with `.relr.dyn`
+- when that happens, treat the release binary at `apps/desktop/src-tauri/target/release/ioruba-desktop` as the local smoke-test target for tray/background behavior
+- for public AppImage artifacts, prefer building in CI or in an older Linux base image instead of on a bleeding-edge Arch workstation
 
 ### The app opens but no packets arrive
 

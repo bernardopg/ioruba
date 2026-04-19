@@ -2,6 +2,8 @@ import {
   defaultProfile,
   resolveActiveProfile,
   type AudioTarget,
+  type FirmwareCalibration,
+  type FirmwareSettings,
   type MixerProfile,
   type PersistedState,
   type SerialSettings,
@@ -57,6 +59,11 @@ export function parseProfileDraft(draft: string): DraftValidationResult {
     return audio;
   }
 
+  const firmware = parseFirmwareSettings(parsed.firmware);
+  if (!firmware.ok) {
+    return firmware;
+  }
+
   const ui = parseUiSettings(parsed.ui);
   if (!ui.ok) {
     return ui;
@@ -74,6 +81,7 @@ export function parseProfileDraft(draft: string): DraftValidationResult {
       name: name.value,
       serial: serial.value,
       audio: audio.value,
+      firmware: firmware.value,
       ui: ui.value,
       sliders: sliders.value
     }
@@ -93,11 +101,19 @@ export function cloneProfile(profile: MixerProfile): MixerProfile {
     audio: {
       ...profile.audio
     },
+    firmware: {
+      ...profile.firmware
+    },
     ui: {
       ...profile.ui
     },
     sliders: profile.sliders.map((slider) => ({
       ...slider,
+      calibration: slider.calibration
+        ? {
+            ...slider.calibration
+          }
+        : undefined,
       targets: slider.targets.map((target) => ({ ...target }))
     }))
   };
@@ -280,6 +296,53 @@ function parseAudioSettings(candidate: unknown): ValidationSuccess<MixerProfile[
   });
 }
 
+function parseFirmwareSettings(
+  candidate: unknown
+): ValidationSuccess<FirmwareSettings> | ValidationFailure {
+  if (candidate === undefined) {
+    return success(defaultProfile.firmware);
+  }
+
+  if (!isRecord(candidate)) {
+    return failure("firmware precisa ser um objeto");
+  }
+
+  const changeThreshold = readNonNegativeInteger(
+    candidate.changeThreshold,
+    "firmware.changeThreshold",
+    defaultProfile.firmware.changeThreshold
+  );
+  if (!changeThreshold.ok) {
+    return changeThreshold;
+  }
+
+  const edgeDeadzone = readNonNegativeInteger(
+    candidate.edgeDeadzone,
+    "firmware.edgeDeadzone",
+    defaultProfile.firmware.edgeDeadzone
+  );
+  if (!edgeDeadzone.ok) {
+    return edgeDeadzone;
+  }
+
+  const smoothingStrength = readIntegerInRange(
+    candidate.smoothingStrength,
+    "firmware.smoothingStrength",
+    0,
+    100,
+    defaultProfile.firmware.smoothingStrength
+  );
+  if (!smoothingStrength.ok) {
+    return smoothingStrength;
+  }
+
+  return success({
+    changeThreshold: changeThreshold.value,
+    edgeDeadzone: edgeDeadzone.value,
+    smoothingStrength: smoothingStrength.value
+  });
+}
+
 function parseUiSettings(candidate: unknown): ValidationSuccess<UiSettings> | ValidationFailure {
   if (candidate === undefined) {
     return success(defaultProfile.ui);
@@ -394,11 +457,58 @@ function parseSlider(candidate: unknown, path: string): ValidationSuccess<Slider
     return failure(`${path}.inverted precisa ser true ou false`);
   }
 
+  const calibration = parseCalibration(candidate.calibration, `${path}.calibration`);
+  if (!calibration.ok) {
+    return calibration;
+  }
+
   return success({
     id: id.value,
     name: name.value,
     targets: targets.value,
-    inverted
+    inverted,
+    calibration: calibration.value
+  });
+}
+
+function parseCalibration(
+  candidate: unknown,
+  path: string
+): ValidationSuccess<FirmwareCalibration> | ValidationFailure {
+  if (candidate === undefined) {
+    return success({
+      minRaw: 0,
+      maxRaw: 1023
+    });
+  }
+
+  if (!isRecord(candidate)) {
+    return failure(`${path} precisa ser um objeto`);
+  }
+
+  const minRaw = readIntegerInRange(candidate.minRaw, `${path}.minRaw`, 0, 1023, 0);
+  if (!minRaw.ok) {
+    return minRaw;
+  }
+
+  const maxRaw = readIntegerInRange(
+    candidate.maxRaw,
+    `${path}.maxRaw`,
+    0,
+    1023,
+    1023
+  );
+  if (!maxRaw.ok) {
+    return maxRaw;
+  }
+
+  if (minRaw.value >= maxRaw.value) {
+    return failure(`${path} precisa ter minRaw menor que maxRaw`);
+  }
+
+  return success({
+    minRaw: minRaw.value,
+    maxRaw: maxRaw.value
   });
 }
 
@@ -518,6 +628,33 @@ function readNonNegativeInteger(
   }
 
   return success(candidate as number);
+}
+
+function readIntegerInRange(
+  candidate: unknown,
+  path: string,
+  min: number,
+  max: number,
+  fallback?: number
+): ValidationSuccess<number> | ValidationFailure {
+  if (candidate === undefined) {
+    if (fallback === undefined) {
+      return failure(`${path} precisa ficar entre ${min} e ${max}`);
+    }
+
+    return success(fallback);
+  }
+
+  if (!Number.isInteger(candidate)) {
+    return failure(`${path} precisa ser um numero inteiro`);
+  }
+
+  const value = candidate as number;
+  if (value < min || value > max) {
+    return failure(`${path} precisa ficar entre ${min} e ${max}`);
+  }
+
+  return success(value);
 }
 
 function readEnum<T extends readonly string[]>(

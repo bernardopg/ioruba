@@ -2,6 +2,12 @@
 
 This guide focuses on the controller board used by the current Ioruba stack.
 
+## Circuit Design
+
+<p align="center">
+  <img src="docs/assets/circuit_schema_arduino_nano_type_c.svg" alt="Circuit Schema"/>
+</p>
+
 ## Target hardware
 
 - `Arduino Nano ATmega328P`
@@ -14,10 +20,10 @@ If you still need the physical wiring reference, read [docs/guides/hardware-setu
 ## Wiring summary
 
 | Knob | Left pin | Center pin | Right pin |
-| --- | --- | --- | --- |
-| 1 | `GND` | `A0` | `5V` |
-| 2 | `GND` | `A1` | `5V` |
-| 3 | `GND` | `A2` | `5V` |
+| ---- | -------- | ---------- | --------- |
+| 1    | `GND`    | `A0`       | `5V`      |
+| 2    | `GND`    | `A1`       | `5V`      |
+| 3    | `GND`    | `A2`       | `5V`      |
 
 > If a knob feels inverted, swap the two outer pins.
 
@@ -29,12 +35,12 @@ Use the active sketch:
 
 What it sends:
 
-- a startup and on-demand handshake such as `HELLO board=Ioruba Nano; fw=0.3.0; protocol=1; knobs=3`
+- a startup and on-demand handshake such as `HELLO board=Ioruba Nano; fw=0.4.0; protocol=2; knobs=3; threshold=4; deadzone=7; smooth=75; mins=0,0,0; maxs=1023,1023,1023`
 - smoothed analog readings
 - frames roughly every `40 ms` when values move
 - pipe-separated lines such as `512|768|1023`
 
-The desktop runtime still accepts the legacy `P1:512` packet format for compatibility, but the current firmware emits complete frames.
+The desktop runtime still accepts the legacy `P1:512` packet format for compatibility, but the current firmware now also reports controller tuning and calibration data in the handshake.
 
 ## Detect the board
 
@@ -88,7 +94,7 @@ arduino-cli upload -p /dev/ttyUSB0 --fqbn arduino:avr:nano:cpu=atmega328old firm
 After flashing, the board should emit lines like:
 
 ```text
-HELLO board=Ioruba Nano; fw=0.3.0; protocol=1; knobs=3
+HELLO board=Ioruba Nano; fw=0.4.0; protocol=2; knobs=3; threshold=4; deadzone=7; smooth=75; mins=0,0,0; maxs=1023,1023,1023
 512|768|1023
 ```
 

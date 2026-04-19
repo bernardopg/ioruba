@@ -1,4 +1,11 @@
-import type { FirmwareInfo, SerialPacket, SliderPacket } from "./types";
+import type {
+  FirmwareCalibration,
+  FirmwareControllerConfig,
+  FirmwareInfo,
+  MixerProfile,
+  SerialPacket,
+  SliderPacket
+} from "./types";
 
 const legacyPattern = /^P(?<slider>\d+):(?<value>\d+)$/i;
 const handshakePattern = /^HELLO\s+(?<payload>.+)$/i;
@@ -70,6 +77,64 @@ export function encodeSliderPacket(values: number[]): string {
   return values.join("|");
 }
 
+export function buildFirmwareControllerConfig(
+  profile: MixerProfile
+): FirmwareControllerConfig {
+  return {
+    changeThreshold: profile.firmware.changeThreshold,
+    edgeDeadzone: profile.firmware.edgeDeadzone,
+    smoothingStrength: profile.firmware.smoothingStrength,
+    calibrations: profile.sliders
+      .slice()
+      .sort((left, right) => left.id - right.id)
+      .map((slider) => ({
+        minRaw: slider.calibration?.minRaw ?? 0,
+        maxRaw: slider.calibration?.maxRaw ?? 1023
+      }))
+  };
+}
+
+export function encodeFirmwareConfigCommand(profile: MixerProfile): string {
+  const config = buildFirmwareControllerConfig(profile);
+
+  return [
+    `CONFIG threshold=${config.changeThreshold}`,
+    `deadzone=${config.edgeDeadzone}`,
+    `smooth=${config.smoothingStrength}`,
+    `mins=${config.calibrations.map((entry) => entry.minRaw).join(",")}`,
+    `maxs=${config.calibrations.map((entry) => entry.maxRaw).join(",")}`
+  ].join("; ");
+}
+
+export function firmwareConfigMatchesProfile(
+  profile: MixerProfile,
+  firmwareInfo: FirmwareInfo | null
+): boolean {
+  if (!firmwareInfo?.controllerConfig) {
+    return false;
+  }
+
+  const expected = buildFirmwareControllerConfig(profile);
+  const actual = firmwareInfo.controllerConfig;
+
+  if (
+    expected.changeThreshold !== actual.changeThreshold ||
+    expected.edgeDeadzone !== actual.edgeDeadzone ||
+    expected.smoothingStrength !== actual.smoothingStrength ||
+    expected.calibrations.length !== actual.calibrations.length
+  ) {
+    return false;
+  }
+
+  return expected.calibrations.every((entry, index) => {
+    const candidate = actual.calibrations[index];
+    return (
+      candidate?.minRaw === entry.minRaw &&
+      candidate?.maxRaw === entry.maxRaw
+    );
+  });
+}
+
 function assertSliderValue(value: number, label: string): void {
   if (!Number.isInteger(value) || value < 0 || value > 1023) {
     throw new Error(`Invalid slider value: ${label}`);
@@ -134,10 +199,96 @@ function parseHandshakePacket(payload: string): FirmwareInfo | null {
     knobCount = parsedKnobCount;
   }
 
+  const controllerConfig = parseControllerConfig(fields);
+
   return {
     boardName,
     firmwareVersion,
     protocolVersion,
-    knobCount
+    knobCount,
+    controllerConfig
   };
+}
+
+function parseControllerConfig(
+  fields: Record<string, string>
+): FirmwareControllerConfig | null {
+  if (
+    fields.threshold === undefined ||
+    fields.deadzone === undefined ||
+    fields.smooth === undefined
+  ) {
+    return null;
+  }
+
+  const changeThreshold = parseNonNegativeInteger(
+    fields.threshold,
+    "handshake threshold"
+  );
+  const edgeDeadzone = parseNonNegativeInteger(
+    fields.deadzone,
+    "handshake deadzone"
+  );
+  const smoothingStrength = parsePercentInteger(
+    fields.smooth,
+    "handshake smooth"
+  );
+
+  const mins = parseCalibrationList(fields.mins, "mins");
+  const maxs = parseCalibrationList(fields.maxs, "maxs");
+  const calibrationCount = Math.max(mins.length, maxs.length);
+  const calibrations: FirmwareCalibration[] = [];
+
+  for (let index = 0; index < calibrationCount; index += 1) {
+    const minRaw = mins[index] ?? 0;
+    const maxRaw = maxs[index] ?? 1023;
+
+    if (minRaw >= maxRaw) {
+      throw new Error(
+        `Invalid handshake calibration range at knob ${index}: ${minRaw}-${maxRaw}`
+      );
+    }
+
+    calibrations.push({
+      minRaw,
+      maxRaw
+    });
+  }
+
+  return {
+    changeThreshold,
+    edgeDeadzone,
+    smoothingStrength,
+    calibrations
+  };
+}
+
+function parseCalibrationList(value: string | undefined, label: string): number[] {
+  if (value === undefined) {
+    return [];
+  }
+
+  return value
+    .split(",")
+    .map((entry) => entry.trim())
+    .filter(Boolean)
+    .map((entry) => parseNonNegativeInteger(entry, `handshake ${label}`));
+}
+
+function parseNonNegativeInteger(value: string, label: string): number {
+  const parsed = Number.parseInt(value, 10);
+  if (!Number.isInteger(parsed) || parsed < 0) {
+    throw new Error(`Invalid ${label}: ${value}`);
+  }
+
+  return parsed;
+}
+
+function parsePercentInteger(value: string, label: string): number {
+  const parsed = parseNonNegativeInteger(value, label);
+  if (parsed > 100) {
+    throw new Error(`Invalid ${label}: ${value}`);
+  }
+
+  return parsed;
 }

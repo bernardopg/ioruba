@@ -210,7 +210,11 @@ export function ProfileWorkbench({
         id: nextId,
         name: `Knob ${profile.sliders.length + 1}`,
         targets: [{ kind: "master" }],
-        inverted: false
+        inverted: false,
+        calibration: {
+          minRaw: 0,
+          maxRaw: 1023
+        }
       });
     });
   }
@@ -539,6 +543,62 @@ export function ProfileWorkbench({
                         value={workingProfile.audio.transitionDurationMs}
                       />
                     </label>
+
+                    <label className="grid gap-2">
+                      <span className="text-[0.7rem] font-semibold uppercase tracking-[0.24em] text-(--color-muted)">
+                        Threshold do firmware
+                      </span>
+                      <input
+                        className="field"
+                        min={0}
+                        onChange={(event) =>
+                          updateNumberField(event.currentTarget.valueAsNumber, (profile, nextValue) => {
+                            profile.firmware.changeThreshold = nextValue;
+                          })
+                        }
+                        step={1}
+                        type="number"
+                        value={workingProfile.firmware.changeThreshold}
+                      />
+                    </label>
+
+                    <label className="grid gap-2">
+                      <span className="text-[0.7rem] font-semibold uppercase tracking-[0.24em] text-(--color-muted)">
+                        Deadzone do firmware
+                      </span>
+                      <input
+                        className="field"
+                        max={128}
+                        min={0}
+                        onChange={(event) =>
+                          updateNumberField(event.currentTarget.valueAsNumber, (profile, nextValue) => {
+                            profile.firmware.edgeDeadzone = nextValue;
+                          })
+                        }
+                        step={1}
+                        type="number"
+                        value={workingProfile.firmware.edgeDeadzone}
+                      />
+                    </label>
+
+                    <label className="grid gap-2">
+                      <span className="text-[0.7rem] font-semibold uppercase tracking-[0.24em] text-(--color-muted)">
+                        Smoothing do firmware (%)
+                      </span>
+                      <input
+                        className="field"
+                        max={100}
+                        min={0}
+                        onChange={(event) =>
+                          updateNumberField(event.currentTarget.valueAsNumber, (profile, nextValue) => {
+                            profile.firmware.smoothingStrength = nextValue;
+                          })
+                        }
+                        step={1}
+                        type="number"
+                        value={workingProfile.firmware.smoothingStrength}
+                      />
+                    </label>
                   </div>
 
                   <div className="grid gap-4 md:grid-cols-3">
@@ -676,6 +736,64 @@ export function ProfileWorkbench({
                           }
                           title="Direção invertida"
                         />
+                      </div>
+
+                      <div className="mt-4 grid gap-4 md:grid-cols-2">
+                        <label className="grid gap-2">
+                          <span className="text-[0.7rem] font-semibold uppercase tracking-[0.24em] text-(--color-muted)">
+                            Calibração mínima
+                          </span>
+                          <input
+                            className="field"
+                            max={1022}
+                            min={0}
+                            onChange={(event) =>
+                              updateNumberField(event.currentTarget.valueAsNumber, (profile, nextValue) => {
+                                const nextSlider = profile.sliders[sliderIndex];
+                                if (!nextSlider) {
+                                  return;
+                                }
+
+                                const maxRaw = nextSlider.calibration?.maxRaw ?? 1023;
+                                nextSlider.calibration = {
+                                  minRaw: Math.min(nextValue, maxRaw - 1),
+                                  maxRaw
+                                };
+                              })
+                            }
+                            step={1}
+                            type="number"
+                            value={slider.calibration?.minRaw ?? 0}
+                          />
+                        </label>
+
+                        <label className="grid gap-2">
+                          <span className="text-[0.7rem] font-semibold uppercase tracking-[0.24em] text-(--color-muted)">
+                            Calibração máxima
+                          </span>
+                          <input
+                            className="field"
+                            max={1023}
+                            min={1}
+                            onChange={(event) =>
+                              updateNumberField(event.currentTarget.valueAsNumber, (profile, nextValue) => {
+                                const nextSlider = profile.sliders[sliderIndex];
+                                if (!nextSlider) {
+                                  return;
+                                }
+
+                                const minRaw = nextSlider.calibration?.minRaw ?? 0;
+                                nextSlider.calibration = {
+                                  minRaw,
+                                  maxRaw: Math.max(nextValue, minRaw + 1)
+                                };
+                              })
+                            }
+                            step={1}
+                            type="number"
+                            value={slider.calibration?.maxRaw ?? 1023}
+                          />
+                        </label>
                       </div>
 
                       <div className="mt-5 space-y-3">

@@ -1,6 +1,6 @@
 # TODO
 
-Atualizado para o projeto ativo em `2026-04-10`, com checks revisados a partir do estado real do código, da documentação, dos testes e dos assets do repositório.
+Atualizado para o projeto ativo em `2026-04-19`, com checks revisados a partir do estado real do código, da documentação, dos testes e dos assets do repositório.
 
 Formato:
 
@@ -37,10 +37,11 @@ Prioridade atual: concluir primeiro tudo que é Linux/firmware/desktop. O backlo
 ## Scrum 05
 
 - [x] Implementar handshake de firmware com nome da placa, versão e protocolo na conexão serial `(firmware/protocol/backend)` - `médio`
-- [ ] Adicionar calibração por knob com persistência em EEPROM `(firmware/hardware/calibration)` - `difícil`
-- [ ] Permitir dead zones, smoothing e thresholds configuráveis sem editar o sketch manualmente `(firmware/config/performance)` - `difícil`
+- [x] Adicionar calibração por knob com persistência em EEPROM `(firmware/hardware/calibration)` - `difícil`
+- [x] Permitir dead zones, smoothing e thresholds configuráveis sem editar o sketch manualmente `(firmware/config/performance)` - `difícil`
 - [x] Melhorar o filtro de portas para reduzir ruído de `/dev/tty*` irrelevantes na UI `(frontend/backend/serial)` - `médio`
-- [ ] Criar testes de integração com simulador serial para reconexão, heartbeat e frames inválidos `(test/firmware/debug)` - `difícil`
+- [x] Criar testes de integração com simulador serial para reconexão, heartbeat e frames inválidos `(test/firmware/debug)` - `difícil`
+- [x] Validar em hardware real a gravação na EEPROM, a reaplicação após power cycle e a calibração extrema dos 3 knobs `(test/firmware/hardware)` - `médio`
 
 ## Scrum 06
 
@@ -53,8 +54,12 @@ Prioridade atual: concluir primeiro tudo que é Linux/firmware/desktop. O backlo
 ## Scrum 07
 
 - [x] Gerar ícones finais de produção para todos os formatos de bundle do Tauri `(design/release/branding)` - `médio`
+- [x] Manter o app em segundo plano ao fechar a janela e restaurar pelo tray no Linux `(release/linux/runtime)` - `médio`
+- [x] Adicionar inicialização automática no login com toggle explícito e boot silencioso no tray `(release/linux/runtime)` - `médio`
 - [ ] Configurar assinatura e notarização para Windows e macOS no pipeline `(release/security/ops)` - `difícil`
 - [ ] Revisar metadados de empacotamento Linux e qualidade do bundle desktop `(release/linux/distribution)` - `médio`
+- [ ] Resolver ou contornar a falha do AppImage local no Arch causada por `linuxdeploy` + `.relr.dyn` `(release/linux/appimage)` - `médio`
+- [ ] Validar comportamento de tray/status notifier em GNOME, KDE e Hyprland com dependências e limitações documentadas `(release/linux/desktop-environment)` - `médio`
 - [ ] Adicionar checksums, provenance e validações finais de release no workflow `(release/security/ci)` - `médio`
 - [ ] Documentar instalação, update e recuperação em caso de bundle quebrado `(docs/release/support)` - `fácil`
 

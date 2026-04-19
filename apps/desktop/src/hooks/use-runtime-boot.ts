@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import { SerialPort } from "tauri-plugin-serialplugin-api";
 
 import {
+  getLaunchOnLoginEnabled,
   listAudioInventory,
   loadPersistedState,
   loadWatchLogEntries,
@@ -30,17 +31,23 @@ export function useRuntimeBoot() {
 
     async function boot() {
       try {
-        const [persisted, inventory, watchLog] = await Promise.all([
+        const [persisted, inventory, watchLog, launchOnLogin] = await Promise.all([
           loadPersistedState(),
           listAudioInventory(),
-          loadWatchLogEntries()
+          loadWatchLogEntries(),
+          getLaunchOnLoginEnabled()
         ]);
 
         if (cancelled) {
           return;
         }
 
-        hydrate(persisted, inventory);
+        const nextPersisted = {
+          ...persisted,
+          launchOnLogin
+        };
+
+        hydrate(nextPersisted, inventory);
         hydrateWatchLog(watchLog);
 
         let watchLogPersistenceError: string | null = null;
@@ -67,17 +74,17 @@ export function useRuntimeBoot() {
           scope: "backend",
           level: "info",
           message: "Runtime hidratado",
-          detail: `${persisted.profiles.length} perfil(is) | inventario ${inventory.summary}`
+          detail: `${nextPersisted.profiles.length} perfil(is) | inventario ${inventory.summary} | autostart ${launchOnLogin ? "on" : "off"}`
         });
 
-        if (persisted.demoMode) {
+        if (nextPersisted.demoMode) {
           appendWatchLog({
             scope: "app",
             level: "warning",
             message: "Persistencia restaurou modo demo"
           });
           setDemoMode(true);
-        } else if (shouldAutoConnect(persisted)) {
+        } else if (shouldAutoConnect(nextPersisted)) {
           appendWatchLog({
             scope: "app",
             level: "info",

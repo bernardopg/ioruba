@@ -1,11 +1,14 @@
-use std::{collections::{HashMap, HashSet}, process::Command};
+use std::{
+    collections::{HashMap, HashSet},
+    process::Command,
+};
 
 use serde_json::Value;
 
 use super::{
-    ApplySliderTargetsRequest, ApplySliderTargetsResponse, AudioEndpoint, AudioError, AudioInventory,
-    AudioTarget, OutcomeSeverity, RuntimeTargetOutcome, SliderOutcome, SliderTargetChange,
-    TargetOutcomeStatus,
+    ApplySliderTargetsRequest, ApplySliderTargetsResponse, AudioEndpoint, AudioError,
+    AudioInventory, AudioTarget, OutcomeSeverity, RuntimeTargetOutcome, SliderOutcome,
+    SliderTargetChange, TargetOutcomeStatus,
 };
 
 #[derive(Debug, Clone)]
@@ -67,9 +70,7 @@ pub fn list_audio_inventory() -> AudioInventory {
         default_source,
         summary: format!(
             "{} app(s), {} sink(s), {} source(s)",
-            application_count,
-            sink_count,
-            source_count
+            application_count, sink_count, source_count
         ),
         diagnostics: vec!["pactl backend ready".to_string()],
     }
@@ -85,12 +86,11 @@ pub fn apply_slider_targets_batch(
     }
 
     let mut outcomes = HashMap::new();
-    let sink_inputs = parse_sink_inputs(
-        &read_json_command(&["-f", "json", "list", "sink-inputs"])?,
-    )
-    .unwrap_or_default();
-    let sinks = parse_sinks(&read_json_command(&["-f", "json", "list", "sinks"])?)
-        .unwrap_or_default();
+    let sink_inputs =
+        parse_sink_inputs(&read_json_command(&["-f", "json", "list", "sink-inputs"])?)
+            .unwrap_or_default();
+    let sinks =
+        parse_sinks(&read_json_command(&["-f", "json", "list", "sinks"])?).unwrap_or_default();
     let sources = parse_sources(&read_text_command(&["list", "sources"])?);
     let default_sink = read_text_command(&["get-default-sink"]).ok().map(trim);
     let default_source = read_text_command(&["get-default-source"]).ok().map(trim);
@@ -131,7 +131,8 @@ fn apply_targets(
                     target_outcomes.push(RuntimeTargetOutcome {
                         target: target_label,
                         status: TargetOutcomeStatus::Skipped,
-                        detail: "Default output already updated by another target in this batch".to_string(),
+                        detail: "Default output already updated by another target in this batch"
+                            .to_string(),
                         matched: vec!["@DEFAULT_SINK@".to_string()],
                     });
                     continue;
@@ -263,7 +264,9 @@ fn apply_targets(
                     target_outcomes.push(RuntimeTargetOutcome {
                         target: describe_audio_target(target),
                         status: TargetOutcomeStatus::Unavailable,
-                        detail: format!("No source matched '{name}' in the current Linux inventory"),
+                        detail: format!(
+                            "No source matched '{name}' in the current Linux inventory"
+                        ),
                         matched,
                     });
                 } else {
@@ -278,7 +281,9 @@ fn apply_targets(
                             continue;
                         }
 
-                        if let Err(error) = run_command(&["set-source-volume", &source.name, &volume_arg]) {
+                        if let Err(error) =
+                            run_command(&["set-source-volume", &source.name, &volume_arg])
+                        {
                             errors.push(format!("{} -> {}", source.name, error));
                         } else {
                             updated += 1;
@@ -359,7 +364,9 @@ fn apply_targets(
                             continue;
                         }
 
-                        if let Err(error) = run_command(&["set-sink-volume", &sink.name, &volume_arg]) {
+                        if let Err(error) =
+                            run_command(&["set-sink-volume", &sink.name, &volume_arg])
+                        {
                             errors.push(format!("{} -> {}", sink.name, error));
                         } else {
                             updated += 1;
@@ -493,7 +500,10 @@ fn parse_sink_inputs(value: &Value) -> Option<Vec<SinkInput>> {
             .iter()
             .filter_map(|entry| {
                 let index = entry.get("index")?.as_u64()?;
-                let name = entry.get("name").and_then(Value::as_str).unwrap_or("Unknown");
+                let name = entry
+                    .get("name")
+                    .and_then(Value::as_str)
+                    .unwrap_or("Unknown");
                 let properties = entry.get("properties").and_then(Value::as_object);
                 let app_name = entry
                     .get("properties")
@@ -562,10 +572,7 @@ fn normalize_name(value: &str) -> String {
     value.to_ascii_lowercase()
 }
 
-fn property_text(
-    properties: Option<&serde_json::Map<String, Value>>,
-    key: &str,
-) -> Option<String> {
+fn property_text(properties: Option<&serde_json::Map<String, Value>>, key: &str) -> Option<String> {
     properties
         .and_then(|properties| properties.get(key))
         .and_then(Value::as_str)
@@ -659,7 +666,9 @@ fn describe_audio_target(target: &AudioTarget) -> String {
 fn describe_sink_input(input: &SinkInput) -> String {
     let mut parts = vec![format!("#{} {}", input.index, input.primary_name())];
 
-    if !input.media_name.is_empty() && normalize_name(&input.media_name) != normalize_name(input.primary_name()) {
+    if !input.media_name.is_empty()
+        && normalize_name(&input.media_name) != normalize_name(input.primary_name())
+    {
         parts.push(format!("media {}", input.media_name));
     }
 
@@ -772,7 +781,11 @@ impl SinkInput {
             self.application_id.as_str(),
             self.display_name.as_str(),
         ] {
-            if !value.trim().is_empty() && !labels.iter().any(|candidate| normalize_name(candidate) == normalize_name(value)) {
+            if !value.trim().is_empty()
+                && !labels
+                    .iter()
+                    .any(|candidate| normalize_name(candidate) == normalize_name(value))
+            {
                 labels.push(value);
             }
         }
@@ -783,7 +796,10 @@ impl SinkInput {
 
 #[cfg(test)]
 mod tests {
-    use super::{application_inventory_names, parse_sink_inputs, parse_sinks, parse_sources, resolve_application_matches};
+    use super::{
+        application_inventory_names, parse_sink_inputs, parse_sinks, parse_sources,
+        resolve_application_matches,
+    };
     use serde_json::json;
 
     #[test]
@@ -885,7 +901,10 @@ mod tests {
         ]);
 
         let inputs = parse_sink_inputs(&payload).expect("inputs");
-        assert_eq!(application_inventory_names(&inputs), vec!["Firefox", "Spotify"]);
+        assert_eq!(
+            application_inventory_names(&inputs),
+            vec!["Firefox", "Spotify"]
+        );
     }
 
     #[test]

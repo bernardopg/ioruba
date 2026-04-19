@@ -143,22 +143,44 @@ describe("ioruba store", () => {
 
     const updates = useIorubaStore
       .getState()
-      .processSerialLine("HELLO board=Ioruba Nano; fw=0.3.0; protocol=1; knobs=3");
+      .processSerialLine(
+        "HELLO board=Ioruba Nano; fw=0.4.0; protocol=2; knobs=3; threshold=4; deadzone=7; smooth=75; mins=0,0,0; maxs=1023,1023,1023"
+      );
 
     expect(updates).toEqual([]);
     expect(useIorubaStore.getState().firmwareInfo).toEqual({
       boardName: "Ioruba Nano",
-      firmwareVersion: "0.3.0",
-      protocolVersion: 1,
-      knobCount: 3
+      firmwareVersion: "0.4.0",
+      protocolVersion: 2,
+      knobCount: 3,
+      controllerConfig: {
+        changeThreshold: 4,
+        edgeDeadzone: 7,
+        smoothingStrength: 75,
+        calibrations: [
+          { minRaw: 0, maxRaw: 1023 },
+          { minRaw: 0, maxRaw: 1023 },
+          { minRaw: 0, maxRaw: 1023 }
+        ]
+      }
     });
     expect(useIorubaStore.getState().snapshot.status).toBe("connected");
     expect(useIorubaStore.getState().snapshot.statusText).toContain("Handshake OK");
     expect(useIorubaStore.getState().snapshot.diagnostics.firmware).toEqual({
       boardName: "Ioruba Nano",
-      firmwareVersion: "0.3.0",
-      protocolVersion: 1,
-      knobCount: 3
+      firmwareVersion: "0.4.0",
+      protocolVersion: 2,
+      knobCount: 3,
+      controllerConfig: {
+        changeThreshold: 4,
+        edgeDeadzone: 7,
+        smoothingStrength: 75,
+        calibrations: [
+          { minRaw: 0, maxRaw: 1023 },
+          { minRaw: 0, maxRaw: 1023 },
+          { minRaw: 0, maxRaw: 1023 }
+        ]
+      }
     });
   });
 
@@ -172,6 +194,15 @@ describe("ioruba store", () => {
 
     expect(resolveActiveProfile(nextState.persisted).ui.theme).toBe("dark");
     expect(JSON.parse(nextState.configDraft).ui.theme).toBe("dark");
+  });
+
+  it("stores the launch-on-login preference in persisted state", () => {
+    const store = useIorubaStore.getState();
+    store.hydrate(store.persisted, store.audioInventory);
+
+    useIorubaStore.getState().setLaunchOnLogin(true);
+
+    expect(useIorubaStore.getState().persisted.launchOnLogin).toBe(true);
   });
 
   it("creates, duplicates, selects and removes profiles while keeping the draft synchronized", () => {

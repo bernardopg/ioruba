@@ -3,7 +3,16 @@ mod watch;
 
 use std::{fs, path::PathBuf};
 
-use tauri::Manager;
+use tauri::{
+    menu::MenuBuilder,
+    tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
+    AppHandle, Manager,
+};
+use tauri_plugin_autostart::ManagerExt;
+
+const TRAY_ICON_ID: &str = "main-tray";
+const TRAY_SHOW_ID: &str = "show-main-window";
+const TRAY_QUIT_ID: &str = "quit-app";
 
 #[tauri::command]
 fn load_persisted_state(app: tauri::AppHandle) -> Result<String, String> {
@@ -95,6 +104,46 @@ fn clear_watch_log_entries(app: tauri::AppHandle) -> Result<(), String> {
 }
 
 #[tauri::command]
+fn get_launch_on_login_enabled(app: tauri::AppHandle) -> Result<bool, String> {
+    let enabled = app
+        .autolaunch()
+        .is_enabled()
+        .map_err(|error| error.to_string())?;
+
+    watch::emit(
+        &app,
+        watch::WatchScope::Backend,
+        watch::WatchLevel::Info,
+        "Estado de inicializacao com a sessao consultado",
+        Some(if enabled { "ativado" } else { "desativado" }.to_string()),
+    );
+
+    Ok(enabled)
+}
+
+#[tauri::command]
+fn set_launch_on_login_enabled(app: tauri::AppHandle, enabled: bool) -> Result<bool, String> {
+    let autostart = app.autolaunch();
+
+    if enabled {
+        autostart.enable().map_err(|error| error.to_string())?;
+    } else {
+        autostart.disable().map_err(|error| error.to_string())?;
+    }
+
+    let actual = autostart.is_enabled().map_err(|error| error.to_string())?;
+    watch::emit(
+        &app,
+        watch::WatchScope::Backend,
+        watch::WatchLevel::Info,
+        "Inicializacao com a sessao atualizada",
+        Some(if actual { "ativado" } else { "desativado" }.to_string()),
+    );
+
+    Ok(actual)
+}
+
+#[tauri::command]
 fn apply_slider_targets_batch(
     app: tauri::AppHandle,
     request: audio::ApplySliderTargetsRequest,
@@ -145,8 +194,76 @@ fn watch_log_path(app: &tauri::AppHandle) -> Result<PathBuf, String> {
         .map(|path| path.join("ioruba-watch.log"))
 }
 
+fn show_main_window(app: &AppHandle) {
+    if let Some(window) = app.get_webview_window("main") {
+        let _ = window.unminimize();
+        let _ = window.show();
+        let _ = window.set_focus();
+    }
+}
+
+fn launched_by_autostart() -> bool {
+    std::env::args().any(|arg| arg == "--autostart")
+}
+
+fn setup_tray(app: &tauri::App) -> tauri::Result<()> {
+    let menu = MenuBuilder::new(app)
+        .text(TRAY_SHOW_ID, "Abrir Ioruba")
+        .separator()
+        .text(TRAY_QUIT_ID, "Sair")
+        .build()?;
+
+    let mut tray_builder = TrayIconBuilder::with_id(TRAY_ICON_ID)
+        .menu(&menu)
+        .show_menu_on_left_click(false)
+        .on_menu_event(|app, event| match event.id().as_ref() {
+            TRAY_SHOW_ID => show_main_window(app),
+            TRAY_QUIT_ID => app.exit(0),
+            _ => {}
+        })
+        .on_tray_icon_event(|tray, event| {
+            if let TrayIconEvent::Click {
+                button: MouseButton::Left,
+                button_state: MouseButtonState::Up,
+                ..
+            } = event
+            {
+                show_main_window(tray.app_handle());
+            }
+        });
+
+    if let Some(icon) = app.default_window_icon().cloned() {
+        tray_builder = tray_builder.icon(icon);
+    }
+
+    tray_builder.build(app)?;
+
+    Ok(())
+}
+
 pub fn run() {
     tauri::Builder::default()
+        .plugin(
+            tauri_plugin_autostart::Builder::new()
+                .args(["--autostart"])
+                .build(),
+        )
+        .setup(|app| {
+            setup_tray(app)?;
+            if launched_by_autostart() {
+                if let Some(window) = app.get_webview_window("main") {
+                    let _ = window.hide();
+                }
+                watch::emit(
+                    &app.handle(),
+                    watch::WatchScope::App,
+                    watch::WatchLevel::Info,
+                    "Aplicacao iniciada por autostart",
+                    Some("janela principal mantida oculta no tray".to_string()),
+                );
+            }
+            Ok(())
+        })
         .plugin(tauri_plugin_serialplugin::init())
         .invoke_handler(tauri::generate_handler![
             load_persisted_state,
@@ -156,7 +273,9 @@ pub fn run() {
             load_watch_log_entries,
             save_watch_log_entries,
             append_watch_log_entry,
-            clear_watch_log_entries
+            clear_watch_log_entries,
+            get_launch_on_login_enabled,
+            set_launch_on_login_enabled
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
