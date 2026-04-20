@@ -128,7 +128,6 @@ jobs:
           test ! -d config
           test ! -d arduino
           test ! -d assets
-          test ! -d scripts
           test ! -d packaging
           test ! -f package.yaml
           test ! -f stack.yaml
