@@ -39,6 +39,7 @@ state.yaml
 
 # Temporary
 tmp/
+/tmp/
 temp/
 .site-dist/
 release-dist/

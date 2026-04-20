@@ -48,6 +48,9 @@
 <a href="https://nodejs.org/en">
   <img alt="Node.js 22" src="https://img.shields.io/badge/Node.js-22-5FA04E?logo=node.js&logoColor=white" />
 </a>
+<a href="docs/translations/pt-br/README.md">
+  <img alt="PT-BR Docs" src="https://img.shields.io/badge/docs-PT--BR-0A66C2?logo=readthedocs&logoColor=white" />
+</a>
 
 <br />
 
@@ -73,7 +76,7 @@ Ioruba transforms an `Arduino Nano + 3 knobs` into a tactile desktop control dec
 > **Current platform status**
 > Real audio control is implemented for **Linux** through `pactl`. macOS and Windows builds are still useful for UI review, packaging checks, and demo mode, but they do **not** provide a production-ready audio backend yet.
 
-[Releases](https://github.com/bernardopg/ioruba/releases) · [Quick Start](QUICKSTART.md) · [Hardware Setup](docs/guides/hardware-setup.md) · [Nano Setup](NANO_SETUP.md) · [Profile Examples](docs/guides/profile-examples.md) · [Translation Guide](docs/guides/translation-guide.md) · [Support](docs/debug/support.md) · [Testing](TESTING.md) · [Contributing](CONTRIBUTING.md) · [Funding](FUNDING.md) · [Roadmap](TODO.md)
+[Releases](https://github.com/bernardopg/ioruba/releases) · [Quick Start](QUICKSTART.md) · [Hardware Setup](docs/guides/hardware-setup.md) · [Nano Setup](NANO_SETUP.md) · [Profile Examples](docs/guides/profile-examples.md) · [Translation Guide](docs/guides/translation-guide.md) · [PT-BR Docs](docs/translations/pt-br/README.md) · [Support](docs/debug/support.md) · [Testing](TESTING.md) · [Contributing](CONTRIBUTING.md) · [Funding](FUNDING.md) · [Roadmap](TODO.md)
 
 <p align="center">
   <img src="apps/desktop/src-tauri/icons/icon.png" alt="Ioruba app icon" width="112" />
@@ -110,6 +113,7 @@ The project keeps the hardware feel of a small mixer while modernizing the softw
 - tagged release workflows for desktop bundles (`deb`, `rpm`, `AppImage`), firmware artifacts, and Arch packaging metadata (`PKGBUILD` + `.SRCINFO`)
 
 <a id="platform-support"></a>
+
 ## 🖥️ Platform support
 
 | Platform | Status    | Notes                                                                                            |
@@ -117,6 +121,78 @@ The project keeps the hardware feel of a small mixer while modernizing the softw
 | Linux    | Supported | Main production path: serial workflow, `pactl` audio backend, demo mode, and hardware validation |
 | macOS    | Partial   | Desktop shell and demo-mode validation are useful; real audio control is not implemented         |
 | Windows  | Partial   | Desktop shell and demo-mode validation are useful; real audio control is not implemented         |
+
+## ⚡ Fast Installation
+
+Use the package path that matches your system. All installers are published under the latest release:
+
+- https://github.com/bernardopg/ioruba/releases/latest
+
+### Arch Linux (AUR)
+
+Source build package:
+
+```bash
+yay -S ioruba-desktop
+```
+
+Prebuilt AppImage package:
+
+```bash
+yay -S ioruba-desktop-bin
+```
+
+### Debian / Ubuntu / Linux Mint / Pop!\_OS
+
+```bash
+curl -s https://api.github.com/repos/bernardopg/ioruba/releases/latest \
+  | jq -r '.assets[] | select(.name | test("\\.deb$")) | .browser_download_url' \
+  | xargs -n1 curl -LO
+
+sudo apt install ./Ioruba_*_amd64.deb
+```
+
+### Fedora / RHEL / CentOS Stream / openSUSE (RPM)
+
+```bash
+curl -s https://api.github.com/repos/bernardopg/ioruba/releases/latest \
+  | jq -r '.assets[] | select(.name | test("\\.rpm$")) | .browser_download_url' \
+  | xargs -n1 curl -LO
+
+sudo dnf install ./Ioruba-*.x86_64.rpm
+```
+
+If your distro does not use `dnf`, install the same RPM with your package manager (`zypper`, `yum`, etc.).
+
+### Any Linux distro (AppImage)
+
+```bash
+curl -s https://api.github.com/repos/bernardopg/ioruba/releases/latest \
+  | jq -r '.assets[] | select(.name | test("\\.AppImage$")) | .browser_download_url' \
+  | xargs -n1 curl -LO
+
+chmod +x Ioruba_*.AppImage
+./Ioruba_*.AppImage
+```
+
+### Windows
+
+Download one of these assets from the latest release page:
+
+- `Ioruba_..._x64-setup.exe`
+- `Ioruba_..._x64_en-US.msi`
+
+### macOS (Apple Silicon)
+
+Download one of these assets from the latest release page:
+
+- `Ioruba_..._aarch64.dmg`
+- `Ioruba_aarch64.app.tar.gz`
+
+### Notes
+
+- Linux is the only platform with production-ready audio backend (`pactl`) right now.
+- On macOS and Windows, installation works for UI/demo-mode validation, but real audio control is still pending.
 
 ## 🎚️ Default profile at a glance
 
@@ -221,16 +297,17 @@ npm run rust:audit
 
 ## 📚 Documentation map
 
-| Document                                                             | Use it when you need...                                        |
-| -------------------------------------------------------------------- | -------------------------------------------------------------- |
-| [docs/guides/profile-examples.md](docs/guides/profile-examples.md)   | Real JSON profile samples and Linux target matching rules      |
-| [docs/guides/translation-guide.md](docs/guides/translation-guide.md) | How translations work in the desktop app and how to validate   |
-| [QUICKSTART.md](QUICKSTART.md)                                       | The fastest path from zero to a running app                    |
-| [NANO_SETUP.md](NANO_SETUP.md)                                       | Flashing and validating the Arduino Nano                       |
-| [docs/guides/hardware-setup.md](docs/guides/hardware-setup.md)       | Physical wiring and assembly                                   |
-| [docs/debug/support.md](docs/debug/support.md)                       | A support playbook for serial, audio, and profile-debug issues |
-| [TESTING.md](TESTING.md)                                             | Automated checks, smoke tests, and release validation          |
-| [docs/migration/logic-audit.md](docs/migration/logic-audit.md)       | Parity coverage with archived implementations                  |
+| Document                                                               | Use it when you need...                                        |
+| ---------------------------------------------------------------------- | -------------------------------------------------------------- |
+| [docs/guides/profile-examples.md](docs/guides/profile-examples.md)     | Real JSON profile samples and Linux target matching rules      |
+| [docs/guides/translation-guide.md](docs/guides/translation-guide.md)   | How translations work in the desktop app and how to validate   |
+| [docs/translations/pt-br/README.md](docs/translations/pt-br/README.md) | Portuguese translation index for docs and root manuals         |
+| [QUICKSTART.md](QUICKSTART.md)                                         | The fastest path from zero to a running app                    |
+| [NANO_SETUP.md](NANO_SETUP.md)                                         | Flashing and validating the Arduino Nano                       |
+| [docs/guides/hardware-setup.md](docs/guides/hardware-setup.md)         | Physical wiring and assembly                                   |
+| [docs/debug/support.md](docs/debug/support.md)                         | A support playbook for serial, audio, and profile-debug issues |
+| [TESTING.md](TESTING.md)                                               | Automated checks, smoke tests, and release validation          |
+| [docs/migration/logic-audit.md](docs/migration/logic-audit.md)         | Parity coverage with archived implementations                  |
 
 ## 🗃️ Legacy archive
 
