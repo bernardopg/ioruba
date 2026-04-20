@@ -1,0 +1,79 @@
+---
+layout: default
+---
+
+<section class="hero-panel">
+  <div class="hero-copy">
+    <p class="eyebrow">Studio-lab documentation</p>
+    <h2>Ship the tactile mixer experience with a docs hub that feels like the product.</h2>
+    <p class="hero-lead">
+      Ioruba turns a low-cost Arduino Nano + 3 knobs into a desktop control instrument.
+      This hub centralizes setup, diagnostics, firmware, migration notes, and bilingual documentation.
+    </p>
+
+    <div class="hero-actions">
+      <a class="button-primary" href="{{ '/root/QUICKSTART.html' | relative_url }}">Start with Quick Start</a>
+      <a class="button-secondary" href="{{ '/guides/hardware-setup.html' | relative_url }}">Wire the hardware</a>
+    </div>
+  </div>
+
+  <div class="hero-visual" aria-hidden="true">
+    <div class="signal-card">
+      <div class="signal-dial signal-copper"></div>
+      <div class="signal-dial signal-teal"></div>
+      <div class="signal-wave"></div>
+      <div class="signal-labels">
+        <span>serial</span>
+        <span>audio</span>
+        <span>profiles</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="home-grid">
+  <article class="feature-tile">
+    <p class="eyebrow">What you control</p>
+    <h3>Desktop app, firmware, diagnostics, and release automation.</h3>
+    <p>Move from first flash to release validation with one consistent documentation surface.</p>
+  </article>
+
+  <article class="feature-tile">
+    <p class="eyebrow">Primary audience</p>
+    <h3>Makers and Linux audio tinkerers.</h3>
+    <p>Clear operational feedback, direct setup steps, and visible failure recovery are prioritized across the site.</p>
+  </article>
+
+  <article class="feature-tile">
+    <p class="eyebrow">Language support</p>
+    <h3>English and PT-BR navigation.</h3>
+    <p>Parallel references for setup, testing, support, and translation work.</p>
+  </article>
+</section>
+
+<section class="link-deck">
+  <a class="deck-card" href="{{ '/root/README.html' | relative_url }}">
+    <span class="deck-kicker">Overview</span>
+    <strong>Project README</strong>
+    <span>Understand the stack, platform support, and repository map.</span>
+  </a>
+  <a class="deck-card" href="{{ '/root/QUICKSTART.html' | relative_url }}">
+    <span class="deck-kicker">Fast path</span>
+    <strong>Quick Start</strong>
+    <span>Get the desktop app running and validate the hardware path.</span>
+  </a>
+  <a class="deck-card" href="{{ '/debug/support.html' | relative_url }}">
+    <span class="deck-kicker">Diagnostics</span>
+    <strong>Support playbook</strong>
+    <span>Troubleshoot serial connection, profiles, and Linux audio behavior.</span>
+  </a>
+  <a class="deck-card" href="{{ '/translations/pt-br/README.html' | relative_url }}">
+    <span class="deck-kicker">Bilingual docs</span>
+    <strong>PT-BR hub</strong>
+    <span>Browse the mirrored Portuguese documentation set.</span>
+  </a>
+</section>
+
+<section class="doc-article markdown-body">
+  {{ content }}
+</section>

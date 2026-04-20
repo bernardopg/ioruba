@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="{{ page.lang | default: 'en' }}">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{% if page.title %}{{ page.title }} · {% endif %}{{ site.title }}</title>
+    <meta name="description" content="{{ page.description | default: site.description }}" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="{{ '/assets/site.css' | relative_url }}" />
+    {% seo title=false %}
+  </head>
+  {% assign page_lang = page.lang | default: 'en' %}
+  {% assign page_nav = site.data.navigation[page_lang] | default: site.data.navigation.en %}
+  <body>
+    <a class="skip-link" href="#content">Pular para o conteúdo</a>
+
+    <div class="site-shell">
+      <header class="site-header">
+        <div class="brand-cluster">
+          <a class="brand-mark" href="{{ '/' | relative_url }}" aria-label="Ioruba documentation home">
+            <span class="brand-ring"></span>
+            <span class="brand-core"></span>
+          </a>
+
+          <div>
+            <p class="eyebrow">Ioruba / docs</p>
+            <a class="brand-title" href="{{ '/' | relative_url }}">Precision control for tactile audio workflows</a>
+          </div>
+        </div>
+
+        <nav class="top-links" aria-label="Primary links">
+          <a href="https://github.com/bernardopg/ioruba">GitHub</a>
+          <a href="https://github.com/bernardopg/ioruba/releases">Releases</a>
+          <a href="{{ '/root/CONTRIBUTING.html' | relative_url }}">Contributing</a>
+          <a href="{{ '/root/FUNDING.html' | relative_url }}">Funding</a>
+        </nav>
+      </header>
+
+      <div class="chrome-grid">
+        <aside class="sidebar-panel" aria-label="Documentation navigation">
+          <div class="sidebar-card status-card">
+            <p class="eyebrow">Operating posture</p>
+            <h2>Industrial, legible, instrument-first.</h2>
+            <p>
+              This documentation mirrors the desktop app language: copper heat, teal signal,
+              clean telemetry, and obvious system state.
+            </p>
+          </div>
+
+          {% for group in page_nav %}
+            <section class="sidebar-card">
+              <h2>{{ group.section }}</h2>
+              <ul class="nav-list">
+                {% for item in group.items %}
+                  {% assign item_url = item.url | relative_url %}
+                  {% assign is_active = false %}
+                  {% if page.url == item_url %}
+                    {% assign is_active = true %}
+                  {% endif %}
+                  <li>
+                    <a class="nav-link{% if is_active %} is-active{% endif %}" href="{{ item_url }}">{{ item.title }}</a>
+                  </li>
+                {% endfor %}
+              </ul>
+            </section>
+          {% endfor %}
+        </aside>
+
+        <main id="content" class="content-panel">
+          <div class="content-topbar">
+            <div>
+              <p class="eyebrow">{{ page.lang | default: 'en' }}</p>
+              <h1>{{ page.title }}</h1>
+            </div>
+
+            <div class="page-actions">
+              <a href="https://github.com/bernardopg/ioruba/tree/main/{{ page.source_path | default: 'docs/index.md' }}">Editar no GitHub</a>
+              {% if page.lang == 'pt-BR' %}
+                <a href="{{ '/' | relative_url }}">English hub</a>
+              {% else %}
+                <a href="{{ '/translations/pt-br/README.html' | relative_url }}">PT-BR hub</a>
+              {% endif %}
+            </div>
+          </div>
+
+          {{ content }}
+        </main>
+      </div>
+
+      <footer class="site-footer">
+        <p>Built for makers, Linux power users, and audio tinkerers who need immediate operational feedback.</p>
+        <p>
+          <a href="https://github.com/bernardopg/ioruba">Source</a>
+          <span>·</span>
+          <a href="https://github.com/sponsors/bernardopg">GitHub Sponsors</a>
+          <span>·</span>
+          <a href="https://www.buymeacoffee.com/WctwoM9eMU">Buy Me a Coffee</a>
+        </p>
+      </footer>
+    </div>
+  </body>
+</html>

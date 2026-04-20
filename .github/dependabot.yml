@@ -1,6 +1,36 @@
 version: 2
 
 updates:
+  - package-ecosystem: npm
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: America/Sao_Paulo
+    open-pull-requests-limit: 8
+    commit-message:
+      prefix: "chore"
+      include: scope
+    labels:
+      - dependencies
+      - npm
+
+  - package-ecosystem: cargo
+    directory: "/apps/desktop/src-tauri"
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:10"
+      timezone: America/Sao_Paulo
+    open-pull-requests-limit: 6
+    commit-message:
+      prefix: "chore"
+      include: scope
+    labels:
+      - dependencies
+      - rust
+
   - package-ecosystem: github-actions
     directory: "/"
     schedule:

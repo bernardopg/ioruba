@@ -72,6 +72,9 @@ jobs:
       - name: Build desktop app
         run: npm run desktop:build
 
+      - name: Prepare docs site source
+        run: npm run docs:prepare-site
+
   firmware:
     name: Firmware
     runs-on: ubuntu-latest
@@ -112,15 +115,17 @@ jobs:
         run: |
           test -f .github/workflows/ci.yml
           test -f .github/workflows/release.yml
+          test -f .github/workflows/pages.yml
           test -f CONTRIBUTING.md
           test -f legacy/README.md
           test -f legacy/arduino-audio-controller/README.md
           test -f docs/guides/profile-examples.md
           test -f docs/debug/support.md
+          test -f docs-site/_config.yml
+          test -f scripts/build-pages.mjs
           test ! -d legacy/haskell-runtime
           test ! -d legacy/github-automation
           test ! -f .github/workflows/release-please.yml
-          test ! -f .github/workflows/pages.yml
           test ! -f .github/workflows/sync-metadata.yml
           test ! -d app
           test ! -d src
@@ -134,3 +139,4 @@ jobs:
           test ! -f Makefile
           test ! -f .github/release-please-config.json
           test ! -f docs/config.yaml
+          test ! -f .github/workflows/pages-docs.yml

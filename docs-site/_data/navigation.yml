@@ -1,0 +1,82 @@
+en:
+  - section: Start here
+    items:
+      - title: Documentation home
+        url: /
+      - title: Project overview
+        url: /root/README.html
+      - title: Quick start
+        url: /root/QUICKSTART.html
+      - title: Nano setup
+        url: /root/NANO_SETUP.html
+  - section: Guides
+    items:
+      - title: Hardware setup
+        url: /guides/hardware-setup.html
+      - title: Profile examples
+        url: /guides/profile-examples.html
+      - title: Translation guide
+        url: /guides/translation-guide.html
+      - title: Support playbook
+        url: /debug/support.html
+  - section: Project docs
+    items:
+      - title: Testing
+        url: /root/TESTING.html
+      - title: Contributing
+        url: /root/CONTRIBUTING.html
+      - title: Changelog
+        url: /root/CHANGELOG.html
+      - title: Roadmap
+        url: /root/TODO.html
+      - title: Funding
+        url: /root/FUNDING.html
+  - section: Migration
+    items:
+      - title: Complete plan
+        url: /migration/complete-plan.html
+      - title: GitHub plan
+        url: /migration/github-plan.html
+      - title: Logic audit
+        url: /migration/logic-audit.html
+  - section: Languages
+    items:
+      - title: PT-BR index
+        url: /translations/pt-br/README.html
+pt-BR:
+  - section: Comece aqui
+    items:
+      - title: Índice PT-BR
+        url: /translations/pt-br/README.html
+      - title: README PT-BR
+        url: /translations/pt-br/root/README.html
+      - title: Início rápido
+        url: /translations/pt-br/root/QUICKSTART.html
+      - title: Setup do Nano
+        url: /translations/pt-br/root/NANO_SETUP.html
+  - section: Guias
+    items:
+      - title: Setup de hardware
+        url: /translations/pt-br/guides/hardware-setup.html
+      - title: Exemplos de perfil
+        url: /translations/pt-br/guides/profile-examples.html
+      - title: Guia de traduções
+        url: /translations/pt-br/guides/translation-guide.html
+      - title: Suporte e depuração
+        url: /translations/pt-br/debug/support.html
+  - section: Projeto
+    items:
+      - title: Testes
+        url: /translations/pt-br/root/TESTING.html
+      - title: Contribuição
+        url: /translations/pt-br/root/CONTRIBUTING.html
+      - title: Changelog
+        url: /translations/pt-br/root/CHANGELOG.html
+      - title: TODO
+        url: /translations/pt-br/root/TODO.html
+      - title: Financiamento
+        url: /translations/pt-br/root/FUNDING.html
+  - section: Referência EN
+    items:
+      - title: Documentation home
+        url: /

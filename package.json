@@ -7,6 +7,7 @@
     "packages/*"
   ],
   "scripts": {
+    "docs:prepare-site": "node scripts/build-pages.mjs",
     "desktop:dev": "npm --workspace @ioruba/desktop run dev",
     "desktop:watch": "npm --workspace @ioruba/desktop run tauri dev",
     "desktop:icons": "npm --workspace @ioruba/desktop run icons:generate",

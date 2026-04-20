@@ -42,6 +42,7 @@ tmp/
 /tmp/
 temp/
 .site-dist/
+.site-src/
 release-dist/
 __pycache__/
 .github/scripts/__pycache__/
