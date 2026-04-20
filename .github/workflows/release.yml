@@ -16,6 +16,7 @@ concurrency:
 jobs:
   desktop-bundles:
     name: Desktop Bundles (${{ matrix.platform }})
+    timeout-minutes: 90
     permissions:
       contents: write
     strategy:
