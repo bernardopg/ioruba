@@ -7,6 +7,17 @@ e este projeto segue [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Nao publicado]
 
+## [0.6.1](https://github.com/bernardopg/ioruba/compare/v0.6.0...v0.6.1) (2026-04-20)
+
+### Alterado
+
+- separacao do fluxo de release do desktop para que o upload do AppImage rode em um job proprio, isolado dos demais instaladores
+- adicao de uma protecao de timeout aos jobs de bundle do desktop para evitar travamentos indefinidos na publicacao do release
+
+### Correcao de bugs
+
+- impedir que o passo de publicacao do AppImage bloqueie os assets de release de deb/rpm/Windows/macOS
+
 ## [0.6.0](https://github.com/bernardopg/ioruba/compare/v0.5.0...v0.6.0) (2026-04-20)
 
 ### Alterado
@@ -109,7 +120,8 @@ e este projeto segue [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 - baseline inicial com tag antes da fase atual de productizacao Haskell-first
 
-[Nao publicado]: https://github.com/bernardopg/ioruba/compare/v0.6.0...HEAD
+[Nao publicado]: https://github.com/bernardopg/ioruba/compare/v0.6.1...HEAD
+[0.6.1]: https://github.com/bernardopg/ioruba/releases/tag/v0.6.1
 [0.6.0]: https://github.com/bernardopg/ioruba/releases/tag/v0.6.0
 [0.5.0]: https://github.com/bernardopg/ioruba/releases/tag/v0.5.0
 [0.4.0]: https://github.com/bernardopg/ioruba/releases/tag/v0.4.0

@@ -25,7 +25,7 @@
 
 ### `release.yml`
 
-- Triggers on semantic version tags such as `v0.6.0`.
+- Triggers on semantic version tags such as `v0.6.1`.
 - Uses `tauri-apps/tauri-action` to build installers for:
   - Windows
   - Linux (`deb`, `rpm`, `AppImage`)
@@ -53,7 +53,7 @@ For production-grade signed installers, configure:
 ## Release Procedure
 
 1. Merge validated changes into `main`.
-2. Create and push a tag such as `v0.6.0`.
+2. Create and push a tag such as `v0.6.1`.
 3. Let `release.yml` generate the installers and firmware assets.
 4. Verify the uploaded bundles from the GitHub Release page:
   - desktop installers (`deb`, `rpm`, `AppImage`, Windows, macOS)
