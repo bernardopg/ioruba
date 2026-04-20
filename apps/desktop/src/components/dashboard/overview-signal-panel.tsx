@@ -8,7 +8,8 @@ import {
 
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import type { RuntimeKnobSnapshot, RuntimeSnapshot } from "@ioruba/shared";
+import { translateText } from "@/lib/i18n";
+import type { RuntimeKnobSnapshot, RuntimeSnapshot, UiLanguage } from "@ioruba/shared";
 
 function toneForStatus(status: string): "neutral" | "positive" | "warning" | "critical" {
   switch (status) {
@@ -43,11 +44,14 @@ function accentColor(accent: string): string {
 
 export function OverviewSignalPanel({
   activeProfileName,
-  snapshot
+  snapshot,
+  language = "pt-BR"
 }: {
   activeProfileName: string;
   snapshot: RuntimeSnapshot;
+  language?: UiLanguage;
 }) {
+  const lt = (text: string) => translateText(language, text);
   const latestTick = snapshot.telemetry.at(-1)?.tick ?? 0;
   const targetCount = snapshot.knobs.reduce(
     (total, knob) => total + knob.targets.length,
@@ -58,9 +62,9 @@ export function OverviewSignalPanel({
     <Card className="overflow-hidden">
       <CardHeader className="border-b border-(--color-border) pb-5">
         <div>
-          <CardTitle>Sessao viva</CardTitle>
+          <CardTitle>{lt("Sessao viva")}</CardTitle>
           <CardDescription>
-            Estado atual do link serial, perfil carregado e resposta dos knobs.
+            {lt("Estado atual do link serial, perfil carregado e resposta dos knobs.")}
           </CardDescription>
         </div>
         <Badge className="self-start" tone={toneForStatus(snapshot.status)}>
@@ -71,27 +75,27 @@ export function OverviewSignalPanel({
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-1">
           <SignalStat
             icon={PlugZap}
-            label="Serial"
-            value={snapshot.connectionPort ?? "Aguardando porta"}
-            hint={snapshot.statusText}
+            label={lt("Serial")}
+            value={snapshot.connectionPort ?? lt("Aguardando porta")}
+            hint={lt(snapshot.statusText)}
           />
           <SignalStat
             icon={AudioLines}
-            label="Perfil"
+            label={lt("Perfil")}
             value={activeProfileName}
-            hint={`${targetCount} destino(s) mapeado(s)`}
+            hint={`${targetCount} ${lt("destino(s) mapeado(s)")}`}
           />
           <SignalStat
             icon={Binary}
-            label="Ultimo frame"
-            value={snapshot.diagnostics.lastSerialLine ?? "Aguardando leitura"}
-            hint={`tick ${latestTick || "inicial"}`}
+            label={lt("Ultimo frame")}
+            value={snapshot.diagnostics.lastSerialLine ?? lt("Aguardando leitura")}
+            hint={`tick ${latestTick || lt("inicial")}`}
             mono
           />
           <SignalStat
             icon={CircleDotDashed}
-            label="Buffer"
-            value={`${snapshot.telemetry.length} amostra(s)`}
+            label={lt("Buffer")}
+            value={`${snapshot.telemetry.length} ${lt("amostra(s)")}`}
             hint={snapshot.diagnostics.audioSummary}
           />
         </div>
@@ -100,10 +104,10 @@ export function OverviewSignalPanel({
           <div className="flex items-center justify-between gap-3">
             <div>
               <p className="text-xs uppercase tracking-[0.24em] text-(--color-muted)">
-                Leitura atual
+                {lt("Leitura atual")}
               </p>
               <p className="mt-1 text-sm text-(--color-copy)">
-                Todos os canais espelhados como instrumentos vivos.
+                {lt("Todos os canais espelhados como instrumentos vivos.")}
               </p>
             </div>
             <Gauge className="h-4 w-4 text-(--accent-copper)" />
@@ -111,7 +115,7 @@ export function OverviewSignalPanel({
 
           <div className="mt-4 grid gap-3">
             {snapshot.knobs.map((knob) => (
-              <KnobLiveRow key={knob.id} knob={knob} />
+              <KnobLiveRow key={knob.id} knob={knob} language={language} />
             ))}
           </div>
         </div>
@@ -144,9 +148,8 @@ function SignalStat({
             {label}
           </p>
           <p
-            className={`mt-1 wrap-break-word text-sm font-semibold text-(--color-ink) ${
-              mono ? "font-mono text-[13px]" : ""
-            }`}
+            className={`mt-1 wrap-break-word text-sm font-semibold text-(--color-ink) ${mono ? "font-mono text-[13px]" : ""
+              }`}
           >
             {value}
           </p>
@@ -159,7 +162,13 @@ function SignalStat({
   );
 }
 
-function KnobLiveRow({ knob }: { knob: RuntimeKnobSnapshot }) {
+function KnobLiveRow({
+  knob,
+  language
+}: {
+  knob: RuntimeKnobSnapshot;
+  language: UiLanguage;
+}) {
   const accent = accentColor(knob.accent);
 
   return (
@@ -170,7 +179,7 @@ function KnobLiveRow({ knob }: { knob: RuntimeKnobSnapshot }) {
             {knob.name}
           </p>
           <p className="text-xs uppercase tracking-[0.2em] text-(--color-muted)">
-            aplicada {knob.appliedRawValue}
+            {translateText(language, "aplicada")} {knob.appliedRawValue}
           </p>
         </div>
         <div

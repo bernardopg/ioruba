@@ -14,21 +14,21 @@ import {
   parseSliderPacket,
   resolveFilteredUpdates,
   sliderValueToPercent,
-  sliderValueToNormalized
+  sliderValueToNormalized,
 } from "../src/index";
 
 describe("serial protocol parity", () => {
   it("parses newline-terminated payloads", () => {
     expect(parseSliderPacket("512|768|1023|0|256\n")).toEqual({
       kind: "state",
-      values: [512, 768, 1023, 0, 256]
+      values: [512, 768, 1023, 0, 256],
     });
   });
 
   it("ignores NUL boot noise", () => {
     expect(parseSliderPacket("\0\0" + "1|815|697\n")).toEqual({
       kind: "state",
-      values: [1, 815, 697]
+      values: [1, 815, 697],
     });
   });
 
@@ -36,13 +36,13 @@ describe("serial protocol parity", () => {
     expect(parseSliderPacket("P3:820")).toEqual({
       kind: "delta",
       sliderId: 2,
-      value: 820
+      value: 820,
     });
   });
 
   it("rejects out of range values", () => {
     expect(() => parseSliderPacket("512|2048|0")).toThrow(
-      "Invalid slider value: 2048"
+      "Invalid slider value: 2048",
     );
   });
 
@@ -53,13 +53,13 @@ describe("serial protocol parity", () => {
   it("parses firmware handshake packets", () => {
     expect(
       parseSerialPacket(
-        "HELLO board=Ioruba Nano; fw=0.4.0; protocol=2; knobs=3; threshold=4; deadzone=7; smooth=75; mins=0,12,24; maxs=1000,1010,1023"
-      )
+        "HELLO board=Ioruba Nano; fw=0.5.0; protocol=2; knobs=3; threshold=4; deadzone=7; smooth=75; mins=0,12,24; maxs=1000,1010,1023",
+      ),
     ).toEqual({
       kind: "handshake",
       info: {
         boardName: "Ioruba Nano",
-        firmwareVersion: "0.4.0",
+        firmwareVersion: "0.5.0",
         protocolVersion: 2,
         knobCount: 3,
         controllerConfig: {
@@ -69,35 +69,39 @@ describe("serial protocol parity", () => {
           calibrations: [
             { minRaw: 0, maxRaw: 1000 },
             { minRaw: 12, maxRaw: 1010 },
-            { minRaw: 24, maxRaw: 1023 }
-          ]
-        }
-      }
+            { minRaw: 24, maxRaw: 1023 },
+          ],
+        },
+      },
     });
   });
 
   it("rejects handshake payloads when parsed as slider frames", () => {
     expect(() =>
-      parseSliderPacket("HELLO board=Ioruba Nano; fw=0.4.0; protocol=2; knobs=3")
+      parseSliderPacket(
+        "HELLO board=Ioruba Nano; fw=0.5.0; protocol=2; knobs=3",
+      ),
     ).toThrow("Expected slider packet, received handshake data");
   });
 
   it("builds a firmware config command from the active profile", () => {
     expect(encodeFirmwareConfigCommand(defaultProfile)).toBe(
-      "CONFIG threshold=4; deadzone=7; smooth=75; mins=0,0,0; maxs=1023,1023,1023"
+      "CONFIG threshold=4; deadzone=7; smooth=75; mins=0,0,0; maxs=1023,1023,1023",
     );
   });
 
   it("compares firmware config reported by the controller with the active profile", () => {
     const firmwareInfo = {
       boardName: "Ioruba Nano",
-      firmwareVersion: "0.4.0",
+      firmwareVersion: "0.5.0",
       protocolVersion: 2,
       knobCount: 3,
-      controllerConfig: buildFirmwareControllerConfig(defaultProfile)
+      controllerConfig: buildFirmwareControllerConfig(defaultProfile),
     };
 
-    expect(firmwareConfigMatchesProfile(defaultProfile, firmwareInfo)).toBe(true);
+    expect(firmwareConfigMatchesProfile(defaultProfile, firmwareInfo)).toBe(
+      true,
+    );
   });
 });
 
@@ -126,12 +130,12 @@ describe("mixer math parity", () => {
     const updates = resolveFilteredUpdates(defaultProfile, current, {
       0: 500,
       1: 768,
-      2: 1000
+      2: 1000,
     });
 
     expect(updates).toEqual([
       { sliderId: 0, rawValue: 512 },
-      { sliderId: 2, rawValue: 1023 }
+      { sliderId: 2, rawValue: 1023 },
     ]);
   });
 
@@ -148,7 +152,7 @@ describe("mixer math parity", () => {
       appliedValues: { 0: 1008, 1: 0, 2: 0 },
       outcomes: {},
       telemetry: [],
-      audioInventory: emptyAudioInventory
+      audioInventory: emptyAudioInventory,
     });
 
     expect(snapshot.knobs[0]?.rawValue).toBe(1016);

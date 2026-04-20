@@ -9,7 +9,8 @@ import {
 } from "recharts";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import type { RuntimeSnapshot } from "@ioruba/shared";
+import { translateText } from "@/lib/i18n";
+import type { RuntimeSnapshot, UiLanguage } from "@ioruba/shared";
 
 function accentColor(accent: string): string {
   switch (accent) {
@@ -53,7 +54,14 @@ function buildSeries(snapshot: RuntimeSnapshot) {
     });
 }
 
-export function TelemetryChart({ snapshot }: { snapshot: RuntimeSnapshot }) {
+export function TelemetryChart({
+  snapshot,
+  language = "pt-BR"
+}: {
+  snapshot: RuntimeSnapshot;
+  language?: UiLanguage;
+}) {
+  const lt = (text: string) => translateText(language, text);
   const data = buildSeries(snapshot);
   const latestTick = data.at(-1)?.tick ?? 0;
   const windowSize = snapshot.telemetry.length;
@@ -64,15 +72,15 @@ export function TelemetryChart({ snapshot }: { snapshot: RuntimeSnapshot }) {
         <div className="flex flex-col gap-5">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
-              <CardTitle>Telemetria dos knobs</CardTitle>
+              <CardTitle>{lt("Telemetria dos knobs")}</CardTitle>
               <CardDescription>
-                Linha do tempo com persistencia visual do ultimo valor conhecido em cada canal.
+                {lt("Linha do tempo com persistencia visual do ultimo valor conhecido em cada canal.")}
               </CardDescription>
             </div>
             <div className="grid grid-cols-2 gap-3 text-right sm:grid-cols-3">
-              <ChartStat label="Janela" value={`${windowSize}`} />
-              <ChartStat label="Tick" value={latestTick ? String(latestTick) : "0"} />
-              <ChartStat label="Canais" value={String(snapshot.knobs.length)} />
+              <ChartStat label={lt("Janela")} value={`${windowSize}`} />
+              <ChartStat label={lt("Tick")} value={latestTick ? String(latestTick) : "0"} />
+              <ChartStat label={lt("Canais")} value={String(snapshot.knobs.length)} />
             </div>
           </div>
 

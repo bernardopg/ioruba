@@ -70,7 +70,7 @@ Current expected packet format:
 The current firmware reads the three analog inputs, persists tuning and calibration in EEPROM, and emits lines such as:
 
 ```text
-HELLO board=Ioruba Nano; fw=0.4.0; protocol=2; knobs=3; threshold=4; deadzone=7; smooth=75; mins=0,0,0; maxs=1023,1023,1023
+HELLO board=Ioruba Nano; fw=0.5.0; protocol=2; knobs=3; threshold=4; deadzone=7; smooth=75; mins=0,0,0; maxs=1023,1023,1023
 512|768|1023
 ```
 
@@ -196,5 +196,6 @@ Before cutting a public release, verify:
 7. local Arch packaging is checked against the known `linuxdeploy` + `.relr.dyn` limitation before release
 8. GitHub Actions CI succeeds
 9. tagged release workflows still produce desktop bundles and firmware artifacts
+10. tagged release workflows upload Arch packaging metadata (`PKGBUILD`, `.SRCINFO`, `PKGBUILD-bin`, `.SRCINFO-bin`) and the source tarball used by `PKGBUILD`
 
 If you need a support checklist for manual triage, read [docs/debug/support.md](docs/debug/support.md).

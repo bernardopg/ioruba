@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.0](https://github.com/bernardopg/ioruba/compare/v0.4.0...v0.5.0) (2026-04-20)
+
+### Changed
+- synchronized the workspace versioning and release metadata for the 0.5.0 cut
+- refreshed the documentation set for the current desktop, firmware, testing, and migration flow
+
+### Features
+- added PT-BR/EN translation helpers, a translation guide, and accessibility shell coverage for the desktop app
+- expanded the release workflow to ship AppImage and Arch packaging metadata alongside the existing desktop and firmware artifacts
+
+### Bug Fixes
+- stabilized CodeQL workflow configuration and Dependabot update resolution
+- improved the Linux packaging dependency path for the current release flow
+
 ## [0.4.0](https://github.com/bernardopg/ioruba/compare/v0.3.0...v0.4.0) (2026-04-19)
 
 ### Changed
@@ -30,13 +44,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - confirmed the npm toolchain reports `0` open audit vulnerabilities after the upgrade
 - documented that the remaining Rust audit findings are upstream/transitive warnings in the current Tauri + GTK3 Linux stack, not newly introduced project-level advisories
 
-## [0.2.3](https://github.com/bernardopg/ioruba/compare/v0.2.2...v0.2.3) (2026-03-19)
-
-
-### Bug Fixes
-
-* preserve docker release artifact permissions ([2815390](https://github.com/bernardopg/ioruba/commit/28153905da65343efa4a78954a008b0e30ca1679))
-
 ## [0.3.0](https://github.com/bernardopg/ioruba/compare/v0.2.3...v0.3.0) (2026-03-20)
 
 
@@ -50,6 +57,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 * keep Arduino serial sessions stable during idle periods and port discovery
 * backport the Linux `glib` fix for `GHSA-wrw7-89jp-8q8g`
+
+## [0.2.3](https://github.com/bernardopg/ioruba/compare/v0.2.2...v0.2.3) (2026-03-19)
+
+
+### Bug Fixes
+
+* preserve docker release artifact permissions ([2815390](https://github.com/bernardopg/ioruba/commit/28153905da65343efa4a78954a008b0e30ca1679))
 
 ## [0.2.2](https://github.com/bernardopg/ioruba/compare/v0.2.1...v0.2.2) (2026-03-19)
 
@@ -92,7 +106,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Initial tagged baseline before the current Haskell-first productization pass
 
-[Unreleased]: https://github.com/bernardopg/ioruba/compare/v0.4.0...HEAD
+[Unreleased]: https://github.com/bernardopg/ioruba/compare/v0.5.0...HEAD
+[0.5.0]: https://github.com/bernardopg/ioruba/releases/tag/v0.5.0
 [0.4.0]: https://github.com/bernardopg/ioruba/releases/tag/v0.4.0
 [0.3.0]: https://github.com/bernardopg/ioruba/releases/tag/v0.3.0
 [0.1.0]: https://github.com/bernardopg/ioruba/releases/tag/v0.1.0

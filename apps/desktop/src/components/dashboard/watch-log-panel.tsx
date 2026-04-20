@@ -11,6 +11,7 @@ import {
   CardTitle
 } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
+import { translateText } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 import {
   formatWatchTimestamp,
@@ -18,7 +19,7 @@ import {
   type WatchLogEntry,
   type WatchScope
 } from "@/lib/watch";
-import type { RuntimeSnapshot } from "@ioruba/shared";
+import type { RuntimeSnapshot, UiLanguage } from "@ioruba/shared";
 
 type WatchFilter = "all" | WatchScope;
 
@@ -44,25 +45,25 @@ function toneForLevel(level: WatchLevel): "neutral" | "positive" | "warning" | "
   }
 }
 
-function labelForScope(scope: WatchScope): string {
+function labelForScope(scope: WatchScope, lt: (text: string) => string): string {
   switch (scope) {
     case "serial":
-      return "Serial";
+      return lt("Serial");
     case "backend":
-      return "Backend";
+      return lt("Backend");
     default:
-      return "App";
+      return lt("App");
   }
 }
 
-function labelForLevel(level: WatchLevel): string {
+function labelForLevel(level: WatchLevel, lt: (text: string) => string): string {
   switch (level) {
     case "warning":
-      return "Warning";
+      return lt("Warning");
     case "error":
-      return "Error";
+      return lt("Error");
     default:
-      return "Info";
+      return lt("Info");
   }
 }
 
@@ -70,13 +71,16 @@ export function WatchLogPanel({
   watchLog,
   snapshot,
   activeProfileName,
+  language = "pt-BR",
   onClear
 }: {
   watchLog: WatchLogEntry[];
   snapshot: RuntimeSnapshot;
   activeProfileName: string;
+  language?: UiLanguage;
   onClear: () => void;
 }) {
+  const lt = (text: string) => translateText(language, text);
   const [filter, setFilter] = useState<WatchFilter>("all");
   const [autoScrollEnabled, setAutoScrollEnabled] = useState(true);
   const [isAtBottom, setIsAtBottom] = useState(true);
@@ -139,15 +143,15 @@ export function WatchLogPanel({
         <CardHeader className="border-b border-(--color-border) pb-5">
           <div className="space-y-3">
             <div className="flex flex-wrap items-center gap-3">
-              <CardTitle>Watch ao vivo</CardTitle>
+              <CardTitle>{lt("Watch ao vivo")}</CardTitle>
               <Badge tone={watchLog.length > 0 ? "positive" : "neutral"}>
-                {watchLog.length} evento(s)
+                {watchLog.length} {lt("evento(s)")}
               </Badge>
             </div>
             <CardDescription>
-              Espelha os eventos emitidos pela serial, pelo frontend e pelo backend
-              Rust. Quando você girar um knob, o fluxo aparece aqui e no terminal do
-              `tauri dev`.
+              {lt(
+                "Espelha os eventos emitidos pela serial, pelo frontend e pelo backend Rust. Quando você girar um knob, o fluxo aparece aqui e no terminal do `tauri dev`."
+              )}
             </CardDescription>
           </div>
           <div className="flex flex-wrap items-center gap-2">
@@ -156,35 +160,35 @@ export function WatchLogPanel({
               size="small"
               variant={filter === "all" ? "secondary" : "ghost"}
             >
-              Todos
+              {lt("Todos")}
             </Button>
             <Button
               onClick={() => setFilter("serial")}
               size="small"
               variant={filter === "serial" ? "secondary" : "ghost"}
             >
-              Serial
+              {lt("Serial")}
             </Button>
             <Button
               onClick={() => setFilter("backend")}
               size="small"
               variant={filter === "backend" ? "secondary" : "ghost"}
             >
-              Backend
+              {lt("Backend")}
             </Button>
             <Button
               onClick={() => setFilter("app")}
               size="small"
               variant={filter === "app" ? "secondary" : "ghost"}
             >
-              App
+              {lt("App")}
             </Button>
             <Button onClick={onClear} size="small" variant="ghost">
-              Limpar
+              {lt("Limpar")}
             </Button>
-            <label className="ml-auto flex items-center gap-2 rounded-full border border-(--color-border) bg-(--color-panel) px-3 py-2">
+            <label className="ml-auto flex items-center gap-2 rounded-full border border-(--color-border) bg-(--color-panel) px-3 py-2 focus-within:border-[color-mix(in_oklab,var(--accent-teal)_42%,var(--color-border))] focus-within:[box-shadow:0_0_0_3px_color-mix(in_oklab,var(--accent-teal)_18%,transparent)]">
               <span className="text-[11px] uppercase tracking-[0.22em] text-(--color-muted)">
-                Seguir fim
+                {lt("Seguir fim")}
               </span>
               <Switch
                 checked={autoScrollEnabled}
@@ -195,19 +199,25 @@ export function WatchLogPanel({
         </CardHeader>
         <CardContent className="pt-6">
           <div className="mb-4 grid gap-3 sm:grid-cols-3">
-            <StatChip label="Serial" value={String(counts.serial)} />
-            <StatChip label="Backend" value={String(counts.backend)} />
-            <StatChip label="App" value={String(counts.app)} />
+            <StatChip label={lt("Serial")} value={String(counts.serial)} />
+            <StatChip label={lt("Backend")} value={String(counts.backend)} />
+            <StatChip label={lt("App")} value={String(counts.app)} />
           </div>
 
           <div className="relative">
             <div
+              aria-atomic="false"
+              aria-label={lt("Watch ao vivo")}
+              aria-live="polite"
+              aria-relevant="additions text"
               ref={scrollRef}
-              className="max-h-155 space-y-3 overflow-auto pr-1 pb-14"
+              className="max-h-155 space-y-3 overflow-auto pr-1 pb-14 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--accent-teal) focus-visible:ring-offset-2 focus-visible:ring-offset-transparent"
+              role="log"
+              tabIndex={0}
             >
               {visibleLogs.length === 0 ? (
                 <div className="rounded-[22px] border border-dashed border-(--color-border) bg-(--color-panel) px-5 py-8 text-sm text-(--color-muted)">
-                  Nenhum evento no filtro atual.
+                  {lt("Nenhum evento no filtro atual.")}
                 </div>
               ) : (
                 visibleLogs.map((entry) => (
@@ -217,17 +227,17 @@ export function WatchLogPanel({
                   >
                     <div className="flex flex-wrap items-center gap-2">
                       <Badge tone={toneForScope(entry.scope)}>
-                        {labelForScope(entry.scope)}
+                        {labelForScope(entry.scope, lt)}
                       </Badge>
                       <Badge tone={toneForLevel(entry.level)}>
-                        {labelForLevel(entry.level)}
+                        {labelForLevel(entry.level, lt)}
                       </Badge>
                       <span className="text-xs uppercase tracking-[0.22em] text-(--color-muted)">
                         {formatWatchTimestamp(entry.timestampMs)}
                       </span>
                     </div>
                     <p className="mt-2 text-sm font-semibold text-(--color-ink)">
-                      {entry.message}
+                      {lt(entry.message)}
                     </p>
                     {entry.detail ? (
                       <p className="mt-1 wrap-break-word font-mono text-xs leading-5 text-(--color-copy)">
@@ -249,7 +259,7 @@ export function WatchLogPanel({
                   variant="secondary"
                 >
                   <ArrowDown className="h-4 w-4" />
-                  Última linha
+                  {lt("Última linha")}
                 </Button>
               </div>
             ) : null}
@@ -260,28 +270,29 @@ export function WatchLogPanel({
       <Card>
         <CardHeader className="border-b border-(--color-border) pb-5">
           <div>
-            <CardTitle>Contexto ao vivo</CardTitle>
+            <CardTitle>{lt("Contexto ao vivo")}</CardTitle>
             <CardDescription>
-              Resumo da sessão atual e do estado observado pelo watch.
+              {lt("Resumo da sessão atual e do estado observado pelo watch.")}
             </CardDescription>
           </div>
         </CardHeader>
         <CardContent className="space-y-4 pt-6">
-          <KeyValue label="Status" value={snapshot.statusText} />
+          <KeyValue label={lt("Status")} value={lt(snapshot.statusText)} />
           <KeyValue
-            label="Porta ativa"
-            value={snapshot.connectionPort ?? "nenhuma"}
+            label={lt("Porta ativa")}
+            value={snapshot.connectionPort ?? lt("nenhuma")}
           />
           <KeyValue
-            label="Última serial"
-            value={snapshot.diagnostics.lastSerialLine ?? "aguardando"}
+            label={lt("Última serial")}
+            value={snapshot.diagnostics.lastSerialLine ?? lt("aguardando")}
           />
-          <KeyValue label="Backend áudio" value={snapshot.diagnostics.backend} />
-          <KeyValue label="Perfil ativo" value={activeProfileName} />
+          <KeyValue label={lt("Backend áudio")} value={snapshot.diagnostics.backend} />
+          <KeyValue label={lt("Perfil ativo")} value={activeProfileName} />
 
           <div className="rounded-[22px] border border-(--color-border) bg-(--color-panel) px-4 py-4 text-sm text-(--color-muted)">
-            O terminal do Tauri mostra os `println!` do backend. Este painel espelha os
-            eventos estruturados emitidos pela app, pela serial e pelo Rust.
+            {lt(
+              "O terminal do Tauri mostra os `println!` do backend. Este painel espelha os eventos estruturados emitidos pela app, pela serial e pelo Rust."
+            )}
           </div>
         </CardContent>
       </Card>

@@ -16,13 +16,15 @@ import {
   serializeProfileDraft,
   type DraftValidationResult
 } from "@/lib/profile-config";
+import { translateText } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 import { type WatchLogInput } from "@/lib/watch";
 import type {
   AudioInventory,
   AudioTarget,
   MixerProfile,
-  PersistedState
+  PersistedState,
+  UiLanguage
 } from "@ioruba/shared";
 
 type DraftStatusTone = "neutral" | "positive" | "warning" | "critical";
@@ -38,6 +40,7 @@ interface ProfileWorkbenchProps {
   draftStatusTone: DraftStatusTone;
   draftStatusLabel: string;
   draftStatusHint: string;
+  language: UiLanguage;
   setConfigDraft: (draft: string) => void;
   applyConfigDraft: () => void;
   resetProfile: () => void;
@@ -59,6 +62,7 @@ export function ProfileWorkbench({
   draftStatusTone,
   draftStatusLabel,
   draftStatusHint,
+  language,
   setConfigDraft,
   applyConfigDraft,
   resetProfile,
@@ -68,11 +72,12 @@ export function ProfileWorkbench({
   removeActiveProfile,
   appendWatchLog
 }: ProfileWorkbenchProps) {
+  const lt = (text: string) => translateText(language, text);
   const workingProfile = draftValidation.ok ? draftValidation.value : activeProfile;
   const structuredEditorLocked = !draftValidation.ok;
   const removable = persisted.profiles.length > 1;
   const profileActionLockedReason = structuredEditorLocked
-    ? "Corrija o JSON avançado antes de trocar, criar, duplicar ou remover perfis."
+    ? lt("Corrija o JSON avançado antes de trocar, criar, duplicar ou remover perfis.")
     : null;
   const draftErrorId = "profile-draft-error";
 
@@ -101,8 +106,8 @@ export function ProfileWorkbench({
   function syncDraftBeforeProfileAction() {
     if (!draftValidation.ok) {
       appendEditorWarning(
-        "Editor estruturado bloqueado",
-        "Corrija o JSON avançado antes de alterar a coleção de perfis"
+        lt("Editor estruturado bloqueado"),
+        lt("Corrija o JSON avançado antes de alterar a coleção de perfis")
       );
       return false;
     }
@@ -112,7 +117,7 @@ export function ProfileWorkbench({
         applyConfigDraft();
       } catch (error) {
         appendEditorWarning(
-          "Nao foi possivel salvar o rascunho antes da troca de perfil",
+          lt("Nao foi possivel salvar o rascunho antes da troca de perfil"),
           error instanceof Error ? error.message : String(error)
         );
         return false;
@@ -125,8 +130,8 @@ export function ProfileWorkbench({
   function updateStructuredProfile(mutator: (profile: MixerProfile) => void) {
     if (!draftValidation.ok) {
       appendEditorWarning(
-        "Editor estruturado bloqueado",
-        "Corrija o JSON avançado antes de continuar"
+        lt("Editor estruturado bloqueado"),
+        lt("Corrija o JSON avançado antes de continuar")
       );
       return;
     }
@@ -161,7 +166,7 @@ export function ProfileWorkbench({
 
     return {
       kind,
-      name: currentName ?? defaultTargetName(kind, audioInventory)
+      name: currentName ?? defaultTargetName(kind, audioInventory, language)
     };
   }
 
@@ -267,10 +272,9 @@ export function ProfileWorkbench({
       <Card>
         <CardHeader>
           <div>
-            <CardTitle>Perfis salvos</CardTitle>
+            <CardTitle>{lt("Perfis salvos")}</CardTitle>
             <CardDescription>
-              Selecione rapidamente um preset, duplique uma base existente e mantenha
-              múltiplos layouts sem tocar no JSON bruto.
+              {lt("Selecione rapidamente um preset, duplique uma base existente e mantenha múltiplos layouts sem tocar no JSON bruto.")}
             </CardDescription>
           </div>
         </CardHeader>
@@ -278,7 +282,7 @@ export function ProfileWorkbench({
           <div className="flex flex-wrap items-center gap-3">
             <Button disabled={structuredEditorLocked} onClick={handleCreateProfile}>
               <Plus className="h-4 w-4" />
-              Novo perfil
+              {lt("Novo perfil")}
             </Button>
             <Button
               disabled={structuredEditorLocked}
@@ -286,7 +290,7 @@ export function ProfileWorkbench({
               variant="secondary"
             >
               <Copy className="h-4 w-4" />
-              Duplicar ativo
+              {lt("Duplicar ativo")}
             </Button>
             <Button
               disabled={structuredEditorLocked || !removable}
@@ -294,9 +298,9 @@ export function ProfileWorkbench({
               variant="ghost"
             >
               <Trash2 className="h-4 w-4" />
-              Remover ativo
+              {lt("Remover ativo")}
             </Button>
-            {draftIsDirty ? <Badge tone="warning">Rascunho pendente</Badge> : null}
+            {draftIsDirty ? <Badge tone="warning">{lt("Rascunho pendente")}</Badge> : null}
           </div>
 
           {profileActionLockedReason ? (
@@ -311,6 +315,7 @@ export function ProfileWorkbench({
 
               return (
                 <button
+                  aria-pressed={selected}
                   className={cn(
                     "rounded-3xl border px-4 py-4 text-left transition",
                     selected
@@ -331,13 +336,13 @@ export function ProfileWorkbench({
                         {profile.id}
                       </p>
                     </div>
-                    {selected ? <Badge tone="positive">Ativo</Badge> : null}
+                    {selected ? <Badge tone="positive">{lt("Ativo")}</Badge> : null}
                   </div>
 
                   <div className="mt-4 flex flex-wrap gap-2">
-                    <Badge tone="neutral">{profile.sliders.length} knob(s)</Badge>
+                    <Badge tone="neutral">{profile.sliders.length} {lt("knob(s)")}</Badge>
                     <Badge tone={profile.serial.autoConnect ? "positive" : "warning"}>
-                      {profile.serial.autoConnect ? "auto-connect" : "manual"}
+                      {profile.serial.autoConnect ? lt("auto-connect") : lt("manual")}
                     </Badge>
                   </div>
                 </button>
@@ -352,11 +357,9 @@ export function ProfileWorkbench({
           <Card>
             <CardHeader>
               <div>
-                <CardTitle>Editor estruturado</CardTitle>
+                <CardTitle>{lt("Editor estruturado")}</CardTitle>
                 <CardDescription>
-                  Ajuste nome, serial, áudio e preferências visuais do perfil com
-                  formulários seguros. As mudanças alimentam o mesmo rascunho do JSON
-                  avançado.
+                  {lt("Ajuste nome, serial, áudio e preferências visuais do perfil com formulários seguros. As mudanças alimentam o mesmo rascunho do JSON avançado.")}
                 </CardDescription>
               </div>
               <Badge tone={draftStatusTone}>{draftStatusLabel}</Badge>
@@ -370,7 +373,7 @@ export function ProfileWorkbench({
                 <>
                   <div className="grid gap-4 md:grid-cols-2">
                     <BufferedTextField
-                      label="Nome do perfil"
+                      label={lt("Nome do perfil")}
                       onCommit={(value) =>
                         updateStructuredProfile((profile) => {
                           profile.name = value;
@@ -381,7 +384,7 @@ export function ProfileWorkbench({
 
                     <label className="grid gap-2">
                       <span className="text-[0.7rem] font-semibold uppercase tracking-[0.24em] text-(--color-muted)">
-                        ID técnico
+                        {lt("ID técnico")}
                       </span>
                       <input
                         className="field opacity-80"
@@ -394,7 +397,7 @@ export function ProfileWorkbench({
                   <div className="grid gap-4 md:grid-cols-2">
                     <label className="grid gap-2">
                       <span className="text-[0.7rem] font-semibold uppercase tracking-[0.24em] text-(--color-muted)">
-                        Porta preferida
+                        {lt("Porta preferida")}
                       </span>
                       <select
                         className="field"
@@ -406,7 +409,7 @@ export function ProfileWorkbench({
                         }
                         value={workingProfile.serial.preferredPort ?? ""}
                       >
-                        <option value="">Detectar automaticamente</option>
+                        <option value="">{lt("Detectar automaticamente")}</option>
                         {knownPorts.map((port) => (
                           <option key={port} value={port}>
                             {port}
@@ -417,7 +420,7 @@ export function ProfileWorkbench({
 
                     <label className="grid gap-2">
                       <span className="text-[0.7rem] font-semibold uppercase tracking-[0.24em] text-(--color-muted)">
-                        Baud rate
+                        {lt("Baud rate")}
                       </span>
                       <input
                         className="field"
@@ -435,7 +438,7 @@ export function ProfileWorkbench({
 
                     <label className="grid gap-2">
                       <span className="text-[0.7rem] font-semibold uppercase tracking-[0.24em] text-(--color-muted)">
-                        Heartbeat (ms)
+                        {lt("Heartbeat (ms)")}
                       </span>
                       <input
                         className="field"
@@ -453,7 +456,7 @@ export function ProfileWorkbench({
 
                     <label className="grid gap-2">
                       <span className="text-[0.7rem] font-semibold uppercase tracking-[0.24em] text-(--color-muted)">
-                        Janela da telemetria
+                        {lt("Janela da telemetria")}
                       </span>
                       <input
                         className="field"
@@ -471,7 +474,7 @@ export function ProfileWorkbench({
 
                     <label className="grid gap-2">
                       <span className="text-[0.7rem] font-semibold uppercase tracking-[0.24em] text-(--color-muted)">
-                        Tema
+                        {lt("Tema")}
                       </span>
                       <select
                         className="field"
@@ -482,15 +485,15 @@ export function ProfileWorkbench({
                         }
                         value={workingProfile.ui.theme}
                       >
-                        <option value="system">Seguir sistema</option>
-                        <option value="light">Claro de bancada</option>
-                        <option value="dark">Escuro de estúdio</option>
+                        <option value="system">{lt("Seguir sistema")}</option>
+                        <option value="light">{lt("Claro de bancada")}</option>
+                        <option value="dark">{lt("Escuro de estúdio")}</option>
                       </select>
                     </label>
 
                     <label className="grid gap-2">
                       <span className="text-[0.7rem] font-semibold uppercase tracking-[0.24em] text-(--color-muted)">
-                        Idioma
+                        {lt("Idioma")}
                       </span>
                       <select
                         className="field"
@@ -501,14 +504,14 @@ export function ProfileWorkbench({
                         }
                         value={workingProfile.ui.language}
                       >
-                        <option value="pt-BR">Português (Brasil)</option>
-                        <option value="en">English</option>
+                        <option value="pt-BR">{lt("Português (Brasil)")}</option>
+                        <option value="en">{lt("English")}</option>
                       </select>
                     </label>
 
                     <label className="grid gap-2">
                       <span className="text-[0.7rem] font-semibold uppercase tracking-[0.24em] text-(--color-muted)">
-                        Redução de ruído
+                        {lt("Redução de ruído")}
                       </span>
                       <select
                         className="field"
@@ -520,15 +523,15 @@ export function ProfileWorkbench({
                         }
                         value={workingProfile.audio.noiseReduction}
                       >
-                        <option value="low">Baixa</option>
-                        <option value="default">Padrão</option>
-                        <option value="high">Alta</option>
+                        <option value="low">{lt("Baixa")}</option>
+                        <option value="default">{lt("Padrão")}</option>
+                        <option value="high">{lt("Alta")}</option>
                       </select>
                     </label>
 
                     <label className="grid gap-2">
                       <span className="text-[0.7rem] font-semibold uppercase tracking-[0.24em] text-(--color-muted)">
-                        Transição (ms)
+                        {lt("Transição (ms)")}
                       </span>
                       <input
                         className="field"
@@ -546,7 +549,7 @@ export function ProfileWorkbench({
 
                     <label className="grid gap-2">
                       <span className="text-[0.7rem] font-semibold uppercase tracking-[0.24em] text-(--color-muted)">
-                        Threshold do firmware
+                        {lt("Threshold do firmware")}
                       </span>
                       <input
                         className="field"
@@ -564,7 +567,7 @@ export function ProfileWorkbench({
 
                     <label className="grid gap-2">
                       <span className="text-[0.7rem] font-semibold uppercase tracking-[0.24em] text-(--color-muted)">
-                        Deadzone do firmware
+                        {lt("Deadzone do firmware")}
                       </span>
                       <input
                         className="field"
@@ -583,7 +586,7 @@ export function ProfileWorkbench({
 
                     <label className="grid gap-2">
                       <span className="text-[0.7rem] font-semibold uppercase tracking-[0.24em] text-(--color-muted)">
-                        Smoothing do firmware (%)
+                        {lt("Smoothing do firmware (%)")}
                       </span>
                       <input
                         className="field"
@@ -604,33 +607,36 @@ export function ProfileWorkbench({
                   <div className="grid gap-4 md:grid-cols-3">
                     <ToggleTile
                       checked={workingProfile.serial.autoConnect}
-                      description="Conecta a serial automaticamente no boot quando possível."
+                      language={language}
+                      description={lt("Conecta a serial automaticamente no boot quando possível.")}
                       onCheckedChange={(checked) =>
                         updateStructuredProfile((profile) => {
                           profile.serial.autoConnect = checked;
                         })
                       }
-                      title="Auto-connect"
+                      title={lt("Auto-connect")}
                     />
                     <ToggleTile
                       checked={workingProfile.audio.smoothTransitions}
-                      description="Mantém o backend com aplicação mais suave entre amostras."
+                      language={language}
+                      description={lt("Mantém o backend com aplicação mais suave entre amostras.")}
                       onCheckedChange={(checked) =>
                         updateStructuredProfile((profile) => {
                           profile.audio.smoothTransitions = checked;
                         })
                       }
-                      title="Transições suaves"
+                      title={lt("Transições suaves")}
                     />
                     <ToggleTile
                       checked={workingProfile.ui.showVisualizers}
-                      description="Mostra gráficos e telemetria ao vivo na visão principal."
+                      language={language}
+                      description={lt("Mostra gráficos e telemetria ao vivo na visão principal.")}
                       onCheckedChange={(checked) =>
                         updateStructuredProfile((profile) => {
                           profile.ui.showVisualizers = checked;
                         })
                       }
-                      title="Visualizadores"
+                      title={lt("Visualizadores")}
                     />
                   </div>
                 </>
@@ -641,28 +647,27 @@ export function ProfileWorkbench({
           <Card>
             <CardHeader>
               <div>
-                <CardTitle>Knobs e destinos</CardTitle>
+                <CardTitle>{lt("Knobs e destinos")}</CardTitle>
                 <CardDescription>
-                  Reordene canais, renomeie knobs e monte múltiplos targets sem abrir o
-                  editor JSON.
+                  {lt("Reordene canais, renomeie knobs e monte múltiplos targets sem abrir o editor JSON.")}
                 </CardDescription>
               </div>
               <Button disabled={structuredEditorLocked} onClick={handleAddSlider} size="small">
                 <Plus className="h-4 w-4" />
-                Adicionar knob
+                {lt("Adicionar knob")}
               </Button>
             </CardHeader>
             <CardContent className="space-y-4">
               {structuredEditorLocked ? (
                 <div className="rounded-[20px] border border-[color-mix(in_oklab,var(--accent-rose)_32%,var(--color-border))] bg-[color-mix(in_oklab,var(--accent-rose)_8%,var(--color-panel))] px-4 py-4 text-sm text-(--accent-rose)">
-                  Corrija o JSON avançado para liberar o editor visual dos knobs.
+                  {lt("Corrija o JSON avançado para liberar o editor visual dos knobs.")}
                 </div>
               ) : (
                 workingProfile.sliders.map((slider, sliderIndex) => {
                   const sliderSuggestions = slider.targets.flatMap((target) =>
                     target.kind === "master"
                       ? []
-                      : targetSuggestions(target.kind, audioInventory)
+                      : targetSuggestions(target.kind, audioInventory, language)
                   );
 
                   return (
@@ -672,9 +677,9 @@ export function ProfileWorkbench({
                     >
                       <div className="flex flex-wrap items-center justify-between gap-3">
                         <div className="flex flex-wrap items-center gap-2">
-                          <Badge tone="neutral">Knob {sliderIndex + 1}</Badge>
-                          <Badge tone="neutral">id {slider.id}</Badge>
-                          {slider.inverted ? <Badge tone="warning">invertido</Badge> : null}
+                          <Badge tone="neutral">{lt("Knob")} {sliderIndex + 1}</Badge>
+                          <Badge tone="neutral">{lt("id")} {slider.id}</Badge>
+                          {slider.inverted ? <Badge tone="warning">{lt("invertido")}</Badge> : null}
                         </div>
                         <div className="flex flex-wrap items-center gap-2">
                           <Button
@@ -684,7 +689,7 @@ export function ProfileWorkbench({
                             variant="ghost"
                           >
                             <ArrowUp className="h-4 w-4" />
-                            Subir
+                            {lt("Subir")}
                           </Button>
                           <Button
                             disabled={sliderIndex === workingProfile.sliders.length - 1}
@@ -693,7 +698,7 @@ export function ProfileWorkbench({
                             variant="ghost"
                           >
                             <ArrowDown className="h-4 w-4" />
-                            Descer
+                            {lt("Descer")}
                           </Button>
                           <Button
                             disabled={workingProfile.sliders.length <= 1}
@@ -702,14 +707,14 @@ export function ProfileWorkbench({
                             variant="ghost"
                           >
                             <Trash2 className="h-4 w-4" />
-                            Remover
+                            {lt("Remover")}
                           </Button>
                         </div>
                       </div>
 
                       <div className="mt-4 grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
                         <BufferedTextField
-                          label="Nome do knob"
+                          label={lt("Nome do knob")}
                           onCommit={(value) =>
                             updateStructuredProfile((profile) => {
                               if (!profile.sliders[sliderIndex]) {
@@ -724,7 +729,8 @@ export function ProfileWorkbench({
 
                         <ToggleTile
                           checked={slider.inverted ?? false}
-                          description="Inverte o sentido lógico do knob sem mudar a fiação física."
+                          language={language}
+                          description={lt("Inverte o sentido lógico do knob sem mudar a fiação física.")}
                           onCheckedChange={(checked) =>
                             updateStructuredProfile((profile) => {
                               if (!profile.sliders[sliderIndex]) {
@@ -734,14 +740,14 @@ export function ProfileWorkbench({
                               profile.sliders[sliderIndex].inverted = checked;
                             })
                           }
-                          title="Direção invertida"
+                          title={lt("Direção invertida")}
                         />
                       </div>
 
                       <div className="mt-4 grid gap-4 md:grid-cols-2">
                         <label className="grid gap-2">
                           <span className="text-[0.7rem] font-semibold uppercase tracking-[0.24em] text-(--color-muted)">
-                            Calibração mínima
+                            {lt("Calibração mínima")}
                           </span>
                           <input
                             className="field"
@@ -769,7 +775,7 @@ export function ProfileWorkbench({
 
                         <label className="grid gap-2">
                           <span className="text-[0.7rem] font-semibold uppercase tracking-[0.24em] text-(--color-muted)">
-                            Calibração máxima
+                            {lt("Calibração máxima")}
                           </span>
                           <input
                             className="field"
@@ -800,10 +806,10 @@ export function ProfileWorkbench({
                         <div className="flex flex-wrap items-center justify-between gap-3">
                           <div>
                             <p className="text-[0.7rem] font-semibold uppercase tracking-[0.24em] text-(--color-muted)">
-                              Destinos do knob
+                              {lt("Destinos do knob")}
                             </p>
                             <p className="mt-1 text-sm text-(--color-muted)">
-                              Misture master, app, source e sink no mesmo canal.
+                              {lt("Misture master, app, source e sink no mesmo canal.")}
                             </p>
                           </div>
                           <Button
@@ -812,7 +818,7 @@ export function ProfileWorkbench({
                             variant="secondary"
                           >
                             <Plus className="h-4 w-4" />
-                            Adicionar target
+                            {lt("Adicionar target")}
                           </Button>
                         </div>
 
@@ -820,7 +826,7 @@ export function ProfileWorkbench({
                           const suggestions =
                             target.kind === "master"
                               ? []
-                              : targetSuggestions(target.kind, audioInventory);
+                              : targetSuggestions(target.kind, audioInventory, language);
 
                           return (
                             <div
@@ -830,7 +836,7 @@ export function ProfileWorkbench({
                               <div className="grid gap-3 md:grid-cols-[minmax(0,0.82fr)_minmax(0,1.18fr)_auto] md:items-end">
                                 <label className="grid gap-2">
                                   <span className="text-[0.68rem] font-semibold uppercase tracking-[0.22em] text-(--color-muted)">
-                                    Tipo
+                                    {lt("Tipo")}
                                   </span>
                                   <select
                                     className="field"
@@ -849,20 +855,20 @@ export function ProfileWorkbench({
                                     }
                                     value={target.kind}
                                   >
-                                    <option value="master">master</option>
-                                    <option value="application">application</option>
-                                    <option value="source">source</option>
-                                    <option value="sink">sink</option>
+                                    <option value="master">{lt("master")}</option>
+                                    <option value="application">{lt("application")}</option>
+                                    <option value="source">{lt("source")}</option>
+                                    <option value="sink">{lt("sink")}</option>
                                   </select>
                                 </label>
 
                                 {target.kind === "master" ? (
                                   <div className="rounded-[18px] border border-dashed border-(--color-border) bg-[color-mix(in_oklab,var(--color-panel)_90%,transparent)] px-4 py-3 text-sm text-(--color-muted)">
-                                    Controla a saída principal atual do sistema.
+                                    {lt("Controla a saída principal atual do sistema.")}
                                   </div>
                                 ) : (
                                   <BufferedTextField
-                                    label="Nome do target"
+                                    label={lt("Nome do target")}
                                     onCommit={(value) =>
                                       updateStructuredProfile((profile) => {
                                         const nextSlider = profile.sliders[sliderIndex];
@@ -879,7 +885,7 @@ export function ProfileWorkbench({
                                         nextTarget.name = value;
                                       })
                                     }
-                                    placeholder={defaultTargetName(target.kind, audioInventory)}
+                                    placeholder={defaultTargetName(target.kind, audioInventory, language)}
                                     value={target.name}
                                   />
                                 )}
@@ -891,7 +897,7 @@ export function ProfileWorkbench({
                                   variant="ghost"
                                 >
                                   <Trash2 className="h-4 w-4" />
-                                  Remover
+                                  {lt("Remover")}
                                 </Button>
                               </div>
 
@@ -930,7 +936,7 @@ export function ProfileWorkbench({
 
                         {sliderSuggestions.length === 0 ? null : (
                           <p className="text-xs text-(--color-muted)">
-                            Dica: as sugestões acima vêm do inventário de áudio carregado na sessão.
+                            {lt("Dica: as sugestões acima vêm do inventário de áudio carregado na sessão.")}
                           </p>
                         )}
                       </div>
@@ -946,10 +952,9 @@ export function ProfileWorkbench({
           <Card>
             <CardHeader>
               <div>
-                <CardTitle>JSON avançado</CardTitle>
+                <CardTitle>{lt("JSON avançado")}</CardTitle>
                 <CardDescription>
-                  Escape hatch para ajustes finos, revisão de schema e colagem direta de
-                  perfis completos.
+                  {lt("Escape hatch para ajustes finos, revisão de schema e colagem direta de perfis completos.")}
                 </CardDescription>
               </div>
             </CardHeader>
@@ -980,10 +985,10 @@ export function ProfileWorkbench({
               ) : null}
               <div className="flex flex-wrap gap-3">
                 <Button disabled={!draftValidation.ok || !draftIsDirty} onClick={applyConfigDraft}>
-                  Salvar perfil
+                  {lt("Salvar perfil")}
                 </Button>
                 <Button onClick={resetProfile} variant="secondary">
-                  Restaurar padrão
+                  {lt("Restaurar padrão")}
                 </Button>
               </div>
             </CardContent>
@@ -992,27 +997,29 @@ export function ProfileWorkbench({
           <Card>
             <CardHeader>
               <div>
-                <CardTitle>Inventário para targets</CardTitle>
+                <CardTitle>{lt("Inventário para targets")}</CardTitle>
                 <CardDescription>
-                  Use estes nomes reais do runtime atual para preencher applications, sinks e
-                  sources com menos tentativa e erro.
+                  {lt("Use estes nomes reais do runtime atual para preencher applications, sinks e sources com menos tentativa e erro.")}
                 </CardDescription>
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
               <InventoryHintBlock
-                title="Applications"
+                language={language}
+                title={lt("Applications")}
                 values={audioInventory.applications}
               />
               <InventoryHintBlock
-                title="Sources"
+                language={language}
+                title={lt("Sources")}
                 values={[
                   audioInventory.defaultSource ? `default_microphone -> ${audioInventory.defaultSource}` : null,
                   ...audioInventory.sources.map((source) => `${source.name} — ${source.description}`)
                 ].filter((value): value is string => Boolean(value))}
               />
               <InventoryHintBlock
-                title="Sinks"
+                language={language}
+                title={lt("Sinks")}
                 values={[
                   audioInventory.defaultSink ? `default_output -> ${audioInventory.defaultSink}` : null,
                   ...audioInventory.sinks.map((sink) => `${sink.name} — ${sink.description}`)
@@ -1030,11 +1037,13 @@ function ToggleTile({
   title,
   description,
   checked,
+  language,
   onCheckedChange
 }: {
   title: string;
   description: string;
   checked: boolean;
+  language: UiLanguage;
   onCheckedChange: (checked: boolean) => void;
 }) {
   return (
@@ -1049,7 +1058,7 @@ function ToggleTile({
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-2">
           <p className="text-sm font-semibold text-(--color-ink)">{title}</p>
-          <Badge tone={checked ? "positive" : "neutral"}>{checked ? "Ligado" : "Desligado"}</Badge>
+          <Badge tone={checked ? "positive" : "neutral"}>{checked ? translateText(language, "Ligado") : translateText(language, "Desligado")}</Badge>
         </div>
         <p className="mt-2 text-sm leading-5 text-(--color-muted)">{description}</p>
       </div>
@@ -1124,7 +1133,15 @@ function BufferedTextField({
   );
 }
 
-function InventoryHintBlock({ title, values }: { title: string; values: string[] }) {
+function InventoryHintBlock({
+  title,
+  values,
+  language
+}: {
+  title: string;
+  values: string[];
+  language: UiLanguage;
+}) {
   return (
     <div className="rounded-[22px] border border-(--color-border) bg-(--color-panel) px-4 py-4">
       <p className="text-[0.7rem] font-semibold uppercase tracking-[0.24em] text-(--color-muted)">
@@ -1132,7 +1149,7 @@ function InventoryHintBlock({ title, values }: { title: string; values: string[]
       </p>
       <div className="mt-3 flex flex-wrap gap-2">
         {values.length === 0 ? (
-          <Badge tone="neutral">nenhum item detectado</Badge>
+          <Badge tone="neutral">{translateText(language, "nenhum item detectado")}</Badge>
         ) : (
           values.map((value) => (
             <Badge className="max-w-full break-all" key={value} tone="neutral">
@@ -1147,34 +1164,36 @@ function InventoryHintBlock({ title, values }: { title: string; values: string[]
 
 function defaultTargetName(
   kind: Exclude<AudioTarget["kind"], "master">,
-  audioInventory: AudioInventory
+  audioInventory: AudioInventory,
+  language: UiLanguage
 ) {
   switch (kind) {
     case "application":
-      return audioInventory.applications[0] ?? "Spotify";
+      return audioInventory.applications[0] ?? translateText(language, "Spotify");
     case "source":
-      return audioInventory.defaultSource ?? audioInventory.sources[0]?.name ?? "default_microphone";
+      return audioInventory.defaultSource ?? audioInventory.sources[0]?.name ?? translateText(language, "default_microphone");
     case "sink":
-      return audioInventory.defaultSink ?? audioInventory.sinks[0]?.name ?? "default_output";
+      return audioInventory.defaultSink ?? audioInventory.sinks[0]?.name ?? translateText(language, "default_output");
   }
 }
 
 function targetSuggestions(
   kind: Exclude<AudioTarget["kind"], "master">,
-  audioInventory: AudioInventory
+  audioInventory: AudioInventory,
+  language: UiLanguage
 ) {
   switch (kind) {
     case "application":
       return audioInventory.applications;
     case "source":
       return [
-        "default_microphone",
+        translateText(language, "default_microphone"),
         ...(audioInventory.defaultSource ? [audioInventory.defaultSource] : []),
         ...audioInventory.sources.map((source) => source.name)
       ];
     case "sink":
       return [
-        "default_output",
+        translateText(language, "default_output"),
         ...(audioInventory.defaultSink ? [audioInventory.defaultSink] : []),
         ...audioInventory.sinks.map((sink) => sink.name)
       ];

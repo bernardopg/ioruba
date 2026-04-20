@@ -10,6 +10,15 @@ Formato:
 
 Prioridade atual: concluir primeiro tudo que é Linux/firmware/desktop. O backlog multiplataforma do Scrum 04 fica para o final.
 
+## Atualizações recentes (main pós-v0.5.0)
+
+- [x] Fechar o corte de release 0.5.0 em versões, changelog e documentação de distribuição `(release/version/docs)` - `médio`
+- [x] Adicionar workflow de CodeQL para análise contínua de segurança e qualidade `(ci/security/codeql)` - `fácil`
+- [x] Ajustar linguagem/regra do CodeQL e reduzir ruído dos alertas para focar em findings acionáveis `(ci/security/codeql)` - `médio`
+- [x] Estabilizar updates de GitHub Actions no Dependabot para evitar conflitos recorrentes `(ci/dependabot/maintenance)` - `fácil`
+- [x] Revisar badges e organização visual do README com status e matriz de suporte `(docs/release/product)` - `fácil`
+- [x] Melhorar `.gitignore` para cobrir artefatos gerados no ciclo atual de desenvolvimento `(repo/hygiene/tooling)` - `fácil`
+
 ## Scrum 01
 
 - [x] Trocar o `window.alert` do editor JSON por validação inline com destaque de erro e estado de salvamento `(frontend/ux/error)` - `médio`
@@ -45,10 +54,10 @@ Prioridade atual: concluir primeiro tudo que é Linux/firmware/desktop. O backlo
 
 ## Scrum 06
 
-- [ ] Revisar navegação por teclado, foco visível e ordem de tab em toda a UI `(frontend/accessibility/design)` - `médio`
-- [ ] Adicionar labels acessíveis, descrições e regiões ao vivo para mudanças de status e outcomes `(frontend/accessibility/ux)` - `médio`
-- [ ] Completar internacionalização PT-BR/EN em toda a interface, inclusive diagnósticos e mensagens de erro `(frontend/i18n/docs)` - `médio`
-- [ ] Revisar contraste, estados visuais e variações de tema com foco em legibilidade `(frontend/design/accessibility)` - `médio`
+- [x] Revisar navegação por teclado, foco visível e ordem de tab em toda a UI `(frontend/accessibility/design)` - `médio`
+- [x] Adicionar labels acessíveis, descrições e regiões ao vivo para mudanças de status e outcomes `(frontend/accessibility/ux)` - `médio`
+- [ ] Completar internacionalização PT-BR/EN em toda a interface, inclusive diagnósticos e mensagens de erro `(frontend/i18n/docs)` - `médio` (em andamento)
+- [ ] Revisar contraste, estados visuais e variações de tema com foco em legibilidade `(frontend/design/accessibility)` - `médio` (em andamento)
 - [ ] Incluir testes e checklist de acessibilidade no pipeline de revisão `(test/accessibility/coverage)` - `médio`
 
 ## Scrum 07

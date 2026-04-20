@@ -25,12 +25,16 @@
 
 ### `release.yml`
 
-- Triggers on semantic version tags such as `v0.4.0`.
+- Triggers on semantic version tags such as `v0.5.0`.
 - Uses `tauri-apps/tauri-action` to build installers for:
   - Windows
-  - Linux
+  - Linux (`deb`, `rpm`, `AppImage`)
   - macOS
 - Builds the Arduino firmware separately and uploads the compiled artifacts to the same release.
+- Generates Arch packaging metadata and uploads it to the same release:
+  - `PKGBUILD` + `.SRCINFO` for source build (`ioruba-desktop`)
+  - `PKGBUILD-bin` + `.SRCINFO-bin` for AppImage-based install (`ioruba-desktop-bin`)
+  - source tarball with versioned checksum (`ioruba-<version>.tar.gz`)
 
 ## Secrets And Signing
 
@@ -49,9 +53,13 @@ For production-grade signed installers, configure:
 ## Release Procedure
 
 1. Merge validated changes into `main`.
-2. Create and push a tag such as `v0.4.0`.
+2. Create and push a tag such as `v0.5.0`.
 3. Let `release.yml` generate the installers and firmware assets.
-4. Verify the uploaded bundles from the GitHub Release page.
+4. Verify the uploaded bundles from the GitHub Release page:
+  - desktop installers (`deb`, `rpm`, `AppImage`, Windows, macOS)
+  - firmware artifacts
+  - Arch packaging metadata files (`PKGBUILD`, `.SRCINFO`, `PKGBUILD-bin`, `.SRCINFO-bin`, source tarball)
+5. If publishing to AUR, copy those generated files into the respective AUR repositories and push.
 
 ## Old Automation Removed
 

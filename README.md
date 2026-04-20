@@ -73,7 +73,7 @@ Ioruba transforms an `Arduino Nano + 3 knobs` into a tactile desktop control dec
 > **Current platform status**
 > Real audio control is implemented for **Linux** through `pactl`. macOS and Windows builds are still useful for UI review, packaging checks, and demo mode, but they do **not** provide a production-ready audio backend yet.
 
-[Releases](https://github.com/bernardopg/ioruba/releases) · [Quick Start](QUICKSTART.md) · [Hardware Setup](docs/guides/hardware-setup.md) · [Nano Setup](NANO_SETUP.md) · [Profile Examples](docs/guides/profile-examples.md) · [Support](docs/debug/support.md) · [Testing](TESTING.md) · [Contributing](CONTRIBUTING.md) · [Funding](FUNDING.md) · [Roadmap](TODO.md)
+[Releases](https://github.com/bernardopg/ioruba/releases) · [Quick Start](QUICKSTART.md) · [Hardware Setup](docs/guides/hardware-setup.md) · [Nano Setup](NANO_SETUP.md) · [Profile Examples](docs/guides/profile-examples.md) · [Translation Guide](docs/guides/translation-guide.md) · [Support](docs/debug/support.md) · [Testing](TESTING.md) · [Contributing](CONTRIBUTING.md) · [Funding](FUNDING.md) · [Roadmap](TODO.md)
 
 <p align="center">
   <img src="apps/desktop/src-tauri/icons/icon.png" alt="Ioruba app icon" width="112" />
@@ -81,7 +81,7 @@ Ioruba transforms an `Arduino Nano + 3 knobs` into a tactile desktop control dec
 
 ## ✨ Visual reference
 
-![Ioruba visual reference](legacy/arduino-audio-controller/screenshots/knob-deck-pt-br.png)
+![Ioruba visual reference](/docs/assets/screenshot.png)
 
 > 📸 Until a fresh capture of the current Tauri app is published, the archived screen above remains a useful visual reference for the product's tactile dashboard direction.
 
@@ -107,7 +107,7 @@ The project keeps the hardware feel of a small mixer while modernizing the softw
 - demo mode for UI validation without touching system audio
 - Linux audio target handling for `master`, `application`, `source`, and `sink`
 - CI for desktop/shared validation plus firmware compilation
-- tagged release workflows for desktop bundles and firmware artifacts
+- tagged release workflows for desktop bundles (`deb`, `rpm`, `AppImage`), firmware artifacts, and Arch packaging metadata (`PKGBUILD` + `.SRCINFO`)
 
 <a id="platform-support"></a>
 ## 🖥️ Platform support
@@ -159,6 +159,7 @@ If you are setting up real hardware, follow these guides next:
 - [NANO_SETUP.md](NANO_SETUP.md) for board flashing and serial checks
 - [docs/guides/hardware-setup.md](docs/guides/hardware-setup.md) for wiring the physical controller
 - [docs/guides/profile-examples.md](docs/guides/profile-examples.md) for ready-to-paste JSON profiles
+- [docs/guides/translation-guide.md](docs/guides/translation-guide.md) for PT-BR/EN translation flow and checks
 
 ## 🧰 Common commands
 
@@ -220,15 +221,16 @@ npm run rust:audit
 
 ## 📚 Documentation map
 
-| Document                                                           | Use it when you need...                                        |
-| ------------------------------------------------------------------ | -------------------------------------------------------------- |
-| [docs/guides/profile-examples.md](docs/guides/profile-examples.md) | Real JSON profile samples and Linux target matching rules      |
-| [QUICKSTART.md](QUICKSTART.md)                                     | The fastest path from zero to a running app                    |
-| [NANO_SETUP.md](NANO_SETUP.md)                                     | Flashing and validating the Arduino Nano                       |
-| [docs/guides/hardware-setup.md](docs/guides/hardware-setup.md)     | Physical wiring and assembly                                   |
-| [docs/debug/support.md](docs/debug/support.md)                     | A support playbook for serial, audio, and profile-debug issues |
-| [TESTING.md](TESTING.md)                                           | Automated checks, smoke tests, and release validation          |
-| [docs/migration/logic-audit.md](docs/migration/logic-audit.md)     | Parity coverage with archived implementations                  |
+| Document                                                             | Use it when you need...                                        |
+| -------------------------------------------------------------------- | -------------------------------------------------------------- |
+| [docs/guides/profile-examples.md](docs/guides/profile-examples.md)   | Real JSON profile samples and Linux target matching rules      |
+| [docs/guides/translation-guide.md](docs/guides/translation-guide.md) | How translations work in the desktop app and how to validate   |
+| [QUICKSTART.md](QUICKSTART.md)                                       | The fastest path from zero to a running app                    |
+| [NANO_SETUP.md](NANO_SETUP.md)                                       | Flashing and validating the Arduino Nano                       |
+| [docs/guides/hardware-setup.md](docs/guides/hardware-setup.md)       | Physical wiring and assembly                                   |
+| [docs/debug/support.md](docs/debug/support.md)                       | A support playbook for serial, audio, and profile-debug issues |
+| [TESTING.md](TESTING.md)                                             | Automated checks, smoke tests, and release validation          |
+| [docs/migration/logic-audit.md](docs/migration/logic-audit.md)       | Parity coverage with archived implementations                  |
 
 ## 🗃️ Legacy archive
 

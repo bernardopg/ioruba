@@ -35,6 +35,7 @@ import {
   listAudioInventory,
   setLaunchOnLoginEnabled
 } from "@/lib/backend";
+import { translateText } from "@/lib/i18n";
 import {
   parseProfileDraft,
   serializeProfileDraft
@@ -89,6 +90,8 @@ export default function App() {
   const appendWatchLog = useIorubaStore((state) => state.appendWatchLog);
   const audioInventory = useIorubaStore((state) => state.audioInventory);
   const activeProfile = resolveActiveProfile(persisted);
+  const language = activeProfile.ui.language;
+  const lt = (text: string) => translateText(language, text);
   const [launchOnLoginPending, setLaunchOnLoginPending] = useState(false);
 
   useThemeSync(activeProfile.ui.theme);
@@ -103,52 +106,64 @@ export default function App() {
     : "critical";
   const draftStatusLabel = draftValidation.ok
     ? draftIsDirty
-      ? "Alteracoes pendentes"
-      : "Perfil salvo"
-    : "JSON invalido";
+      ? lt("Alteracoes pendentes")
+      : lt("Perfil salvo")
+    : lt("JSON invalido");
   const draftStatusHint = draftValidation.ok
     ? draftIsDirty
-      ? "Salve para persistir o perfil ativo."
-      : "O editor esta sincronizado com o perfil salvo."
-    : draftValidation.error;
+      ? lt("Salve para persistir o perfil ativo.")
+      : lt("O editor esta sincronizado com o perfil salvo.")
+    : lt(draftValidation.error);
+  const demoModeTitleId = "demo-mode-title";
+  const demoModeDescriptionId = "demo-mode-description";
+  const launchOnLoginTitleId = "launch-on-login-title";
+  const launchOnLoginDescriptionId = "launch-on-login-description";
+  const statusCardDescriptionId = "session-status-description";
+  const liveStatusMessage = `${lt("Sessão")} ${snapshot.status}: ${lt(snapshot.statusText)}. ${lt(snapshot.diagnostics.hint)} ${lt("Perfil")}: ${draftStatusLabel}. ${draftStatusHint}`;
 
   return (
     <main className="min-h-screen bg-(--color-shell) text-(--color-copy)">
+      <div aria-atomic="true" aria-live="polite" className="sr-only" role="status">
+        {liveStatusMessage}
+      </div>
+      <a className="skip-link" href="#app-content">
+        {lt("Pular para o conteúdo principal")}
+      </a>
       <div className="ambient-grid fixed inset-0 opacity-70" />
-        <div className="relative mx-auto flex min-h-screen max-w-400 flex-col gap-8 px-5 py-6 sm:px-8 lg:px-10">
+      <div className="relative mx-auto flex min-h-screen max-w-400 flex-col gap-8 px-5 py-6 sm:px-8 lg:px-10">
         <header className="grid gap-6 lg:grid-cols-[1.35fr_0.9fr]">
           <section className="rounded-[36px] border border-(--color-border) bg-[linear-gradient(135deg,color-mix(in_oklab,var(--color-shell)_84%,var(--accent-copper)_8%)_0%,color-mix(in_oklab,var(--color-shell)_84%,var(--accent-teal)_12%)_100%)] px-7 py-7 [box-shadow:var(--shadow-hero)]">
             <div className="flex flex-wrap items-center gap-3">
               <Badge tone={toneForStatus(snapshot.status)}>{snapshot.status}</Badge>
-              <Badge tone="neutral">Tauri 2 + React + TS</Badge>
-              <Badge tone="neutral">Arduino C++</Badge>
+              <Badge tone="neutral">{lt("Tauri 2 + React + TS")}</Badge>
+              <Badge tone="neutral">{lt("Arduino C++")}</Badge>
             </div>
             <div className="mt-8 max-w-3xl">
-              <p className="eyebrow">Ioruba Control Deck</p>
+              <p className="eyebrow">{lt("Ioruba Control Deck")}</p>
               <h1 className="mt-3 font-display text-4xl leading-tight text-(--color-ink) md:text-6xl">
-                Mixer físico refeito para sobreviver fora do Haskell e do Python.
+                {lt("Mixer físico refeito para sobreviver fora do Haskell e do Python.")}
               </h1>
               <p className="mt-5 max-w-2xl text-base text-(--color-copy) md:text-lg">
-                A interface nova foi pensada como um painel instrumental: conexão
-                serial, telemetria viva, perfis persistidos em JSON local e
-                aplicação de volume desacoplada do frontend.
+                {lt(
+                  "A interface nova foi pensada como um painel instrumental: conexão serial, telemetria viva, perfis persistidos em JSON local e aplicação de volume desacoplada do frontend."
+                )}
               </p>
             </div>
             <div className="mt-8 grid gap-3 md:grid-cols-3">
               <Metric
                 icon={PlugZap}
-                label="Porta ativa"
-                value={snapshot.connectionPort ?? "nenhuma"}
+                label={lt("Porta ativa")}
+                value={snapshot.connectionPort ?? lt("nenhuma")}
               />
               <Metric
                 icon={Waves}
-                label="Audio backend"
+                label={lt("Audio backend")}
                 value={snapshot.diagnostics.backend}
               />
               <Metric
                 icon={Radar}
-                label="Última serial"
-                value={snapshot.diagnostics.lastSerialLine ?? "aguardando"}
+                label={lt("Última serial")}
+                value={snapshot.diagnostics.lastSerialLine ?? lt("aguardando")}
               />
             </div>
           </section>
@@ -156,24 +171,24 @@ export default function App() {
           <Card className="overflow-hidden">
             <CardHeader className="border-b border-(--color-border) pb-5">
               <div>
-                <CardTitle>Conexão e sessão</CardTitle>
+                <CardTitle>{lt("Conexão e sessão")}</CardTitle>
                 <CardDescription>
-                  Controle de portas, demo mode e persistência do perfil ativo.
+                  {lt("Controle de portas, demo mode e persistência do perfil ativo.")}
                 </CardDescription>
               </div>
             </CardHeader>
             <CardContent className="grid gap-6 pt-6">
               <div className="flex flex-wrap items-center gap-3">
-                <Button onClick={requestConnect}>Conectar</Button>
-                <Button onClick={() => disconnect("Conexão serial encerrada")} variant="secondary">
-                  Desconectar
+                <Button onClick={requestConnect}>{lt("Conectar")}</Button>
+                <Button onClick={() => disconnect(lt("Conexão serial encerrada"))} variant="secondary">
+                  {lt("Desconectar")}
                 </Button>
                 <Button
                   onClick={async () => {
                     appendWatchLog({
                       scope: "app",
                       level: "info",
-                      message: "Inventario de audio solicitado"
+                      message: lt("Inventario de audio solicitado")
                     });
                     const inventory = await listAudioInventory();
                     refreshInventory(inventory);
@@ -181,13 +196,13 @@ export default function App() {
                   variant="ghost"
                 >
                   <RefreshCcw className="h-4 w-4" />
-                  Atualizar áudio
+                  {lt("Atualizar áudio")}
                 </Button>
               </div>
               <div className="grid gap-4 md:grid-cols-2">
                 <label className="grid gap-2">
                   <span className="text-xs uppercase tracking-[0.24em] text-(--color-muted)">
-                    Porta preferida
+                    {lt("Porta preferida")}
                   </span>
                   <select
                     className="field"
@@ -196,7 +211,7 @@ export default function App() {
                     }
                     value={activeProfile.serial.preferredPort ?? ""}
                   >
-                    <option value="">Detectar automaticamente</option>
+                    <option value="">{lt("Detectar automaticamente")}</option>
                     {snapshot.availablePorts.map((port) => (
                       <option key={port} value={port}>
                         {port}
@@ -207,7 +222,7 @@ export default function App() {
 
                 <label className="grid gap-2">
                   <span className="text-xs uppercase tracking-[0.24em] text-(--color-muted)">
-                    Tema da interface
+                    {lt("Tema da interface")}
                   </span>
                   <select
                     className="field"
@@ -216,36 +231,40 @@ export default function App() {
                     }
                     value={activeProfile.ui.theme}
                   >
-                    <option value="system">Seguir sistema</option>
-                    <option value="light">Claro de bancada</option>
-                    <option value="dark">Escuro de estúdio</option>
+                    <option value="system">{lt("Seguir sistema")}</option>
+                    <option value="light">{lt("Claro de bancada")}</option>
+                    <option value="dark">{lt("Escuro de estúdio")}</option>
                   </select>
                 </label>
               </div>
               <div className="flex items-center justify-between rounded-[22px] border border-(--color-border) bg-(--color-panel) px-4 py-3">
                 <div>
-                  <p className="text-sm font-semibold text-(--color-ink)">
-                    Modo demo
+                  <p className="text-sm font-semibold text-(--color-ink)" id={demoModeTitleId}>
+                    {lt("Modo demo")}
                   </p>
-                  <p className="text-sm text-(--color-muted)">
-                    Simula leituras sem tocar no áudio do sistema.
+                  <p className="text-sm text-(--color-muted)" id={demoModeDescriptionId}>
+                    {lt("Simula leituras sem tocar no áudio do sistema.")}
                   </p>
                 </div>
                 <Switch
+                  aria-describedby={demoModeDescriptionId}
+                  aria-labelledby={demoModeTitleId}
                   checked={persisted.demoMode}
                   onCheckedChange={(checked) => setDemoMode(checked)}
                 />
               </div>
               <div className="flex items-center justify-between rounded-[22px] border border-(--color-border) bg-(--color-panel) px-4 py-3">
                 <div>
-                  <p className="text-sm font-semibold text-(--color-ink)">
-                    Iniciar com a sessão
+                  <p className="text-sm font-semibold text-(--color-ink)" id={launchOnLoginTitleId}>
+                    {lt("Iniciar com a sessão")}
                   </p>
-                  <p className="text-sm text-(--color-muted)">
-                    Abre o Ioruba no login e mantém o app disponível no tray.
+                  <p className="text-sm text-(--color-muted)" id={launchOnLoginDescriptionId}>
+                    {lt("Abre o Ioruba no login e mantém o app disponível no tray.")}
                   </p>
                 </div>
                 <Switch
+                  aria-describedby={launchOnLoginDescriptionId}
+                  aria-labelledby={launchOnLoginTitleId}
                   checked={persisted.launchOnLogin}
                   disabled={launchOnLoginPending}
                   onCheckedChange={(checked) => {
@@ -258,7 +277,7 @@ export default function App() {
                         appendWatchLog({
                           scope: "app",
                           level: "error",
-                          message: "Falha ao atualizar inicializacao com a sessao",
+                          message: lt("Falha ao atualizar inicializacao com a sessao"),
                           detail: error instanceof Error ? error.message : String(error)
                         });
                       })
@@ -268,15 +287,21 @@ export default function App() {
                   }}
                 />
               </div>
-              <div className="rounded-[22px] border border-(--color-border) bg-(--color-panel) px-4 py-4">
+              <div
+                aria-atomic="true"
+                aria-describedby={statusCardDescriptionId}
+                aria-live="polite"
+                className="rounded-[22px] border border-(--color-border) bg-(--color-panel) px-4 py-4"
+                role="status"
+              >
                 <p className="text-xs uppercase tracking-[0.24em] text-(--color-muted)">
-                  Status atual
+                  {lt("Status atual")}
                 </p>
                 <p className="mt-2 text-lg font-semibold text-(--color-ink)">
-                  {snapshot.statusText}
+                  {lt(snapshot.statusText)}
                 </p>
-                <p className="mt-2 text-sm text-(--color-muted)">
-                  {snapshot.diagnostics.hint}
+                <p className="mt-2 text-sm text-(--color-muted)" id={statusCardDescriptionId}>
+                  {lt(snapshot.diagnostics.hint)}
                 </p>
               </div>
             </CardContent>
@@ -284,18 +309,24 @@ export default function App() {
         </header>
 
         <Tabs defaultValue="overview">
-          <TabsList className="flex max-w-full flex-wrap justify-start">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="watch">Watch</TabsTrigger>
-            <TabsTrigger value="config">Config</TabsTrigger>
-            <TabsTrigger value="diagnostics">Diagnostics</TabsTrigger>
+          <TabsList
+            aria-label={lt("Navegação principal do Ioruba")}
+            className="flex max-w-full flex-wrap justify-start"
+            id="app-content"
+            tabIndex={-1}
+          >
+            <TabsTrigger value="overview">{lt("Overview")}</TabsTrigger>
+            <TabsTrigger value="watch">{lt("Watch")}</TabsTrigger>
+            <TabsTrigger value="config">{lt("Config")}</TabsTrigger>
+            <TabsTrigger value="diagnostics">{lt("Diagnostics")}</TabsTrigger>
           </TabsList>
 
           <TabsContent className="mt-6 space-y-6" value="overview">
             <section className="grid gap-5 xl:grid-cols-[minmax(0,1.6fr)_minmax(320px,0.85fr)]">
-              <TelemetryChart snapshot={snapshot} />
+              <TelemetryChart language={language} snapshot={snapshot} />
               <OverviewSignalPanel
                 activeProfileName={activeProfile.name}
+                language={language}
                 snapshot={snapshot}
               />
             </section>
@@ -306,6 +337,7 @@ export default function App() {
                   className={index === 0 ? "md:col-span-2 2xl:col-span-1" : undefined}
                   key={knob.id}
                   knob={knob}
+                  language={language}
                 />
               ))}
             </section>
@@ -314,6 +346,7 @@ export default function App() {
           <TabsContent className="mt-6" value="watch">
             <WatchLogPanel
               activeProfileName={activeProfile.name}
+              language={language}
               onClear={clearWatchLog}
               snapshot={snapshot}
               watchLog={watchLog}
@@ -335,6 +368,7 @@ export default function App() {
               draftStatusTone={draftStatusTone}
               draftValidation={draftValidation}
               duplicateActiveProfile={duplicateActiveProfile}
+              language={language}
               persisted={persisted}
               removeActiveProfile={removeActiveProfile}
               resetProfile={resetProfile}
@@ -347,26 +381,29 @@ export default function App() {
             <Card>
               <CardHeader>
                 <div>
-                  <CardTitle>Inventário de áudio</CardTitle>
+                  <CardTitle>{lt("Inventário de áudio")}</CardTitle>
                   <CardDescription>
-                    Descoberta dinâmica do backend atual com aplicações, sinks e sources.
+                    {lt("Descoberta dinâmica do backend atual com aplicações, sinks e sources.")}
                   </CardDescription>
                 </div>
               </CardHeader>
               <CardContent className="grid gap-4">
                 <InventoryBlock
                   icon={LaptopMinimal}
-                  title="Aplicações"
+                  title={lt("Aplicações")}
+                  noItemsLabel={lt("nenhum item detectado")}
                   values={snapshot.diagnostics.activeApplications}
                 />
                 <InventoryBlock
                   icon={Waves}
-                  title="Saídas"
+                  title={lt("Saídas")}
+                  noItemsLabel={lt("nenhum item detectado")}
                   values={audioInventory.sinks.map((sink) => sink.description)}
                 />
                 <InventoryBlock
                   icon={Mic2}
-                  title="Entradas"
+                  title={lt("Entradas")}
+                  noItemsLabel={lt("nenhum item detectado")}
                   values={audioInventory.sources.map(
                     (source) => source.description
                   )}
@@ -377,18 +414,18 @@ export default function App() {
             <Card>
               <CardHeader>
                 <div>
-                  <CardTitle>Checklist da migração</CardTitle>
+                  <CardTitle>{lt("Checklist da migração")}</CardTitle>
                   <CardDescription>
-                    Itens essenciais já cobertos pelo novo stack.
+                    {lt("Itens essenciais já cobertos pelo novo stack.")}
                   </CardDescription>
                 </div>
               </CardHeader>
               <CardContent className="space-y-3">
-                <ChecklistItem label="Protocolo serial legado e frame completo" />
-                <ChecklistItem label="Redução de ruído e aplicação incremental" />
-                <ChecklistItem label="Persistência local em JSON" />
-                <ChecklistItem label="Telemetria com Recharts" />
-                <ChecklistItem label="Backend de áudio em Rust para Linux" />
+                <ChecklistItem label={lt("Protocolo serial legado e frame completo")} />
+                <ChecklistItem label={lt("Redução de ruído e aplicação incremental")} />
+                <ChecklistItem label={lt("Persistência local em JSON")} />
+                <ChecklistItem label={lt("Telemetria com Recharts")} />
+                <ChecklistItem label={lt("Backend de áudio em Rust para Linux")} />
               </CardContent>
             </Card>
           </TabsContent>
@@ -429,11 +466,13 @@ function Metric({
 function InventoryBlock({
   icon: Icon,
   title,
-  values
+  values,
+  noItemsLabel
 }: {
   icon: typeof PlugZap;
   title: string;
   values: string[];
+  noItemsLabel: string;
 }) {
   return (
     <div className="rounded-[22px] border border-(--color-border) bg-(--color-panel) px-4 py-4">
@@ -443,7 +482,7 @@ function InventoryBlock({
       </div>
       <div className="flex flex-wrap gap-2">
         {values.length === 0 ? (
-          <Badge tone="neutral">nenhum item detectado</Badge>
+          <Badge tone="neutral">{noItemsLabel}</Badge>
         ) : (
           values.map((value) => (
             <Badge key={value} tone="neutral">

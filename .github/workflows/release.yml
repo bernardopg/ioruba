@@ -23,7 +23,7 @@ jobs:
       matrix:
         include:
           - platform: ubuntu-22.04
-            args: "--bundles deb,rpm"
+            args: "--bundles deb,rpm,appimage"
           - platform: windows-latest
             args: ""
           - platform: macos-latest
@@ -82,6 +82,224 @@ jobs:
           releaseDraft: false
           prerelease: false
           args: ${{ matrix.args }}
+
+  arch-pkgbuild:
+    name: Arch Packaging Metadata
+    needs:
+      - desktop-bundles
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6.0.2
+        with:
+          fetch-depth: 0
+
+      - name: Install tooling
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jq
+
+      - name: Generate PKGBUILD
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          TAG="${GITHUB_REF_NAME}"
+          VERSION="${TAG#v}"
+          REPO="${GITHUB_REPOSITORY}"
+
+          mkdir -p release-dist/arch
+
+          RELEASE_JSON="$(curl -fsSL \
+            -H "Authorization: Bearer ${GITHUB_TOKEN}" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/${REPO}/releases/tags/${TAG}")"
+
+          APPIMAGE_ASSET_NAME="$(printf '%s' "${RELEASE_JSON}" | jq -r '.assets[]?.name | select(test("\\.AppImage$"; "i"))' | head -n 1)"
+
+          if [[ -z "${APPIMAGE_ASSET_NAME}" ]]; then
+            echo "No AppImage asset found in release ${TAG}."
+            exit 1
+          fi
+
+          APPIMAGE_ASSET_URL="$(printf '%s' "${RELEASE_JSON}" | jq -r --arg NAME "${APPIMAGE_ASSET_NAME}" '.assets[] | select(.name == $NAME) | .browser_download_url')"
+
+          curl -fsSL \
+            -H "Authorization: Bearer ${GITHUB_TOKEN}" \
+            -H "Accept: application/octet-stream" \
+            -o "release-dist/arch/${APPIMAGE_ASSET_NAME}" \
+            "${APPIMAGE_ASSET_URL}"
+
+          APPIMAGE_SHA256="$(sha256sum "release-dist/arch/${APPIMAGE_ASSET_NAME}" | awk '{print $1}')"
+          ICON_SHA256="$(sha256sum "apps/desktop/src-tauri/icons/128x128.png" | awk '{print $1}')"
+
+          git archive \
+            --format=tar.gz \
+            --prefix="ioruba-${VERSION}/" \
+            -o "release-dist/arch/ioruba-${VERSION}.tar.gz" \
+            "$TAG"
+
+          SOURCE_SHA256="$(sha256sum "release-dist/arch/ioruba-${VERSION}.tar.gz" | awk '{print $1}')"
+
+          cat > "release-dist/arch/PKGBUILD" <<EOF
+          pkgname=ioruba-desktop
+          pkgver=${VERSION}
+          pkgrel=1
+          pkgdesc="Tactile audio mixer for Arduino-based Linux control"
+          arch=('x86_64')
+          url="https://github.com/bernardopg/ioruba"
+          license=('MIT')
+          depends=('glibc' 'gtk3' 'webkit2gtk-4.1' 'libayatana-appindicator')
+          makedepends=('npm' 'rust' 'cargo' 'pkgconf' 'webkit2gtk-4.1' 'gtk3' 'librsvg' 'patchelf' 'libappindicator-gtk3')
+          source=("ioruba-\${pkgver}.tar.gz::https://github.com/bernardopg/ioruba/archive/refs/tags/v\${pkgver}.tar.gz")
+          sha256sums=('${SOURCE_SHA256}')
+
+          prepare() {
+            cd "ioruba-\${pkgver}"
+            npm ci
+          }
+
+          build() {
+            cd "ioruba-\${pkgver}"
+            npm --workspace @ioruba/desktop run tauri build -- --no-bundle
+          }
+
+          package() {
+            cd "ioruba-\${pkgver}"
+
+            install -Dm755 \
+              "apps/desktop/src-tauri/target/release/ioruba-desktop" \
+              "\${pkgdir}/usr/bin/ioruba-desktop"
+
+            install -Dm644 \
+              "apps/desktop/src-tauri/icons/128x128.png" \
+              "\${pkgdir}/usr/share/icons/hicolor/128x128/apps/ioruba.png"
+
+            install -Dm644 /dev/null "\${pkgdir}/usr/share/applications/ioruba.desktop"
+            printf '%s\n' \
+              '[Desktop Entry]' \
+              'Type=Application' \
+              'Name=Ioruba' \
+              'Comment=Tactile audio mixer for Arduino-based Linux control' \
+              'Exec=ioruba-desktop' \
+              'Icon=ioruba' \
+              'Categories=AudioVideo;Audio;' \
+              'Terminal=false' \
+              > "\${pkgdir}/usr/share/applications/ioruba.desktop"
+          }
+          EOF
+
+          cat > "release-dist/arch/.SRCINFO" <<EOF
+          pkgbase = ioruba-desktop
+            pkgdesc = Tactile audio mixer for Arduino-based Linux control
+            pkgver = ${VERSION}
+            pkgrel = 1
+            url = https://github.com/bernardopg/ioruba
+            arch = x86_64
+            license = MIT
+            makedepends = npm
+            makedepends = rust
+            makedepends = cargo
+            makedepends = pkgconf
+            makedepends = webkit2gtk-4.1
+            makedepends = gtk3
+            makedepends = librsvg
+            makedepends = patchelf
+            makedepends = libappindicator-gtk3
+            depends = glibc
+            depends = gtk3
+            depends = webkit2gtk-4.1
+            depends = libayatana-appindicator
+            source = ioruba-\${pkgver}.tar.gz::https://github.com/bernardopg/ioruba/archive/refs/tags/v\${pkgver}.tar.gz
+            sha256sums = ${SOURCE_SHA256}
+
+          pkgname = ioruba-desktop
+          EOF
+
+          cat > "release-dist/arch/PKGBUILD-bin" <<EOF
+          pkgname=ioruba-desktop-bin
+          pkgver=${VERSION}
+          pkgrel=1
+          pkgdesc="Tactile audio mixer for Arduino-based Linux control (prebuilt AppImage)"
+          arch=('x86_64')
+          url="https://github.com/bernardopg/ioruba"
+          license=('MIT')
+          depends=('glibc' 'gtk3' 'webkit2gtk-4.1' 'libayatana-appindicator')
+          provides=('ioruba-desktop')
+          conflicts=('ioruba-desktop')
+          source=(
+            "${APPIMAGE_ASSET_NAME}::https://github.com/bernardopg/ioruba/releases/download/v\${pkgver}/${APPIMAGE_ASSET_NAME}"
+            "ioruba.png::https://raw.githubusercontent.com/bernardopg/ioruba/v\${pkgver}/apps/desktop/src-tauri/icons/128x128.png"
+          )
+          sha256sums=('${APPIMAGE_SHA256}' '${ICON_SHA256}')
+
+          package() {
+            install -Dm755 "\${srcdir}/${APPIMAGE_ASSET_NAME}" "\${pkgdir}/opt/ioruba/ioruba.AppImage"
+            install -Dm644 "\${srcdir}/ioruba.png" "\${pkgdir}/usr/share/icons/hicolor/128x128/apps/ioruba.png"
+            install -Dm644 /dev/null "\${pkgdir}/usr/share/applications/ioruba.desktop"
+
+            printf '%s\n' \
+              '[Desktop Entry]' \
+              'Type=Application' \
+              'Name=Ioruba' \
+              'Comment=Tactile audio mixer for Arduino-based Linux control' \
+              'Exec=ioruba-desktop' \
+              'Icon=ioruba' \
+              'Categories=AudioVideo;Audio;' \
+              'Terminal=false' \
+              > "\${pkgdir}/usr/share/applications/ioruba.desktop"
+
+            install -Dm755 /dev/null "\${pkgdir}/usr/bin/ioruba-desktop"
+            printf '%s\n' '#!/usr/bin/env sh' 'exec /opt/ioruba/ioruba.AppImage "$@"' > "\${pkgdir}/usr/bin/ioruba-desktop"
+          }
+          EOF
+
+          cat > "release-dist/arch/.SRCINFO-bin" <<EOF
+          pkgbase = ioruba-desktop-bin
+            pkgdesc = Tactile audio mixer for Arduino-based Linux control (prebuilt AppImage)
+            pkgver = ${VERSION}
+            pkgrel = 1
+            url = https://github.com/bernardopg/ioruba
+            arch = x86_64
+            license = MIT
+            provides = ioruba-desktop
+            conflicts = ioruba-desktop
+            depends = glibc
+            depends = gtk3
+            depends = webkit2gtk-4.1
+            depends = libayatana-appindicator
+            source = ${APPIMAGE_ASSET_NAME}::https://github.com/bernardopg/ioruba/releases/download/v\${pkgver}/${APPIMAGE_ASSET_NAME}
+            source = ioruba.png::https://raw.githubusercontent.com/bernardopg/ioruba/v\${pkgver}/apps/desktop/src-tauri/icons/128x128.png
+            sha256sums = ${APPIMAGE_SHA256}
+            sha256sums = ${ICON_SHA256}
+
+          pkgname = ioruba-desktop-bin
+          EOF
+
+          cp \
+            "release-dist/arch/PKGBUILD" \
+            "release-dist/arch/PKGBUILD-v${VERSION}"
+
+          cp \
+            "release-dist/arch/PKGBUILD-bin" \
+            "release-dist/arch/PKGBUILD-bin-v${VERSION}"
+
+      - name: Upload PKGBUILD to release
+        uses: softprops/action-gh-release@v3
+        with:
+          tag_name: ${{ github.ref_name }}
+          files: |
+            release-dist/arch/PKGBUILD
+            release-dist/arch/.SRCINFO
+            release-dist/arch/PKGBUILD-v*
+            release-dist/arch/PKGBUILD-bin
+            release-dist/arch/.SRCINFO-bin
+            release-dist/arch/PKGBUILD-bin-v*
+            release-dist/arch/ioruba-*.tar.gz
 
   firmware:
     name: Firmware Bundle

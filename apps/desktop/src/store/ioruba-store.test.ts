@@ -13,10 +13,10 @@ describe("ioruba store", () => {
 
     expect(useIorubaStore.getState().snapshot.status).toBe("booting");
     expect(useIorubaStore.getState().snapshot.statusText).toBe(
-      "Inicializando Ioruba Desktop"
+      "Inicializando Ioruba Desktop",
     );
     expect(useIorubaStore.getState().snapshot.diagnostics.hint).toBe(
-      "Inicializando serviços"
+      "Inicializando serviços",
     );
 
     const initialState = useIorubaStore.getState();
@@ -24,20 +24,20 @@ describe("ioruba store", () => {
 
     expect(useIorubaStore.getState().snapshot.status).toBe("ready");
     expect(useIorubaStore.getState().snapshot.statusText).toBe(
-      "Pronto para conectar"
+      "Pronto para conectar",
     );
     expect(useIorubaStore.getState().snapshot.diagnostics.hint).toBe(
-      "Pronto para conectar"
+      "Pronto para conectar",
     );
 
     useIorubaStore.getState().requestConnect();
 
     expect(useIorubaStore.getState().snapshot.status).toBe("searching");
     expect(useIorubaStore.getState().snapshot.statusText).toBe(
-      "Procurando uma porta serial do Arduino"
+      "Procurando uma porta serial do Arduino",
     );
     expect(useIorubaStore.getState().snapshot.diagnostics.hint).toBe(
-      "Procurando um Arduino serial"
+      "Procurando um Arduino serial",
     );
 
     useIorubaStore
@@ -47,10 +47,10 @@ describe("ioruba store", () => {
     expect(useIorubaStore.getState().snapshot.status).toBe("connecting");
     expect(useIorubaStore.getState().snapshot.connectionPort).toBe(portPath);
     expect(useIorubaStore.getState().snapshot.statusText).toBe(
-      `Abrindo ${portPath}...`
+      `Abrindo ${portPath}...`,
     );
     expect(useIorubaStore.getState().snapshot.diagnostics.hint).toBe(
-      "Abrindo porta serial e aguardando firmware"
+      "Abrindo porta serial e aguardando firmware",
     );
 
     const updates = useIorubaStore.getState().processSerialLine("512|768|1023");
@@ -59,10 +59,10 @@ describe("ioruba store", () => {
     expect(useIorubaStore.getState().snapshot.status).toBe("connected");
     expect(useIorubaStore.getState().snapshot.connectionPort).toBe(portPath);
     expect(useIorubaStore.getState().snapshot.statusText).toBe(
-      "Recebendo dados | 512|768|1023"
+      "Recebendo dados | 512|768|1023",
     );
     expect(useIorubaStore.getState().snapshot.diagnostics.hint).toBe(
-      "Recebendo dados | 512|768|1023"
+      "Recebendo dados | 512|768|1023",
     );
 
     useIorubaStore
@@ -72,10 +72,10 @@ describe("ioruba store", () => {
     expect(useIorubaStore.getState().snapshot.status).toBe("error");
     expect(useIorubaStore.getState().snapshot.connectionPort).toBe(portPath);
     expect(useIorubaStore.getState().snapshot.statusText).toBe(
-      "Falha ao processar frame serial"
+      "Falha ao processar frame serial",
     );
     expect(useIorubaStore.getState().snapshot.diagnostics.hint).toBe(
-      "Falha ao processar frame serial"
+      "Falha ao processar frame serial",
     );
   });
 
@@ -93,12 +93,14 @@ describe("ioruba store", () => {
     useIorubaStore.getState().runDemoStep();
 
     expect(useIorubaStore.getState().snapshot.status).toBe("demo");
-    expect(useIorubaStore.getState().snapshot.telemetry.length).toBeGreaterThan(0);
+    expect(useIorubaStore.getState().snapshot.telemetry.length).toBeGreaterThan(
+      0,
+    );
     expect(useIorubaStore.getState().snapshot.knobs[0]?.outcome.severity).toBe(
-      "success"
+      "success",
     );
     expect(
-      useIorubaStore.getState().snapshot.knobs[0]?.outcome.targets.length
+      useIorubaStore.getState().snapshot.knobs[0]?.outcome.targets.length,
     ).toBeGreaterThan(0);
   });
 
@@ -117,10 +119,10 @@ describe("ioruba store", () => {
             target: "master",
             status: "updated",
             detail: "Updated the default output to 50%",
-            matched: ["alsa_output.usb"]
-          }
-        ]
-      }
+            matched: ["alsa_output.usb"],
+          },
+        ],
+      },
     });
 
     const knobOutcome = useIorubaStore.getState().snapshot.knobs[0]?.outcome;
@@ -132,8 +134,8 @@ describe("ioruba store", () => {
         target: "master",
         status: "updated",
         detail: "Updated the default output to 50%",
-        matched: ["alsa_output.usb"]
-      }
+        matched: ["alsa_output.usb"],
+      },
     ]);
   });
 
@@ -144,13 +146,13 @@ describe("ioruba store", () => {
     const updates = useIorubaStore
       .getState()
       .processSerialLine(
-        "HELLO board=Ioruba Nano; fw=0.4.0; protocol=2; knobs=3; threshold=4; deadzone=7; smooth=75; mins=0,0,0; maxs=1023,1023,1023"
+        "HELLO board=Ioruba Nano; fw=0.5.0; protocol=2; knobs=3; threshold=4; deadzone=7; smooth=75; mins=0,0,0; maxs=1023,1023,1023",
       );
 
     expect(updates).toEqual([]);
     expect(useIorubaStore.getState().firmwareInfo).toEqual({
       boardName: "Ioruba Nano",
-      firmwareVersion: "0.4.0",
+      firmwareVersion: "0.5.0",
       protocolVersion: 2,
       knobCount: 3,
       controllerConfig: {
@@ -160,15 +162,17 @@ describe("ioruba store", () => {
         calibrations: [
           { minRaw: 0, maxRaw: 1023 },
           { minRaw: 0, maxRaw: 1023 },
-          { minRaw: 0, maxRaw: 1023 }
-        ]
-      }
+          { minRaw: 0, maxRaw: 1023 },
+        ],
+      },
     });
     expect(useIorubaStore.getState().snapshot.status).toBe("connected");
-    expect(useIorubaStore.getState().snapshot.statusText).toContain("Handshake OK");
+    expect(useIorubaStore.getState().snapshot.statusText).toContain(
+      "Handshake OK",
+    );
     expect(useIorubaStore.getState().snapshot.diagnostics.firmware).toEqual({
       boardName: "Ioruba Nano",
-      firmwareVersion: "0.4.0",
+      firmwareVersion: "0.5.0",
       protocolVersion: 2,
       knobCount: 3,
       controllerConfig: {
@@ -178,9 +182,9 @@ describe("ioruba store", () => {
         calibrations: [
           { minRaw: 0, maxRaw: 1023 },
           { minRaw: 0, maxRaw: 1023 },
-          { minRaw: 0, maxRaw: 1023 }
-        ]
-      }
+          { minRaw: 0, maxRaw: 1023 },
+        ],
+      },
     });
   });
 
@@ -235,16 +239,18 @@ describe("ioruba store", () => {
 
     nextState = useIorubaStore.getState();
     expect(nextState.persisted.profiles).toHaveLength(2);
-    expect(nextState.persisted.profiles.some((profile) => profile.id === defaultProfile.id)).toBe(
-      false
-    );
+    expect(
+      nextState.persisted.profiles.some(
+        (profile) => profile.id === defaultProfile.id,
+      ),
+    ).toBe(false);
   });
 
   it("merges loaded watch logs with the current session and resequences them", () => {
     useIorubaStore.getState().appendWatchLog({
       scope: "app",
       level: "info",
-      message: "startup log"
+      message: "startup log",
     });
 
     useIorubaStore.getState().hydrateWatchLog([
@@ -254,15 +260,15 @@ describe("ioruba store", () => {
         scope: "backend",
         level: "warning",
         message: "persisted log",
-        detail: "from disk"
-      }
+        detail: "from disk",
+      },
     ]);
 
     const watchLog = useIorubaStore.getState().watchLog;
 
     expect(watchLog.map((entry) => entry.message)).toEqual([
       "persisted log",
-      "startup log"
+      "startup log",
     ]);
     expect(watchLog.map((entry) => entry.seq)).toEqual([1, 2]);
     expect(useIorubaStore.getState().watchSeq).toBe(2);

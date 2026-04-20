@@ -2,8 +2,9 @@ import type { HTMLAttributes } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { translateText } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
-import type { RuntimeKnobSnapshot, RuntimeTargetOutcome, SliderOutcome } from "@ioruba/shared";
+import type { RuntimeKnobSnapshot, RuntimeTargetOutcome, SliderOutcome, UiLanguage } from "@ioruba/shared";
 
 function accentColor(accent: string): string {
   switch (accent) {
@@ -35,18 +36,21 @@ function toneForOutcome(
   }
 }
 
-function labelForTargetStatus(status: RuntimeTargetOutcome["status"]) {
+function labelForTargetStatus(
+  status: RuntimeTargetOutcome["status"],
+  lt: (text: string) => string
+) {
   switch (status) {
     case "updated":
-      return "atualizado";
+      return lt("atualizado");
     case "idle":
-      return "ocioso";
+      return lt("ocioso");
     case "unavailable":
-      return "indisponível";
+      return lt("indisponível");
     case "skipped":
-      return "ignorado";
+      return lt("ignorado");
     case "error":
-      return "erro";
+      return lt("erro");
   }
 }
 
@@ -68,11 +72,14 @@ function toneForTargetStatus(
 
 export function KnobPanel({
   className,
-  knob
+  knob,
+  language = "pt-BR"
 }: {
   className?: HTMLAttributes<HTMLDivElement>["className"];
   knob: RuntimeKnobSnapshot;
+  language?: UiLanguage;
 }) {
+  const lt = (text: string) => translateText(language, text);
   const accent = accentColor(knob.accent);
 
   return (
@@ -100,11 +107,11 @@ export function KnobPanel({
             </CardTitle>
           </div>
           <CardDescription>
-            Leitura bruta {knob.rawValue} | aplicada {knob.appliedRawValue}
+            {lt("Leitura bruta")} {knob.rawValue} | {lt("aplicada")} {knob.appliedRawValue}
           </CardDescription>
         </div>
         <Badge className="shrink-0 self-start" tone="neutral">
-          {knob.targets.length} alvo(s)
+          {knob.targets.length} {lt("alvo(s)")}
         </Badge>
       </CardHeader>
       <CardContent className="relative grid gap-6 pt-2 xl:grid-cols-[180px_minmax(0,1fr)] xl:items-start">
@@ -123,15 +130,15 @@ export function KnobPanel({
                   {knob.percent}%
                 </span>
                 <p className="mt-1 text-[0.68rem] font-semibold uppercase tracking-[0.24em] text-(--color-muted)">
-                  nível
+                  {lt("nível")}
                 </p>
               </div>
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
-            <DialStat accent={accent} label="Entrada" value={String(knob.rawValue)} />
-            <DialStat accent={accent} label="Saida" value={String(knob.appliedRawValue)} />
+            <DialStat accent={accent} label={lt("Entrada")} value={String(knob.rawValue)} />
+            <DialStat accent={accent} label={lt("Saida")} value={String(knob.appliedRawValue)} />
           </div>
         </div>
 
@@ -139,7 +146,7 @@ export function KnobPanel({
           <div className="rounded-[22px] border border-(--color-border) bg-[color-mix(in_oklab,var(--color-panel)_94%,var(--color-shell)_6%)] px-4 py-4">
             <div className="flex items-center justify-between gap-3">
               <p className="text-xs uppercase tracking-[0.24em] text-(--color-muted)">
-                Resposta do canal
+                {lt("Resposta do canal")}
               </p>
               <span className="text-sm font-semibold text-(--color-ink)">
                 {knob.percent}%
@@ -155,13 +162,13 @@ export function KnobPanel({
               />
             </div>
             <p className="mt-3 text-sm leading-6 text-(--color-copy)">
-              Valor aplicado pronto para audio backend e telemetria.
+              {lt("Valor aplicado pronto para audio backend e telemetria.")}
             </p>
           </div>
 
           <div>
             <p className="text-xs uppercase tracking-[0.24em] text-(--color-muted)">
-              Destinos ativos
+              {lt("Destinos ativos")}
             </p>
             <div className="mt-3 flex flex-wrap gap-2">
               {knob.targets.map((target) => (
@@ -175,10 +182,15 @@ export function KnobPanel({
             </div>
           </div>
 
-          <div className="rounded-[22px] border border-(--color-border) bg-(--color-panel) px-4 py-4">
+          <div
+            aria-atomic="true"
+            aria-live="polite"
+            className="rounded-[22px] border border-(--color-border) bg-(--color-panel) px-4 py-4"
+            role="status"
+          >
             <div className="flex flex-wrap items-center justify-between gap-3">
               <p className="text-xs uppercase tracking-[0.24em] text-(--color-muted)">
-                Ultimo resultado
+                {lt("Ultimo resultado")}
               </p>
               <Badge tone={toneForOutcome(knob.outcome.severity)}>
                 {knob.outcome.severity}
@@ -200,7 +212,7 @@ export function KnobPanel({
                         {targetOutcome.target}
                       </p>
                       <Badge tone={toneForTargetStatus(targetOutcome.status)}>
-                        {labelForTargetStatus(targetOutcome.status)}
+                        {labelForTargetStatus(targetOutcome.status, lt)}
                       </Badge>
                     </div>
                     <p className="mt-2 wrap-break-word text-sm leading-6 text-(--color-copy)">

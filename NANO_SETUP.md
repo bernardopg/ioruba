@@ -35,7 +35,7 @@ Use the active sketch:
 
 What it sends:
 
-- a startup and on-demand handshake such as `HELLO board=Ioruba Nano; fw=0.4.0; protocol=2; knobs=3; threshold=4; deadzone=7; smooth=75; mins=0,0,0; maxs=1023,1023,1023`
+- a startup and on-demand handshake such as `HELLO board=Ioruba Nano; fw=0.5.0; protocol=2; knobs=3; threshold=4; deadzone=7; smooth=75; mins=0,0,0; maxs=1023,1023,1023`
 - smoothed analog readings
 - frames roughly every `40 ms` when values move
 - pipe-separated lines such as `512|768|1023`
@@ -94,7 +94,7 @@ arduino-cli upload -p /dev/ttyUSB0 --fqbn arduino:avr:nano:cpu=atmega328old firm
 After flashing, the board should emit lines like:
 
 ```text
-HELLO board=Ioruba Nano; fw=0.4.0; protocol=2; knobs=3; threshold=4; deadzone=7; smooth=75; mins=0,0,0; maxs=1023,1023,1023
+HELLO board=Ioruba Nano; fw=0.5.0; protocol=2; knobs=3; threshold=4; deadzone=7; smooth=75; mins=0,0,0; maxs=1023,1023,1023
 512|768|1023
 ```
 
