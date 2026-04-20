@@ -5,6 +5,15 @@ on:
     tags:
       - "v*"
   workflow_dispatch:
+    inputs:
+      release_tag:
+        description: "Release tag to target when dispatching manually"
+        required: false
+        type: string
+        default: ""
+
+env:
+  RELEASE_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.release_tag || github.ref_name }}
 
 permissions:
   contents: write
@@ -76,8 +85,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           projectPath: apps/desktop
-          tagName: ${{ github.ref_name }}
-          releaseName: Ioruba ${{ github.ref_name }}
+          tagName: ${{ env.RELEASE_TAG }}
+          releaseName: Ioruba ${{ env.RELEASE_TAG }}
           releaseBody: |
             Cross-platform installers for the Tauri 2 desktop app.
           releaseDraft: false
@@ -135,8 +144,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           projectPath: apps/desktop
-          tagName: ${{ github.ref_name }}
-          releaseName: Ioruba ${{ github.ref_name }}
+          tagName: ${{ env.RELEASE_TAG }}
+          releaseName: Ioruba ${{ env.RELEASE_TAG }}
           releaseBody: |
             Cross-platform installers for the Tauri 2 desktop app.
           releaseDraft: false
@@ -169,7 +178,7 @@ jobs:
         run: |
           set -euo pipefail
 
-          TAG="${GITHUB_REF_NAME}"
+          TAG="${RELEASE_TAG}"
           VERSION="${TAG#v}"
           REPO="${GITHUB_REPOSITORY}"
 
@@ -389,7 +398,7 @@ jobs:
       - name: Upload PKGBUILD to release
         uses: softprops/action-gh-release@v3
         with:
-          tag_name: ${{ github.ref_name }}
+          tag_name: ${{ env.RELEASE_TAG }}
           files: |
             release-dist/arch/PKGBUILD
             release-dist/arch/.SRCINFO
@@ -429,6 +438,6 @@ jobs:
       - name: Upload firmware to release
         uses: softprops/action-gh-release@v3
         with:
-          tag_name: ${{ github.ref_name }}
+          tag_name: ${{ env.RELEASE_TAG }}
           files: |
             release-dist/firmware/*
