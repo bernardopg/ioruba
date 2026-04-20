@@ -433,17 +433,24 @@ jobs:
           done
 
       - name: Upload PKGBUILD to release
-        uses: softprops/action-gh-release@v3
-        with:
-          tag_name: ${{ env.RELEASE_TAG }}
-          files: |
-            release-dist/arch/PKGBUILD
-            release-dist/arch/.SRCINFO
-            release-dist/arch/PKGBUILD-v*
-            release-dist/arch/PKGBUILD-bin
-            release-dist/arch/.SRCINFO-bin
-            release-dist/arch/PKGBUILD-bin-v*
-            release-dist/arch/ioruba-*.tar.gz
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          VERSION="${RELEASE_TAG#v}"
+
+          for asset in \
+            release-dist/arch/PKGBUILD \
+            release-dist/arch/.SRCINFO \
+            "release-dist/arch/PKGBUILD-v${VERSION}" \
+            release-dist/arch/PKGBUILD-bin \
+            release-dist/arch/.SRCINFO-bin \
+            "release-dist/arch/PKGBUILD-bin-v${VERSION}" \
+            "release-dist/arch/ioruba-${VERSION}.tar.gz"
+          do
+            gh release upload "${RELEASE_TAG}" "${asset}" --clobber
+          done
 
   firmware:
     name: Firmware Bundle
