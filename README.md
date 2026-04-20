@@ -1,148 +1,115 @@
 <div align="center">
 
-<a href="https://github.com/bernardopg/ioruba/actions/workflows/release.yml">
-  <img alt="Release workflow" src="https://github.com/bernardopg/ioruba/actions/workflows/release.yml/badge.svg" />
-</a>
-<a href="https://github.com/bernardopg/ioruba/actions/workflows/ci.yml">
-  <img alt="CI workflow" src="https://github.com/bernardopg/ioruba/actions/workflows/ci.yml/badge.svg" />
-</a>
-<a href="package.json">
-  <img alt="Version" src="https://img.shields.io/github/package-json/v/bernardopg/ioruba?filename=package.json&label=version" />
-</a>
-<a href="TODO.md">
-  <img alt="Project status" src="https://img.shields.io/badge/status-active%20development-2ea043" />
-</a>
-<a href="https://github.com/bernardopg/ioruba/commits/main">
-  <img alt="Last commit" src="https://img.shields.io/github/last-commit/bernardopg/ioruba?label=last%20commit" />
-</a>
-<a href="LICENSE">
-  <img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-0A66C2" />
-</a>
+[![Release workflow](https://github.com/bernardopg/ioruba/actions/workflows/release.yml/badge.svg)](https://github.com/bernardopg/ioruba/actions/workflows/release.yml)
+[![CI workflow](https://github.com/bernardopg/ioruba/actions/workflows/ci.yml/badge.svg)](https://github.com/bernardopg/ioruba/actions/workflows/ci.yml)
+[![Version](https://img.shields.io/github/package-json/v/bernardopg/ioruba?filename=package.json&label=version)](package.json)
+[![Project status](https://img.shields.io/badge/status-active%20development-2ea043)](TODO.md)
+[![Last commit](https://img.shields.io/github/last-commit/bernardopg/ioruba?label=last%20commit)](https://github.com/bernardopg/ioruba/commits/main)
+[![License: MIT](https://img.shields.io/badge/license-MIT-0A66C2)](LICENSE)
 
 <br />
 
-<a href="https://github.com/sponsors/bernardopg">
-  <img alt="GitHub Sponsors" src="https://img.shields.io/badge/GitHub%20Sponsors-30363D?logo=GitHub-Sponsors&logoColor=EA4AAA" />
-</a>
-<a href="https://www.buymeacoffee.com/WctwoM9eMU">
-  <img alt="Buy Me a Coffee" src="https://img.shields.io/badge/Buy%20Me%20a%20Coffee-FFDD00?logo=buy-me-a-coffee&logoColor=black" />
-</a>
+[![GitHub Sponsors](https://img.shields.io/badge/GitHub%20Sponsors-30363D?logo=GitHub-Sponsors&logoColor=EA4AAA)](https://github.com/sponsors/bernardopg)
+[![Buy Me a Coffee](https://img.shields.io/badge/Buy%20Me%20a%20Coffee-FFDD00?logo=buy-me-a-coffee&logoColor=black)](https://www.buymeacoffee.com/WctwoM9eMU)
 
 <br />
 
-<a href="https://tauri.app/">
-  <img alt="Tauri 2" src="https://img.shields.io/badge/Tauri-2-24C8DB?logo=tauri&logoColor=fff" />
-</a>
-<a href="https://www.rust-lang.org/">
-  <img alt="Rust" src="https://img.shields.io/badge/Rust-%23000000.svg?logo=rust&logoColor=white" />
-</a>
-<a href="https://www.typescriptlang.org/">
-  <img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=fff" />
-</a>
-<a href="https://isocpp.org/">
-  <img alt="C++" src="https://img.shields.io/badge/C++-%2300599C.svg?logo=c%2B%2B&logoColor=white" />
-</a>
-<a href="https://www.arduino.cc/">
-  <img alt="Arduino Nano" src="https://img.shields.io/badge/Arduino%20Nano-00979D?logo=arduino&logoColor=white" />
-</a>
-<a href="https://nodejs.org/en">
-  <img alt="Node.js 22" src="https://img.shields.io/badge/Node.js-22-5FA04E?logo=node.js&logoColor=white" />
-</a>
-<a href="docs/translations/pt-br/README.md">
-  <img alt="PT-BR Docs" src="https://img.shields.io/badge/docs-PT--BR-0A66C2?logo=readthedocs&logoColor=white" />
-</a>
+[![Tauri 2](https://img.shields.io/badge/Tauri-2-24C8DB?logo=tauri&logoColor=fff)](https://tauri.app/)
+[![Rust](https://img.shields.io/badge/Rust-%23000000.svg?logo=rust&logoColor=white)](https://www.rust-lang.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=fff)](https://www.typescriptlang.org/)
+[![C++](https://img.shields.io/badge/C++-%2300599C.svg?logo=c%2B%2B&logoColor=white)](https://isocpp.org/)
+[![Arduino Nano](https://img.shields.io/badge/Arduino%20Nano-00979D?logo=arduino&logoColor=white)](https://www.arduino.cc/)
+[![Node.js 22](https://img.shields.io/badge/Node.js-22-5FA04E?logo=node.js&logoColor=white)](https://nodejs.org/en)
+[![PT-BR Docs](https://img.shields.io/badge/docs-PT--BR-0A66C2?logo=readthedocs&logoColor=white)](docs/translations/pt-br/README.md)
 
 <br />
 
-<a href="#platform-support">
-  <img alt="Linux: Supported" src="https://img.shields.io/badge/Linux-supported-3FB950?logo=linux&logoColor=black" />
-</a>
-<a href="#platform-support">
-  <img alt="macOS: Partial" src="https://img.shields.io/badge/macOS-partial-A0A0A0?logo=apple&logoColor=white" />
-</a>
-<a href="#platform-support">
-  <img alt="Windows: Partial" src="https://img.shields.io/badge/Windows-partial-0078D6?logo=windows11&logoColor=white" />
-</a>
-<a href="#platform-support">
-  <img alt="Arch Linux" src="https://img.shields.io/badge/Arch%20Linux-compatible-1793D1?logo=arch-linux&logoColor=fff" />
-</a>
+[![Linux: Supported](https://img.shields.io/badge/Linux-supported-3FB950?logo=linux&logoColor=black)](#platform-support)
+[![macOS: Partial](https://img.shields.io/badge/macOS-partial-A0A0A0?logo=apple&logoColor=white)](#platform-support)
+[![Windows: Partial](https://img.shields.io/badge/Windows-partial-0078D6?logo=windows11&logoColor=white)](#platform-support)
+[![Arch Linux](https://img.shields.io/badge/Arch%20Linux-compatible-1793D1?logo=arch-linux&logoColor=fff)](#platform-support)
 
 </div>
 
 # Ioruba
 
-Ioruba transforms an `Arduino Nano + 3 knobs` into a tactile desktop control deck. The active product path is a `Tauri 2 + React + TypeScript` app backed by Rust for system-audio operations and `Arduino C++` firmware for the physical controller.
+Ioruba transforms an **Arduino Nano + 3 knobs** into a tactile desktop control deck.
+The active stack is a **Tauri 2 + React + TypeScript** desktop app backed by a **Rust** audio layer (using `pactl` on Linux) and **Arduino C++** firmware for the physical controller.
 
 > **Current platform status**
-> Real audio control is implemented for **Linux** through `pactl`. macOS and Windows builds are still useful for UI review, packaging checks, and demo mode, but they do **not** provide a production-ready audio backend yet.
+> Real audio control is production‑ready on **Linux** via `pactl`.
+> macOS and Windows builds are useful for UI review, packaging checks, and demo mode, but they do **not** yet provide a functional audio backend.
 
-[Releases](https://github.com/bernardopg/ioruba/releases) · [Quick Start](QUICKSTART.md) · [Hardware Setup](docs/guides/hardware-setup.md) · [Nano Setup](NANO_SETUP.md) · [Profile Examples](docs/guides/profile-examples.md) · [Translation Guide](docs/guides/translation-guide.md) · [PT-BR Docs](docs/translations/pt-br/README.md) · [Support](docs/debug/support.md) · [Testing](TESTING.md) · [Contributing](CONTRIBUTING.md) · [Funding](FUNDING.md) · [Roadmap](TODO.md)
+## 📚 Quick links
 
-<p align="center">
-  <img src="apps/desktop/src-tauri/icons/icon.png" alt="Ioruba app icon" width="112" />
-</p>
-
-## ✨ Visual reference
+- [Releases](https://github.com/bernardopg/ioruba/releases)
+- [Quick Start](QUICKSTART.md)
+- [Hardware Setup](docs/guides/hardware-setup.md)
+- [Nano Setup](NANO_SETUP.md)
+- [Profile Examples](docs/guides/profile-examples.md)
+- [Translation Guide](docs/guides/translation-guide.md)
+- [PT‑BR Docs](docs/translations/pt-br/README.md)
+- [Support & Debugging](docs/debug/support.md)
+- [Testing](TESTING.md)
+- [Contributing](CONTRIBUTING.md)
+- [Funding](FUNDING.md)
+- [Roadmap](TODO.md)
 
 ![Ioruba visual reference](/docs/assets/screenshot.png)
+_Archived screenshot – provides a visual reference for the tactile dashboard direction._
 
-> 📸 Until a fresh capture of the current Tauri app is published, the archived screen above remains a useful visual reference for the product's tactile dashboard direction.
+---
 
 ## 🎛️ Why this repository exists
 
-The project keeps the hardware feel of a small mixer while modernizing the software stack that drives it:
+The project preserves the hands‑on feel of a small mixer while modernising the software stack:
 
-- the active desktop runtime lives in `apps/desktop`
-- the firmware is consolidated in `firmware/arduino/ioruba-controller`
-- shared protocol and runtime logic live in `packages/shared`
-- the Linux audio backend was rewritten in Rust using `pactl`
-- persistence moved from split YAML/UI state to a local JSON profile model
-- migration history and parity notes now live in `docs/migration`
-- one archived Python/GTK prototype is still kept under `legacy/`
+- **Desktop runtime** – `apps/desktop` (Tauri 2, React, TypeScript, Zustand)
+- **Firmware** – `firmware/arduino/ioruba-controller` (Arduino Nano C++)
+- **Shared logic** – `packages/shared` (TypeScript domain types, protocol parsing, runtime math)
+- **Linux audio backend** – Rust implementation using `pactl` (master, application, source, sink targets)
+- **Persistence** – JSON profiles stored in the app’s config directory
+- **CI** – validates TypeScript, Rust, and firmware compilation; builds desktop bundles (deb, rpm, AppImage) and firmware artifacts
+- **Legacy** – an archived Python/GTK prototype remains under `legacy/` for historical reference
 
 ## ✅ What you get today
 
-- serial packets such as `512|768|1023`
-- firmware handshake metadata with board name, firmware version, protocol version, and knob count
-- compatibility with the legacy packet format `P1:512`
-- live telemetry and a persistent watch log inside the desktop app
-- editable JSON profiles stored in the app config directory
-- demo mode for UI validation without touching system audio
-- Linux audio target handling for `master`, `application`, `source`, and `sink`
+- Serial packets like `512|768|1023` (three 10‑bit values)
+- Firmware handshake: `HELLO board=...; fw=...; protocol=...; knobs=...`
+- Backward compatibility with legacy packet format `P1:512`
+- Live telemetry and a persistent watch log inside the desktop app
+- Editable JSON profiles (stored per‑platform config directory)
+- Demo mode for UI validation without touching system audio
+- Linux audio target handling for **master**, **application**, **source**, and **sink**
 - CI for desktop/shared validation plus firmware compilation
-- tagged release workflows for desktop bundles (`deb`, `rpm`, `AppImage`), firmware artifacts, and Arch packaging metadata (`PKGBUILD` + `.SRCINFO`)
-
-<a id="platform-support"></a>
+- Tagged release workflows producing desktop bundles (`deb`, `rpm`, `AppImage`), firmware artifacts, and Arch packaging metadata (`PKGBUILD` + `.SRCINFO`)
 
 ## 🖥️ Platform support
 
-| Platform | Status    | Notes                                                                                            |
-| -------- | --------- | ------------------------------------------------------------------------------------------------ |
-| Linux    | Supported | Main production path: serial workflow, `pactl` audio backend, demo mode, and hardware validation |
-| macOS    | Partial   | Desktop shell and demo-mode validation are useful; real audio control is not implemented         |
-| Windows  | Partial   | Desktop shell and demo-mode validation are useful; real audio control is not implemented         |
+| Platform | Status    | Notes                                                                                             |
+|----------|-----------|---------------------------------------------------------------------------------------------------|
+| Linux    | ✅ Supported | Main production path: serial workflow, `pactl` audio backend, demo mode, hardware validation.    |
+| macOS    | ⚠️ Partial  | Desktop shell and demo‑mode validation work; real audio control not yet implemented.             |
+| Windows  | ⚠️ Partial  | Desktop shell and demo‑mode validation work; real audio control not yet implemented.             |
 
-## ⚡ Fast Installation
+> **Note:** Linux is the only platform with a production‑ready audio backend (`pactl`) at this time.
 
-Use the package path that matches your system. All installers are published under the latest release:
+## ⚡ Fast installation
 
-- https://github.com/bernardopg/ioruba/releases/latest
+Pre‑built installers are published under the latest release:
+[https://github.com/bernardopg/ioruba/releases/latest](https://github.com/bernardopg/ioruba/releases/latest)
 
 ### Arch Linux (AUR)
 
-Source build package:
-
 ```bash
+# Source build
 yay -S ioruba-desktop
-```
 
-Prebuilt AppImage package:
-
-```bash
+# Prebuilt AppImage
 yay -S ioruba-desktop-bin
 ```
 
-### Debian / Ubuntu / Linux Mint / Pop!\_OS
+### Debian / Ubuntu / Linux Mint / Pop!_OS
 
 ```bash
 curl -s https://api.github.com/repos/bernardopg/ioruba/releases/latest \
@@ -159,10 +126,10 @@ curl -s https://api.github.com/repos/bernardopg/ioruba/releases/latest \
   | jq -r '.assets[] | select(.name | test("\\.rpm$")) | .browser_download_url' \
   | xargs -n1 curl -LO
 
+# If you use dnf (Fedora/RHEL):
 sudo dnf install ./Ioruba-*.x86_64.rpm
+# For zypper (openSUSE) or yum (older CentOS), substitute accordingly.
 ```
-
-If your distro does not use `dnf`, install the same RPM with your package manager (`zypper`, `yum`, etc.).
 
 ### Any Linux distro (AppImage)
 
@@ -177,146 +144,137 @@ chmod +x Ioruba_*.AppImage
 
 ### Windows
 
-Download one of these assets from the latest release page:
-
+Download from the latest release:
 - `Ioruba_..._x64-setup.exe`
 - `Ioruba_..._x64_en-US.msi`
 
 ### macOS (Apple Silicon)
 
-Download one of these assets from the latest release page:
-
+Download from the latest release:
 - `Ioruba_..._aarch64.dmg`
 - `Ioruba_aarch64.app.tar.gz`
 
-### Notes
+> **Reminder:** On macOS and Windows the app runs in UI/demo mode only; audio control requires Linux.
 
-- Linux is the only platform with production-ready audio backend (`pactl`) right now.
-- On macOS and Windows, installation works for UI/demo-mode validation, but real audio control is still pending.
+## 🧰 Prerequisites (for source builds)
 
-## 🎚️ Default profile at a glance
+- **Node.js** `22` (same major used in CI) + `npm`
+- **Rust** stable + `cargo`
+- `arduino-cli`
+- `pactl` (Linux only, for audio backend)
+- Git
 
-The shipped default profile is intentionally simple and can be edited from the app's JSON configuration panel:
-
-| Knob | Default label   | Target                                    |
-| ---- | --------------- | ----------------------------------------- |
-| 1    | `Master Volume` | Default output volume                     |
-| 2    | `Applications`  | `Spotify`, `Google Chrome`, and `Firefox` |
-| 3    | `Microphone`    | `default_microphone`                      |
-
-## 🚀 Quick start
-
-Install dependencies and validate the active stack:
+## 🚀 Quick start (source)
 
 ```bash
+# 1️⃣ Clone & install
+git clone https://github.com/bernardopg/ioruba.git
+cd ioruba
 npm install
-npm run verify
-```
 
-Compile the firmware for the current controller sketch:
+# 2️⃣ Verify the stack
+npm run verify   # runs typecheck, tests, Rust checks, and desktop build
 
-```bash
+# 3️⃣ Compile firmware (optional if you already have a flashed board)
 npm run firmware:compile
+
+# 4️⃣ Launch the desktop app
+npm run desktop:dev   # Vite frontend only (fast iteration)
+npm run desktop:watch # Full Tauri desktop shell (serial, persistence, backend)
+
+# 5️⃣ Hardware setup
+#   - Wire the controller → see docs/guides/hardware-setup.md
+#   - Flash the Nano   → see NANO_SETUP.md
+#   - Example profiles → docs/guides/profile-examples.md
 ```
 
-Run the desktop app:
+### What to confirm when the app opens
 
-```bash
-npm run desktop:dev
-npm run desktop:watch
-```
+1. The app detects serial ports (or uses your preferred port).
+2. The status card progresses through connection states (not stuck on “idle”).
+3. The runtime receives the firmware handshake (`HELLO …`) alongside knob frames.
+4. The **Watch** tab shows frames like `512|768|1023`.
+5. Turning knobs moves the telemetry chart.
+6. The active profile is saved as JSON and survives restarts.
+7. Clicking **Atualizar áudio** refreshes the Linux audio inventory.
+8. Knobs control the configured targets (master volume, apps, microphone, etc.).
 
-- `npm run desktop:dev` starts the frontend only
-- `npm run desktop:watch` starts the full Tauri desktop shell
+Default profile mapping:
 
-If you are setting up real hardware, follow these guides next:
+| Knob | Default label      | Target                                         |
+|------|--------------------|------------------------------------------------|
+| 1    | Master Volume      | Default output / master volume                 |
+| 2    | Applications       | Spotify, Google Chrome, Firefox                |
+| 3    | Microphone         | Default microphone input                       |
 
-- [QUICKSTART.md](QUICKSTART.md) for the end-to-end Linux workflow
-- [NANO_SETUP.md](NANO_SETUP.md) for board flashing and serial checks
-- [docs/guides/hardware-setup.md](docs/guides/hardware-setup.md) for wiring the physical controller
-- [docs/guides/profile-examples.md](docs/guides/profile-examples.md) for ready-to-paste JSON profiles
-- [docs/guides/translation-guide.md](docs/guides/translation-guide.md) for PT-BR/EN translation flow and checks
+## 📂 Where the app stores data
 
-## 🧰 Common commands
+The desktop app persists two files in the platform‑specific config directory:
 
-| Command                       | What it does                                                                                          |
-| ----------------------------- | ----------------------------------------------------------------------------------------------------- |
-| `npm run verify`              | Runs shared + desktop typecheck, shared + desktop tests, Rust tests, and the desktop production build |
-| `npm run desktop:dev`         | Starts the Vite frontend for UI work                                                                  |
-| `npm run desktop:watch`       | Starts the full Tauri desktop app in development                                                      |
-| `npm run desktop:icons`       | Regenerates every desktop icon asset from `apps/desktop/src-tauri/icons/app-icon.svg`                 |
-| `npm run desktop:tauri:build` | Builds the Tauri desktop app locally without bundling installers                                      |
-| `npm run firmware:compile`    | Compiles the Arduino Nano firmware                                                                    |
-| `npm run rust:test`           | Runs Rust backend tests                                                                               |
-| `npm run rust:audit`          | Audits the Rust lockfile while accounting for the local `glib` backport                               |
+- `ioruba-state.json` – active profile and runtime state
+- `ioruba-watch.log` – structured watch events (auto‑trimmed to ~1 MiB)
+
+| OS      | Path                                                     |
+|---------|----------------------------------------------------------|
+| Linux   | `~/.config/io.ioruba.desktop/`                           |
+| macOS   | `~/Library/Application Support/io.ioruba.desktop/`       |
+| Windows | `%APPDATA%\\io.ioruba.desktop\\`                         |
+
+## 🧰 Common npm scripts
+
+| Script                         | Description                                                            |
+|--------------------------------|------------------------------------------------------------------------|
+| `npm run verify`               | Full validation: typecheck, tests, Rust, desktop build.               |
+| `npm run desktop:dev`          | Starts the Vite frontend (UI work).                                    |
+| `npm run desktop:watch`        | Starts the full Tauri desktop shell (development).                    |
+| `npm run desktop:icons`        | Regenerates desktop/icon assets from `app-icon.svg`.                  |
+| `npm run desktop:tauri:build`  | Builds the Tauri app locally (no installers).                         |
+| `npm run firmware:compile`     | Compiles the Arduino Nano firmware.                                   |
+| `npm run rust:test`            | Runs the Rust backend tests.                                          |
+| `npm run rust:audit`           | Audits the Rust lockfile (includes local glib backport).              |
 
 ## 🗂️ Repository map
 
-| Path                                 | Purpose                                                                |
-| ------------------------------------ | ---------------------------------------------------------------------- |
-| `apps/desktop`                       | Tauri 2 desktop app, React UI, Zustand state, and telemetry dashboards |
-| `apps/desktop/src-tauri`             | Rust commands for persistence, watch logging, and Linux audio control  |
-| `packages/shared`                    | Shared domain types, defaults, runtime math, and protocol parsing      |
-| `firmware/arduino/ioruba-controller` | Arduino firmware for Nano-compatible boards                            |
-| `docs/guides`                        | Practical setup guides                                                 |
-| `docs/migration`                     | Migration planning and parity audit material                           |
-| `legacy`                             | Archived Python/GTK prototype and small historical leftovers           |
-
-## 🧪 Persistence and diagnostics
-
-The app stores its runtime files in the platform config directory:
-
-- watch log: `ioruba-watch.log`
-- active profile state: `ioruba-state.json`
-
-Typical locations:
-
-- Linux: `~/.config/io.ioruba.desktop/`
-- macOS: `~/Library/Application Support/io.ioruba.desktop/`
-- Windows: `%APPDATA%\\io.ioruba.desktop\\`
-
-The watch log is trimmed automatically to roughly `1 MiB`, so it stays useful for diagnostics without growing forever.
-
-## 🖼️ Desktop icons
-
-When you edit [apps/desktop/src-tauri/icons/app-icon.svg](apps/desktop/src-tauri/icons/app-icon.svg), regenerate the desktop, Android, iOS, `icns`, and `ico` assets with:
-
-```bash
-npm run desktop:icons
-```
-
-That command rewrites the generated files under [apps/desktop/src-tauri/icons](apps/desktop/src-tauri/icons).
-
-## 🛡️ Security note for Linux builds
-
-The current Linux Tauri stack still resolves through GTK3 `glib 0.18.x`, so the repository carries a local backport of `GHSA-wrw7-89jp-8q8g` under `apps/desktop/src-tauri/vendor/glib-0.18.5` until upstream moves. Use the following command to audit the current lockfile with that backport in mind:
-
-```bash
-npm run rust:audit
-```
+| Path                                 | Purpose                                                                    |
+|--------------------------------------|----------------------------------------------------------------------------|
+| `apps/desktop`                       | Tauri 2 desktop app, React UI, Zustand state, telemetry dashboards.       |
+| `apps/desktop/src-tauri`             | Rust commands (persistence, watch logging, Linux audio control).          |
+| `packages/shared`                    | Shared domain types, defaults, runtime math, protocol parsing.            |
+| `firmware/arduino/ioruba-controller` | Arduino firmware for Nano‑compatible boards.                               |
+| `docs/guides`                        | Practical setup guides (hardware, Nano, profiles, translations).          |
+| `docs/migration`                     | Migration planning and parity audit material.                              |
+| `legacy`                             | Archived Python/GTK prototype and historical leftovers.                   |
+| `docs/debug/support.md`              | Support playbook for serial, audio, and profile‑debug issues.             |
+| `TESTING.md`                         | Automated checks, smoke tests, release validation matrix.                 |
 
 ## 📚 Documentation map
 
-| Document                                                               | Use it when you need...                                        |
-| ---------------------------------------------------------------------- | -------------------------------------------------------------- |
-| [docs/guides/profile-examples.md](docs/guides/profile-examples.md)     | Real JSON profile samples and Linux target matching rules      |
-| [docs/guides/translation-guide.md](docs/guides/translation-guide.md)   | How translations work in the desktop app and how to validate   |
-| [docs/translations/pt-br/README.md](docs/translations/pt-br/README.md) | Portuguese translation index for docs and root manuals         |
-| [QUICKSTART.md](QUICKSTART.md)                                         | The fastest path from zero to a running app                    |
-| [NANO_SETUP.md](NANO_SETUP.md)                                         | Flashing and validating the Arduino Nano                       |
-| [docs/guides/hardware-setup.md](docs/guides/hardware-setup.md)         | Physical wiring and assembly                                   |
-| [docs/debug/support.md](docs/debug/support.md)                         | A support playbook for serial, audio, and profile-debug issues |
-| [TESTING.md](TESTING.md)                                               | Automated checks, smoke tests, and release validation          |
-| [docs/migration/logic-audit.md](docs/migration/logic-audit.md)         | Parity coverage with archived implementations                  |
+| Document                                                          | When you need…                                                            |
+|-------------------------------------------------------------------|---------------------------------------------------------------------------|
+| [QUICKSTART.md](QUICKSTART.md)                                    | Fastest path from zero to a running app (Linux).                         |
+| [NANO_SETUP.md](NANO_SETUP.md)                                    | Flashing and validating the Arduino Nano.                                |
+| [docs/guides/hardware-setup.md](docs/guides/hardware-setup.md)    | Wiring the physical controller (potentiometers, breadboard/enclosure).   |
+| [docs/guides/profile-examples.md](docs/guides/profile-examples.md)| Ready‑to‑paste JSON profile samples and Linux target‑matching rules.     |
+| [docs/guides/translation-guide.md](docs/guides/translation-guide.md)| How translations work in the desktop app and validation steps.          |
+| [docs/translations/pt-br/README.md](docs/translations/pt-br/README.md)| Portuguese translation index for docs and root manuals.                  |
+| [docs/debug/support.md](docs/debug/support.md)                    | Troubleshooting serial, audio, and profile‑related issues.               |
+| [TESTING.md](TESTING.md)                                          | Automated checks, smoke tests, and release validation.                   |
+| [docs/migration/logic-audit.md](docs/migration/logic-audit.md)    | Parity coverage with the archived Python/GTK implementation.             |
+| [CONTRIBUTING.md](CONTRIBUTING.md)                                | Guidelines for contributing code, docs, translations, etc.               |
+| [FUNDING.md](FUNDING.md)                                          | How to support the project (GitHub Sponsors, Buy Me a Coffee, etc.).     |
+| [TODO.md](TODO.md)                                                | Roadmap and upcoming features.                                           |
 
 ## 🗃️ Legacy archive
 
-The repository still keeps one archived implementation for historical reference:
+The repository retains one archived implementation for historical reference:
 
 - `legacy/arduino-audio-controller`
 
-Deeper migration context lives in `docs/migration`. The active product surface lives in `apps/desktop`, `packages/shared`, and `firmware/arduino/ioruba-controller`.
+Deeper migration context lives in `docs/migration`. The **active** product surface resides in:
+- `apps/desktop`
+- `packages/shared`
+- `firmware/arduino/ioruba-controller`
 
-## License
+## 📜 License
 
-MIT
+MIT © Bernardo Gomes
