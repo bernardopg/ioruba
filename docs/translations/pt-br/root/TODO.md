@@ -10,9 +10,9 @@ Formato:
 
 Prioridade atual: concluir primeiro tudo que e Linux/firmware/desktop. O backlog multiplataforma do Scrum 04 fica para o final.
 
-## Atualizacoes recentes (main pos-v0.5.0)
+## Atualizacoes recentes (main pos-v0.6.0)
 
-- [x] Fechar o corte de release 0.5.0 em versoes, changelog e documentacao de distribuicao (release/version/docs) - medio
+- [x] Fechar o corte de release 0.6.0 em versoes, changelog e documentacao de distribuicao (release/version/docs) - medio
 - [x] Adicionar workflow de CodeQL para analise continua de seguranca e qualidade (ci/security/codeql) - facil
 - [x] Ajustar linguagem/regra do CodeQL e reduzir ruido dos alertas para focar em findings acionaveis (ci/security/codeql) - medio
 - [x] Estabilizar updates de GitHub Actions no Dependabot para evitar conflitos recorrentes (ci/dependabot/maintenance) - facil

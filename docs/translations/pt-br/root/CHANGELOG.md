@@ -7,22 +7,24 @@ e este projeto segue [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Nao publicado]
 
-## [0.5.0](https://github.com/bernardopg/ioruba/compare/v0.4.0...v0.5.0) (2026-04-20)
+## [0.6.0](https://github.com/bernardopg/ioruba/compare/v0.5.0...v0.6.0) (2026-04-20)
 
 ### Alterado
 
-- sincronizacao de versao do workspace e metadados de release para o corte 0.5.0
-- atualizacao do conjunto de documentacao para o fluxo atual de desktop, firmware, testes e migracao
+- modernizacao do site de docs, da navegacao e do fluxo de geracao de paginas para o GitHub Pages
+- atualizacao do conjunto de documentacao em portugues para alinhar com a migracao para GitHub e as mudancas do README
+- cobertura do Dependabot estendida para a superficie de docs e workflows
+- atualizacao das dependencias de TypeScript, Vitest e GitHub Actions apos a resolucao do Dependabot
 
 ### Recursos
 
-- adicao de helpers de traducao PT-BR/EN, guia de traducao e cobertura de acessibilidade no shell desktop
-- expansao do workflow de release para enviar AppImage e metadados de packaging Arch junto dos artefatos existentes de desktop e firmware
+- adicao de tradutores PT-BR em toda a documentacao raiz, guias, notas de migracao e materiais de suporte
+- adicao de um script de compatibilidade do AppImage e atualizacao do launcher desktop e do fluxo de release
 
 ### Correcao de bugs
 
-- estabilizacao da configuracao do workflow CodeQL e resolucao de updates do Dependabot
-- melhoria do caminho de dependencias de packaging Linux para o fluxo de release atual
+- liberacao do workflow de smoke do repositorio para incluir o diretorio scripts
+- estabilizacao do uso de GitHub Actions nos workflows de CI, CodeQL e Pages
 
 ## [0.4.0](https://github.com/bernardopg/ioruba/compare/v0.3.0...v0.4.0) (2026-04-19)
 
@@ -107,7 +109,8 @@ e este projeto segue [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 - baseline inicial com tag antes da fase atual de productizacao Haskell-first
 
-[Nao publicado]: https://github.com/bernardopg/ioruba/compare/v0.5.0...HEAD
+[Nao publicado]: https://github.com/bernardopg/ioruba/compare/v0.6.0...HEAD
+[0.6.0]: https://github.com/bernardopg/ioruba/releases/tag/v0.6.0
 [0.5.0]: https://github.com/bernardopg/ioruba/releases/tag/v0.5.0
 [0.4.0]: https://github.com/bernardopg/ioruba/releases/tag/v0.4.0
 [0.3.0]: https://github.com/bernardopg/ioruba/releases/tag/v0.3.0

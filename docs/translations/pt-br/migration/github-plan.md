@@ -25,7 +25,7 @@
 
 ### `release.yml`
 
-- Dispara em tags semânticas de versão, como `v0.5.0`.
+- Dispara em tags semânticas de versão, como `v0.6.0`.
 - Usa `tauri-apps/tauri-action` para gerar instaladores de:
   - Windows
   - Linux (`deb`, `rpm`, `AppImage`)
@@ -53,7 +53,7 @@ Para instaladores assinados em nível de produção, configure:
 ## Procedimento de release
 
 1. Faça merge das mudanças validadas em `main`.
-2. Crie e publique uma tag como `v0.5.0`.
+2. Crie e publique uma tag como `v0.6.0`.
 3. Deixe `release.yml` gerar os instaladores e assets de firmware.
 4. Verifique os bundles enviados na página do GitHub Release:
   - instaladores desktop (`deb`, `rpm`, `AppImage`, Windows, macOS)
