@@ -12,18 +12,33 @@ export default defineConfig({
   build: {
     rollupOptions: {
       output: {
-        manualChunks: {
-          charts: ["recharts"],
-          runtime: ["@tauri-apps/api", "tauri-plugin-serialplugin-api"],
-          vendor: ["react", "react-dom", "zustand"]
-        }
-      }
-    }
+        manualChunks(id) {
+          if (id.includes("node_modules")) {
+            if (id.includes("recharts")) {
+              return "charts";
+            }
+
+            if (
+              id.includes("@tauri-apps/api") ||
+              id.includes("tauri-plugin-serialplugin-api")
+            ) {
+              return "runtime";
+            }
+
+            if (id.includes("react") || id.includes("zustand")) {
+              return "vendor";
+            }
+          }
+
+          return undefined;
+        },
+      },
+    },
   },
   resolve: {
     alias: {
-      "@": path.resolve(__dirname, "./src")
-    }
+      "@": path.resolve(__dirname, "./src"),
+    },
   },
-  clearScreen: false
+  clearScreen: false,
 });
