@@ -395,6 +395,43 @@ jobs:
             "release-dist/arch/PKGBUILD-bin" \
             "release-dist/arch/PKGBUILD-bin-v${VERSION}"
 
+      - name: Remove existing Arch packaging assets
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          VERSION="${RELEASE_TAG#v}"
+          REPO="${GITHUB_REPOSITORY}"
+
+          RELEASE_ID="$(curl -fsSL \
+            -H "Authorization: Bearer ${GITHUB_TOKEN}" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/${REPO}/releases/tags/${RELEASE_TAG}" | jq -r '.id')"
+
+          for asset_name in \
+            PKGBUILD \
+            .SRCINFO \
+            "PKGBUILD-v${VERSION}" \
+            PKGBUILD-bin \
+            .SRCINFO-bin \
+            "PKGBUILD-bin-v${VERSION}" \
+            "ioruba-${VERSION}.tar.gz"
+          do
+            ASSET_ID="$(curl -fsSL \
+              -H "Authorization: Bearer ${GITHUB_TOKEN}" \
+              -H "Accept: application/vnd.github+json" \
+              "https://api.github.com/repos/${REPO}/releases/${RELEASE_ID}/assets" \
+              | jq -r --arg NAME "${asset_name}" '.[] | select(.name == $NAME) | .id')"
+
+            if [ -n "${ASSET_ID}" ]; then
+              curl -fsSL -X DELETE \
+                -H "Authorization: Bearer ${GITHUB_TOKEN}" \
+                -H "Accept: application/vnd.github+json" \
+                "https://api.github.com/repos/${REPO}/releases/assets/${ASSET_ID}"
+            fi
+          done
+
       - name: Upload PKGBUILD to release
         uses: softprops/action-gh-release@v3
         with:
