@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.4](https://github.com/bernardopg/ioruba/compare/v0.6.3...v0.6.4) (2026-04-21)
+
+### Bug Fixes
+
+- fixed `arch-pkgbuild` job computing sha256sum from a local `git archive` tarball instead of the actual GitHub-generated tarball; the two differ in metadata so hashes never matched, causing `makepkg` verification to fail on install; replaced with a `curl` download of the real `archive/refs/tags/vN.N.N.tar.gz` before hashing
+
 ## [0.6.3](https://github.com/bernardopg/ioruba/compare/v0.6.2...v0.6.3) (2026-04-21)
 
 ### Bug Fixes
@@ -157,7 +163,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial tagged baseline before the current Haskell-first productization pass
 
-[Unreleased]: https://github.com/bernardopg/ioruba/compare/v0.6.3...HEAD
+[Unreleased]: https://github.com/bernardopg/ioruba/compare/v0.6.4...HEAD
+[0.6.4]: https://github.com/bernardopg/ioruba/releases/tag/v0.6.4
 [0.6.3]: https://github.com/bernardopg/ioruba/releases/tag/v0.6.3
 [0.6.2]: https://github.com/bernardopg/ioruba/releases/tag/v0.6.2
 [0.6.1]: https://github.com/bernardopg/ioruba/releases/tag/v0.6.1

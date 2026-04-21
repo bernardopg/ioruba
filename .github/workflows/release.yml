@@ -207,11 +207,13 @@ jobs:
           APPIMAGE_SHA256="$(sha256sum "release-dist/arch/${APPIMAGE_ASSET_NAME}" | awk '{print $1}')"
           ICON_SHA256="$(sha256sum "apps/desktop/src-tauri/icons/128x128.png" | awk '{print $1}')"
 
-          git archive \
-            --format=tar.gz \
-            --prefix="ioruba-${VERSION}/" \
+          # Download the actual GitHub-generated tarball so the SHA256 matches
+          # what makepkg will download. github.com auto-tarballs differ from
+          # git archive output, so we must hash the real artifact.
+          curl -fsSL \
+            -H "Authorization: Bearer ${GITHUB_TOKEN}" \
             -o "release-dist/arch/ioruba-${VERSION}.tar.gz" \
-            "$TAG"
+            "https://github.com/${REPO}/archive/refs/tags/${TAG}.tar.gz"
 
           SOURCE_SHA256="$(sha256sum "release-dist/arch/ioruba-${VERSION}.tar.gz" | awk '{print $1}')"
           COMPAT_SHA256="$(sha256sum "scripts/run-appimage-compat.sh" | awk '{print $1}')"
