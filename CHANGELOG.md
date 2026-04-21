@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.2](https://github.com/bernardopg/ioruba/compare/v0.6.1...v0.6.2) (2026-04-21)
+
+### Bug Fixes
+
+- fixed PKGBUILD-bin generation: nested `<<'LAUNCHER'` heredoc inside `<<EOF` caused YAML indentation stripping to break the heredoc delimiter, producing a syntactically invalid PKGBUILD; replaced with `run-appimage-compat.sh` fetched as a source entry and a two-line `printf` wrapper
+- fixed `.SRCINFO` source lines using literal `${pkgver}` instead of the expanded version number
+- fixed `.SRCINFO` and `.SRCINFO-bin` missing `provides`, `conflicts`, and `replaces` fields
+- fixed `PKGBUILD-bin` missing `provides=ioruba`, `conflicts=ioruba-desktop-bin`, and `replaces=ioruba`
+- added missing `libayatana-appindicator3-dev` to CI Linux dependency list, preventing silent build failures
+
+### Features
+
+- added `aur-publish` job to the release workflow: automatically clones `ioruba-desktop` and `ioruba-desktop-bin` AUR repos and pushes updated PKGBUILDs after each release, eliminating manual AUR publishing
+
 ## [0.6.1](https://github.com/bernardopg/ioruba/compare/v0.6.0...v0.6.1) (2026-04-20)
 
 ### Changed
