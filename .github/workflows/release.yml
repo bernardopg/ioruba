@@ -214,6 +214,7 @@ jobs:
             "$TAG"
 
           SOURCE_SHA256="$(sha256sum "release-dist/arch/ioruba-${VERSION}.tar.gz" | awk '{print $1}')"
+          COMPAT_SHA256="$(sha256sum "scripts/run-appimage-compat.sh" | awk '{print $1}')"
 
           cat > "release-dist/arch/PKGBUILD" <<EOF
           pkgname=ioruba-desktop
@@ -263,32 +264,36 @@ jobs:
           }
           EOF
 
-          cat > "release-dist/arch/.SRCINFO" <<EOF
-          pkgbase = ioruba-desktop
-            pkgdesc = Tactile audio mixer for Arduino-based Linux control
-            pkgver = ${VERSION}
-            pkgrel = 1
-            url = https://github.com/bernardopg/ioruba
-            arch = x86_64
-            license = MIT
-            makedepends = npm
-            makedepends = rust
-            makedepends = cargo
-            makedepends = pkgconf
-            makedepends = webkit2gtk-4.1
-            makedepends = gtk3
-            makedepends = librsvg
-            makedepends = patchelf
-            makedepends = libappindicator-gtk3
-            depends = glibc
-            depends = gtk3
-            depends = webkit2gtk-4.1
-            depends = libayatana-appindicator
-            source = ioruba-\${pkgver}.tar.gz::https://github.com/bernardopg/ioruba/archive/refs/tags/v\${pkgver}.tar.gz
-            sha256sums = ${SOURCE_SHA256}
-
-          pkgname = ioruba-desktop
-          EOF
+          printf '%s\n' \
+            'pkgbase = ioruba-desktop' \
+            "$(printf '\t')pkgdesc = Tactile audio mixer for Arduino-based Linux control" \
+            "$(printf '\t')pkgver = ${VERSION}" \
+            "$(printf '\t')pkgrel = 1" \
+            "$(printf '\t')url = https://github.com/bernardopg/ioruba" \
+            "$(printf '\t')arch = x86_64" \
+            "$(printf '\t')license = MIT" \
+            "$(printf '\t')makedepends = npm" \
+            "$(printf '\t')makedepends = rust" \
+            "$(printf '\t')makedepends = cargo" \
+            "$(printf '\t')makedepends = pkgconf" \
+            "$(printf '\t')makedepends = webkit2gtk-4.1" \
+            "$(printf '\t')makedepends = gtk3" \
+            "$(printf '\t')makedepends = librsvg" \
+            "$(printf '\t')makedepends = patchelf" \
+            "$(printf '\t')makedepends = libappindicator-gtk3" \
+            "$(printf '\t')depends = glibc" \
+            "$(printf '\t')depends = gtk3" \
+            "$(printf '\t')depends = webkit2gtk-4.1" \
+            "$(printf '\t')depends = libayatana-appindicator" \
+            "$(printf '\t')provides = ioruba" \
+            "$(printf '\t')conflicts = ioruba" \
+            "$(printf '\t')conflicts = ioruba-desktop-bin" \
+            "$(printf '\t')replaces = ioruba" \
+            "$(printf '\t')source = ioruba-${VERSION}.tar.gz::https://github.com/bernardopg/ioruba/archive/refs/tags/v${VERSION}.tar.gz" \
+            "$(printf '\t')sha256sums = ${SOURCE_SHA256}" \
+            '' \
+            'pkgname = ioruba-desktop' \
+            > "release-dist/arch/.SRCINFO"
 
           cat > "release-dist/arch/PKGBUILD-bin" <<EOF
           pkgname=ioruba-desktop-bin
@@ -299,19 +304,22 @@ jobs:
           url="https://github.com/bernardopg/ioruba"
           license=('MIT')
           depends=('glibc' 'gtk3' 'webkit2gtk-4.1' 'libayatana-appindicator')
-          provides=('ioruba-desktop')
-          conflicts=('ioruba-desktop')
+          provides=('ioruba-desktop' 'ioruba')
+          conflicts=('ioruba-desktop' 'ioruba' 'ioruba-desktop-bin')
+          replaces=('ioruba')
           source=(
             "${APPIMAGE_ASSET_NAME}::https://github.com/bernardopg/ioruba/releases/download/v\${pkgver}/${APPIMAGE_ASSET_NAME}"
             "ioruba.png::https://raw.githubusercontent.com/bernardopg/ioruba/v\${pkgver}/apps/desktop/src-tauri/icons/128x128.png"
+            "run-appimage-compat.sh::https://raw.githubusercontent.com/bernardopg/ioruba/v\${pkgver}/scripts/run-appimage-compat.sh"
           )
-          sha256sums=('${APPIMAGE_SHA256}' '${ICON_SHA256}')
+          sha256sums=('${APPIMAGE_SHA256}' '${ICON_SHA256}' '${COMPAT_SHA256}')
 
           package() {
             install -Dm755 "\${srcdir}/${APPIMAGE_ASSET_NAME}" "\${pkgdir}/opt/ioruba/ioruba.AppImage"
+            install -Dm755 "\${srcdir}/run-appimage-compat.sh" "\${pkgdir}/opt/ioruba/run-appimage-compat.sh"
             install -Dm644 "\${srcdir}/ioruba.png" "\${pkgdir}/usr/share/icons/hicolor/128x128/apps/ioruba.png"
-            install -Dm644 /dev/null "\${pkgdir}/usr/share/applications/ioruba.desktop"
 
+            install -Dm644 /dev/null "\${pkgdir}/usr/share/applications/ioruba.desktop"
             printf '%s\n' \
               '[Desktop Entry]' \
               'Type=Application' \
@@ -323,69 +331,41 @@ jobs:
               'Terminal=false' \
               > "\${pkgdir}/usr/share/applications/ioruba.desktop"
 
-            install -Dm755 /dev/null "\${pkgdir}/usr/bin/ioruba-desktop"
-            cat > "\${pkgdir}/usr/bin/ioruba-desktop" <<'LAUNCHER'
-            #!/usr/bin/env sh
-            set -eu
-
-            APPIMAGE="/opt/ioruba/ioruba.AppImage"
-            CACHE_ROOT="\${XDG_CACHE_HOME:-\${HOME}/.cache}/ioruba/appimage-runtime"
-
-            if [ ! -r "\${APPIMAGE}" ]; then
-              echo "Ioruba AppImage nao encontrado em \${APPIMAGE}" >&2
-              exit 1
-            fi
-
-            APP_SHA="$(sha256sum "\${APPIMAGE}" | awk '{print $1}')"
-            RUNTIME_DIR="\${CACHE_ROOT}/\${APP_SHA}"
-            APPDIR="\${RUNTIME_DIR}/squashfs-root"
-
-            if [ ! -x "\${APPDIR}/AppRun" ]; then
-              rm -rf "\${RUNTIME_DIR}"
-              mkdir -p "\${RUNTIME_DIR}"
-              (
-                cd "\${RUNTIME_DIR}"
-                "\${APPIMAGE}" --appimage-extract >/dev/null
-              )
-
-              rm -f \
-                "\${APPDIR}/usr/lib/libwayland-egl.so.1" \
-                "\${APPDIR}/usr/lib/libwayland-client.so.0" \
-                "\${APPDIR}/usr/lib/libwayland-cursor.so.0" \
-                "\${APPDIR}/usr/lib/libwayland-server.so.0"
-            fi
-
-            if [ -x "\${APPDIR}/AppRun" ]; then
-              exec "\${APPDIR}/AppRun" "$@"
-            fi
-
-            exec "\${APPIMAGE}" "$@"
-            LAUNCHER
+            printf '%s\n' \
+              '#!/usr/bin/env sh' \
+              'exec /opt/ioruba/run-appimage-compat.sh /opt/ioruba/ioruba.AppImage "\$@"' \
+              > "\${pkgdir}/usr/bin/ioruba-desktop"
             chmod 755 "\${pkgdir}/usr/bin/ioruba-desktop"
           }
           EOF
 
-          cat > "release-dist/arch/.SRCINFO-bin" <<EOF
-          pkgbase = ioruba-desktop-bin
-            pkgdesc = Tactile audio mixer for Arduino-based Linux control (prebuilt AppImage)
-            pkgver = ${VERSION}
-            pkgrel = 1
-            url = https://github.com/bernardopg/ioruba
-            arch = x86_64
-            license = MIT
-            provides = ioruba-desktop
-            conflicts = ioruba-desktop
-            depends = glibc
-            depends = gtk3
-            depends = webkit2gtk-4.1
-            depends = libayatana-appindicator
-            source = ${APPIMAGE_ASSET_NAME}::https://github.com/bernardopg/ioruba/releases/download/v\${pkgver}/${APPIMAGE_ASSET_NAME}
-            source = ioruba.png::https://raw.githubusercontent.com/bernardopg/ioruba/v\${pkgver}/apps/desktop/src-tauri/icons/128x128.png
-            sha256sums = ${APPIMAGE_SHA256}
-            sha256sums = ${ICON_SHA256}
-
-          pkgname = ioruba-desktop-bin
-          EOF
+          printf '%s\n' \
+            'pkgbase = ioruba-desktop-bin' \
+            "$(printf '\t')pkgdesc = Tactile audio mixer for Arduino-based Linux control (prebuilt AppImage)" \
+            "$(printf '\t')pkgver = ${VERSION}" \
+            "$(printf '\t')pkgrel = 1" \
+            "$(printf '\t')url = https://github.com/bernardopg/ioruba" \
+            "$(printf '\t')arch = x86_64" \
+            "$(printf '\t')license = MIT" \
+            "$(printf '\t')provides = ioruba-desktop" \
+            "$(printf '\t')provides = ioruba" \
+            "$(printf '\t')conflicts = ioruba-desktop" \
+            "$(printf '\t')conflicts = ioruba" \
+            "$(printf '\t')conflicts = ioruba-desktop-bin" \
+            "$(printf '\t')replaces = ioruba" \
+            "$(printf '\t')depends = glibc" \
+            "$(printf '\t')depends = gtk3" \
+            "$(printf '\t')depends = webkit2gtk-4.1" \
+            "$(printf '\t')depends = libayatana-appindicator" \
+            "$(printf '\t')source = ${APPIMAGE_ASSET_NAME}::https://github.com/bernardopg/ioruba/releases/download/v${VERSION}/${APPIMAGE_ASSET_NAME}" \
+            "$(printf '\t')source = ioruba.png::https://raw.githubusercontent.com/bernardopg/ioruba/v${VERSION}/apps/desktop/src-tauri/icons/128x128.png" \
+            "$(printf '\t')source = run-appimage-compat.sh::https://raw.githubusercontent.com/bernardopg/ioruba/v${VERSION}/scripts/run-appimage-compat.sh" \
+            "$(printf '\t')sha256sums = ${APPIMAGE_SHA256}" \
+            "$(printf '\t')sha256sums = ${ICON_SHA256}" \
+            "$(printf '\t')sha256sums = ${COMPAT_SHA256}" \
+            '' \
+            'pkgname = ioruba-desktop-bin' \
+            > "release-dist/arch/.SRCINFO-bin"
 
           cp \
             "release-dist/arch/PKGBUILD" \
@@ -481,7 +461,95 @@ jobs:
 
       - name: Upload firmware to release
         uses: softprops/action-gh-release@v3
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: ${{ env.RELEASE_TAG }}
           files: |
             release-dist/firmware/*
+
+  aur-publish:
+    name: Publish to AUR
+    needs:
+      - arch-pkgbuild
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Install AUR SSH key
+        env:
+          AUR_SSH_PRIVATE_KEY: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
+        run: |
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          printf '%s\n' "${AUR_SSH_PRIVATE_KEY}" > ~/.ssh/aur_ed25519
+          chmod 600 ~/.ssh/aur_ed25519
+          ssh-keyscan aur.archlinux.org >> ~/.ssh/known_hosts
+          cat >> ~/.ssh/config <<'SSHCONF'
+          Host aur.archlinux.org
+            IdentityFile ~/.ssh/aur_ed25519
+            User aur
+          SSHCONF
+          chmod 600 ~/.ssh/config
+
+      - name: Download PKGBUILD assets from release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          mkdir -p aur-dist/ioruba-desktop aur-dist/ioruba-desktop-bin
+
+          gh release download "${RELEASE_TAG}" \
+            --pattern "PKGBUILD" \
+            --pattern ".SRCINFO" \
+            --dir aur-dist/ioruba-desktop \
+            --repo "${GITHUB_REPOSITORY}"
+
+          gh release download "${RELEASE_TAG}" \
+            --pattern "PKGBUILD-bin" \
+            --pattern ".SRCINFO-bin" \
+            --dir aur-dist/ioruba-desktop-bin \
+            --repo "${GITHUB_REPOSITORY}"
+
+          mv aur-dist/ioruba-desktop-bin/PKGBUILD-bin aur-dist/ioruba-desktop-bin/PKGBUILD
+          mv aur-dist/ioruba-desktop-bin/.SRCINFO-bin  aur-dist/ioruba-desktop-bin/.SRCINFO
+
+      - name: Configure git
+        run: |
+          git config --global user.name "bernardopg"
+          git config --global user.email "bernardo.gomes@bebitterbebetter.com.br"
+
+      - name: Push ioruba-desktop to AUR
+        run: |
+          set -euo pipefail
+          VERSION="${RELEASE_TAG#v}"
+
+          git clone ssh://aur@aur.archlinux.org/ioruba-desktop.git aur-clone/ioruba-desktop
+          cp aur-dist/ioruba-desktop/PKGBUILD aur-clone/ioruba-desktop/PKGBUILD
+          cp aur-dist/ioruba-desktop/.SRCINFO  aur-clone/ioruba-desktop/.SRCINFO
+
+          cd aur-clone/ioruba-desktop
+          if git diff --quiet HEAD; then
+            echo "ioruba-desktop: sem mudancas, push ignorado."
+          else
+            git add PKGBUILD .SRCINFO
+            git commit -m "chore: update to v${VERSION}"
+            git push origin master
+          fi
+
+      - name: Push ioruba-desktop-bin to AUR
+        run: |
+          set -euo pipefail
+          VERSION="${RELEASE_TAG#v}"
+
+          git clone ssh://aur@aur.archlinux.org/ioruba-desktop-bin.git aur-clone/ioruba-desktop-bin
+          cp aur-dist/ioruba-desktop-bin/PKGBUILD aur-clone/ioruba-desktop-bin/PKGBUILD
+          cp aur-dist/ioruba-desktop-bin/.SRCINFO  aur-clone/ioruba-desktop-bin/.SRCINFO
+
+          cd aur-clone/ioruba-desktop-bin
+          if git diff --quiet HEAD; then
+            echo "ioruba-desktop-bin: sem mudancas, push ignorado."
+          else
+            git add PKGBUILD .SRCINFO
+            git commit -m "chore: update to v${VERSION}"
+            git push origin master
+          fi
