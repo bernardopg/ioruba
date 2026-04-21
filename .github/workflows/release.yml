@@ -375,6 +375,11 @@ jobs:
             "release-dist/arch/PKGBUILD-bin" \
             "release-dist/arch/PKGBUILD-bin-v${VERSION}"
 
+          # GitHub renames files starting with '.' (e.g. .SRCINFO → default.SRCINFO).
+          # Upload as SRCINFO/SRCINFO-bin (no dot) to preserve the intended filename.
+          cp "release-dist/arch/.SRCINFO"     "release-dist/arch/SRCINFO"
+          cp "release-dist/arch/.SRCINFO-bin" "release-dist/arch/SRCINFO-bin"
+
       - name: Remove existing Arch packaging assets
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -391,10 +396,10 @@ jobs:
 
           for asset_name in \
             PKGBUILD \
-            .SRCINFO \
+            SRCINFO \
             "PKGBUILD-v${VERSION}" \
             PKGBUILD-bin \
-            .SRCINFO-bin \
+            SRCINFO-bin \
             "PKGBUILD-bin-v${VERSION}" \
             "ioruba-${VERSION}.tar.gz"
           do
@@ -422,10 +427,10 @@ jobs:
 
           for asset in \
             release-dist/arch/PKGBUILD \
-            release-dist/arch/.SRCINFO \
+            release-dist/arch/SRCINFO \
             "release-dist/arch/PKGBUILD-v${VERSION}" \
             release-dist/arch/PKGBUILD-bin \
-            release-dist/arch/.SRCINFO-bin \
+            release-dist/arch/SRCINFO-bin \
             "release-dist/arch/PKGBUILD-bin-v${VERSION}" \
             "release-dist/arch/ioruba-${VERSION}.tar.gz"
           do
@@ -500,18 +505,19 @@ jobs:
 
           gh release download "${RELEASE_TAG}" \
             --pattern "PKGBUILD" \
-            --pattern ".SRCINFO" \
+            --pattern "SRCINFO" \
             --dir aur-dist/ioruba-desktop \
             --repo "${GITHUB_REPOSITORY}"
 
           gh release download "${RELEASE_TAG}" \
             --pattern "PKGBUILD-bin" \
-            --pattern ".SRCINFO-bin" \
+            --pattern "SRCINFO-bin" \
             --dir aur-dist/ioruba-desktop-bin \
             --repo "${GITHUB_REPOSITORY}"
 
           mv aur-dist/ioruba-desktop-bin/PKGBUILD-bin aur-dist/ioruba-desktop-bin/PKGBUILD
-          mv aur-dist/ioruba-desktop-bin/.SRCINFO-bin  aur-dist/ioruba-desktop-bin/.SRCINFO
+          mv aur-dist/ioruba-desktop-bin/SRCINFO-bin  aur-dist/ioruba-desktop-bin/.SRCINFO
+          mv aur-dist/ioruba-desktop/SRCINFO          aur-dist/ioruba-desktop/.SRCINFO
 
       - name: Configure git
         run: |

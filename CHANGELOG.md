@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.3](https://github.com/bernardopg/ioruba/compare/v0.6.2...v0.6.3) (2026-04-21)
+
+### Bug Fixes
+
+- fixed `aur-publish` job failing to download `.SRCINFO` and `.SRCINFO-bin` assets: GitHub silently renames dot-prefixed files on upload (`.SRCINFO` → `default.SRCINFO`); release assets are now uploaded as `SRCINFO`/`SRCINFO-bin` (no leading dot) and renamed back to `.SRCINFO` after download in the `aur-publish` step
+
 ## [0.6.2](https://github.com/bernardopg/ioruba/compare/v0.6.1...v0.6.2) (2026-04-21)
 
 ### Bug Fixes
@@ -151,7 +157,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial tagged baseline before the current Haskell-first productization pass
 
-[Unreleased]: https://github.com/bernardopg/ioruba/compare/v0.6.1...HEAD
+[Unreleased]: https://github.com/bernardopg/ioruba/compare/v0.6.3...HEAD
+[0.6.3]: https://github.com/bernardopg/ioruba/releases/tag/v0.6.3
+[0.6.2]: https://github.com/bernardopg/ioruba/releases/tag/v0.6.2
 [0.6.1]: https://github.com/bernardopg/ioruba/releases/tag/v0.6.1
 [0.6.0]: https://github.com/bernardopg/ioruba/releases/tag/v0.6.0
 [0.5.0]: https://github.com/bernardopg/ioruba/releases/tag/v0.5.0
