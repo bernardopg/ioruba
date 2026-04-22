@@ -206,6 +206,7 @@ jobs:
 
           APPIMAGE_SHA256="$(sha256sum "release-dist/arch/${APPIMAGE_ASSET_NAME}" | awk '{print $1}')"
           ICON_SHA256="$(sha256sum "apps/desktop/src-tauri/icons/128x128.png" | awk '{print $1}')"
+          ICON_SVG_SHA256="$(sha256sum "apps/desktop/src-tauri/icons/app-icon.svg" | awk '{print $1}')"
 
           # Download the actual GitHub-generated tarball so the SHA256 matches
           # what makepkg will download. github.com auto-tarballs differ from
@@ -248,21 +249,35 @@ jobs:
               "apps/desktop/src-tauri/target/release/ioruba-desktop" \
               "\${pkgdir}/usr/bin/ioruba-desktop"
 
-            install -Dm644 \
-              "apps/desktop/src-tauri/icons/128x128.png" \
+            local _icons="apps/desktop/src-tauri/icons"
+            install -Dm644 "\${_icons}/32x32.png" \
+              "\${pkgdir}/usr/share/icons/hicolor/32x32/apps/ioruba.png"
+            install -Dm644 "\${_icons}/64x64.png" \
+              "\${pkgdir}/usr/share/icons/hicolor/64x64/apps/ioruba.png"
+            install -Dm644 "\${_icons}/128x128.png" \
               "\${pkgdir}/usr/share/icons/hicolor/128x128/apps/ioruba.png"
+            install -Dm644 "\${_icons}/128x128@2x.png" \
+              "\${pkgdir}/usr/share/icons/hicolor/256x256/apps/ioruba.png"
+            install -Dm644 "\${_icons}/app-icon.svg" \
+              "\${pkgdir}/usr/share/icons/hicolor/scalable/apps/ioruba.svg"
 
-            install -Dm644 /dev/null "\${pkgdir}/usr/share/applications/ioruba.desktop"
-            printf '%s\n' \
-              '[Desktop Entry]' \
-              'Type=Application' \
-              'Name=Ioruba' \
-              'Comment=Tactile audio mixer for Arduino-based Linux control' \
-              'Exec=ioruba-desktop' \
-              'Icon=ioruba' \
-              'Categories=AudioVideo;Audio;' \
-              'Terminal=false' \
-              > "\${pkgdir}/usr/share/applications/ioruba.desktop"
+            install -dm755 "\${pkgdir}/usr/share/applications"
+            cat > "\${pkgdir}/usr/share/applications/ioruba.desktop" <<'DESKTOP'
+          [Desktop Entry]
+          Type=Application
+          Name=Ioruba
+          GenericName=Audio Mixer
+          GenericName[pt_BR]=Mixer de Áudio
+          Comment=Tactile audio mixer for Arduino-based Linux control
+          Comment[pt_BR]=Mixer de áudio tátil para controle via Arduino no Linux
+          Exec=ioruba-desktop
+          Icon=ioruba
+          Terminal=false
+          Categories=AudioVideo;Audio;Mixer;
+          Keywords=audio;mixer;volume;arduino;serial;hardware;potentiometer;
+          StartupNotify=true
+          StartupWMClass=Ioruba
+          DESKTOP
           }
           EOF
 
@@ -307,31 +322,39 @@ jobs:
           license=('MIT')
           depends=('glibc' 'gtk3' 'webkit2gtk-4.1' 'libayatana-appindicator')
           provides=('ioruba-desktop' 'ioruba')
-          conflicts=('ioruba-desktop' 'ioruba' 'ioruba-desktop-bin')
+          conflicts=('ioruba-desktop' 'ioruba')
           replaces=('ioruba')
           source=(
             "${APPIMAGE_ASSET_NAME}::https://github.com/bernardopg/ioruba/releases/download/v\${pkgver}/${APPIMAGE_ASSET_NAME}"
             "ioruba.png::https://raw.githubusercontent.com/bernardopg/ioruba/v\${pkgver}/apps/desktop/src-tauri/icons/128x128.png"
+            "ioruba.svg::https://raw.githubusercontent.com/bernardopg/ioruba/v\${pkgver}/apps/desktop/src-tauri/icons/app-icon.svg"
             "run-appimage-compat.sh::https://raw.githubusercontent.com/bernardopg/ioruba/v\${pkgver}/scripts/run-appimage-compat.sh"
           )
-          sha256sums=('${APPIMAGE_SHA256}' '${ICON_SHA256}' '${COMPAT_SHA256}')
+          sha256sums=('${APPIMAGE_SHA256}' '${ICON_SHA256}' '${ICON_SVG_SHA256}' '${COMPAT_SHA256}')
 
           package() {
             install -Dm755 "\${srcdir}/${APPIMAGE_ASSET_NAME}" "\${pkgdir}/opt/ioruba/ioruba.AppImage"
             install -Dm755 "\${srcdir}/run-appimage-compat.sh" "\${pkgdir}/opt/ioruba/run-appimage-compat.sh"
             install -Dm644 "\${srcdir}/ioruba.png" "\${pkgdir}/usr/share/icons/hicolor/128x128/apps/ioruba.png"
+            install -Dm644 "\${srcdir}/ioruba.svg" "\${pkgdir}/usr/share/icons/hicolor/scalable/apps/ioruba.svg"
 
-            install -Dm644 /dev/null "\${pkgdir}/usr/share/applications/ioruba.desktop"
-            printf '%s\n' \
-              '[Desktop Entry]' \
-              'Type=Application' \
-              'Name=Ioruba' \
-              'Comment=Tactile audio mixer for Arduino-based Linux control' \
-              'Exec=ioruba-desktop' \
-              'Icon=ioruba' \
-              'Categories=AudioVideo;Audio;' \
-              'Terminal=false' \
-              > "\${pkgdir}/usr/share/applications/ioruba.desktop"
+            install -dm755 "\${pkgdir}/usr/share/applications"
+            cat > "\${pkgdir}/usr/share/applications/ioruba.desktop" <<'DESKTOP'
+          [Desktop Entry]
+          Type=Application
+          Name=Ioruba
+          GenericName=Audio Mixer
+          GenericName[pt_BR]=Mixer de Áudio
+          Comment=Tactile audio mixer for Arduino-based Linux control
+          Comment[pt_BR]=Mixer de áudio tátil para controle via Arduino no Linux
+          Exec=ioruba-desktop
+          Icon=ioruba
+          Terminal=false
+          Categories=AudioVideo;Audio;Mixer;
+          Keywords=audio;mixer;volume;arduino;serial;hardware;potentiometer;
+          StartupNotify=true
+          StartupWMClass=Ioruba
+          DESKTOP
 
             printf '%s\n' \
               '#!/usr/bin/env sh' \
@@ -353,7 +376,6 @@ jobs:
             "$(printf '\t')provides = ioruba" \
             "$(printf '\t')conflicts = ioruba-desktop" \
             "$(printf '\t')conflicts = ioruba" \
-            "$(printf '\t')conflicts = ioruba-desktop-bin" \
             "$(printf '\t')replaces = ioruba" \
             "$(printf '\t')depends = glibc" \
             "$(printf '\t')depends = gtk3" \
@@ -361,9 +383,11 @@ jobs:
             "$(printf '\t')depends = libayatana-appindicator" \
             "$(printf '\t')source = ${APPIMAGE_ASSET_NAME}::https://github.com/bernardopg/ioruba/releases/download/v${VERSION}/${APPIMAGE_ASSET_NAME}" \
             "$(printf '\t')source = ioruba.png::https://raw.githubusercontent.com/bernardopg/ioruba/v${VERSION}/apps/desktop/src-tauri/icons/128x128.png" \
+            "$(printf '\t')source = ioruba.svg::https://raw.githubusercontent.com/bernardopg/ioruba/v${VERSION}/apps/desktop/src-tauri/icons/app-icon.svg" \
             "$(printf '\t')source = run-appimage-compat.sh::https://raw.githubusercontent.com/bernardopg/ioruba/v${VERSION}/scripts/run-appimage-compat.sh" \
             "$(printf '\t')sha256sums = ${APPIMAGE_SHA256}" \
             "$(printf '\t')sha256sums = ${ICON_SHA256}" \
+            "$(printf '\t')sha256sums = ${ICON_SVG_SHA256}" \
             "$(printf '\t')sha256sums = ${COMPAT_SHA256}" \
             '' \
             'pkgname = ioruba-desktop-bin' \
