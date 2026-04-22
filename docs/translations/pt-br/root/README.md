@@ -144,15 +144,12 @@ chmod +x Ioruba_*.AppImage
 
 ### Windows
 
-Baixe no latest release:
-- `Ioruba_..._x64-setup.exe`
-- `Ioruba_..._x64_en-US.msi`
+Baixe os assets de instalador do Windows no latest release (`.exe` / `.msi`).
 
 ### macOS (Apple Silicon)
 
-Baixe no latest release:
-- `Ioruba_..._aarch64.dmg`
-- `Ioruba_aarch64.app.tar.gz`
+Baixe o arquivo do bundle de app do macOS no latest release:
+- `Ioruba_..._aarch64.app.tar.gz`
 
 > **Lembrete:** no macOS e Windows o app roda em modo UI/demo; controle de áudio real exige Linux.
 
