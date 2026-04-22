@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.6](https://github.com/bernardopg/ioruba/compare/v0.6.5...v0.6.6) (2026-04-22)
+
+### Changed
+
+- synchronized repository documentation
+
+### Features
+
+- added an automated documentation update workflow
+
 ## [0.6.4](https://github.com/bernardopg/ioruba/compare/v0.6.3...v0.6.4) (2026-04-21)
 
 ### Bug Fixes
@@ -163,7 +173,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial tagged baseline before the current Haskell-first productization pass
 
-[Unreleased]: https://github.com/bernardopg/ioruba/compare/v0.6.4...HEAD
+[Unreleased]: https://github.com/bernardopg/ioruba/compare/v0.6.6...HEAD
+[0.6.6]: https://github.com/bernardopg/ioruba/releases/tag/v0.6.6
 [0.6.4]: https://github.com/bernardopg/ioruba/releases/tag/v0.6.4
 [0.6.3]: https://github.com/bernardopg/ioruba/releases/tag/v0.6.3
 [0.6.2]: https://github.com/bernardopg/ioruba/releases/tag/v0.6.2
