@@ -9,26 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.6.7](https://github.com/bernardopg/ioruba/compare/v0.6.6...v0.6.7) (2026-04-22)
 
-### Bug Fixes
-
-- fixed close-to-tray behavior on Wayland compositors (notably Hyprland): the close request from `xdg_toplevel.close` (window button, `killactive`, Alt+F4) previously raced the JS-side `onCloseRequested` handler and could terminate the process; the interception now lives in the Rust backend via `WindowEvent::CloseRequested` with `api.prevent_close()` followed by `window.hide()`, guaranteeing the runtime stays alive in the tray regardless of webview readiness
-- fixed the responsive shell layout: the sidebar no longer reserves 300px only at `xl+` while forcing oversized headings, and the knobs grid no longer truncates card titles to `M...`/`A...` or clips the rightmost panel out of the viewport
-- fixed `KnobPanel` overflow by dropping the forced `2xl:grid-cols-[170px_minmax(0,1fr)]` horizontal layout and the `xl:col-span-2 2xl:col-span-1` asymmetric trick; content now stacks cleanly and the dial scales down to fit constrained columns
-
-### Features
-
-- added a global shortcut (`Ctrl+Alt+I`) that toggles the main window visibility, serving as a robust fallback when the Wayland compositor does not provide a `StatusNotifierWatcher` (common on bare Hyprland installs without waybar/ironbar)
-- added `tauri-plugin-global-shortcut` with the `global-shortcut:default` capability wired into the runtime
-- added a `toggle_main_window` helper that shows/focuses the window when hidden or unfocused, and hides it to the tray when already focused
-
 ### Changed
 
-- simplified `useBackgroundTray` hook: the React side no longer calls `preventDefault()`/`hide()` itself since the Rust handler now owns the lifecycle, eliminating a subtle race between the two layers and keeping the frontend responsibility limited to logging the close request in the watch log
-- redesigned the sidebar for constrained viewports: breakpoint moved from `xl` to `lg`, width reduced to ~16rem, nav items collapse descriptions to the active entry only, and padding/radius tightened; below `lg` the nav collapses into a horizontal chip row
-- reduced hero typography (`md:text-5xl` → `md:text-3xl xl:text-4xl`) and hero padding/radius so the ribbon and home cards fit standard Tauri window dimensions without forcing overflow
-- restructured the control section grid (`2xl:grid-cols-[...]` → `xl:grid-cols-[...]`) and stacked the knobs column vertically in the control view to prevent three-up layouts inside a narrow sub-column
-- tightened `mini-status`, `quick-jump-card` and `sidebar-nav-item` spacing for denser information per row
-- logged a warning when the global shortcut fails to register (e.g., compositor already binding `Ctrl+Alt+I`) so users can see the cause in the watch panel
+- release housekeeping for `v0.6.7`
 
 ## [0.6.6](https://github.com/bernardopg/ioruba/compare/v0.6.5...v0.6.6) (2026-04-22)
 
@@ -196,7 +179,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial tagged baseline before the current Haskell-first productization pass
 
-[Unreleased]: https://github.com/bernardopg/ioruba/compare/v0.6.6...HEAD
+[Unreleased]: https://github.com/bernardopg/ioruba/compare/v0.6.7...HEAD
+[0.6.7]: https://github.com/bernardopg/ioruba/releases/tag/v0.6.7
 [0.6.6]: https://github.com/bernardopg/ioruba/releases/tag/v0.6.6
 [0.6.4]: https://github.com/bernardopg/ioruba/releases/tag/v0.6.4
 [0.6.3]: https://github.com/bernardopg/ioruba/releases/tag/v0.6.3
