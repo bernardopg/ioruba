@@ -23,8 +23,146 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  prepare-release-notes:
+    name: Prepare Release Notes
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout main branch
+        uses: actions/checkout@v6.0.2
+        with:
+          fetch-depth: 0
+          ref: main
+
+      - name: Setup Node
+        uses: actions/setup-node@v6.4.0
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Resolve release metadata
+        id: meta
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          TAG="${RELEASE_TAG}"
+          VERSION="${TAG#v}"
+
+          PREV_TAG="$(git tag --sort=-version:refname | grep '^v' | grep -Fxv "${TAG}" | head -n 1 || true)"
+
+          echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "prev_tag=${PREV_TAG}" >> "$GITHUB_OUTPUT"
+
+          if [ -n "${PREV_TAG}" ]; then
+            git log "${PREV_TAG}..origin/main" --pretty=format:'- %s' > .release-commits.txt
+          else
+            git log origin/main --pretty=format:'- %s' > .release-commits.txt
+          fi
+
+      - name: Install Copilot CLI
+        run: npm install -g @github/copilot
+
+      - name: Try CHANGELOG update with Copilot
+        id: copilot_changelog
+        continue-on-error: true
+        env:
+          COPILOT_GITHUB_TOKEN: ${{ secrets.COPILOT_PAT }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          cat > .copilot-release-prompt.txt <<EOF
+          Update CHANGELOG.md for release ${RELEASE_TAG}.
+
+          Context:
+          - Current release version: ${RELEASE_TAG}
+          - Previous release tag: ${{ steps.meta.outputs.prev_tag }}
+          - Commit summary is in .release-commits.txt
+
+          Requirements:
+          - Update only CHANGELOG.md
+          - Preserve the existing markdown style and section structure
+          - Add or update an entry for ${RELEASE_TAG}
+          - Base the summary only on:
+            1. the repository contents
+            2. the commit messages in .release-commits.txt
+          - Do not invent features, fixes, breaking changes, platforms, APIs, hardware support, or migrations
+          - Keep the entry concise and release-oriented
+          - Prefer factual bullet points
+          EOF
+
+          copilot -p "$(cat .copilot-release-prompt.txt)" \
+            --allow-tool=read \
+            --allow-tool=write \
+            --no-ask-user
+
+      - name: Fallback to Codex for CHANGELOG
+        id: codex_changelog
+        if: steps.copilot_changelog.outcome != 'success'
+        continue-on-error: true
+        uses: openai/codex-action@v1
+        with:
+          openai-api-key: ${{ secrets.OPENAI_API_KEY }}
+          prompt: |
+            Update CHANGELOG.md for release ${{ env.RELEASE_TAG }}.
+
+            Context:
+            - Current release version: ${{ env.RELEASE_TAG }}
+            - Previous release tag: ${{ steps.meta.outputs.prev_tag }}
+            - Commit summary is in .release-commits.txt
+
+            Requirements:
+            - Update only CHANGELOG.md
+            - Preserve the existing markdown style and section structure
+            - Add or update an entry for ${{ env.RELEASE_TAG }}
+            - Base the summary only on:
+              1. the repository contents
+              2. the commit messages in .release-commits.txt
+            - Do not invent features, fixes, breaking changes, platforms, APIs, hardware support, or migrations
+            - Keep the entry concise and release-oriented
+            - Prefer factual bullet points
+          sandbox: workspace-write
+          safety-strategy: drop-sudo
+
+      - name: Commit changelog update if any
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+
+          git add CHANGELOG.md
+
+          if git diff --cached --quiet; then
+            echo "No CHANGELOG changes detected."
+            exit 0
+          fi
+
+          git commit -m "docs: update changelog for ${RELEASE_TAG}"
+
+      - name: Push changelog to main if any
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if git log --format=%s -n 1 HEAD | grep -Fxq "docs: update changelog for ${RELEASE_TAG}"; then
+            git push origin HEAD:main
+          else
+            echo "No changelog commit to push."
+          fi
+
   desktop-bundles:
     name: Desktop Bundles (${{ matrix.platform }})
+    needs:
+      - prepare-release-notes
     timeout-minutes: 90
     permissions:
       contents: write
@@ -208,9 +346,6 @@ jobs:
           ICON_SHA256="$(sha256sum "apps/desktop/src-tauri/icons/128x128.png" | awk '{print $1}')"
           ICON_SVG_SHA256="$(sha256sum "apps/desktop/src-tauri/icons/app-icon.svg" | awk '{print $1}')"
 
-          # Download the actual GitHub-generated tarball so the SHA256 matches
-          # what makepkg will download. github.com auto-tarballs differ from
-          # git archive output, so we must hash the real artifact.
           curl -fsSL \
             -H "Authorization: Bearer ${GITHUB_TOKEN}" \
             -o "release-dist/arch/ioruba-${VERSION}.tar.gz" \
@@ -358,7 +493,7 @@ jobs:
 
             printf '%s\n' \
               '#!/usr/bin/env sh' \
-              'exec /opt/ioruba/run-appimage-compat.sh /opt/ioruba/ioruba.AppImage "\$@"' \
+              'exec /opt/ioruba/run-appimage-compat.sh /opt/ioruba/ioruba.AppImage "$@"' \
               > "\${pkgdir}/usr/bin/ioruba-desktop"
             chmod 755 "\${pkgdir}/usr/bin/ioruba-desktop"
           }
@@ -393,17 +528,9 @@ jobs:
             'pkgname = ioruba-desktop-bin' \
             > "release-dist/arch/.SRCINFO-bin"
 
-          cp \
-            "release-dist/arch/PKGBUILD" \
-            "release-dist/arch/PKGBUILD-v${VERSION}"
-
-          cp \
-            "release-dist/arch/PKGBUILD-bin" \
-            "release-dist/arch/PKGBUILD-bin-v${VERSION}"
-
-          # GitHub renames files starting with '.' (e.g. .SRCINFO → default.SRCINFO).
-          # Upload as SRCINFO/SRCINFO-bin (no dot) to preserve the intended filename.
-          cp "release-dist/arch/.SRCINFO"     "release-dist/arch/SRCINFO"
+          cp "release-dist/arch/PKGBUILD" "release-dist/arch/PKGBUILD-v${VERSION}"
+          cp "release-dist/arch/PKGBUILD-bin" "release-dist/arch/PKGBUILD-bin-v${VERSION}"
+          cp "release-dist/arch/.SRCINFO" "release-dist/arch/SRCINFO"
           cp "release-dist/arch/.SRCINFO-bin" "release-dist/arch/SRCINFO-bin"
 
       - name: Remove existing Arch packaging assets
@@ -465,6 +592,8 @@ jobs:
 
   firmware:
     name: Firmware Bundle
+    needs:
+      - prepare-release-notes
     runs-on: ubuntu-latest
     permissions:
       contents: write
