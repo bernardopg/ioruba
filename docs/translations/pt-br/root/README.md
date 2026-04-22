@@ -69,7 +69,7 @@ O projeto preserva a sensação prática de um mixer pequeno enquanto moderniza 
 - **Lógica compartilhada** – `packages/shared` (tipos de domínio, parsing de protocolo, matemática de runtime)
 - **Backend Linux** – implementação em Rust usando `pactl`
 - **Persistência** – perfis JSON no diretório de configuração do app
-- **CI** – valida TypeScript, Rust e firmware; gera bundles desktop (deb, rpm, AppImage)
+- **CI** – valida TypeScript, Rust e compilação do firmware
 - **Legado** – protótipo Python/GTK arquivado em `legacy/`
 
 ## ✅ O que você recebe hoje

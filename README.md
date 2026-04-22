@@ -69,7 +69,7 @@ The project preserves the hands‑on feel of a small mixer while modernising the
 - **Shared logic** – `packages/shared` (TypeScript domain types, protocol parsing, runtime math)
 - **Linux audio backend** – Rust implementation using `pactl` (master, application, source, sink targets)
 - **Persistence** – JSON profiles stored in the app’s config directory
-- **CI** – validates TypeScript, Rust, and firmware compilation; builds desktop bundles (deb, rpm, AppImage) and firmware artifacts
+- **CI** – validates TypeScript, Rust, and firmware compilation
 - **Legacy** – an archived Python/GTK prototype remains under `legacy/` for historical reference
 
 ## ✅ What you get today

@@ -49,4 +49,4 @@ This matrix tracks whether the important Python/Haskell behavior was carried int
 ## Known Gaps
 
 - The new Linux backend is implemented for real audio control.
-- Windows and macOS installers are built by CI, but the platform-specific audio backend is currently an explicit stub. The desktop shell still runs there; real per-target audio control remains Linux-first in this migration.
+- Windows and macOS installers are built by the tagged release workflow, but the platform-specific audio backend is currently an explicit stub. The desktop shell still runs there; real per-target audio control remains Linux-first in this migration.

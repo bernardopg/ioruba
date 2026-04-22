@@ -49,4 +49,4 @@ Esta matriz acompanha se os comportamentos importantes de Python/Haskell foram c
 ## Gaps conhecidos
 
 - O novo backend Linux esta implementado para controle real de audio.
-- Instaladores Windows e macOS sao gerados pela CI, mas o backend de audio especifico dessas plataformas ainda e um stub explicito. O shell desktop funciona nelas; o controle real por alvo continua Linux-first nesta migracao.
+- Instaladores Windows e macOS sao gerados pelo workflow de release com tag, mas o backend de audio especifico dessas plataformas ainda e um stub explicito. O shell desktop funciona nelas; o controle real por alvo continua Linux-first nesta migracao.
