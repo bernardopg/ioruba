@@ -6,9 +6,10 @@ use std::{fs, path::PathBuf};
 use tauri::{
     menu::MenuBuilder,
     tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
-    AppHandle, Manager,
+    AppHandle, Manager, WindowEvent,
 };
 use tauri_plugin_autostart::ManagerExt;
+use tauri_plugin_global_shortcut::{Code, GlobalShortcutExt, Modifiers, Shortcut, ShortcutState};
 
 const TRAY_ICON_ID: &str = "main-tray";
 const TRAY_SHOW_ID: &str = "show-main-window";
@@ -202,6 +203,31 @@ fn show_main_window(app: &AppHandle) {
     }
 }
 
+fn hide_to_tray(app: &AppHandle) {
+    if let Some(window) = app.get_webview_window("main") {
+        let _ = window.hide();
+        watch::emit(
+            app,
+            watch::WatchScope::App,
+            watch::WatchLevel::Info,
+            "Janela ocultada para o tray",
+            Some("runtime permanece ativo em segundo plano".to_string()),
+        );
+    }
+}
+
+fn toggle_main_window(app: &AppHandle) {
+    if let Some(window) = app.get_webview_window("main") {
+        let visible = window.is_visible().unwrap_or(false);
+        let focused = window.is_focused().unwrap_or(false);
+        if visible && focused {
+            hide_to_tray(app);
+        } else {
+            show_main_window(app);
+        }
+    }
+}
+
 fn launched_by_autostart() -> bool {
     std::env::args().any(|arg| arg == "--autostart")
 }
@@ -242,14 +268,70 @@ fn setup_tray(app: &tauri::App) -> tauri::Result<()> {
 }
 
 pub fn run() {
+    // Atalho global: Ctrl+Alt+I alterna a visibilidade da janela principal.
+    // Funciona como fallback caso o compositor nao tenha um StatusNotifierWatcher
+    // (ex.: Hyprland sem waybar/ironbar configurado com o modulo tray).
+    let toggle_shortcut = Shortcut::new(Some(Modifiers::CONTROL | Modifiers::ALT), Code::KeyI);
+
     tauri::Builder::default()
         .plugin(
             tauri_plugin_autostart::Builder::new()
                 .args(["--autostart"])
                 .build(),
         )
-        .setup(|app| {
+        .plugin(
+            tauri_plugin_global_shortcut::Builder::new()
+                .with_handler(move |app, shortcut, event| {
+                    if shortcut == &toggle_shortcut && event.state() == ShortcutState::Pressed {
+                        toggle_main_window(app);
+                    }
+                })
+                .build(),
+        )
+        .on_window_event(|window, event| {
+            if window.label() != "main" {
+                return;
+            }
+            match event {
+                WindowEvent::CloseRequested { api, .. } => {
+                    // Intercepta o fechamento vindo do compositor (Hyprland
+                    // killactive, botao X do decor, Alt+F4, etc.) e oculta a
+                    // janela em vez de encerrar o processo. A saida real so
+                    // acontece via item "Sair" no menu do tray.
+                    api.prevent_close();
+                    hide_to_tray(window.app_handle());
+                }
+                WindowEvent::Destroyed => {
+                    watch::emit(
+                        window.app_handle(),
+                        watch::WatchScope::App,
+                        watch::WatchLevel::Info,
+                        "Janela principal destruida",
+                        None,
+                    );
+                }
+                _ => {}
+            }
+        })
+        .setup(move |app| {
             setup_tray(app)?;
+            if let Err(error) = app.global_shortcut().register(toggle_shortcut) {
+                watch::emit(
+                    &app.handle(),
+                    watch::WatchScope::App,
+                    watch::WatchLevel::Warning,
+                    "Falha ao registrar atalho global Ctrl+Alt+I",
+                    Some(error.to_string()),
+                );
+            } else {
+                watch::emit(
+                    &app.handle(),
+                    watch::WatchScope::App,
+                    watch::WatchLevel::Info,
+                    "Atalho global registrado",
+                    Some("Ctrl+Alt+I alterna janela principal".to_string()),
+                );
+            }
             if launched_by_autostart() {
                 if let Some(window) = app.get_webview_window("main") {
                     let _ = window.hide();

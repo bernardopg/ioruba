@@ -106,7 +106,7 @@ export function TelemetryChart({
         </div>
       </CardHeader>
       <CardContent className="pt-6">
-        <div className="h-70 w-full sm:h-sm:h-85-[380px]">
+        <div className="h-[320px] w-full sm:h-[380px]">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={data}>
               <CartesianGrid

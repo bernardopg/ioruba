@@ -18,6 +18,9 @@ Prioridade atual: concluir primeiro tudo que é Linux/firmware/desktop. O backlo
 - [x] Estabilizar updates de GitHub Actions no Dependabot para evitar conflitos recorrentes `(ci/dependabot/maintenance)` - `fácil`
 - [x] Revisar badges e organização visual do README com status e matriz de suporte `(docs/release/product)` - `fácil`
 - [x] Melhorar `.gitignore` para cobrir artefatos gerados no ciclo atual de desenvolvimento `(repo/hygiene/tooling)` - `fácil`
+- [x] Interceptar fechamento da janela no backend Rust (`WindowEvent::CloseRequested`) e esconder para o tray, evitando exit acidental em compositores Wayland como Hyprland `(backend/runtime/linux)` - `médio`
+- [x] Registrar atalho global `Ctrl+Alt+I` para alternar a visibilidade da janela como fallback quando o compositor nao fornece `StatusNotifierWatcher` `(backend/runtime/ux)` - `médio`
+- [x] Refazer responsividade do shell: sidebar compacta em `lg+`, grid de knobs sem truncagem e layout empilhado no `KnobPanel` `(frontend/design/responsiveness)` - `médio`
 
 ## Scrum 01
 
@@ -66,9 +69,9 @@ Prioridade atual: concluir primeiro tudo que é Linux/firmware/desktop. O backlo
 - [x] Manter o app em segundo plano ao fechar a janela e restaurar pelo tray no Linux `(release/linux/runtime)` - `médio`
 - [x] Adicionar inicialização automática no login com toggle explícito e boot silencioso no tray `(release/linux/runtime)` - `médio`
 - [ ] Configurar assinatura e notarização para Windows e macOS no pipeline `(release/security/ops)` - `difícil`
-- [ ] Revisar metadados de empacotamento Linux e qualidade do bundle desktop `(release/linux/distribution)` - `médio`
-- [ ] Resolver ou contornar a falha do AppImage local no Arch causada por `linuxdeploy` + `.relr.dyn` `(release/linux/appimage)` - `médio`
-- [ ] Validar comportamento de tray/status notifier em GNOME, KDE e Hyprland com dependências e limitações documentadas `(release/linux/desktop-environment)` - `médio`
+- [x] Revisar metadados de empacotamento Linux e qualidade do bundle desktop `(release/linux/distribution)` - `médio`
+- [x] Resolver ou contornar a falha do AppImage local no Arch causada por `linuxdeploy` + `.relr.dyn` `(release/linux/appimage)` - `médio`
+- [ ] Validar comportamento de tray/status notifier em GNOME, KDE e Hyprland com dependências e limitações documentadas `(release/linux/desktop-environment)` - `médio` (Hyprland coberto em v0.6.7: handler nativo de `CloseRequested`, atalho global Ctrl+Alt+I como fallback e orientações de tray host; faltam GNOME/KDE)
 - [ ] Adicionar checksums, provenance e validações finais de release no workflow `(release/security/ci)` - `médio`
 - [ ] Documentar instalação, update e recuperação em caso de bundle quebrado `(docs/release/support)` - `fácil`
 

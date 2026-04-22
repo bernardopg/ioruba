@@ -85,7 +85,7 @@ export function KnobPanel({
   return (
     <Card
       className={cn(
-        "relative min-h-85 overflow-hidden bg-[linear-gradient(155deg,color-mix(in_oklab,var(--color-panel)_92%,transparent)_0%,color-mix(in_oklab,var(--color-shell)_90%,transparent)_100%)]",
+        "relative min-w-0 overflow-hidden bg-[linear-gradient(155deg,color-mix(in_oklab,var(--color-panel)_92%,transparent)_0%,color-mix(in_oklab,var(--color-shell)_90%,transparent)_100%)]",
         className
       )}
     >
@@ -95,18 +95,18 @@ export function KnobPanel({
           background: `linear-gradient(180deg, color-mix(in oklab, ${accent} 18%, transparent) 0%, transparent 100%)`
         }}
       />
-      <CardHeader className="relative pb-3">
-        <div className="min-w-0">
+      <CardHeader className="relative flex-row flex-wrap items-start justify-between gap-3 pb-3">
+        <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
             <span
-              className="h-2.5 w-2.5 rounded-full"
+              className="h-2.5 w-2.5 shrink-0 rounded-full"
               style={{ backgroundColor: accent }}
             />
-            <CardTitle className="truncate text-[clamp(1.1rem,1vw+0.95rem,1.45rem)]">
+            <CardTitle className="min-w-0 break-words text-[clamp(1rem,0.6vw+0.9rem,1.35rem)] leading-tight">
               {knob.name}
             </CardTitle>
           </div>
-          <CardDescription>
+          <CardDescription className="break-words">
             {lt("Leitura bruta")} {knob.rawValue} | {lt("aplicada")} {knob.appliedRawValue}
           </CardDescription>
         </div>
@@ -114,29 +114,29 @@ export function KnobPanel({
           {knob.targets.length} {lt("alvo(s)")}
         </Badge>
       </CardHeader>
-      <CardContent className="relative grid gap-6 pt-2 xl:grid-cols-[180px_minmax(0,1fr)] xl:items-start">
-        <div className="grid gap-4">
+      <CardContent className="relative grid min-w-0 gap-5 pt-2">
+        <div className="grid gap-4 sm:grid-cols-[auto_minmax(0,1fr)] sm:items-center">
           <div
-            className="relative mx-auto h-40 w-40 rounded-full border border-(--color-border) [box-shadow:inset_0_1px_0_var(--edge-highlight)]"
+            className="relative mx-auto h-28 w-28 rounded-full border border-(--color-border) [box-shadow:inset_0_1px_0_var(--edge-highlight)] sm:mx-0 sm:h-32 sm:w-32"
             style={{
               background: `conic-gradient(${accent} 0deg ${knob.percent * 3.6
                 }deg, color-mix(in oklab, var(--color-border) 44%, transparent) ${knob.percent * 3.6}deg 360deg)`
             }}
           >
-            <div className="absolute inset-3.5 rounded-full border border-[color-mix(in_oklab,var(--color-border)_75%,transparent)] bg-[color-mix(in_oklab,var(--color-shell)_95%,var(--color-panel)_5%)]" />
-            <div className="absolute inset-[24%] grid place-items-center rounded-full border border-(--color-border) bg-[color-mix(in_oklab,var(--color-panel)_95%,var(--color-shell)_5%)]">
+            <div className="absolute inset-3 rounded-full border border-[color-mix(in_oklab,var(--color-border)_75%,transparent)] bg-[color-mix(in_oklab,var(--color-shell)_95%,var(--color-panel)_5%)]" />
+            <div className="absolute inset-[26%] grid place-items-center rounded-full border border-(--color-border) bg-[color-mix(in_oklab,var(--color-panel)_95%,var(--color-shell)_5%)]">
               <div className="text-center">
-                <span className="font-display text-lg font-semibold text-(--color-ink)">
+                <span className="font-display text-base font-semibold text-(--color-ink) sm:text-lg">
                   {knob.percent}%
                 </span>
-                <p className="mt-1 text-[0.68rem] font-semibold uppercase tracking-[0.24em] text-(--color-muted)">
+                <p className="mt-0.5 text-[0.62rem] font-semibold uppercase tracking-[0.2em] text-(--color-muted)">
                   {lt("nível")}
                 </p>
               </div>
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid min-w-0 grid-cols-2 gap-3">
             <DialStat accent={accent} label={lt("Entrada")} value={String(knob.rawValue)} />
             <DialStat accent={accent} label={lt("Saida")} value={String(knob.appliedRawValue)} />
           </div>
@@ -196,7 +196,7 @@ export function KnobPanel({
                 {knob.outcome.severity}
               </Badge>
             </div>
-            <p className="mt-3 wrap-break-word text-sm leading-6 text-(--color-copy)">
+            <p className="mt-3 break-words text-sm leading-6 text-(--color-copy)">
               {knob.outcome.summary}
             </p>
 
@@ -215,7 +215,7 @@ export function KnobPanel({
                         {labelForTargetStatus(targetOutcome.status, lt)}
                       </Badge>
                     </div>
-                    <p className="mt-2 wrap-break-word text-sm leading-6 text-(--color-copy)">
+                    <p className="mt-2 break-words text-sm leading-6 text-(--color-copy)">
                       {targetOutcome.detail}
                     </p>
 

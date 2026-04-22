@@ -3,5 +3,5 @@
   "identifier": "default",
   "description": "Default capability for Ioruba desktop",
   "windows": ["main"],
-  "permissions": ["core:default", "serialplugin:default"]
+  "permissions": ["core:default", "serialplugin:default", "global-shortcut:default"]
 }

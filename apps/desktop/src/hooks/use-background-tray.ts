@@ -4,6 +4,15 @@ import { getCurrentWindow } from "@tauri-apps/api/window";
 
 import { useIorubaStore } from "@/store/ioruba-store";
 
+/**
+ * Registra um listener redundante para eventos de fechamento da janela.
+ *
+ * A interceptacao real de "close -> minimize to tray" vive no backend Rust
+ * (`on_window_event` em `src-tauri/src/lib.rs`), porque em compositores
+ * Wayland como o Hyprland o sinal `xdg_toplevel.close` precisa ser tratado
+ * antes do webview encerrar. Este hook existe apenas para registrar o evento
+ * no watch log do lado do frontend, facilitando a depuracao.
+ */
 export function useBackgroundTray() {
   const appendWatchLog = useIorubaStore((state) => state.appendWatchLog);
 
@@ -17,24 +26,14 @@ export function useBackgroundTray() {
     let disposed = false;
 
     async function bindCloseHandler() {
-      unlisten = await appWindow.onCloseRequested(async (event) => {
-        event.preventDefault();
-
-        try {
-          await appWindow.hide();
-          appendWatchLog({
-            scope: "app",
-            level: "info",
-            message: "Janela ocultada; runtime continua ativo no tray"
-          });
-        } catch (error) {
-          appendWatchLog({
-            scope: "app",
-            level: "error",
-            message: "Falha ao ocultar janela no fechamento",
-            detail: error instanceof Error ? error.message : String(error)
-          });
-        }
+      unlisten = await appWindow.onCloseRequested(() => {
+        // Nao chamamos preventDefault aqui: o handler nativo ja cancela o
+        // fechamento e esconde a janela. Apenas registramos para observabilidade.
+        appendWatchLog({
+          scope: "app",
+          level: "info",
+          message: "Solicitacao de fechamento recebida; redirecionando para o tray"
+        });
       });
 
       if (disposed && unlisten) {

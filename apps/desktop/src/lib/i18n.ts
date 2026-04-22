@@ -9,8 +9,7 @@ const TEXT_MAP: Record<string, string> = {
   "O editor esta sincronizado com o perfil salvo.":
     "The editor is synchronized with the saved profile.",
   "Ioruba Control Deck": "Ioruba Control Deck",
-  "Mixer físico refeito para sobreviver fora do Haskell e do Python.":
-    "Physical mixer rebuilt to survive beyond Haskell and Python.",
+  "Melhor e mais barato mixer de audio do mundo": "Best and cheapest audio mixer in the world",
   "A interface nova foi pensada como um painel instrumental: conexão serial, telemetria viva, perfis persistidos em JSON local e aplicação de volume desacoplada do frontend.":
     "The new interface was designed like an instrument panel: serial connection, live telemetry, profiles persisted as local JSON, and volume application decoupled from the frontend.",
   "Porta ativa": "Active port",
@@ -21,6 +20,44 @@ const TEXT_MAP: Record<string, string> = {
   "Conexão e sessão": "Connection and session",
   "Controle de portas, demo mode e persistência do perfil ativo.":
     "Port control, demo mode, and active profile persistence.",
+  Home: "Home",
+  "Visão geral da bancada e status operacional.":
+    "Workbench overview and operational status.",
+  "Painel de controle": "Control panel",
+  "Ações rápidas de sessão, conexão e canais ativos.":
+    "Quick actions for session, connection, and active channels.",
+  Telemetria: "Telemetry",
+  "Leituras ao vivo, resposta dos knobs e timeline.":
+    "Live readings, knob response, and timeline.",
+  "Diagnósticos": "Diagnostics",
+  "Logs, inventário de áudio e checklist técnico.":
+    "Logs, audio inventory, and technical checklist.",
+  "Configurações": "Settings",
+  "Perfis, preferências e edição avançada do runtime.":
+    "Profiles, preferences, and advanced runtime editing.",
+  "Distribuímos o runtime em áreas menores para manter foco operacional sem perder contexto da sessão.":
+    "We split the runtime into smaller areas to keep operational focus without losing session context.",
+  "Painel segmentado": "Segmented panel",
+  "Operação central com leitura clara de hardware, backend e perfil":
+    "Central operation with clear hardware, backend, and profile reading",
+  "Agora cada área do Ioruba vive em uma rota visual própria: a home resume o estado atual da bancada e aponta rapidamente para os próximos passos.":
+    "Now each Ioruba area lives in its own visual route: home summarizes the current bench state and quickly points to the next steps.",
+  "Targets ativos": "Active targets",
+  "Resumo da sessão viva, pronto para orientar a operação antes de abrir uma área específica.":
+    "Summary of the live session, ready to guide operation before opening a specific area.",
+  "Hint operacional": "Operational hint",
+  "Acione conexão, demo mode e preferências de sessão.":
+    "Trigger connection, demo mode, and session preferences.",
+  "Abrir painel de controle": "Open control panel",
+  "Monitore a timeline dos canais e o comportamento dos knobs.":
+    "Monitor channel timelines and knob behavior.",
+  "Abrir telemetria": "Open telemetry",
+  "Revise logs, inventário do backend e saúde da integração.":
+    "Review logs, backend inventory, and integration health.",
+  "Abrir diagnósticos": "Open diagnostics",
+  "Editar perfis, portas, targets e preferências persistidas.":
+    "Edit profiles, ports, targets, and persisted preferences.",
+  "Abrir configurações": "Open settings",
   Conectar: "Connect",
   Desconectar: "Disconnect",
   "Atualizar áudio": "Refresh audio",
