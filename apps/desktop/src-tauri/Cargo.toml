@@ -12,7 +12,7 @@ name = "ioruba_desktop_lib"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
 [build-dependencies]
-tauri-build = { version = "2.5.6", features = [] }
+tauri-build = { version = "2.6.0", features = [] }
 
 [dependencies]
 serde = { version = "1.0", features = ["derive"] }
