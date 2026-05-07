@@ -42,8 +42,8 @@ Hoje a UI suporta:
 
 Execute na raiz do repositorio:
 
-- rg 'translateText|translateTemplate|\\blt\\(' apps/desktop/src
-- rg '(label|title|description|placeholder)="[A-Za-zÀ-ÿ][^"]_"' apps/desktop/src/\*\*/_.tsx
+- `rg 'translateText|translateTemplate|\blt\(' apps/desktop/src`
+- `rg '(label|title|description|placeholder)="[A-Za-zÀ-ÿ][^"]*"' apps/desktop/src/**/*.tsx`
 
 Eles ajudam a encontrar caminhos traduzidos e literais hardcoded restantes.
 
