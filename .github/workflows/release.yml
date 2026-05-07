@@ -175,7 +175,11 @@ jobs:
           - platform: windows-latest
             args: ""
           - platform: macos-latest
-            args: ""
+            # DMG packaging can fail on GitHub-hosted macOS runners because
+            # Tauri's generated bundle script invokes Finder/AppleScript
+            # operations that are not always authorized in CI. Build the .app
+            # bundle instead so the release can still publish the macOS binary.
+            args: "--bundles app"
     runs-on: ${{ matrix.platform }}
 
     steps:

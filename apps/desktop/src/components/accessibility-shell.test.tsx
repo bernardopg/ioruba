@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import App from "@/App";
@@ -124,15 +124,25 @@ describe("desktop accessibility shell", () => {
 
     render(<App />);
 
+    // Navigate to the control panel tab where port/theme pickers live.
+    fireEvent.click(screen.getByRole("tab", { name: /control panel/i }));
+
     expect(screen.getByRole("heading", { name: /connection and session/i })).not.toBeNull();
     expect(screen.getByText(/preferred port/i)).not.toBeNull();
     expect(screen.getByRole("option", { name: /detect automatically/i })).not.toBeNull();
     expect(screen.getByRole("tab", { name: /diagnostics/i })).not.toBeNull();
-    expect(screen.getAllByRole("status").some((region) => region.textContent?.includes("Ready to connect"))).toBe(true);
+    expect(
+      screen
+        .getAllByRole("status")
+        .some((region) => region.textContent?.includes("Ready to connect"))
+    ).toBe(true);
   });
 
   it("exposes descriptive labels and live status regions in the main session card", () => {
     render(<App />);
+
+    // Session switches live in the control panel section.
+    fireEvent.click(screen.getByRole("tab", { name: /painel de controle/i }));
 
     expect(screen.getByRole("switch", { name: /modo demo/i }).getAttribute("aria-describedby")).toBe(
       "demo-mode-description"

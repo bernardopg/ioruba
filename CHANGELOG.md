@@ -9,9 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.6.7](https://github.com/bernardopg/ioruba/compare/v0.6.6...v0.6.7) (2026-04-22)
 
+### Bug Fixes
+
+- skipped the macOS `dmg` bundle in CI release builds to avoid macOS GUI-dependent bundling failures and keep macOS artifacts publishable
+
 ### Changed
 
-- release housekeeping for `v0.6.7`
+- updated changelog entries for the `v0.6.7` release
 
 ## [0.6.6](https://github.com/bernardopg/ioruba/compare/v0.6.5...v0.6.6) (2026-04-22)
 

@@ -193,18 +193,29 @@ export default function App() {
               </p>
             </div>
 
-            <nav aria-label={lt("Navegação principal do Ioruba")} className="mt-5">
-              <div className="sidebar-nav-list">
+            <nav className="mt-5">
+              <div
+                aria-label={lt("Navegação principal do Ioruba")}
+                className="sidebar-nav-list"
+                id="app-content"
+                role="tablist"
+                tabIndex={-1}
+              >
                 {navigationItems.map((item) => {
                   const Icon = item.icon;
+                  const isActive = item.id === activeSection;
 
                   return (
                     <button
-                      aria-current={item.id === activeSection ? "page" : undefined}
+                      aria-controls="main-tabpanel"
+                      aria-selected={isActive}
                       className="sidebar-nav-item"
-                      data-active={item.id === activeSection}
+                      data-active={isActive}
+                      id={`tab-${item.id}`}
                       key={item.id}
                       onClick={() => setActiveSection(item.id)}
+                      role="tab"
+                      tabIndex={isActive ? 0 : -1}
                       type="button"
                     >
                       <span className="sidebar-nav-icon">
@@ -240,7 +251,13 @@ export default function App() {
           </div>
         </aside>
 
-        <div className="flex min-w-0 flex-col gap-6" id="app-content" tabIndex={-1}>
+        <div
+          aria-labelledby={`tab-${activeSection}`}
+          className="flex min-w-0 flex-col gap-6"
+          id="main-tabpanel"
+          role="tabpanel"
+          tabIndex={0}
+        >
           <section className="dashboard-ribbon">
             <div>
               <p className="eyebrow">{currentSection.label}</p>
