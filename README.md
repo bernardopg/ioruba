@@ -146,10 +146,11 @@ chmod +x Ioruba_*.AppImage
 
 Download the Windows installer assets from the latest release page (`.exe` / `.msi`).
 
-### macOS (Apple Silicon)
+### macOS (Apple Silicon and Intel)
 
 Download the macOS app bundle archive from the latest release page:
 - `Ioruba_..._aarch64.app.tar.gz`
+- `Ioruba_..._x64.app.tar.gz`
 
 > **Reminder:** On macOS and Windows the app runs in UI/demo mode only; audio control requires Linux.
 
