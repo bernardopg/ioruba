@@ -12,9 +12,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - hardened the docs auto-update workflow in CI
-- synchronized repository documentation for the `v0.6.8` release
+- synchronized repository documentation and refreshed the repository screenshot
 - refreshed desktop dependencies across Tauri and frontend tooling (`@tauri-apps/api`, `@tauri-apps/cli`, `tauri`, `tauri-build`, `@vitejs/plugin-react`, `@tailwindcss/vite`, `vitest`, `jsdom`, `lucide-react`)
-- updated the repository screenshot asset
+
+### Bug Fixes
+
+- removed a duplicate `Sessão` key in `TEXT_MAP`
 
 ### Security
 
