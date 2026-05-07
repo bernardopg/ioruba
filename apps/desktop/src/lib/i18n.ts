@@ -334,7 +334,6 @@ const TEXT_MAP: Record<string, string> = {
   "Mixer de áudio para Linux": "Audio mixer for Linux",
   "Painel instrumental com telemetria viva e perfis locais.":
     "Instrument panel with live telemetry and local profiles.",
-  Sessão: "Session",
 };
 
 export function translateText(language: UiLanguage, text: string): string {
