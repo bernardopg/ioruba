@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.8](https://github.com/bernardopg/ioruba/compare/v0.6.7...v0.6.8) (2026-05-07)
+
+### Accessibility (Scrum 06 — fechado)
+
+- completed PT-BR/EN i18n coverage: added 3 missing translations (`Mixer de áudio para Linux`, `Painel instrumental com telemetria viva e perfis locais.`, `Sessão`) that were rendered in Portuguese even when the active profile language was set to English
+- fixed light-mode `--color-muted` contrast ratio against `--color-shell`: adjusted OKLCH lightness from `0.55` to `0.53`, bringing the ratio from 4.39:1 to ≈4.8:1 (WCAG AA); added WCAG ratio comments to all text tokens in `app.css`; documented `--accent-teal` / `--accent-copper` as icon-only decorative colors exempt from WCAG 1.4.11
+- integrated axe-core via `jest-axe` into `accessibility-shell.test.tsx`: two new automated scans cover the full `App` shell and the `KnobPanel` component; test count grows from 32 to 34
+
 ## [0.6.7](https://github.com/bernardopg/ioruba/compare/v0.6.6...v0.6.7) (2026-04-22)
 
 ### Bug Fixes

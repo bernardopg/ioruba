@@ -60,3 +60,4 @@ apps/desktop/src-tauri/gen/
 .cache/
 /.mypy_cache/
 .worktrees/
+.gitnexus

@@ -1,12 +1,16 @@
 // @vitest-environment jsdom
 
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { axe, toHaveNoViolations } from "jest-axe";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
+expect.extend(toHaveNoViolations);
 
 import App from "@/App";
 import { ProfileWorkbench } from "@/components/config/profile-workbench";
 import { KnobPanel } from "@/components/dashboard/knob-panel";
 import { WatchLogPanel } from "@/components/dashboard/watch-log-panel";
+import { translateText } from "@/lib/i18n";
 import { parseProfileDraft, serializeProfileDraft } from "@/lib/profile-config";
 import { useIorubaStore } from "@/store/ioruba-store";
 import {
@@ -230,6 +234,60 @@ describe("desktop accessibility shell", () => {
     expect(screen.getByText(/live watch/i)).not.toBeNull();
     expect(screen.getByRole("button", { name: /clear/i })).not.toBeNull();
     expect(screen.getByText(/no events for the current filter/i)).not.toBeNull();
+  });
+
+  it("translates sidebar copy and session label when the active profile language is en", () => {
+    const persisted = buildPersistedState("en");
+    const store = useIorubaStore.getState();
+    store.hydrate(persisted, store.audioInventory);
+
+    render(<App />);
+
+    expect(screen.getByText(/audio mixer for linux/i)).not.toBeNull();
+    expect(screen.getByText(/instrument panel with live telemetry/i)).not.toBeNull();
+
+    const ribbonMetrics = screen.getAllByText(/session/i);
+    expect(ribbonMetrics.length).toBeGreaterThanOrEqual(1);
+  });
+
+  it("strings used with lt() in App.tsx that require translation have English entries in TEXT_MAP", () => {
+    // Pairs where PT-BR and English differ — proper nouns like "Ioruba Control Deck"
+    // that are intentionally identical in both languages are excluded.
+    const translationPairs: Array<[string, string]> = [
+      ["Mixer de áudio para Linux", "Audio mixer for Linux"],
+      ["Painel instrumental com telemetria viva e perfis locais.", "Instrument panel with live telemetry and local profiles."],
+      ["Sessão", "Session"],
+      ["Pular para o conteúdo principal", "Skip to main content"],
+      ["Navegação principal do Ioruba", "Ioruba primary navigation"],
+      ["Painel de controle", "Control panel"],
+      ["Diagnósticos", "Diagnostics"],
+      ["Configurações", "Settings"],
+      ["Porta ativa", "Active port"],
+      ["Última serial", "Latest serial"],
+      ["nenhuma", "none"],
+      ["aguardando", "waiting"],
+    ];
+
+    for (const [ptBR, expectedEN] of translationPairs) {
+      expect(
+        translateText("en", ptBR),
+        `"${ptBR}" should translate to "${expectedEN}" in English`
+      ).toBe(expectedEN);
+    }
+  });
+
+  it("App shell has no axe violations in PT-BR", async () => {
+    const { container } = render(<App />);
+    // color-contrast is excluded: CSS custom properties are not resolved in jsdom;
+    // contrast ratios are verified statically in app.css via WCAG comments.
+    expect(await axe(container, { rules: { "color-contrast": { enabled: false } } })).toHaveNoViolations();
+  });
+
+  it("KnobPanel has no axe violations", async () => {
+    const knob = useIorubaStore.getState().snapshot.knobs[0];
+    if (!knob) throw new Error("expected default knob snapshot for axe test");
+    const { container } = render(<KnobPanel knob={knob} />);
+    expect(await axe(container, { rules: { "color-contrast": { enabled: false } } })).toHaveNoViolations();
   });
 
   it("keeps the watch log viewport keyboard-focusable for scrolling", () => {

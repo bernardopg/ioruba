@@ -59,9 +59,9 @@ Prioridade atual: concluir primeiro tudo que é Linux/firmware/desktop. O backlo
 
 - [x] Revisar navegação por teclado, foco visível e ordem de tab em toda a UI `(frontend/accessibility/design)` - `médio`
 - [x] Adicionar labels acessíveis, descrições e regiões ao vivo para mudanças de status e outcomes `(frontend/accessibility/ux)` - `médio`
-- [ ] Completar internacionalização PT-BR/EN em toda a interface, inclusive diagnósticos e mensagens de erro `(frontend/i18n/docs)` - `médio` (em andamento)
-- [ ] Revisar contraste, estados visuais e variações de tema com foco em legibilidade `(frontend/design/accessibility)` - `médio` (em andamento)
-- [ ] Incluir testes e checklist de acessibilidade no pipeline de revisão `(test/accessibility/coverage)` - `médio`
+- [x] Completar internacionalização PT-BR/EN em toda a interface, inclusive diagnósticos e mensagens de erro `(frontend/i18n/docs)` - `médio`
+- [x] Revisar contraste, estados visuais e variações de tema com foco em legibilidade `(frontend/design/accessibility)` - `médio`
+- [x] Incluir testes e checklist de acessibilidade no pipeline de revisão `(test/accessibility/coverage)` - `médio`
 
 ## Scrum 07
 

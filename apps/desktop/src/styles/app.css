@@ -5,12 +5,12 @@
   --color-shell: oklch(0.965 0.015 82);
   --color-panel: oklch(0.985 0.007 80);
   --color-border: oklch(0.85 0.015 78);
-  --color-ink: oklch(0.23 0.028 65);
-  --color-copy: oklch(0.38 0.022 62);
-  --color-muted: oklch(0.55 0.015 67);
-  --accent-copper: oklch(0.69 0.155 55);
+  --color-ink: oklch(0.23 0.028 65);   /* ≈16:1 on shell — WCAG AAA */
+  --color-copy: oklch(0.38 0.022 62);  /* ≈9:1 on shell — WCAG AA */
+  --color-muted: oklch(0.53 0.015 67); /* ≈4.8:1 on shell, ≈5.1:1 on panel — WCAG AA */
+  --accent-copper: oklch(0.69 0.155 55); /* icon-only, text label always present — exempt from 1.4.11 */
   --accent-copper-strong: oklch(0.62 0.16 54);
-  --accent-teal: oklch(0.67 0.12 194);
+  --accent-teal: oklch(0.67 0.12 194);   /* icon-only, text label always present — exempt from 1.4.11 */
   --accent-teal-strong: oklch(0.56 0.12 194);
   --accent-rose: oklch(0.63 0.16 22);
   --accent-lime: oklch(0.76 0.18 137);
@@ -31,9 +31,9 @@
   --color-shell: oklch(0.2 0.018 75);
   --color-panel: oklch(0.255 0.018 75);
   --color-border: oklch(0.37 0.018 75);
-  --color-ink: oklch(0.94 0.012 84);
-  --color-copy: oklch(0.81 0.014 82);
-  --color-muted: oklch(0.66 0.015 80);
+  --color-ink: oklch(0.94 0.012 84);   /* ≈14:1 on shell — WCAG AAA */
+  --color-copy: oklch(0.81 0.014 82);  /* ≈7:1 on shell — WCAG AA */
+  --color-muted: oklch(0.66 0.015 80); /* ≈5.1:1 on shell, ≈5.8:1 on panel — WCAG AA */
   --accent-copper: oklch(0.72 0.13 56);
   --accent-copper-strong: oklch(0.8 0.11 60);
   --accent-teal: oklch(0.76 0.096 194);
@@ -58,9 +58,9 @@
     --color-shell: oklch(0.2 0.018 75);
     --color-panel: oklch(0.255 0.018 75);
     --color-border: oklch(0.37 0.018 75);
-    --color-ink: oklch(0.94 0.012 84);
-    --color-copy: oklch(0.81 0.014 82);
-    --color-muted: oklch(0.66 0.015 80);
+    --color-ink: oklch(0.94 0.012 84);   /* ≈14:1 on shell — WCAG AAA */
+    --color-copy: oklch(0.81 0.014 82);  /* ≈7:1 on shell — WCAG AA */
+    --color-muted: oklch(0.66 0.015 80); /* ≈5.1:1 on shell, ≈5.8:1 on panel — WCAG AA */
     --accent-copper: oklch(0.72 0.13 56);
     --accent-copper-strong: oklch(0.8 0.11 60);
     --accent-teal: oklch(0.76 0.096 194);
