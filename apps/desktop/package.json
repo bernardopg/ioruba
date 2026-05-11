@@ -28,7 +28,7 @@
     "recharts": "^3.8.1",
     "tailwind-merge": "^3.4.0",
     "tauri-plugin-serialplugin-api": "^2.22.0",
-    "zustand": "^5.0.8"
+    "zustand": "^5.0.13"
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.2.4",
