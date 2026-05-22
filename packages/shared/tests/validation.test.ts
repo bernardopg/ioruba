@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  CURRENT_PERSISTED_STATE_SCHEMA_VERSION,
   defaultPersistedState,
   defaultProfile,
   normalizePersistedState
@@ -21,6 +22,7 @@ describe("persisted state normalization", () => {
       profiles: [defaultProfile]
     });
 
+    expect(normalized.schemaVersion).toBe(CURRENT_PERSISTED_STATE_SCHEMA_VERSION);
     expect(normalized.launchOnLogin).toBe(false);
   });
 

@@ -72,6 +72,7 @@ export interface WindowState {
 }
 
 export interface PersistedState {
+  schemaVersion: number;
   selectedProfileId: string;
   profiles: MixerProfile[];
   lastWindow: WindowState;

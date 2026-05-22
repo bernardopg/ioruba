@@ -1,4 +1,7 @@
-import { defaultPersistedState } from "./defaults";
+import {
+  CURRENT_PERSISTED_STATE_SCHEMA_VERSION,
+  defaultPersistedState
+} from "./defaults";
 import type {
   AudioTarget,
   MixerProfile,
@@ -33,6 +36,7 @@ export function normalizePersistedState(
       : fallbackProfile.id;
 
   return {
+    schemaVersion: CURRENT_PERSISTED_STATE_SCHEMA_VERSION,
     selectedProfileId,
     profiles,
     lastWindow: {
@@ -183,6 +187,7 @@ function normalizeTarget(candidate: Partial<AudioTarget>): AudioTarget | null {
 function clonePersistedState(state: PersistedState): PersistedState {
   return {
     ...state,
+    schemaVersion: CURRENT_PERSISTED_STATE_SCHEMA_VERSION,
     profiles: state.profiles.map(cloneProfile),
     lastWindow: {
       ...state.lastWindow

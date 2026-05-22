@@ -1,6 +1,7 @@
 import type { AudioInventory, MixerProfile, PersistedState } from "./types";
 
 export const DEFAULT_PROFILE_ID = "default-linux-profile";
+export const CURRENT_PERSISTED_STATE_SCHEMA_VERSION = 1;
 
 export const defaultProfile: MixerProfile = {
   id: DEFAULT_PROFILE_ID,
@@ -63,6 +64,7 @@ export const defaultProfile: MixerProfile = {
 };
 
 export const defaultPersistedState: PersistedState = {
+  schemaVersion: CURRENT_PERSISTED_STATE_SCHEMA_VERSION,
   selectedProfileId: DEFAULT_PROFILE_ID,
   profiles: [defaultProfile],
   lastWindow: {
