@@ -801,6 +801,7 @@ jobs:
     needs:
       - arch-pkgbuild
       - attest-and-checksum
+    if: ${{ always() && needs.arch-pkgbuild.result == 'success' && needs.attest-and-checksum.result != 'cancelled' }}
     runs-on: ubuntu-latest
 
     steps:
