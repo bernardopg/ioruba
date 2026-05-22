@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.12](https://github.com/bernardopg/ioruba/compare/v0.6.11...v0.6.12) (2026-05-22)
+
+### Features
+
+- added `schemaVersion` field to `PersistedState` for future-safe migration tracking
+- atomic state write with `.tmp` + rename, eliminating partial-write corruption
+- automatic backup of persisted state when `schemaVersion` changes (named `ioruba-state.backup.v{ver}.{timestamp}.json`)
+- export watch log via save-file dialog (`tauri-plugin-dialog`), writing JSON Lines; Rust command `export_watch_log` returns path and entry count
+- Export button in the Watch Log panel with inline result/cancellation message and accessible `aria-live` status
+- JSON parse errors in profile import now include line and column numbers
+
+### Bug Fixes
+
+- `load_watch_log_entries` now reports malformed lines as a structured `Warning` in the watch log instead of silently discarding them
+
+### Changed
+
+- updated docs-site home page (`index.md`), added Getting Started guide, quick-reference sidebar card, and new deck cards on the home layout
+
 ## [0.6.11](https://github.com/bernardopg/ioruba/compare/v0.6.10...v0.6.11) (2026-05-22)
 
 ### Changed
@@ -234,7 +253,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial tagged baseline before the current Haskell-first productization pass
 
-[Unreleased]: https://github.com/bernardopg/ioruba/compare/v0.6.11...HEAD
+[Unreleased]: https://github.com/bernardopg/ioruba/compare/v0.6.12...HEAD
+[0.6.12]: https://github.com/bernardopg/ioruba/compare/v0.6.11...v0.6.12
 [0.6.11]: https://github.com/bernardopg/ioruba/releases/tag/v0.6.11
 [0.6.10]: https://github.com/bernardopg/ioruba/releases/tag/v0.6.10
 [0.6.9]: https://github.com/bernardopg/ioruba/releases/tag/v0.6.9
