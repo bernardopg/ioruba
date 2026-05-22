@@ -181,7 +181,7 @@ jobs:
             exit 0
           fi
 
-          git fetch origin main
+          git fetch origin main:refs/remotes/origin/main
           expected_sha="${{ github.event.workflow_run.head_sha }}"
           current_main="$(git rev-parse origin/main)"
 
