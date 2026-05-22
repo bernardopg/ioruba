@@ -11,12 +11,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Features
 
-- added `AudioBackendBanner` component that renders a persistent alert when `pactl` is not found on `PATH` (`inventory.backend === "unsupported"`); shown in the Home and Diagnostics sections; includes per-distro install instructions (Arch, Debian/Ubuntu, Fedora), full PT-BR/EN i18n, and `role="alert"` / `aria-live="assertive"` for screen reader support
-- added `classifySerialOpenError` in `src/lib/serial.ts` to classify raw serial open errors (`busy`, `permission`, `not_found`, `unknown`) from the `serialport` crate string output; integrated into `use-serial-runtime.ts` so the watch log and status bar show actionable messages ("port is in use — close other serial monitor" / "add user to dialout group") instead of a raw OS error string; 6 new unit tests
+- added `AudioBackendBanner` for missing `pactl` detection
+- classified serial open errors with actionable messages in the runtime observability flow
+- configured Windows and macOS code signing and notarization
+- closed Scrum 07 release tasks (provenance, checksums, tray docs, recovery guide)
 
-### Changed
+### Bug Fixes
 
-- marked Scrum 08 logging item as complete in `TODO.md`; refined remaining items into concrete actionable tasks
+- hardened CI workflow correctness and safety
+- fixed CI step conditions to avoid `Unrecognized named-value: secrets` errors
 
 ## [0.6.9](https://github.com/bernardopg/ioruba/compare/v0.6.8...v0.6.9) (2026-05-22)
 
@@ -217,7 +220,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial tagged baseline before the current Haskell-first productization pass
 
-[Unreleased]: https://github.com/bernardopg/ioruba/compare/v0.6.9...HEAD
+[Unreleased]: https://github.com/bernardopg/ioruba/compare/v0.6.10...HEAD
+[0.6.10]: https://github.com/bernardopg/ioruba/releases/tag/v0.6.10
 [0.6.9]: https://github.com/bernardopg/ioruba/releases/tag/v0.6.9
 [0.6.8]: https://github.com/bernardopg/ioruba/releases/tag/v0.6.8
 [0.6.7]: https://github.com/bernardopg/ioruba/releases/tag/v0.6.7
