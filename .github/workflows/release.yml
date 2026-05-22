@@ -172,6 +172,7 @@ jobs:
 
           git fetch origin main
           if ! git rebase origin/main; then
+            git rebase --abort
             echo "Rebase failed — origin/main moved concurrently; aborting." >&2
             exit 1
           fi
@@ -317,6 +318,7 @@ jobs:
     timeout-minutes: 90
     needs:
       - desktop-bundles
+    if: ${{ always() && needs.desktop-bundles.result != 'cancelled' }}
     permissions:
       contents: write
     runs-on: ubuntu-22.04
@@ -376,6 +378,7 @@ jobs:
     needs:
       - desktop-bundles
       - desktop-appimage
+    if: ${{ always() && needs.desktop-bundles.result != 'cancelled' && needs.desktop-appimage.result != 'cancelled' }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -715,6 +718,7 @@ jobs:
       - desktop-bundles
       - desktop-appimage
       - firmware
+    if: ${{ always() && needs.desktop-bundles.result != 'cancelled' && needs.desktop-appimage.result != 'cancelled' && needs.firmware.result != 'cancelled' }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
