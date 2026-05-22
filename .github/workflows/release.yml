@@ -285,6 +285,15 @@ jobs:
             | grep -o '"[^"]*"' | head -n 1 | tr -d '"')
           echo "APPLE_SIGNING_IDENTITY=$CERT_IDENTITY" >> "$GITHUB_ENV"
 
+      - name: Disable macOS codesign when no certificate secret
+        if: matrix.platform == 'macos-latest' && env.APPLE_CERTIFICATE == ''
+        run: |
+          # Tauri 2: signingIdentity=null means "use system default keychain identity".
+          # Set it to "-" (ad-hoc) to prevent codesign failure on unsigned CI runners.
+          jq '.bundle.macOS.signingIdentity = "-"' \
+            apps/desktop/src-tauri/tauri.conf.json > /tmp/tauri.conf.patched.json
+          mv /tmp/tauri.conf.patched.json apps/desktop/src-tauri/tauri.conf.json
+
       - name: Build and upload installers
         uses: tauri-apps/tauri-action@v0.6.2
         env:
