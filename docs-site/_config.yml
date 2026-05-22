@@ -13,3 +13,4 @@ defaults:
     values:
       layout: doc
       image: /assets/screenshot.png
+      lang: en

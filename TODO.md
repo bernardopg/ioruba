@@ -78,13 +78,13 @@ Prioridade atual: concluir primeiro tudo que é Linux/firmware/desktop. O backlo
 ## Scrum 08
 
 - [x] Implementar logging estruturado no frontend e no Rust backend para sessões reais `(backend/frontend/observability)` - `médio` (watch.rs com WatchEvent/WatchLogEntry + emit via evento Tauri; WatchLogPanel com filtros, auto-scroll e persistência em ioruba-watch.log; appendWatchLog no store; cobertura nos hooks de boot, serial e audio)
-- [ ] Adicionar export do watch log como arquivo (JSON ou texto) direto da UI `(frontend/backend/support)` - `fácil`
-- [ ] Criar comando Tauri `export_watch_log` que grava o log em arquivo escolhido pelo usuário via dialog `(backend/support)` - `fácil`
-- [ ] Criar backup/migração segura do estado persistido antes de mudanças de schema `(backend/security/migration)` - `médio` (save_persisted_state sobrescreve sem backup atômico — escrita interrompida pode corromper; falta versionamento de schema em ioruba-state.json)
+- [x] Adicionar export do watch log como arquivo (JSON ou texto) direto da UI `(frontend/backend/support)` - `fácil` (botão Exportar no painel Watch; exporta JSON Lines e mostra resultado/cancelamento na UI)
+- [x] Criar comando Tauri `export_watch_log` que grava o log em arquivo escolhido pelo usuário via dialog `(backend/support)` - `fácil` (tauri-plugin-dialog + filtro `.jsonl`/`.txt`; retorna caminho e total exportado)
+- [x] Criar backup/migração segura do estado persistido antes de mudanças de schema `(backend/security/migration)` - `médio` (PersistedState agora tem schemaVersion; save_persisted_state valida JSON, cria backup quando a versão muda e grava por arquivo temporário + rename)
 - [x] Melhorar mensagem de erro para porta serial ocupada (distinguir "access denied / busy" de erro genérico de abertura) `(frontend/backend/error)` - `fácil` (classifySerialOpenError em src/lib/serial.ts; classifica busy/permission/not_found/unknown a partir das strings do serialport crate; 6 novos testes; integrado no catch de port.open() em use-serial-runtime.ts)
 - [x] Melhorar mensagem de erro para `pactl` ausente no frontend (inventory.backend === "unsupported" deve exibir banner com instrução de instalação) `(frontend/backend/error)` - `fácil` (AudioBackendBanner em src/components/dashboard/audio-backend-banner.tsx; integrado em home e diagnostics; role="alert" aria-live="assertive"; instruções de instalação para Arch, Debian/Ubuntu e Fedora; i18n PT-BR/EN)
-- [ ] Melhorar mensagem de erro para perfil inválido no import/JSON bruto com linha/coluna do parse error `(frontend/error)` - `fácil`
-- [ ] Emitir aviso no watch log quando `trim_watch_entries` descartar entradas malformadas em vez de ignorar silenciosamente `(backend/observability)` - `fácil`
+- [x] Melhorar mensagem de erro para perfil inválido no import/JSON bruto com linha/coluna do parse error `(frontend/error)` - `fácil` (parseProfileDraft calcula linha/coluna a partir de position do JSON.parse e mostra no erro inline)
+- [x] Emitir aviso no watch log quando `trim_watch_entries` descartar entradas malformadas em vez de ignorar silenciosamente `(backend/observability)` - `fácil` (load_watch_log_entries agora conta linhas malformadas e emite warning estruturado)
 - [x] Publicar playbook de suporte para bugs de áudio, firmware e serial `(docs/debug/support)` - `fácil`
 
 ## Scrum 09

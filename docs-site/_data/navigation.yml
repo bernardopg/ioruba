@@ -3,6 +3,8 @@ en:
     items:
       - title: Documentation home
         url: /
+      - title: Getting started
+        url: /guides/getting-started.html
       - title: Project overview
         url: /root/README.html
       - title: Quick start
@@ -13,6 +15,8 @@ en:
     items:
       - title: Hardware setup
         url: /guides/hardware-setup.html
+      - title: Getting started
+        url: /guides/getting-started.html
       - title: Profile examples
         url: /guides/profile-examples.html
       - title: Translation guide

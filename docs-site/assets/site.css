@@ -635,3 +635,50 @@ img {
     transition: none !important;
   }
 }
+
+/* Quick reference sidebar styles */
+.sidebar-quick-ref {
+  background:
+    radial-gradient(
+      circle at bottom left,
+      color-mix(in oklab, var(--copper) 10%, transparent),
+      transparent 30%
+    ),
+    linear-gradient(
+      180deg,
+      color-mix(in oklab, var(--panel) 96%, white 4%),
+      color-mix(in oklab, var(--panel-strong) 94%, transparent)
+    );
+}
+
+.sidebar-quick-ref h2 {
+  font-size: 0.95rem;
+  margin: 0.5rem 0 0.4rem;
+}
+
+.sidebar-quick-ref ul.nav-list {
+  gap: 0.25rem;
+}
+
+.ref-label {
+  font-weight: 700;
+  color: var(--copper-strong);
+  font-size: 0.85rem;
+}
+
+.ref-value {
+  color: var(--ink);
+  font-size: 0.85rem;
+}
+
+.ref-code {
+  display: block;
+  font-size: 0.72rem;
+  padding: 0.3rem 0.5rem;
+  margin: 0.3rem 0;
+  border-radius: 0.5rem;
+  background: color-mix(in oklab, var(--teal) 10%, var(--panel));
+  color: var(--ink);
+  white-space: pre-wrap;
+  word-break: break-all;
+}
