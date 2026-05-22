@@ -12,10 +12,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - synchronized desktop package metadata for the 0.6.11 release
+- updated release jobs to build artifacts from the target release tag and keep updater JSON disabled until updater signing is configured
 
 ### Bug Fixes
 
-- checked out the release tag in every artifact-producing release job to keep manual reruns from mixing commits across desktop, firmware, and Arch assets
+- split the macOS build into signed and unsigned steps to avoid codesign failures
+- patched `tauri.conf.json` to use ad-hoc macOS signing when no certificate secret is available
+- allowed downstream release jobs to run after partial matrix failures
+- handled rebase failures and tightened job conditions for desktop builds
 
 ## [0.6.10](https://github.com/bernardopg/ioruba/compare/v0.6.9...v0.6.10) (2026-05-22)
 
@@ -28,12 +32,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Bug Fixes
 
-- split macOS build into signed/unsigned steps to avoid codesign failure
-- patched macOS ad-hoc signing when no certificate secret is available
-- allowed downstream release jobs to run on partial matrix failures
 - hardened CI workflow correctness and safety
 - fixed CI step conditions to avoid `Unrecognized named-value: secrets` errors
-- handled rebase failures and tightened job conditions for desktop builds
 
 ## [0.6.9](https://github.com/bernardopg/ioruba/compare/v0.6.8...v0.6.9) (2026-05-22)
 
