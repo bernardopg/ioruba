@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.11](https://github.com/bernardopg/ioruba/compare/v0.6.10...v0.6.11) (2026-05-22)
+
+### Changed
+
+- synchronized desktop package metadata for the 0.6.11 release
+
+### Bug Fixes
+
+- checked out the release tag in every artifact-producing release job to keep manual reruns from mixing commits across desktop, firmware, and Arch assets
+
 ## [0.6.10](https://github.com/bernardopg/ioruba/compare/v0.6.9...v0.6.10) (2026-05-22)
 
 ### Features
@@ -224,7 +234,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial tagged baseline before the current Haskell-first productization pass
 
-[Unreleased]: https://github.com/bernardopg/ioruba/compare/v0.6.10...HEAD
+[Unreleased]: https://github.com/bernardopg/ioruba/compare/v0.6.11...HEAD
+[0.6.11]: https://github.com/bernardopg/ioruba/releases/tag/v0.6.11
 [0.6.10]: https://github.com/bernardopg/ioruba/releases/tag/v0.6.10
 [0.6.9]: https://github.com/bernardopg/ioruba/releases/tag/v0.6.9
 [0.6.8]: https://github.com/bernardopg/ioruba/releases/tag/v0.6.8

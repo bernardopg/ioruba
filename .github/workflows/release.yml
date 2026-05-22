@@ -18,7 +18,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: release-${{ github.ref }}
+  group: release-${{ github.event_name == 'workflow_dispatch' && inputs.release_tag || github.ref_name }}
   cancel-in-progress: true
 
 jobs:
@@ -68,9 +68,11 @@ jobs:
 
           PREV_TAG="$(git tag --sort=-version:refname | grep '^v' | grep -Fxv "${TAG}" | head -n 1 || true)"
 
-          echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
-          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
-          echo "prev_tag=${PREV_TAG}" >> "$GITHUB_OUTPUT"
+          {
+            echo "tag=${TAG}"
+            echo "version=${VERSION}"
+            echo "prev_tag=${PREV_TAG}"
+          } >> "$GITHUB_OUTPUT"
 
           if [ -n "${PREV_TAG}" ]; then
             git log "${PREV_TAG}..origin/main" --pretty=format:'- %s' > .release-commits.txt
@@ -193,7 +195,7 @@ jobs:
           - platform: ubuntu-22.04
             args: "--bundles deb,rpm"
           - platform: windows-latest
-            args: ""
+            args: "--bundles nsis,msi"
           - platform: macos-latest
             # DMG packaging can fail on GitHub-hosted macOS runners because
             # Tauri's generated bundle script invokes Finder/AppleScript
@@ -213,6 +215,7 @@ jobs:
         uses: actions/checkout@v6.0.2
         with:
           fetch-depth: 0
+          ref: ${{ env.RELEASE_TAG }}
 
       - name: Setup Node
         uses: actions/setup-node@v6.4.0
@@ -236,7 +239,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y \
-            pkg-config \
+            pkgconf \
             libudev-dev \
             libwebkit2gtk-4.1-dev \
             libgtk-3-dev \
@@ -305,6 +308,9 @@ jobs:
             Cross-platform installers for the Tauri 2 desktop app.
           releaseDraft: false
           prerelease: false
+          # Ioruba does not ship tauri-plugin-updater yet. Keep latest.json
+          # disabled until updater artifacts and TAURI_SIGNING_PRIVATE_KEY are configured.
+          includeUpdaterJson: false
           args: ${{ matrix.args }}
 
       - name: Build and upload installers (unsigned macOS)
@@ -323,6 +329,9 @@ jobs:
             Cross-platform installers for the Tauri 2 desktop app.
           releaseDraft: false
           prerelease: false
+          # Ioruba does not ship tauri-plugin-updater yet. Keep latest.json
+          # disabled until updater artifacts and TAURI_SIGNING_PRIVATE_KEY are configured.
+          includeUpdaterJson: false
           args: ${{ matrix.args }}
 
       - name: Clean up keychain
@@ -345,6 +354,7 @@ jobs:
         uses: actions/checkout@v6.0.2
         with:
           fetch-depth: 0
+          ref: ${{ env.RELEASE_TAG }}
 
       - name: Setup Node
         uses: actions/setup-node@v6.4.0
@@ -365,7 +375,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y \
-            pkg-config \
+            pkgconf \
             libudev-dev \
             libwebkit2gtk-4.1-dev \
             libgtk-3-dev \
@@ -388,6 +398,9 @@ jobs:
             Cross-platform installers for the Tauri 2 desktop app.
           releaseDraft: false
           prerelease: false
+          # Ioruba does not ship tauri-plugin-updater yet. Keep latest.json
+          # disabled until updater artifacts and TAURI_SIGNING_PRIVATE_KEY are configured.
+          includeUpdaterJson: false
           args: --bundles appimage
 
   arch-pkgbuild:
@@ -405,6 +418,7 @@ jobs:
         uses: actions/checkout@v6.0.2
         with:
           fetch-depth: 0
+          ref: ${{ env.RELEASE_TAG }}
 
       - name: Install tooling
         run: |
@@ -702,6 +716,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v6.0.2
+        with:
+          fetch-depth: 0
+          ref: ${{ env.RELEASE_TAG }}
 
       - name: Setup Arduino CLI
         uses: arduino/setup-arduino-cli@v2.0.0
@@ -767,7 +784,7 @@ jobs:
         run: |
           set -euo pipefail
           cd release-assets
-          sha256sum * > SHA256SUMS.txt
+          sha256sum ./* > SHA256SUMS.txt
           cat SHA256SUMS.txt
 
       - name: Upload SHA256SUMS to release
