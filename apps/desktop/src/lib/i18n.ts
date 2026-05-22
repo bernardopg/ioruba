@@ -338,6 +338,13 @@ const TEXT_MAP: Record<string, string> = {
   "O Ioruba não encontrou o pactl no PATH. O controle de volume está desativado até que o backend seja instalado.":
     "Ioruba could not find pactl on PATH. Volume control is disabled until the backend is installed.",
   "Como instalar": "How to install",
+  "em uso por outro processo. Feche o monitor serial ou outro app que esteja com a porta aberta.":
+    "is in use by another process. Close the serial monitor or any other app holding the port open.",
+  "Sem permissão para abrir": "No permission to open",
+  "Adicione seu usuário ao grupo dialout: sudo usermod -aG dialout $USER":
+    "Add your user to the dialout group: sudo usermod -aG dialout $USER",
+  "não encontrada. O dispositivo pode ter sido desconectado.":
+    "not found. The device may have been disconnected.",
 };
 
 export function translateText(language: UiLanguage, text: string): string {

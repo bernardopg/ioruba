@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import { defaultPersistedState, defaultProfile } from "@ioruba/shared";
 
 import {
+  classifySerialOpenError,
   normalizeSerialPorts,
   resolveSerialPort,
   shouldAutoConnect,
@@ -96,5 +97,61 @@ describe("serial helpers", () => {
     expect(
       sameSerialPorts(["/dev/ttyUSB0", "/dev/ttyACM0"], ["/dev/ttyACM0", "/dev/ttyUSB0"])
     ).toBe(true);
+  });
+});
+
+describe("classifySerialOpenError", () => {
+  const port = "/dev/ttyUSB0";
+
+  it("classifies EBUSY / device or resource busy as busy", () => {
+    const result = classifySerialOpenError(
+      new Error("Serial port error: Device or resource busy"),
+      port
+    );
+    expect(result.kind).toBe("busy");
+    expect(result.message).toContain(port);
+    expect(result.message).toContain("em uso");
+    expect(result.detail).toContain("Device or resource busy");
+  });
+
+  it("classifies NoDevice variant as busy", () => {
+    const result = classifySerialOpenError(
+      new Error("Serial port error: No device"),
+      port
+    );
+    expect(result.kind).toBe("busy");
+  });
+
+  it("classifies EACCES / permission denied as permission", () => {
+    const result = classifySerialOpenError(
+      new Error("IO error: Permission denied"),
+      port
+    );
+    expect(result.kind).toBe("permission");
+    expect(result.message).toContain("dialout");
+    expect(result.detail).toContain("Permission denied");
+  });
+
+  it("classifies ENOENT / no such file as not_found", () => {
+    const result = classifySerialOpenError(
+      new Error("IO error: No such file or directory"),
+      port
+    );
+    expect(result.kind).toBe("not_found");
+    expect(result.message).toContain("não encontrada");
+  });
+
+  it("falls back to unknown for unrecognised errors", () => {
+    const result = classifySerialOpenError(
+      new Error("Something completely unexpected"),
+      port
+    );
+    expect(result.kind).toBe("unknown");
+    expect(result.detail).toContain("Something completely unexpected");
+  });
+
+  it("accepts a raw string as input", () => {
+    const result = classifySerialOpenError("Permission denied (os error 13)", port);
+    expect(result.kind).toBe("permission");
   });
 });

@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Features
 
 - added `AudioBackendBanner` component that renders a persistent alert when `pactl` is not found on `PATH` (`inventory.backend === "unsupported"`); shown in the Home and Diagnostics sections; includes per-distro install instructions (Arch, Debian/Ubuntu, Fedora), full PT-BR/EN i18n, and `role="alert"` / `aria-live="assertive"` for screen reader support
+- added `classifySerialOpenError` in `src/lib/serial.ts` to classify raw serial open errors (`busy`, `permission`, `not_found`, `unknown`) from the `serialport` crate string output; integrated into `use-serial-runtime.ts` so the watch log and status bar show actionable messages ("port is in use — close other serial monitor" / "add user to dialout group") instead of a raw OS error string; 6 new unit tests
 
 ### Changed
 

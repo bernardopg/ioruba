@@ -308,3 +308,56 @@ export function sameSerialPorts(left: string[], right: string[]): boolean {
 
   return normalizedLeft.every((port, index) => port === normalizedRight[index]);
 }
+
+export type SerialOpenErrorKind = "busy" | "permission" | "not_found" | "unknown";
+
+export interface SerialOpenError {
+  kind: SerialOpenErrorKind;
+  /** Friendly PT-BR message for display and watch log */
+  message: string;
+  /** Original error string from the serial plugin for the detail field */
+  detail: string;
+}
+
+/**
+ * Classifies a raw serial open error string from tauri-plugin-serialplugin
+ * into a structured error with a human-readable message.
+ *
+ * The plugin serialises errors as strings, so we match on known substrings
+ * produced by the serialport crate on Linux (EBUSY → "device or resource busy",
+ * EACCES → "permission denied", ENOENT → "no such file").
+ */
+export function classifySerialOpenError(rawError: unknown, portPath: string): SerialOpenError {
+  const detail = rawError instanceof Error ? rawError.message : String(rawError);
+  const lower = detail.toLowerCase();
+
+  if (lower.includes("busy") || lower.includes("no device") || lower.includes("nodevice")) {
+    return {
+      kind: "busy",
+      message: `Porta ${portPath} está em uso por outro processo. Feche o monitor serial ou outro app que esteja com a porta aberta.`,
+      detail
+    };
+  }
+
+  if (lower.includes("permission denied") || lower.includes("access denied") || lower.includes("eacces")) {
+    return {
+      kind: "permission",
+      message: `Sem permissão para abrir ${portPath}. Adicione seu usuário ao grupo dialout: sudo usermod -aG dialout $USER`,
+      detail
+    };
+  }
+
+  if (lower.includes("no such file") || lower.includes("not found") || lower.includes("enoent")) {
+    return {
+      kind: "not_found",
+      message: `Porta ${portPath} não encontrada. O dispositivo pode ter sido desconectado.`,
+      detail
+    };
+  }
+
+  return {
+    kind: "unknown",
+    message: `Falha ao abrir porta serial ${portPath}.`,
+    detail
+  };
+}

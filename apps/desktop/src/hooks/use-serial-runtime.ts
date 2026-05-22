@@ -2,7 +2,7 @@ import { useEffect, useRef } from "react";
 import { SerialPort } from "tauri-plugin-serialplugin-api";
 
 import { applySliderTargetsBatch } from "@/lib/backend";
-import { resolveSerialPort } from "@/lib/serial";
+import { classifySerialOpenError, resolveSerialPort } from "@/lib/serial";
 import { useIorubaStore } from "@/store/ioruba-store";
 import {
   encodeFirmwareConfigCommand,
@@ -367,17 +367,14 @@ export function useSerialRuntime() {
           detail: portPath
         });
       } catch (error) {
+        const classified = classifySerialOpenError(error, portPath);
         appendWatchLog({
           scope: "serial",
           level: "error",
-          message: "Falha ao abrir porta serial",
-          detail: error instanceof Error ? error.message : String(error)
+          message: classified.message,
+          detail: classified.detail
         });
-        setStatus(
-          "disconnected",
-          error instanceof Error ? error.message : String(error),
-          null
-        );
+        setStatus("disconnected", classified.message, null);
       }
     }
 
