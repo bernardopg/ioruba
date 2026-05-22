@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.9](https://github.com/bernardopg/ioruba/compare/v0.6.8...v0.6.9) (2026-05-22)
+
+### Changed
+
+- bumped all frontend and Tauri dependencies: `react` 19.2.5→19.2.6, `react-dom` 19.2.5→19.2.6, `zustand` 5.0.12→5.0.13, `tailwind-merge` 3.5.0→3.6.0, `vite` 8.0.11→8.0.12, `@tailwindcss/vite` 4.2.4→4.3.0, `@tauri-apps/cli` 2.11.0→2.11.1, `@types/node` 25.6.0→25.6.2, `tauri-build` 2.6.1→2.6.2, `tauri` 2.11.1→2.11.2
+
 ## [0.6.8](https://github.com/bernardopg/ioruba/compare/v0.6.7...v0.6.8) (2026-05-07)
 
 ### Changed
