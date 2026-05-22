@@ -126,6 +126,90 @@ If the UI opens but behavior still feels wrong:
 - check whether the app is stuck in `searching`, `connecting`, `connected`, or `demo`
 - verify that `ioruba-watch.log` is being written to the config directory
 
+## 🔄 Update and recovery
+
+### Updating to a new version
+
+Download the installer from [Releases](https://github.com/bernardopg/ioruba/releases) and install over the existing version:
+
+- `.deb`: `sudo dpkg -i Ioruba_<version>_amd64.deb`
+- `.rpm`: `sudo rpm -Uvh Ioruba-<version>-1.x86_64.rpm`
+- AppImage: replace the old file, `chmod +x` the new one
+- AUR: `paru -Syu ioruba-desktop` or `paru -Syu ioruba-desktop-bin`
+
+Your configuration at `~/.config/io.ioruba.desktop/` is untouched by reinstallation.
+
+### Verifying a downloaded binary
+
+Every release includes `SHA256SUMS.txt`. Verify before installing:
+
+```bash
+sha256sum --check SHA256SUMS.txt --ignore-missing
+```
+
+GitHub also publishes SLSA provenance attestations. Verify with the GitHub CLI:
+
+```bash
+gh attestation verify Ioruba_<version>_amd64.deb --repo bernardopg/ioruba
+```
+
+### Recovering from a broken state
+
+Back up first:
+
+```bash
+cp -r ~/.config/io.ioruba.desktop/ ~/ioruba-config-backup/
+```
+
+**Corrupted `ioruba-state.json`:** delete it — the app recreates safe defaults on next launch:
+
+```bash
+rm ~/.config/io.ioruba.desktop/ioruba-state.json
+```
+
+**Full reset (last resort):**
+
+```bash
+rm -rf ~/.config/io.ioruba.desktop/
+```
+
+`ioruba-watch.log` can be deleted at any time without side effects. Reinstalling the binary never touches the config directory.
+
+## 🖥️ Tray support by desktop environment
+
+### Hyprland
+
+Works without a tray host. The window hides on close instead of exiting. Use **Ctrl+Alt+I** to toggle the window when no `StatusNotifierWatcher` is available.
+
+### KDE Plasma
+
+Native StatusNotifier support — tray icon appears without extra packages or extensions.
+
+### GNOME
+
+GNOME does not show StatusNotifier icons by default. Install the **AppIndicator and KStatusNotifierItem Support** extension:
+
+```bash
+# Ubuntu
+sudo apt install gnome-shell-extension-appindicator
+
+# Fedora
+sudo dnf install gnome-shell-extension-appindicator
+
+# Arch
+paru -S gnome-shell-extension-appindicator
+```
+
+Enable in GNOME Extensions or `gnome-extensions-app`, then log out and back in.
+
+Extension: [extensions.gnome.org/extension/615](https://extensions.gnome.org/extension/615/appindicator-support/)
+
+Until the extension is active, use **Ctrl+Alt+I** to toggle the main window.
+
+### Other environments
+
+Any StatusNotifierItem/AppIndicator-compatible environment shows the tray icon natively. Environments without a tray host can use **Ctrl+Alt+I** as a fallback.
+
 ## 🖥️ Non-Linux platforms
 
 On macOS and Windows, treat the current app as:

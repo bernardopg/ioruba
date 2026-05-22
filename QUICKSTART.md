@@ -233,6 +233,136 @@ Known limitation on current Arch hosts:
 
 That path is currently best treated as **UI/demo validation only**. The desktop shell may build and open, but the real audio backend is intentionally marked unsupported outside Linux.
 
+## 12. Verify a release download
+
+Every release ships a `SHA256SUMS.txt` alongside the binary installers. Before installing, verify the download:
+
+```bash
+# Download SHA256SUMS.txt and the installer into the same directory, then:
+sha256sum --check SHA256SUMS.txt --ignore-missing
+```
+
+GitHub also publishes SLSA build provenance attestations for each binary. Verify with the GitHub CLI:
+
+```bash
+gh attestation verify Ioruba_0.6.9_amd64.deb \
+  --repo bernardopg/ioruba
+```
+
+Replace the filename with the artifact you downloaded. A passing verification confirms the file was produced by the official release workflow and has not been tampered with.
+
+## 13. Update and recovery
+
+### Updating to a new release
+
+**Debian/Ubuntu (.deb):**
+
+```bash
+sudo dpkg -i Ioruba_<version>_amd64.deb
+```
+
+**Fedora/RHEL (.rpm):**
+
+```bash
+sudo rpm -Uvh Ioruba-<version>-1.x86_64.rpm
+```
+
+**AppImage:**
+
+Replace the existing `.AppImage` file and re-mark it executable:
+
+```bash
+chmod +x Ioruba_<version>_amd64.AppImage
+```
+
+No uninstall step required — the new file replaces the old one in place.
+
+**Arch Linux (AUR):**
+
+```bash
+# ioruba-desktop (build from source):
+paru -Syu ioruba-desktop
+
+# ioruba-desktop-bin (prebuilt AppImage):
+paru -Syu ioruba-desktop-bin
+```
+
+### Recovering from a broken bundle
+
+If the app fails to start after an update, your configuration is stored separately from the binary and survives reinstallation.
+
+**Back up your configuration first:**
+
+```bash
+cp -r ~/.config/io.ioruba.desktop/ ~/ioruba-config-backup/
+```
+
+**Recover a valid state file:**
+
+If `ioruba-state.json` is corrupted, delete it — the app recreates it with safe defaults on next launch:
+
+```bash
+rm ~/.config/io.ioruba.desktop/ioruba-state.json
+```
+
+Your `ioruba-watch.log` (the event log) is safe to delete at any time:
+
+```bash
+rm ~/.config/io.ioruba.desktop/ioruba-watch.log
+```
+
+**Full reset (last resort):**
+
+```bash
+# Back up first, then:
+rm -rf ~/.config/io.ioruba.desktop/
+```
+
+The app will rebuild all defaults on next launch. Re-enter your serial port preference and profile configuration.
+
+**Reinstall the binary:**
+
+Download the latest installer from [Releases](https://github.com/bernardopg/ioruba/releases) and install as described above. Your configuration directory is untouched by reinstallation.
+
+### Tray icon not appearing after update
+
+If the system tray icon disappears after an update, the app may be running in the background without a visible tray host. Check with:
+
+```bash
+pgrep -a ioruba-desktop
+```
+
+If the process is running, kill it and relaunch. See [Desktop Environment tray notes](#tray-support-by-desktop-environment) in this file and the troubleshooting playbook at [docs/debug/support.md](docs/debug/support.md).
+
+## 14. Tray support by desktop environment
+
+The app keeps running in the background when you close the main window and exposes itself through the system tray. Tray behavior varies by desktop environment.
+
+### Hyprland (Wayland)
+
+Works without a tray host. The app registers a `CloseRequested` handler to hide the window instead of exiting. Use the global shortcut **Ctrl+Alt+I** to toggle the window when the compositor does not provide a `StatusNotifierWatcher`.
+
+### KDE Plasma (Wayland and X11)
+
+Native StatusNotifier support. The tray icon appears without any extra packages or extensions.
+
+### GNOME (Wayland and X11)
+
+GNOME does not display StatusNotifier tray icons by default. Install the **AppIndicator and KStatusNotifierItem Support** extension:
+
+- From GNOME Extensions: [extensions.gnome.org/extension/615](https://extensions.gnome.org/extension/615/appindicator-support/)
+- On Ubuntu: `sudo apt install gnome-shell-extension-appindicator`
+- On Fedora: `sudo dnf install gnome-shell-extension-appindicator`
+- On Arch: `paru -S gnome-shell-extension-appindicator`
+
+Enable the extension in GNOME Extensions or `gnome-extensions-app`, then log out and back in. The Ioruba tray icon will appear in the top bar.
+
+Until the extension is active, use the global shortcut **Ctrl+Alt+I** to toggle the main window.
+
+### Other environments
+
+Any desktop that implements the StatusNotifierItem/AppIndicator protocol should display the tray icon without additional configuration. Environments without tray support can still use **Ctrl+Alt+I** to toggle the window.
+
 ## Next reads
 
 - [README.md](README.md) for the repository overview

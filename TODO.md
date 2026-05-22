@@ -71,9 +71,9 @@ Prioridade atual: concluir primeiro tudo que é Linux/firmware/desktop. O backlo
 - [ ] Configurar assinatura e notarização para Windows e macOS no pipeline `(release/security/ops)` - `difícil`
 - [x] Revisar metadados de empacotamento Linux e qualidade do bundle desktop `(release/linux/distribution)` - `médio`
 - [x] Resolver ou contornar a falha do AppImage local no Arch causada por `linuxdeploy` + `.relr.dyn` `(release/linux/appimage)` - `médio`
-- [ ] Validar comportamento de tray/status notifier em GNOME, KDE e Hyprland com dependências e limitações documentadas `(release/linux/desktop-environment)` - `médio` (Hyprland coberto em v0.6.7: handler nativo de `CloseRequested`, atalho global Ctrl+Alt+I como fallback e orientações de tray host; faltam GNOME/KDE)
-- [ ] Adicionar checksums, provenance e validações finais de release no workflow `(release/security/ci)` - `médio`
-- [ ] Documentar instalação, update e recuperação em caso de bundle quebrado `(docs/release/support)` - `fácil`
+- [x] Validar comportamento de tray/status notifier em GNOME, KDE e Hyprland com dependências e limitações documentadas `(release/linux/desktop-environment)` - `médio` (Hyprland: handler nativo + Ctrl+Alt+I; KDE: suporte nativo; GNOME: requer extensão AppIndicator — documentado em QUICKSTART e support.md)
+- [x] Adicionar checksums, provenance e validações finais de release no workflow `(release/security/ci)` - `médio` (SHA256SUMS.txt gerado e publicado; SLSA provenance via actions/attest-build-provenance@v4 para todos os binários)
+- [x] Documentar instalação, update e recuperação em caso de bundle quebrado `(docs/release/support)` - `fácil` (QUICKSTART seções 12–14; docs/debug/support.md seção de update/recovery)
 
 ## Scrum 08
 

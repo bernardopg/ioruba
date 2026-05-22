@@ -632,10 +632,94 @@ jobs:
           files: |
             release-dist/firmware/*
 
+  attest-and-checksum:
+    name: Attest Provenance and Checksums
+    needs:
+      - desktop-bundles
+      - desktop-appimage
+      - firmware
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+      attestations: write
+
+    steps:
+      - name: Download release assets
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          mkdir -p release-assets
+
+          gh release download "${RELEASE_TAG}" \
+            --pattern "*.deb" \
+            --pattern "*.rpm" \
+            --pattern "*.AppImage" \
+            --pattern "*.msi" \
+            --pattern "*-setup.exe" \
+            --pattern "*.app.tar.gz" \
+            --dir release-assets \
+            --repo "${GITHUB_REPOSITORY}" \
+            --clobber || true
+
+          ls -lh release-assets/
+
+      - name: Generate SHA256SUMS
+        run: |
+          set -euo pipefail
+          cd release-assets
+          sha256sum * > SHA256SUMS.txt
+          cat SHA256SUMS.txt
+
+      - name: Upload SHA256SUMS to release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release upload "${RELEASE_TAG}" release-assets/SHA256SUMS.txt --clobber \
+            --repo "${GITHUB_REPOSITORY}"
+
+      - name: Attest .deb
+        uses: actions/attest-build-provenance@v4
+        if: hashFiles('release-assets/*.deb') != ''
+        with:
+          subject-path: release-assets/*.deb
+
+      - name: Attest .rpm
+        uses: actions/attest-build-provenance@v4
+        if: hashFiles('release-assets/*.rpm') != ''
+        with:
+          subject-path: release-assets/*.rpm
+
+      - name: Attest .AppImage
+        uses: actions/attest-build-provenance@v4
+        if: hashFiles('release-assets/*.AppImage') != ''
+        with:
+          subject-path: release-assets/*.AppImage
+
+      - name: Attest .msi
+        uses: actions/attest-build-provenance@v4
+        if: hashFiles('release-assets/*.msi') != ''
+        with:
+          subject-path: release-assets/*.msi
+
+      - name: Attest Windows setup installer
+        uses: actions/attest-build-provenance@v4
+        if: hashFiles('release-assets/*-setup.exe') != ''
+        with:
+          subject-path: release-assets/*-setup.exe
+
+      - name: Attest macOS app bundle
+        uses: actions/attest-build-provenance@v4
+        if: hashFiles('release-assets/*.app.tar.gz') != ''
+        with:
+          subject-path: release-assets/*.app.tar.gz
+
   aur-publish:
     name: Publish to AUR
     needs:
       - arch-pkgbuild
+      - attest-and-checksum
     runs-on: ubuntu-latest
 
     steps:
