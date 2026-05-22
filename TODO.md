@@ -68,7 +68,7 @@ Prioridade atual: concluir primeiro tudo que é Linux/firmware/desktop. O backlo
 - [x] Gerar ícones finais de produção para todos os formatos de bundle do Tauri `(design/release/branding)` - `médio`
 - [x] Manter o app em segundo plano ao fechar a janela e restaurar pelo tray no Linux `(release/linux/runtime)` - `médio`
 - [x] Adicionar inicialização automática no login com toggle explícito e boot silencioso no tray `(release/linux/runtime)` - `médio`
-- [ ] Configurar assinatura e notarização para Windows e macOS no pipeline `(release/security/ops)` - `difícil`
+- [x] Configurar assinatura e notarização para Windows e macOS no pipeline `(release/security/ops)` - `difícil` (Windows: import PFX via PowerShell + TAURI_WINDOWS_CERTIFICATE_THUMBPRINT; macOS: keychain setup + APPLE_SIGNING_IDENTITY + notarize via APPLE_ID/APPLE_PASSWORD/APPLE_TEAM_ID; Entitlements.plist adicionado; signing ativo somente quando os secrets existem)
 - [x] Revisar metadados de empacotamento Linux e qualidade do bundle desktop `(release/linux/distribution)` - `médio`
 - [x] Resolver ou contornar a falha do AppImage local no Arch causada por `linuxdeploy` + `.relr.dyn` `(release/linux/appimage)` - `médio`
 - [x] Validar comportamento de tray/status notifier em GNOME, KDE e Hyprland com dependências e limitações documentadas `(release/linux/desktop-environment)` - `médio` (Hyprland: handler nativo + Ctrl+Alt+I; KDE: suporte nativo; GNOME: requer extensão AppIndicator — documentado em QUICKSTART e support.md)

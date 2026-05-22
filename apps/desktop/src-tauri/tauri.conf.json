@@ -48,6 +48,16 @@
           "libayatana-appindicator3-1 | libappindicator3-1"
         ]
       }
+    },
+    "macOS": {
+      "entitlements": "./Entitlements.plist",
+      "signingIdentity": null,
+      "minimumSystemVersion": "10.15"
+    },
+    "windows": {
+      "certificateThumbprint": null,
+      "digestAlgorithm": "sha256",
+      "timestampUrl": "http://timestamp.digicert.com"
     }
   }
 }
