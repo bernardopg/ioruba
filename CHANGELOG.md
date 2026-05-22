@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Features
+
+- added `AudioBackendBanner` component that renders a persistent alert when `pactl` is not found on `PATH` (`inventory.backend === "unsupported"`); shown in the Home and Diagnostics sections; includes per-distro install instructions (Arch, Debian/Ubuntu, Fedora), full PT-BR/EN i18n, and `role="alert"` / `aria-live="assertive"` for screen reader support
+
+### Changed
+
+- marked Scrum 08 logging item as complete in `TODO.md`; refined remaining items into concrete actionable tasks
+
 ## [0.6.9](https://github.com/bernardopg/ioruba/compare/v0.6.8...v0.6.9) (2026-05-22)
 
 ### Changed

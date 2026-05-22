@@ -77,10 +77,14 @@ Prioridade atual: concluir primeiro tudo que é Linux/firmware/desktop. O backlo
 
 ## Scrum 08
 
-- [ ] Implementar logging estruturado no frontend e no Rust backend para sessões reais `(backend/frontend/observability)` - `médio`
-- [ ] Adicionar painel ou export de diagnóstico com snapshot do estado, inventário e erros recentes `(frontend/backend/support)` - `médio`
-- [ ] Criar backup/migração segura do estado persistido antes de mudanças de schema `(backend/security/migration)` - `médio`
-- [ ] Melhorar mensagens de erro para serial ocupada, `pactl` ausente e perfil inválido `(frontend/backend/error)` - `fácil`
+- [x] Implementar logging estruturado no frontend e no Rust backend para sessões reais `(backend/frontend/observability)` - `médio` (watch.rs com WatchEvent/WatchLogEntry + emit via evento Tauri; WatchLogPanel com filtros, auto-scroll e persistência em ioruba-watch.log; appendWatchLog no store; cobertura nos hooks de boot, serial e audio)
+- [ ] Adicionar export do watch log como arquivo (JSON ou texto) direto da UI `(frontend/backend/support)` - `fácil`
+- [ ] Criar comando Tauri `export_watch_log` que grava o log em arquivo escolhido pelo usuário via dialog `(backend/support)` - `fácil`
+- [ ] Criar backup/migração segura do estado persistido antes de mudanças de schema `(backend/security/migration)` - `médio` (save_persisted_state sobrescreve sem backup atômico — escrita interrompida pode corromper; falta versionamento de schema em ioruba-state.json)
+- [ ] Melhorar mensagem de erro para porta serial ocupada (distinguir "access denied / busy" de erro genérico de abertura) `(frontend/backend/error)` - `fácil`
+- [x] Melhorar mensagem de erro para `pactl` ausente no frontend (inventory.backend === "unsupported" deve exibir banner com instrução de instalação) `(frontend/backend/error)` - `fácil` (AudioBackendBanner em src/components/dashboard/audio-backend-banner.tsx; integrado em home e diagnostics; role="alert" aria-live="assertive"; instruções de instalação para Arch, Debian/Ubuntu e Fedora; i18n PT-BR/EN)
+- [ ] Melhorar mensagem de erro para perfil inválido no import/JSON bruto com linha/coluna do parse error `(frontend/error)` - `fácil`
+- [ ] Emitir aviso no watch log quando `trim_watch_entries` descartar entradas malformadas em vez de ignorar silenciosamente `(backend/observability)` - `fácil`
 - [x] Publicar playbook de suporte para bugs de áudio, firmware e serial `(docs/debug/support)` - `fácil`
 
 ## Scrum 09

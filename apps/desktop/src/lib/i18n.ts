@@ -334,6 +334,10 @@ const TEXT_MAP: Record<string, string> = {
   "Mixer de áudio para Linux": "Audio mixer for Linux",
   "Painel instrumental com telemetria viva e perfis locais.":
     "Instrument panel with live telemetry and local profiles.",
+  "Backend de áudio indisponível": "Audio backend unavailable",
+  "O Ioruba não encontrou o pactl no PATH. O controle de volume está desativado até que o backend seja instalado.":
+    "Ioruba could not find pactl on PATH. Volume control is disabled until the backend is installed.",
+  "Como instalar": "How to install",
 };
 
 export function translateText(language: UiLanguage, text: string): string {

@@ -27,6 +27,7 @@ import {
   CardTitle
 } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
+import { AudioBackendBanner } from "@/components/dashboard/audio-backend-banner";
 import { KnobPanel } from "@/components/dashboard/knob-panel";
 import { OverviewSignalPanel } from "@/components/dashboard/overview-signal-panel";
 import { WatchLogPanel } from "@/components/dashboard/watch-log-panel";
@@ -281,6 +282,11 @@ export default function App() {
 
           {activeSection === "home" ? (
             <>
+              <AudioBackendBanner
+                backend={audioInventory.backend}
+                diagnostics={audioInventory.diagnostics}
+                language={language}
+              />
               <section className="grid gap-5 xl:grid-cols-[minmax(0,1.2fr)_minmax(320px,0.8fr)]">
                 <section className="rounded-[28px] border border-(--color-border) bg-[linear-gradient(135deg,color-mix(in_oklab,var(--color-shell)_84%,var(--accent-copper)_8%)_0%,color-mix(in_oklab,var(--color-shell)_84%,var(--accent-teal)_12%)_100%)] px-5 py-6 sm:px-7 [box-shadow:var(--shadow-hero)]">
                   <div className="flex flex-wrap items-center gap-3">
@@ -549,6 +555,11 @@ export default function App() {
 
           {activeSection === "diagnostics" ? (
             <>
+              <AudioBackendBanner
+                backend={audioInventory.backend}
+                diagnostics={audioInventory.diagnostics}
+                language={language}
+              />
               <section>
                 <WatchLogPanel
                   activeProfileName={activeProfile.name}
