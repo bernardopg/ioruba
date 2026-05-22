@@ -32,6 +32,7 @@ pub struct ApplySliderTargetsRequest {
 }
 
 #[derive(Debug, Clone, Serialize)]
+#[cfg_attr(not(target_os = "linux"), allow(dead_code))]
 #[serde(rename_all = "lowercase")]
 pub enum OutcomeSeverity {
     Info,
@@ -41,6 +42,7 @@ pub enum OutcomeSeverity {
 }
 
 #[derive(Debug, Clone, Serialize)]
+#[cfg_attr(not(target_os = "linux"), allow(dead_code))]
 #[serde(rename_all = "lowercase")]
 pub enum TargetOutcomeStatus {
     Updated,
@@ -94,6 +96,7 @@ pub struct AudioInventory {
 }
 
 #[derive(Debug, Error)]
+#[cfg_attr(not(target_os = "linux"), allow(dead_code))]
 pub enum AudioError {
     #[error("Audio backend unavailable: {0}")]
     BackendUnavailable(String),
