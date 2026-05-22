@@ -285,28 +285,36 @@ jobs:
             | grep -o '"[^"]*"' | head -n 1 | tr -d '"')
           echo "APPLE_SIGNING_IDENTITY=$CERT_IDENTITY" >> "$GITHUB_ENV"
 
-      - name: Disable macOS codesign when no certificate secret
-        if: matrix.platform == 'macos-latest' && env.APPLE_CERTIFICATE == ''
-        run: |
-          # Tauri 2: signingIdentity=null means "use system default keychain identity".
-          # Set it to "-" (ad-hoc) to prevent codesign failure on unsigned CI runners.
-          jq '.bundle.macOS.signingIdentity = "-"' \
-            apps/desktop/src-tauri/tauri.conf.json > /tmp/tauri.conf.patched.json
-          mv /tmp/tauri.conf.patched.json apps/desktop/src-tauri/tauri.conf.json
-
-      - name: Build and upload installers
+      - name: Build and upload installers (with signing)
+        if: env.APPLE_CERTIFICATE != '' || matrix.platform != 'macos-latest'
         uses: tauri-apps/tauri-action@v0.6.2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # Windows signing — used only when thumbprint env var is set
           TAURI_WINDOWS_CERTIFICATE_THUMBPRINT: ${{ env.WINDOWS_CERTIFICATE_THUMBPRINT }}
-          # macOS signing and notarization
           APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
           APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
           APPLE_SIGNING_IDENTITY: ${{ env.APPLE_SIGNING_IDENTITY }}
           APPLE_ID: ${{ secrets.APPLE_ID }}
           APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        with:
+          projectPath: apps/desktop
+          tagName: ${{ env.RELEASE_TAG }}
+          releaseName: Ioruba ${{ env.RELEASE_TAG }}
+          releaseBody: |
+            Cross-platform installers for the Tauri 2 desktop app.
+          releaseDraft: false
+          prerelease: false
+          args: ${{ matrix.args }}
+
+      - name: Build and upload installers (unsigned macOS)
+        # tauri-action passes APPLE_CERTIFICATE even when empty, triggering a
+        # codesign attempt that fails on unsigned CI runners. Run without any
+        # signing env vars when no Apple certificate secret is configured.
+        if: env.APPLE_CERTIFICATE == '' && matrix.platform == 'macos-latest'
+        uses: tauri-apps/tauri-action@v0.6.2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           projectPath: apps/desktop
           tagName: ${{ env.RELEASE_TAG }}
