@@ -23,26 +23,26 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "lucide-react": "^1.14.0",
-    "react": "^19.2.0",
-    "react-dom": "^19.2.5",
+    "react": "^19.2.6",
+    "react-dom": "^19.2.6",
     "recharts": "^3.8.1",
-    "tailwind-merge": "^3.4.0",
+    "tailwind-merge": "^3.6.0",
     "tauri-plugin-serialplugin-api": "^2.22.0",
-    "zustand": "^5.0.8"
+    "zustand": "^5.0.13"
   },
   "devDependencies": {
-    "@tailwindcss/vite": "^4.2.4",
-    "@tauri-apps/cli": "^2.11.0",
+    "@tailwindcss/vite": "^4.3.0",
+    "@tauri-apps/cli": "^2.11.1",
     "@testing-library/react": "^16.3.2",
     "@types/jest-axe": "^3.5.9",
-    "@types/node": "^25.6.0",
+    "@types/node": "^25.6.2",
     "@types/react": "^19.2.2",
     "@types/react-dom": "^19.2.2",
     "@vitejs/plugin-react": "^6.0.1",
     "jest-axe": "^10.0.0",
     "jsdom": "^29.1.1",
     "typescript": "^6.0.3",
-    "vite": "^8.0.9",
+    "vite": "^8.0.12",
     "vitest": "^4.1.5"
   }
 }
