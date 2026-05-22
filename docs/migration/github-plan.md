@@ -35,6 +35,19 @@
   - `PKGBUILD` + `.SRCINFO` for source build (`ioruba-desktop`)
   - `PKGBUILD-bin` + `.SRCINFO-bin` for AppImage-based install (`ioruba-desktop-bin`)
   - source tarball with versioned checksum (`ioruba-<version>.tar.gz`)
+- Generates `SHA256SUMS.txt` and GitHub artifact attestations for release assets.
+
+### `pages.yml`
+
+- Builds the documentation site from `docs/`, selected root manuals, and `docs-site/`.
+- Runs `npm run docs:prepare-site` before the Jekyll build.
+- Deploys the generated `.site-src` content to GitHub Pages.
+
+### `docs-autoupdate.yml`
+
+- Runs after successful `CI` pushes to `main`.
+- Allows documentation-only updates in `README.md`, `CONTRIBUTING.md`, `docs/`, and `docs-site/`.
+- Rejects changes outside that documentation surface before committing.
 
 ## Secrets And Signing
 
@@ -63,10 +76,7 @@ For production-grade signed installers, configure:
 
 ## Old Automation Removed
 
-These workflows are removed because they were tied to the Haskell distribution path:
+These workflows were removed because they were tied to the Haskell distribution path:
 
-- GitHub Pages publishing
 - Release Please automation
 - repository metadata sync workflow
-
-If Pages is still wanted later, reintroduce it as a docs-only workflow without coupling it to the application release pipeline.

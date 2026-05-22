@@ -54,5 +54,3 @@
 ## Follow-up pratico restante
 
 - assinar instaladores macOS e Windows no GitHub com os secrets corretos
-- decidir se o texto do produto deve declarar explicitamente que o controle real de audio por alvo e Linux-first ate existirem backends nao Linux
-- adicionar checksums de release, proveniencia e uma etapa de validacao pos-build
