@@ -181,6 +181,12 @@ jobs:
             # bundle instead so the release can still publish the macOS binary.
             args: "--bundles app"
     runs-on: ${{ matrix.platform }}
+    # Secrets cannot be referenced in step-level `if:` expressions directly.
+    # Expose them as env vars at the job level so step conditionals can use
+    # `env.VAR != ''` which is a valid named-value in that context.
+    env:
+      WINDOWS_CERTIFICATE: ${{ secrets.WINDOWS_CERTIFICATE }}
+      APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
 
     steps:
       - name: Checkout
@@ -222,7 +228,7 @@ jobs:
         run: npm ci
 
       - name: Import Windows certificate
-        if: matrix.platform == 'windows-latest' && secrets.WINDOWS_CERTIFICATE != ''
+        if: matrix.platform == 'windows-latest' && env.WINDOWS_CERTIFICATE != ''
         env:
           WINDOWS_CERTIFICATE: ${{ secrets.WINDOWS_CERTIFICATE }}
           WINDOWS_CERTIFICATE_PASSWORD: ${{ secrets.WINDOWS_CERTIFICATE_PASSWORD }}
@@ -239,7 +245,7 @@ jobs:
           Remove-Item -Path certificate/certificate.pfx
 
       - name: Import Apple Developer certificate
-        if: matrix.platform == 'macos-latest' && secrets.APPLE_CERTIFICATE != ''
+        if: matrix.platform == 'macos-latest' && env.APPLE_CERTIFICATE != ''
         env:
           APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
           APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
