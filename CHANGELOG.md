@@ -11,7 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- bumped all frontend and Tauri dependencies: `react` 19.2.5→19.2.6, `react-dom` 19.2.5→19.2.6, `zustand` 5.0.12→5.0.13, `tailwind-merge` 3.5.0→3.6.0, `vite` 8.0.11→8.0.12, `@tailwindcss/vite` 4.2.4→4.3.0, `@tauri-apps/cli` 2.11.0→2.11.1, `@types/node` 25.6.0→25.6.2, `tauri-build` 2.6.1→2.6.2, `tauri` 2.11.1→2.11.2
+- bumped all Dependabot updates (#40-#49)
+- updated the changelog for v0.6.8
 
 ## [0.6.8](https://github.com/bernardopg/ioruba/compare/v0.6.7...v0.6.8) (2026-05-07)
 
@@ -205,7 +206,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial tagged baseline before the current Haskell-first productization pass
 
-[Unreleased]: https://github.com/bernardopg/ioruba/compare/v0.6.8...HEAD
+[Unreleased]: https://github.com/bernardopg/ioruba/compare/v0.6.9...HEAD
+[0.6.9]: https://github.com/bernardopg/ioruba/releases/tag/v0.6.9
 [0.6.8]: https://github.com/bernardopg/ioruba/releases/tag/v0.6.8
 [0.6.7]: https://github.com/bernardopg/ioruba/releases/tag/v0.6.7
 [0.6.6]: https://github.com/bernardopg/ioruba/releases/tag/v0.6.6
