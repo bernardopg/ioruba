@@ -1,7 +1,11 @@
 mod audio;
 mod watch;
 
-use std::{fs, path::PathBuf};
+use std::{
+    fs,
+    path::{Path, PathBuf},
+    time::{SystemTime, UNIX_EPOCH},
+};
 
 use tauri::{
     menu::MenuBuilder,
@@ -9,11 +13,20 @@ use tauri::{
     AppHandle, Manager, WindowEvent,
 };
 use tauri_plugin_autostart::ManagerExt;
+use tauri_plugin_dialog::DialogExt;
 use tauri_plugin_global_shortcut::{Code, GlobalShortcutExt, Modifiers, Shortcut, ShortcutState};
 
 const TRAY_ICON_ID: &str = "main-tray";
 const TRAY_SHOW_ID: &str = "show-main-window";
 const TRAY_QUIT_ID: &str = "quit-app";
+const STATE_SCHEMA_VERSION_KEY: &str = "schemaVersion";
+
+#[derive(serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+struct ExportWatchLogResult {
+    path: String,
+    entries: usize,
+}
 
 #[tauri::command]
 fn load_persisted_state(app: tauri::AppHandle) -> Result<String, String> {
@@ -43,10 +56,18 @@ fn load_persisted_state(app: tauri::AppHandle) -> Result<String, String> {
 #[tauri::command]
 fn save_persisted_state(app: tauri::AppHandle, payload: String) -> Result<(), String> {
     let path = app_state_path(&app)?;
-    if let Some(parent) = path.parent() {
-        fs::create_dir_all(parent).map_err(|error| error.to_string())?;
+    let backup_path = save_state_payload(&path, &payload)?;
+
+    if let Some(backup_path) = backup_path {
+        watch::emit(
+            &app,
+            watch::WatchScope::Backend,
+            watch::WatchLevel::Warning,
+            "Backup do estado persistido criado",
+            Some(backup_path.display().to_string()),
+        );
     }
-    fs::write(&path, &payload).map_err(|error| error.to_string())?;
+
     watch::emit(
         &app,
         watch::WatchScope::Backend,
@@ -68,7 +89,23 @@ fn load_watch_log_entries(app: tauri::AppHandle) -> Result<Vec<watch::WatchLogEn
         .lock()
         .map_err(|error| error.to_string())?;
     let path = watch_log_path(&app)?;
-    watch::load_entries(&path)
+    let result = watch::load_entries_with_report(&path)?;
+
+    if result.malformed_count > 0 {
+        watch::emit(
+            &app,
+            watch::WatchScope::Backend,
+            watch::WatchLevel::Warning,
+            "Entradas malformadas ignoradas no watch log",
+            Some(format!(
+                "{} linha(s) descartada(s) em {}",
+                result.malformed_count,
+                path.display()
+            )),
+        );
+    }
+
+    Ok(result.entries)
 }
 
 #[tauri::command]
@@ -102,6 +139,50 @@ fn clear_watch_log_entries(app: tauri::AppHandle) -> Result<(), String> {
         .map_err(|error| error.to_string())?;
     let path = watch_log_path(&app)?;
     watch::clear_entries(&path)
+}
+
+#[tauri::command]
+async fn export_watch_log(
+    app: tauri::AppHandle,
+    entries: Vec<watch::WatchLogEntry>,
+) -> Result<Option<ExportWatchLogResult>, String> {
+    let Some(file_path) = app
+        .dialog()
+        .file()
+        .add_filter("JSON Lines", &["jsonl"])
+        .add_filter("Text", &["txt"])
+        .set_file_name("ioruba-watch-log.jsonl")
+        .set_title("Exportar watch log")
+        .blocking_save_file()
+    else {
+        watch::emit(
+            &app,
+            watch::WatchScope::App,
+            watch::WatchLevel::Warning,
+            "Exportacao do watch log cancelada",
+            None,
+        );
+        return Ok(None);
+    };
+
+    let path = file_path.into_path().map_err(|error| error.to_string())?;
+    let exported_entries = watch::export_entries(&path, &entries)?;
+    watch::emit(
+        &app,
+        watch::WatchScope::Backend,
+        watch::WatchLevel::Info,
+        "Watch log exportado",
+        Some(format!(
+            "{} evento(s) em {}",
+            exported_entries,
+            path.display()
+        )),
+    );
+
+    Ok(Some(ExportWatchLogResult {
+        path: path.display().to_string(),
+        entries: exported_entries,
+    }))
 }
 
 #[tauri::command]
@@ -193,6 +274,72 @@ fn watch_log_path(app: &tauri::AppHandle) -> Result<PathBuf, String> {
         .app_config_dir()
         .map_err(|error| error.to_string())
         .map(|path| path.join("ioruba-watch.log"))
+}
+
+fn save_state_payload(path: &Path, payload: &str) -> Result<Option<PathBuf>, String> {
+    let payload_schema_version = schema_version_from_payload(payload)?;
+    let backup_path = backup_state_before_schema_change(path, payload_schema_version)?;
+    atomic_write(path, payload)?;
+    Ok(backup_path)
+}
+
+fn schema_version_from_payload(payload: &str) -> Result<Option<u64>, String> {
+    let value: serde_json::Value = serde_json::from_str(payload).map_err(|error| {
+        format!("estado persistido invalido: JSON nao pode ser parseado ({error})")
+    })?;
+
+    Ok(value
+        .get(STATE_SCHEMA_VERSION_KEY)
+        .and_then(serde_json::Value::as_u64))
+}
+
+fn backup_state_before_schema_change(
+    path: &Path,
+    next_schema_version: Option<u64>,
+) -> Result<Option<PathBuf>, String> {
+    if !path.exists() {
+        return Ok(None);
+    }
+
+    let current_payload = fs::read_to_string(path).map_err(|error| error.to_string())?;
+    let current_schema_version = schema_version_from_payload(&current_payload).unwrap_or(None);
+
+    if current_schema_version == next_schema_version {
+        return Ok(None);
+    }
+
+    let backup_path = backup_state_path(path, current_schema_version);
+    fs::copy(path, &backup_path).map_err(|error| error.to_string())?;
+    Ok(Some(backup_path))
+}
+
+fn backup_state_path(path: &Path, schema_version: Option<u64>) -> PathBuf {
+    let timestamp = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .map(|duration| duration.as_millis())
+        .unwrap_or_default();
+    let schema_label = schema_version
+        .map(|version| format!("v{version}"))
+        .unwrap_or_else(|| "vunknown".to_string());
+    let file_name = format!("ioruba-state.backup.{schema_label}.{timestamp}.json");
+
+    path.parent()
+        .map(|parent| parent.join(&file_name))
+        .unwrap_or_else(|| PathBuf::from(file_name))
+}
+
+fn atomic_write(path: &Path, payload: &str) -> Result<(), String> {
+    if let Some(parent) = path.parent() {
+        fs::create_dir_all(parent).map_err(|error| error.to_string())?;
+    }
+
+    let temp_path = path.with_extension(format!("json.tmp.{}", std::process::id()));
+    fs::write(&temp_path, payload).map_err(|error| error.to_string())?;
+    fs::rename(&temp_path, path).map_err(|error| {
+        let _ = fs::remove_file(&temp_path);
+        error.to_string()
+    })?;
+    Ok(())
 }
 
 fn show_main_window(app: &AppHandle) {
@@ -347,6 +494,7 @@ pub fn run() {
             Ok(())
         })
         .plugin(tauri_plugin_serialplugin::init())
+        .plugin(tauri_plugin_dialog::init())
         .invoke_handler(tauri::generate_handler![
             load_persisted_state,
             save_persisted_state,
@@ -356,9 +504,80 @@ pub fn run() {
             save_watch_log_entries,
             append_watch_log_entry,
             clear_watch_log_entries,
+            export_watch_log,
             get_launch_on_login_enabled,
             set_launch_on_login_enabled
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn temp_state_dir(test_name: &str) -> PathBuf {
+        let timestamp = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .map(|duration| duration.as_millis())
+            .unwrap_or_default();
+        let path = std::env::temp_dir().join(format!(
+            "ioruba-state-{test_name}-{}-{timestamp}",
+            std::process::id()
+        ));
+        fs::create_dir_all(&path).expect("temp dir should be created");
+        path
+    }
+
+    #[test]
+    fn save_state_payload_creates_backup_when_schema_changes() {
+        let dir = temp_state_dir("schema-change");
+        let path = dir.join("ioruba-state.json");
+        fs::write(&path, r#"{"selectedProfileId":"legacy","profiles":[]}"#)
+            .expect("legacy state should be writable");
+
+        let backup = save_state_payload(&path, r#"{"schemaVersion":1,"profiles":[]}"#)
+            .expect("state save should succeed")
+            .expect("schema change should create backup");
+        let saved_payload = fs::read_to_string(&path).expect("state should be readable");
+        let backup_payload = fs::read_to_string(&backup).expect("backup should be readable");
+        let backup_file_name = backup
+            .file_name()
+            .and_then(|file_name| file_name.to_str())
+            .expect("backup should have valid file name");
+        let _ = fs::remove_dir_all(&dir);
+
+        assert_eq!(saved_payload, r#"{"schemaVersion":1,"profiles":[]}"#);
+        assert!(backup_file_name.contains(".backup.vunknown."));
+        assert!(backup_payload.contains("\"selectedProfileId\":\"legacy\""));
+    }
+
+    #[test]
+    fn save_state_payload_skips_backup_when_schema_is_unchanged() {
+        let dir = temp_state_dir("schema-unchanged");
+        let path = dir.join("ioruba-state.json");
+        fs::write(&path, r#"{"schemaVersion":1,"profiles":[]}"#).expect("state should be writable");
+
+        let backup = save_state_payload(&path, r#"{"schemaVersion":1,"profiles":["next"]}"#)
+            .expect("state save should succeed");
+        let saved_payload = fs::read_to_string(&path).expect("state should be readable");
+        let _ = fs::remove_dir_all(&dir);
+
+        assert!(backup.is_none());
+        assert_eq!(saved_payload, r#"{"schemaVersion":1,"profiles":["next"]}"#);
+    }
+
+    #[test]
+    fn save_state_payload_rejects_invalid_json_before_overwrite() {
+        let dir = temp_state_dir("invalid-json");
+        let path = dir.join("ioruba-state.json");
+        fs::write(&path, r#"{"schemaVersion":1,"profiles":[]}"#).expect("state should be writable");
+
+        let result = save_state_payload(&path, "{invalid");
+        let saved_payload = fs::read_to_string(&path).expect("state should be readable");
+        let _ = fs::remove_dir_all(&dir);
+
+        assert!(result.is_err());
+        assert_eq!(saved_payload, r#"{"schemaVersion":1,"profiles":[]}"#);
+    }
 }

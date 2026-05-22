@@ -52,6 +52,11 @@ pub struct WatchLogEntry {
     pub detail: Option<String>,
 }
 
+pub struct WatchLogLoadResult {
+    pub entries: Vec<WatchLogEntry>,
+    pub malformed_count: usize,
+}
+
 pub fn watch_log_lock() -> &'static Mutex<()> {
     WATCH_LOG_LOCK.get_or_init(|| Mutex::new(()))
 }
@@ -87,12 +92,20 @@ pub fn emit<R: Runtime>(
 }
 
 pub fn load_entries(path: &Path) -> Result<Vec<WatchLogEntry>, String> {
+    load_entries_with_report(path).map(|result| result.entries)
+}
+
+pub fn load_entries_with_report(path: &Path) -> Result<WatchLogLoadResult, String> {
     if !path.exists() {
-        return Ok(Vec::new());
+        return Ok(WatchLogLoadResult {
+            entries: Vec::new(),
+            malformed_count: 0,
+        });
     }
 
     let payload = fs::read_to_string(path).map_err(|error| error.to_string())?;
     let mut entries = Vec::new();
+    let mut malformed_count = 0usize;
 
     for line in payload.lines() {
         if line.trim().is_empty() {
@@ -102,12 +115,15 @@ pub fn load_entries(path: &Path) -> Result<Vec<WatchLogEntry>, String> {
         match serde_json::from_str::<WatchLogEntry>(line) {
             Ok(entry) => entries.push(entry),
             Err(_error) => {
-                continue;
+                malformed_count += 1;
             }
         }
     }
 
-    Ok(trim_watch_entries(&entries, WATCH_LOG_MAX_BYTES))
+    Ok(WatchLogLoadResult {
+        entries: trim_watch_entries(&entries, WATCH_LOG_MAX_BYTES),
+        malformed_count,
+    })
 }
 
 pub fn save_entries(path: &Path, entries: &[WatchLogEntry]) -> Result<(), String> {
@@ -144,6 +160,26 @@ pub fn clear_entries(path: &Path) -> Result<(), String> {
 
     fs::write(path, "").map_err(|error| error.to_string())?;
     Ok(())
+}
+
+pub fn export_entries(path: &Path, entries: &[WatchLogEntry]) -> Result<usize, String> {
+    if let Some(parent) = path.parent() {
+        fs::create_dir_all(parent).map_err(|error| error.to_string())?;
+    }
+
+    let payload = entries
+        .iter()
+        .map(|entry| serde_json::to_string(entry).map_err(|error| error.to_string()))
+        .collect::<Result<Vec<_>, _>>()?
+        .join("\n");
+
+    if payload.is_empty() {
+        fs::write(path, "").map_err(|error| error.to_string())?;
+    } else {
+        fs::write(path, format!("{payload}\n")).map_err(|error| error.to_string())?;
+    }
+
+    Ok(entries.len())
 }
 
 fn now_ms() -> u64 {
@@ -229,5 +265,56 @@ mod tests {
 
         assert_eq!(trimmed.last().map(|entry| entry.seq), Some(3));
         assert!(trimmed.len() < entries.len());
+    }
+
+    #[test]
+    fn exports_entries_as_json_lines() {
+        let temp_path = std::env::temp_dir().join(format!(
+            "ioruba-watch-export-test-{}.jsonl",
+            std::process::id()
+        ));
+        let entries = vec![WatchLogEntry {
+            seq: 1,
+            timestamp_ms: 42,
+            scope: WatchScope::App,
+            level: WatchLevel::Info,
+            message: "exportado".into(),
+            detail: Some("detalhe".into()),
+        }];
+
+        let count = export_entries(&temp_path, &entries).expect("export should succeed");
+        let payload = fs::read_to_string(&temp_path).expect("export should be readable");
+        let _ = fs::remove_file(&temp_path);
+
+        assert_eq!(count, 1);
+        assert_eq!(payload.lines().count(), 1);
+        assert!(payload.contains("\"message\":\"exportado\""));
+    }
+
+    #[test]
+    fn reports_malformed_lines_when_loading_entries() {
+        let temp_path = std::env::temp_dir().join(format!(
+            "ioruba-watch-load-test-{}.jsonl",
+            std::process::id()
+        ));
+        let valid_entry = WatchLogEntry {
+            seq: 1,
+            timestamp_ms: 42,
+            scope: WatchScope::Serial,
+            level: WatchLevel::Warning,
+            message: "valido".into(),
+            detail: None,
+        };
+        let payload = format!(
+            "{}\nnot-json\n\n{{\"seq\":\"broken\"}}\n",
+            serde_json::to_string(&valid_entry).expect("entry should serialize")
+        );
+        fs::write(&temp_path, payload).expect("test log should be writable");
+
+        let result = load_entries_with_report(&temp_path).expect("load should succeed");
+        let _ = fs::remove_file(&temp_path);
+
+        assert_eq!(result.entries.len(), 1);
+        assert_eq!(result.malformed_count, 2);
     }
 }
