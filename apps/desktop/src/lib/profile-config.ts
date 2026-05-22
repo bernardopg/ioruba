@@ -32,7 +32,7 @@ export function parseProfileDraft(draft: string): DraftValidationResult {
   try {
     parsed = JSON.parse(draft);
   } catch (error) {
-    return failure(`JSON invalido: ${toErrorMessage(error)}`);
+    return failure(formatJsonParseError(draft, error));
   }
 
   if (!isRecord(parsed)) {
@@ -684,6 +684,278 @@ function success<T>(value: T): ValidationSuccess<T> {
 
 function failure(error: string): ValidationFailure {
   return { ok: false, error };
+}
+
+function formatJsonParseError(draft: string, error: unknown): string {
+  const message = toErrorMessage(error);
+  const position = readJsonErrorPosition(message);
+
+  if (position !== null) {
+    const location = jsonLocationFromPosition(draft, position);
+
+    return `JSON invalido na linha ${location.line}, coluna ${location.column}: ${message}`;
+  }
+
+  const existingLocation = message.match(/line\s+(\d+)\s+column\s+(\d+)/i);
+  if (existingLocation) {
+    return `JSON invalido na linha ${existingLocation[1]}, coluna ${existingLocation[2]}: ${message}`;
+  }
+
+  const fallbackPosition = findJsonSyntaxErrorPosition(draft);
+  if (fallbackPosition !== null) {
+    const location = jsonLocationFromPosition(draft, fallbackPosition);
+
+    return `JSON invalido na linha ${location.line}, coluna ${location.column}: ${message}`;
+  }
+
+  return `JSON invalido: ${message}`;
+}
+
+function readJsonErrorPosition(message: string): number | null {
+  const positionMatch = message.match(/position\s+(\d+)/i);
+  if (!positionMatch) {
+    return null;
+  }
+
+  const position = Number.parseInt(positionMatch[1], 10);
+  return Number.isFinite(position) ? position : null;
+}
+
+function jsonLocationFromPosition(
+  draft: string,
+  position: number
+): { line: number; column: number } {
+  const safePosition = Math.max(0, Math.min(position, draft.length));
+  let line = 1;
+  let column = 1;
+
+  for (let index = 0; index < safePosition; index += 1) {
+    if (draft[index] === "\n") {
+      line += 1;
+      column = 1;
+    } else {
+      column += 1;
+    }
+  }
+
+  return { line, column };
+}
+
+function findJsonSyntaxErrorPosition(draft: string): number | null {
+  let index = 0;
+
+  function fail(position = index): never {
+    throw position;
+  }
+
+  function skipWhitespace() {
+    while (/\s/.test(draft[index] ?? "")) {
+      index += 1;
+    }
+  }
+
+  function parseValue() {
+    skipWhitespace();
+    const char = draft[index];
+
+    if (char === "{") {
+      parseObject();
+      return;
+    }
+
+    if (char === "[") {
+      parseArray();
+      return;
+    }
+
+    if (char === "\"") {
+      parseString();
+      return;
+    }
+
+    if (char === "-" || /[0-9]/.test(char ?? "")) {
+      parseNumber();
+      return;
+    }
+
+    if (draft.startsWith("true", index)) {
+      index += 4;
+      return;
+    }
+
+    if (draft.startsWith("false", index)) {
+      index += 5;
+      return;
+    }
+
+    if (draft.startsWith("null", index)) {
+      index += 4;
+      return;
+    }
+
+    fail();
+  }
+
+  function parseObject() {
+    index += 1;
+    skipWhitespace();
+
+    if (draft[index] === "}") {
+      index += 1;
+      return;
+    }
+
+    while (index < draft.length) {
+      if (draft[index] !== "\"") {
+        fail();
+      }
+
+      parseString();
+      skipWhitespace();
+
+      if (draft[index] !== ":") {
+        fail();
+      }
+
+      index += 1;
+      parseValue();
+      skipWhitespace();
+
+      if (draft[index] === ",") {
+        index += 1;
+        skipWhitespace();
+        continue;
+      }
+
+      if (draft[index] === "}") {
+        index += 1;
+        return;
+      }
+
+      fail();
+    }
+
+    fail(draft.length);
+  }
+
+  function parseArray() {
+    index += 1;
+    skipWhitespace();
+
+    if (draft[index] === "]") {
+      index += 1;
+      return;
+    }
+
+    while (index < draft.length) {
+      parseValue();
+      skipWhitespace();
+
+      if (draft[index] === ",") {
+        index += 1;
+        skipWhitespace();
+        continue;
+      }
+
+      if (draft[index] === "]") {
+        index += 1;
+        return;
+      }
+
+      fail();
+    }
+
+    fail(draft.length);
+  }
+
+  function parseString() {
+    index += 1;
+
+    while (index < draft.length) {
+      const char = draft[index];
+
+      if (char === "\"") {
+        index += 1;
+        return;
+      }
+
+      if (char === "\\") {
+        index += 1;
+        const escaped = draft[index];
+        if (!escaped || !/["\\/bfnrtu]/.test(escaped)) {
+          fail();
+        }
+
+        if (escaped === "u") {
+          const hex = draft.slice(index + 1, index + 5);
+          if (!/^[0-9a-fA-F]{4}$/.test(hex)) {
+            fail(index + 1);
+          }
+          index += 5;
+        } else {
+          index += 1;
+        }
+        continue;
+      }
+
+      if (char === "\n" || char === "\r") {
+        fail();
+      }
+
+      index += 1;
+    }
+
+    fail(draft.length);
+  }
+
+  function parseNumber() {
+    const start = index;
+
+    if (draft[index] === "-") {
+      index += 1;
+    }
+
+    if (draft[index] === "0") {
+      index += 1;
+    } else if (/[1-9]/.test(draft[index] ?? "")) {
+      while (/[0-9]/.test(draft[index] ?? "")) {
+        index += 1;
+      }
+    } else {
+      fail(start);
+    }
+
+    if (draft[index] === ".") {
+      index += 1;
+      if (!/[0-9]/.test(draft[index] ?? "")) {
+        fail();
+      }
+      while (/[0-9]/.test(draft[index] ?? "")) {
+        index += 1;
+      }
+    }
+
+    if (draft[index] === "e" || draft[index] === "E") {
+      index += 1;
+      if (draft[index] === "+" || draft[index] === "-") {
+        index += 1;
+      }
+      if (!/[0-9]/.test(draft[index] ?? "")) {
+        fail();
+      }
+      while (/[0-9]/.test(draft[index] ?? "")) {
+        index += 1;
+      }
+    }
+  }
+
+  try {
+    parseValue();
+    skipWhitespace();
+    return index < draft.length ? index : null;
+  } catch (position) {
+    return typeof position === "number" ? position : null;
+  }
 }
 
 function toErrorMessage(error: unknown): string {

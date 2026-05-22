@@ -56,6 +56,16 @@ describe("profile config", () => {
     }
   });
 
+  it("reports line and column for malformed JSON drafts", () => {
+    const result = parseProfileDraft('{\n  "id": "broken",\n  "name": \n}');
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.error).toMatch(/linha \d+, coluna \d+/);
+      expect(result.error).toContain("JSON invalido");
+    }
+  });
+
   it("replaces the active profile without losing selection when the id changes", () => {
     const persisted = {
       ...defaultPersistedState,

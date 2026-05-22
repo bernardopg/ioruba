@@ -39,6 +39,7 @@ import { useSerialRuntime } from "@/hooks/use-serial-runtime";
 import { useThemeSync } from "@/hooks/use-theme-sync";
 import { useWatchBridge } from "@/hooks/use-watch-bridge";
 import {
+  exportWatchLog,
   listAudioInventory,
   setLaunchOnLoginEnabled
 } from "@/lib/backend";
@@ -167,6 +168,38 @@ export default function App() {
   );
   const currentSection =
     navigationItems.find((item) => item.id === activeSection) ?? navigationItems[0];
+
+  async function handleWatchLogExport() {
+    appendWatchLog({
+      scope: "app",
+      level: "info",
+      message: "Exportacao do watch log solicitada",
+      detail: `${watchLog.length} evento(s)`
+    });
+
+    try {
+      const result = await exportWatchLog(watchLog);
+
+      appendWatchLog({
+        scope: result ? "backend" : "app",
+        level: result ? "info" : "warning",
+        message: result ? "Watch log exportado" : "Exportacao do watch log cancelada",
+        detail: result
+          ? `${result.entries} evento(s) em ${result.path}`
+          : undefined
+      });
+
+      return result;
+    } catch (error) {
+      appendWatchLog({
+        scope: "backend",
+        level: "error",
+        message: "Falha ao exportar watch log",
+        detail: error instanceof Error ? error.message : String(error)
+      });
+      throw error;
+    }
+  }
 
   return (
     <main className="min-h-screen bg-(--color-shell) text-(--color-copy)">
@@ -565,6 +598,7 @@ export default function App() {
                   activeProfileName={activeProfile.name}
                   language={language}
                   onClear={clearWatchLog}
+                  onExport={handleWatchLogExport}
                   snapshot={snapshot}
                   watchLog={watchLog}
                 />

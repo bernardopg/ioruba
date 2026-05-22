@@ -26,6 +26,11 @@ interface SliderBatchResponse {
   outcomes: Record<number, SliderOutcome>;
 }
 
+export interface WatchLogExportResult {
+  path: string;
+  entries: number;
+}
+
 export async function loadPersistedState(): Promise<PersistedState> {
   const raw = await invoke<string>("load_persisted_state");
   if (!raw) {
@@ -79,6 +84,18 @@ export async function clearWatchLogEntries(): Promise<void> {
   }
 
   await invoke("clear_watch_log_entries");
+}
+
+export async function exportWatchLog(
+  entries: WatchLogEntry[]
+): Promise<WatchLogExportResult | null> {
+  if (!isTauri()) {
+    return null;
+  }
+
+  return invoke<WatchLogExportResult | null>("export_watch_log", {
+    entries
+  });
 }
 
 export async function getLaunchOnLoginEnabled(): Promise<boolean> {

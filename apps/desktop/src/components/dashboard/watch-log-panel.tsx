@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { ArrowDown } from "lucide-react";
+import { ArrowDown, Download } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -11,8 +11,9 @@ import {
   CardTitle
 } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
-import { translateText } from "@/lib/i18n";
+import { translateTemplate, translateText } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
+import type { WatchLogExportResult } from "@/lib/backend";
 import {
   formatWatchTimestamp,
   type WatchLevel,
@@ -72,18 +73,24 @@ export function WatchLogPanel({
   snapshot,
   activeProfileName,
   language = "pt-BR",
-  onClear
+  onClear,
+  onExport
 }: {
   watchLog: WatchLogEntry[];
   snapshot: RuntimeSnapshot;
   activeProfileName: string;
   language?: UiLanguage;
   onClear: () => void;
+  onExport: () => Promise<WatchLogExportResult | null>;
 }) {
   const lt = (text: string) => translateText(language, text);
+  const ltpl = (text: string, replacements: Record<string, string>) =>
+    translateTemplate(language, text, replacements);
   const [filter, setFilter] = useState<WatchFilter>("all");
   const [autoScrollEnabled, setAutoScrollEnabled] = useState(true);
   const [isAtBottom, setIsAtBottom] = useState(true);
+  const [isExporting, setIsExporting] = useState(false);
+  const [exportMessage, setExportMessage] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const endRef = useRef<HTMLDivElement | null>(null);
 
@@ -123,6 +130,31 @@ export function WatchLogPanel({
 
   function scrollToLatest() {
     endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+  }
+
+  async function handleExport() {
+    setIsExporting(true);
+    setExportMessage(lt("Exportando watch log..."));
+
+    try {
+      const result = await onExport();
+      setExportMessage(
+        result
+          ? ltpl("Watch log exportado: {count} evento(s) em {path}", {
+              count: String(result.entries),
+              path: result.path
+            })
+          : lt("Exportacao cancelada")
+      );
+    } catch (error) {
+      setExportMessage(
+        `${lt("Falha ao exportar watch log")}: ${
+          error instanceof Error ? error.message : String(error)
+        }`
+      );
+    } finally {
+      setIsExporting(false);
+    }
   }
 
   const counts = watchLog.reduce<Record<WatchScope, number>>(
@@ -186,6 +218,15 @@ export function WatchLogPanel({
             <Button onClick={onClear} size="small" variant="ghost">
               {lt("Limpar")}
             </Button>
+            <Button
+              disabled={isExporting}
+              onClick={handleExport}
+              size="small"
+              variant="secondary"
+            >
+              <Download className="h-4 w-4" />
+              {isExporting ? lt("Exportando") : lt("Exportar")}
+            </Button>
             <label className="ml-auto flex items-center gap-2 rounded-full border border-(--color-border) bg-(--color-panel) px-3 py-2 focus-within:border-[color-mix(in_oklab,var(--accent-teal)_42%,var(--color-border))] focus-within:[box-shadow:0_0_0_3px_color-mix(in_oklab,var(--accent-teal)_18%,transparent)]">
               <span className="text-[11px] uppercase tracking-[0.22em] text-(--color-muted)">
                 {lt("Seguir fim")}
@@ -198,6 +239,16 @@ export function WatchLogPanel({
           </div>
         </CardHeader>
         <CardContent className="pt-6">
+          {exportMessage ? (
+            <div
+              aria-live="polite"
+              className="mb-4 break-all rounded-[18px] border border-(--color-border) bg-(--color-panel) px-4 py-3 text-sm text-(--color-copy)"
+              role="status"
+            >
+              {exportMessage}
+            </div>
+          ) : null}
+
           <div className="mb-4 grid gap-3 sm:grid-cols-3">
             <StatChip label={lt("Serial")} value={String(counts.serial)} />
             <StatChip label={lt("Backend")} value={String(counts.backend)} />

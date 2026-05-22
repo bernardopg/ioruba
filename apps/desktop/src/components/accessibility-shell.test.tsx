@@ -52,7 +52,8 @@ vi.mock("@/lib/backend", async () => {
     listAudioInventory: vi.fn(async () => emptyAudioInventory),
     setLaunchOnLoginEnabled: vi.fn(async (enabled: boolean) => enabled),
     appendWatchLogEntry: vi.fn(async () => undefined),
-    clearWatchLogEntries: vi.fn(async () => undefined)
+    clearWatchLogEntries: vi.fn(async () => undefined),
+    exportWatchLog: vi.fn(async () => null)
   };
 });
 
@@ -226,6 +227,7 @@ describe("desktop accessibility shell", () => {
         activeProfileName="Linux Mixer"
         language="en"
         onClear={vi.fn()}
+        onExport={vi.fn(async () => null)}
         snapshot={snapshot}
         watchLog={[]}
       />
@@ -299,6 +301,7 @@ describe("desktop accessibility shell", () => {
         activeProfileName="Linux Mixer"
         language="pt-BR"
         onClear={vi.fn()}
+        onExport={vi.fn(async () => null)}
         snapshot={snapshot}
         watchLog={[
           {
