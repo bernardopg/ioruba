@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Bug Fixes
 
+- split macOS build into signed/unsigned steps to avoid codesign failure
 - patched macOS ad-hoc signing when no certificate secret is available
 - allowed downstream release jobs to run on partial matrix failures
 - hardened CI workflow correctness and safety
