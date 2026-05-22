@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Bug Fixes
 
 - `load_watch_log_entries` now reports malformed lines as a structured `Warning` in the watch log instead of silently discarding them
+- allowed non-Linux audio module code paths to compile without dead-code warnings
 
 ### Changed
 
