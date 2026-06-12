@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.0](https://github.com/bernardopg/ioruba/compare/v0.6.12...v1.0.0) (2026-06-12)
+
 ### Changed
 
 - refreshed frontend, Tauri CLI, Rust, and GitHub Actions dependencies
@@ -264,7 +266,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial tagged baseline before the current Haskell-first productization pass
 
-[Unreleased]: https://github.com/bernardopg/ioruba/compare/v0.6.12...HEAD
+[Unreleased]: https://github.com/bernardopg/ioruba/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/bernardopg/ioruba/compare/v0.6.12...v1.0.0
 [0.6.12]: https://github.com/bernardopg/ioruba/compare/v0.6.11...v0.6.12
 [0.6.11]: https://github.com/bernardopg/ioruba/releases/tag/v0.6.11
 [0.6.10]: https://github.com/bernardopg/ioruba/releases/tag/v0.6.10
