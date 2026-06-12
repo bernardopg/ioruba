@@ -43,12 +43,6 @@
 - Runs `npm run docs:prepare-site` before the Jekyll build.
 - Deploys the generated `.site-src` content to GitHub Pages.
 
-### `docs-autoupdate.yml`
-
-- Runs after successful `CI` pushes to `main`.
-- Allows documentation-only updates in `README.md`, `CONTRIBUTING.md`, `docs/`, and `docs-site/`.
-- Rejects changes outside that documentation surface before committing.
-
 ## Secrets And Signing
 
 For unsigned test releases, the current workflow works with `GITHUB_TOKEN` only.
@@ -76,7 +70,8 @@ For production-grade signed installers, configure:
 
 ## Old Automation Removed
 
-These workflows were removed because they were tied to the Haskell distribution path:
+These workflows were removed because they were obsolete or unreliable:
 
 - Release Please automation
 - repository metadata sync workflow
+- automated documentation update workflow

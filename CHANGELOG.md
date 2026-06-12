@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- refreshed frontend, Tauri CLI, Rust, and GitHub Actions dependencies
+- grouped compatible Dependabot updates to reduce fragmented dependency PRs
+
+### Removed
+
+- removed the unreliable automated documentation update workflow
+- removed the obsolete vendored PHF generator patch after the dependency graph moved to PHF 0.13
+
 ## [0.6.12](https://github.com/bernardopg/ioruba/compare/v0.6.11...v0.6.12) (2026-05-22)
 
 ### Features

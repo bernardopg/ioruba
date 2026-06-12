@@ -15,6 +15,22 @@ updates:
     labels:
       - dependencies
       - npm
+    groups:
+      react:
+        patterns:
+          - react
+          - react-dom
+          - "@types/react"
+          - "@types/react-dom"
+        update-types:
+          - minor
+          - patch
+      npm-minor-and-patch:
+        patterns:
+          - "*"
+        update-types:
+          - minor
+          - patch
 
   - package-ecosystem: cargo
     directory: "/apps/desktop/src-tauri"
