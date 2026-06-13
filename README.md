@@ -79,6 +79,9 @@ The project preserves the hands‑on feel of a small mixer while modernising the
 - Backward compatibility with legacy packet format `P1:512`
 - Live telemetry and a persistent watch log inside the desktop app
 - Editable JSON profiles (stored per‑platform config directory)
+- Ready-made presets for streaming, calls, and music
+- Profile import/export as JSON files for backup and sharing
+- A first-run onboarding checklist (controller, serial port, audio backend)
 - Demo mode for UI validation without touching system audio
 - Linux audio target handling for **master**, **application**, **source**, and **sink**
 - CI for desktop/shared validation plus firmware compilation

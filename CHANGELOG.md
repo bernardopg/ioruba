@@ -7,6 +7,45 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.0](https://github.com/bernardopg/ioruba/compare/v1.0.0...v1.1.0) (2026-06-13)
+
+### Features
+
+- ready-made profile presets for streaming, calls, and music, applied from the profile workbench
+- import and export profiles as JSON files (`export_profile` / `import_profile` Tauri commands with save/open dialogs and atomic write), with validation and id/name de-duplication on import
+- first-run onboarding checklist on the home tab deriving live steps from runtime state (controller connected, serial port found, audio backend available); dismissal is persisted
+- firmware protocol-version validation: `SUPPORTED_PROTOCOL_VERSION` and a `protocolSupported` flag warn when a connected firmware speaks a different protocol
+- boot, serial-connection, and inventory-refresh timings recorded in the watch log via `performance.now()`
+- firmware now emits `ERR command-too-long` / `ERR config-rejected` and skips redundant EEPROM writes on unchanged `CONFIG`
+
+### Performance
+
+- `pushTelemetry` rewritten to a single allocation per serial frame (was merge-and-slice)
+- telemetry chart lazy-loaded (recharts kept out of the initial bundle until the telemetry tab opens), memoized series, and `React.memo` renders
+- short-TTL cache for the `pactl` inventory snapshot shared between listing and applying volumes
+- watch-log append is now O(1) amortized instead of a full read-modify-write per event
+- knob bars honor the configured `transitionDurationMs` (and `prefers-reduced-motion`) instead of a fixed duration
+
+### Bug Fixes
+
+- fixed `clippy::needless_borrow` so the `-D warnings` gate compiles
+- fixed undefined behavior passing a possibly-negative `char` to `isspace` in firmware
+- partial `pactl` failures are surfaced in inventory diagnostics instead of returning an empty inventory
+
+### Security
+
+- restrictive Content-Security-Policy on the webview (was `null`)
+- narrowed the dialog capability to `allow-save` + `allow-open` (was the full default)
+- `persist-credentials: false` on every read-only checkout in CI
+- pinned the CodeQL action to a fixed `v4.36.2` SHA and stopped cancelling scheduled scans
+
+### Changed
+
+- hardened persisted-state writes: dedicated lock, unique temp suffix, and `fsync` before/after rename
+- `apply_slider_targets_batch` runs async via `spawn_blocking` so blocking `pactl` calls leave the command thread
+- CI gains `cargo fmt`/`clippy -D warnings`, a firmware host-test for the `CONFIG` parser, a glib-vendor staleness gate, and SHA-pinned actions
+- added a product roadmap (`docs/roadmap.md`) with a multi-controller study and post-migration backlog
+
 ## [1.0.0](https://github.com/bernardopg/ioruba/compare/v0.6.12...v1.0.0) (2026-06-12)
 
 ### Changed
@@ -266,7 +305,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial tagged baseline before the current Haskell-first productization pass
 
-[Unreleased]: https://github.com/bernardopg/ioruba/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/bernardopg/ioruba/compare/v1.1.0...HEAD
+[1.1.0]: https://github.com/bernardopg/ioruba/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/bernardopg/ioruba/compare/v0.6.12...v1.0.0
 [0.6.12]: https://github.com/bernardopg/ioruba/compare/v0.6.11...v0.6.12
 [0.6.11]: https://github.com/bernardopg/ioruba/releases/tag/v0.6.11
