@@ -358,6 +358,7 @@ const TEXT_MAP: Record<string, string> = {
     "Add your user to the dialout group: sudo usermod -aG dialout $USER",
   "não encontrada. O dispositivo pode ter sido desconectado.":
     "not found. The device may have been disconnected.",
+  "Carregando telemetria...": "Loading telemetry...",
 };
 
 export function translateText(language: UiLanguage, text: string): string {
