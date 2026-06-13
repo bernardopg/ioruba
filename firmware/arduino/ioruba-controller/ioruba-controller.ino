@@ -98,10 +98,30 @@ void applyDefaultControllerConfig() {
   }
 }
 
+bool controllerConfigEquals(const ControllerConfig &a, const ControllerConfig &b) {
+  if (a.changeThreshold != b.changeThreshold ||
+      a.edgeDeadzone != b.edgeDeadzone ||
+      a.smoothingStrength != b.smoothingStrength) {
+    return false;
+  }
+
+  for (int index = 0; index < NUM_KNOBS; index++) {
+    if (a.minRaw[index] != b.minRaw[index] || a.maxRaw[index] != b.maxRaw[index]) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
 void saveControllerConfig() {
   controllerConfig.magic = EEPROM_MAGIC;
   controllerConfig.schemaVersion = EEPROM_SCHEMA_VERSION;
   controllerConfig.knobCount = NUM_KNOBS;
+  // EEPROM.put usa EEPROM.update por baixo: bytes ja iguais nao sao reescritos,
+  // entao chamar isto com a mesma struct nao gasta ciclos de escrita. Ainda
+  // assim, evitamos a chamada quando o config nao muda (ver applyConfigCommand)
+  // para nao tocar magic/schema/knobCount a cada CONFIG repetido do host.
   EEPROM.put(0, controllerConfig);
 }
 
@@ -374,9 +394,14 @@ bool applyConfigCommand(char *payload) {
     return false;
   }
 
-  controllerConfig = nextConfig;
-  saveControllerConfig();
-  refreshKnobBuffers();
+  // So persiste quando algo de fato mudou: economiza ciclos de escrita da EEPROM
+  // em hosts que reenviam o mesmo CONFIG (ex.: reaplicacao no boot/reconexao).
+  if (!controllerConfigEquals(controllerConfig, nextConfig)) {
+    controllerConfig = nextConfig;
+    saveControllerConfig();
+    refreshKnobBuffers();
+  }
+
   sendHandshake();
   sendFrame();
   return true;
