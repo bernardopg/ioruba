@@ -266,6 +266,7 @@ export function useSerialRuntime() {
       await stopSerial();
       setStatus("connecting", `Abrindo ${portPath}...`, portPath);
 
+      const connectStartedAt = performance.now();
       try {
         const port = new SerialPort({
           path: portPath,
@@ -302,7 +303,7 @@ export function useSerialRuntime() {
           scope: "serial",
           level: "info",
           message: "Escuta serial ativa",
-          detail: portPath
+          detail: `${portPath} | conexao em ${Math.round(performance.now() - connectStartedAt)}ms`
         });
 
         const unsubscribe = await port.listen((data) => {

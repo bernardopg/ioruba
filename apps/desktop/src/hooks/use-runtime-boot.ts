@@ -30,6 +30,7 @@ export function useRuntimeBoot() {
     let cancelled = false;
 
     async function boot() {
+      const bootStartedAt = performance.now();
       try {
         const [persisted, inventory, watchLog, launchOnLogin] = await Promise.all([
           loadPersistedState(),
@@ -41,6 +42,8 @@ export function useRuntimeBoot() {
         if (cancelled) {
           return;
         }
+
+        const backendLoadMs = Math.round(performance.now() - bootStartedAt);
 
         const nextPersisted = {
           ...persisted,
@@ -74,7 +77,7 @@ export function useRuntimeBoot() {
           scope: "backend",
           level: "info",
           message: "Runtime hidratado",
-          detail: `${nextPersisted.profiles.length} perfil(is) | inventario ${inventory.summary} | autostart ${launchOnLogin ? "on" : "off"}`
+          detail: `${nextPersisted.profiles.length} perfil(is) | inventario ${inventory.summary} | autostart ${launchOnLogin ? "on" : "off"} | carga backend ${backendLoadMs}ms`
         });
 
         if (nextPersisted.demoMode) {
@@ -101,6 +104,13 @@ export function useRuntimeBoot() {
             detail: watchLogPersistenceError
           });
         }
+
+        appendWatchLog({
+          scope: "app",
+          level: "info",
+          message: "Boot do runtime concluido",
+          detail: `${Math.round(performance.now() - bootStartedAt)}ms ate runtime pronto`
+        });
       } catch (error) {
         appendWatchLog({
           scope: "backend",
@@ -126,6 +136,7 @@ export function useRuntimeBoot() {
     let cancelled = false;
 
     async function syncPortsAndInventory() {
+      const startedAt = performance.now();
       try {
         const inventoryPromise = listAudioInventory();
         const shouldQueryPorts =
@@ -143,6 +154,19 @@ export function useRuntimeBoot() {
           setAvailablePorts(normalizeSerialPorts(ports));
         }
         refreshInventory(inventory);
+
+        const elapsedMs = Math.round(performance.now() - startedAt);
+        // Só registra refreshes notavelmente lentos para não inundar o watch log
+        // com uma linha a cada 2.5s. O limiar pega regressões de latência do
+        // backend de áudio (pactl) ou da enumeração de portas.
+        if (elapsedMs >= 500) {
+          appendWatchLog({
+            scope: "backend",
+            level: "warning",
+            message: "Refresh de inventario/portas lento",
+            detail: `${elapsedMs}ms${ports !== null ? " (com enumeracao de portas)" : ""}`
+          });
+        }
       } catch (_error) {
         if (!cancelled) {
           if (connectionMode !== "serial") {
