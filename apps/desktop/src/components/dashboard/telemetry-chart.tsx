@@ -1,3 +1,4 @@
+import { memo, useMemo } from "react";
 import {
   CartesianGrid,
   Line,
@@ -54,15 +55,17 @@ function buildSeries(snapshot: RuntimeSnapshot) {
     });
 }
 
-export function TelemetryChart({
-  snapshot,
-  language = "pt-BR"
-}: {
+type TelemetryChartProps = {
   snapshot: RuntimeSnapshot;
   language?: UiLanguage;
-}) {
+};
+
+function TelemetryChartImpl({ snapshot, language = "pt-BR" }: TelemetryChartProps) {
   const lt = (text: string) => translateText(language, text);
-  const data = buildSeries(snapshot);
+  // buildSeries é O(n log n) sobre toda a janela de telemetria. Só recalcula
+  // quando o array de pontos muda de referência (pushTelemetry já preserva a
+  // referência quando nada é anexado), não a cada render do dashboard.
+  const data = useMemo(() => buildSeries(snapshot), [snapshot.telemetry]);
   const latestTick = data.at(-1)?.tick ?? 0;
   const windowSize = snapshot.telemetry.length;
 
@@ -171,6 +174,45 @@ export function TelemetryChart({
     </Card>
   );
 }
+
+// O dashboard re-renderiza a cada frame serial (status, valores, watch log).
+// `buildRuntimeSnapshot` recria `knobs` por `.map` toda vez, então comparar por
+// referência nunca casaria. Comparamos o que o gráfico de fato consome: a
+// referência da janela de telemetria (estável quando nada novo chega, graças a
+// pushTelemetry), o idioma, e a identidade + percentual de cada knob exibido nos
+// badges. Re-renders disparados só por status/watch log/outcomes são suprimidos.
+function knobsRenderEqual(
+  prev: RuntimeSnapshot["knobs"],
+  next: RuntimeSnapshot["knobs"]
+): boolean {
+  if (prev === next) {
+    return true;
+  }
+  if (prev.length !== next.length) {
+    return false;
+  }
+  for (let index = 0; index < prev.length; index++) {
+    const a = prev[index];
+    const b = next[index];
+    if (
+      a.id !== b.id ||
+      a.name !== b.name ||
+      a.accent !== b.accent ||
+      a.percent !== b.percent
+    ) {
+      return false;
+    }
+  }
+  return true;
+}
+
+export const TelemetryChart = memo(
+  TelemetryChartImpl,
+  (prev, next) =>
+    prev.language === next.language &&
+    prev.snapshot.telemetry === next.snapshot.telemetry &&
+    knobsRenderEqual(prev.snapshot.knobs, next.snapshot.knobs)
+);
 
 function ChartStat({ label, value }: { label: string; value: string }) {
   return (
