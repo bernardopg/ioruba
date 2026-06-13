@@ -19,6 +19,19 @@ Prioridade atual: concluir primeiro tudo que é Linux/firmware/desktop. O backlo
 - **8 PRs do Dependabot/cargo estão obsoletos** e devem ser fechados: o `Cargo.toml`/`Cargo.lock` já fixam `tauri 2.11.2`, `serde_json 1.0.150`, `tauri-plugin-serialplugin 2.22.0`, `tauri-plugin-global-shortcut 2.3.2` (branches `tauri-2.11.0`, `tauri-build-2.6.0`, etc. ficaram para trás do estado atual).
 - Branches `copilot/*` no remoto (`fix-ci-error-go-actions`, `deploy-new-content-to-pages`) precisam de triagem: mesclar ou descartar.
 
+## Revisão de workflows GitHub Actions (rodada 2026-06-13)
+
+Validado com `actionlint` (0 findings) e parse YAML. Todas as actions confirmadas na última release via `gh api`.
+
+- [x] CodeQL action atualizado para o SHA fixo da `v4.36.2` (antes um SHA `v4` mais antigo) `(ci/security/versions)` - `fácil`
+- [x] CodeQL não cancela mais varreduras agendadas (`cancel-in-progress` só em PR) — runs de segurança alimentam o painel e não devem ser interrompidos `(ci/security/coherence)` - `fácil`
+- [x] `persist-credentials: false` em todos os checkouts read-only (ci, codeql, pages, release); só `prepare-release-notes` (que faz push do changelog) mantém credenciais `(ci/security/hardening)` - `médio`
+- [x] Checkouts de release que só constroem o tag reduzidos para `fetch-depth: 1` (desktop-bundles, arch-pkgbuild, firmware) — menos I/O git `(ci/performance)` - `fácil`
+- [x] `restore-keys` no cache do toolchain Arduino (chave versionada) em ci e release para hit parcial `(ci/performance)` - `fácil`
+- [x] Teste de host do parser de firmware roda antes do build de firmware no release, espelhando o gate do CI `(ci/coherence)` - `fácil`
+- [x] Corrigido SC2035 no passo de `SHA256SUMS` do release (`sha256sum ./*`) `(ci/correctness)` - `fácil`
+- [x] Confirmado que todas as actions já estavam na última versão (checkout v6.0.3, setup-node v6.4.0, cache v5.0.5, attest v4.1.0, rust-cache v2.9.1, gh-release v3.0.0, tauri-action v0.6.2). `dtolnay/rust-toolchain` fixado no HEAD atual do master (sem releases, dependabot-ignored intencionalmente) `(ci/versions)` - `fácil`
+
 ## Review técnico — Rust/Tauri/C (rodada 2026-06-13)
 
 Itens resolvidos nesta rodada estão marcados `[x]`. Verificação completa ao final: `cargo clippy -D warnings`, `cargo fmt --check`, `cargo test` (15), `shared:test` (20), `desktop:test` (41), typecheck shared+desktop, `firmware:compile` (19% flash), `desktop:build`, `cargo audit` (0 vuln) — todos verdes.
