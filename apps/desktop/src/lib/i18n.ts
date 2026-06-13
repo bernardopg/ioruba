@@ -359,6 +359,18 @@ const TEXT_MAP: Record<string, string> = {
   "não encontrada. O dispositivo pode ter sido desconectado.":
     "not found. The device may have been disconnected.",
   "Carregando telemetria...": "Loading telemetry...",
+  "Começar por um preset": "Start from a preset",
+  "Cria um novo perfil com sliders prontos para o caso de uso. Você ainda pode ajustar tudo depois.":
+    "Creates a new profile with sliders ready for the use case. You can still tweak everything afterward.",
+  Streaming: "Streaming",
+  "Balanceie áudio do sistema, o app de captura e o microfone durante uma transmissão ao vivo.":
+    "Balance system audio, the capture app and the microphone during a live broadcast.",
+  Chamadas: "Calls",
+  "Controle volume geral, a sala de videoconferência no navegador e o microfone em reuniões.":
+    "Control overall volume, the browser video-call room and the microphone during meetings.",
+  Música: "Music",
+  "Ajuste o volume geral, o player de música e a saída padrão para audição ou produção.":
+    "Adjust overall volume, the music player and the default output for listening or production.",
 };
 
 export function translateText(language: UiLanguage, text: string): string {

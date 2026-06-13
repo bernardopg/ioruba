@@ -5,6 +5,7 @@ import {
   createWaitingOutcome,
   defaultPersistedState,
   emptyAudioInventory,
+  findPreset,
   mergeSliderPacket,
   parseSerialPacket,
   pushTelemetry,
@@ -28,6 +29,7 @@ import {
 import {
   cloneProfile,
   createProfileFromDefault,
+  createProfileFromPreset,
   duplicateProfileConfig,
   parseProfileDraft,
   removeProfileById,
@@ -83,6 +85,7 @@ interface IorubaState {
   setLaunchOnLogin: (enabled: boolean) => void;
   selectProfile: (profileId: string) => void;
   createProfile: () => void;
+  applyPreset: (presetKey: string) => void;
   duplicateActiveProfile: () => void;
   removeActiveProfile: () => void;
   updateActiveProfileConfig: (profile: MixerProfile) => void;
@@ -514,6 +517,43 @@ export const useIorubaStore = create<IorubaState>((set, get) => {
         level: "info",
         message: "Novo perfil criado",
         detail: nextProfile.name
+      });
+    },
+    applyPreset: (presetKey) => {
+      const preset = findPreset(presetKey);
+      if (!preset) {
+        get().appendWatchLog({
+          scope: "app",
+          level: "warning",
+          message: "Preset desconhecido ignorado",
+          detail: presetKey
+        });
+        return;
+      }
+
+      const state = get();
+      const nextProfile = createProfileFromPreset(preset, state.persisted.profiles);
+      const persisted = {
+        ...state.persisted,
+        selectedProfileId: nextProfile.id,
+        profiles: [...state.persisted.profiles, nextProfile]
+      };
+
+      set(
+        createPersistedSnapshotUpdate(state, persisted, {
+          currentValues: {},
+          appliedValues: {},
+          outcomes: {},
+          telemetry: [],
+          lastSerialLine: null,
+          firmwareInfo: null
+        })
+      );
+      get().appendWatchLog({
+        scope: "app",
+        level: "info",
+        message: "Perfil criado a partir de preset",
+        detail: `${preset.name} (${nextProfile.name})`
       });
     },
     duplicateActiveProfile: () => {

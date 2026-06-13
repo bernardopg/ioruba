@@ -181,6 +181,7 @@ describe("desktop accessibility shell", () => {
         availablePorts={[]}
         configDraft={configDraft}
         createProfile={vi.fn()}
+        applyPreset={vi.fn()}
         draftIsDirty={false}
         draftStatusHint="Perfil salvo"
         draftStatusLabel="Perfil salvo"

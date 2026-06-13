@@ -1,4 +1,4 @@
-import { ArrowDown, ArrowUp, Copy, Plus, Trash2 } from "lucide-react";
+import { ArrowDown, ArrowUp, Copy, Plus, Sparkles, Trash2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
@@ -19,12 +19,13 @@ import {
 import { translateText } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 import { type WatchLogInput } from "@/lib/watch";
-import type {
-  AudioInventory,
-  AudioTarget,
-  MixerProfile,
-  PersistedState,
-  UiLanguage
+import {
+  MIXER_PRESETS,
+  type AudioInventory,
+  type AudioTarget,
+  type MixerProfile,
+  type PersistedState,
+  type UiLanguage
 } from "@ioruba/shared";
 
 type DraftStatusTone = "neutral" | "positive" | "warning" | "critical";
@@ -46,6 +47,7 @@ interface ProfileWorkbenchProps {
   resetProfile: () => void;
   selectProfile: (profileId: string) => void;
   createProfile: () => void;
+  applyPreset: (presetKey: string) => void;
   duplicateActiveProfile: () => void;
   removeActiveProfile: () => void;
   appendWatchLog: (entry: WatchLogInput) => void;
@@ -68,6 +70,7 @@ export function ProfileWorkbench({
   resetProfile,
   selectProfile,
   createProfile,
+  applyPreset,
   duplicateActiveProfile,
   removeActiveProfile,
   appendWatchLog
@@ -198,6 +201,14 @@ export function ProfileWorkbench({
     duplicateActiveProfile();
   }
 
+  function handleApplyPreset(presetKey: string) {
+    if (!syncDraftBeforeProfileAction()) {
+      return;
+    }
+
+    applyPreset(presetKey);
+  }
+
   function handleRemoveProfile() {
     if (!syncDraftBeforeProfileAction()) {
       return;
@@ -301,6 +312,36 @@ export function ProfileWorkbench({
               {lt("Remover ativo")}
             </Button>
             {draftIsDirty ? <Badge tone="warning">{lt("Rascunho pendente")}</Badge> : null}
+          </div>
+
+          <div className="rounded-[20px] border border-(--color-border) bg-[color-mix(in_oklab,var(--color-panel)_94%,var(--color-shell)_6%)] p-4">
+            <div className="flex items-center gap-2">
+              <Sparkles className="h-4 w-4 text-(--accent-teal)" />
+              <p className="text-sm font-semibold text-(--color-ink)">
+                {lt("Começar por um preset")}
+              </p>
+            </div>
+            <p className="mt-1 text-sm text-(--color-muted)">
+              {lt("Cria um novo perfil com sliders prontos para o caso de uso. Você ainda pode ajustar tudo depois.")}
+            </p>
+            <div className="mt-3 grid gap-2 sm:grid-cols-3">
+              {MIXER_PRESETS.map((preset) => (
+                <button
+                  key={preset.key}
+                  type="button"
+                  disabled={structuredEditorLocked}
+                  onClick={() => handleApplyPreset(preset.key)}
+                  className="flex flex-col gap-1 rounded-[16px] border border-(--color-border) bg-(--color-panel) px-3 py-3 text-left transition-colors hover:border-[color-mix(in_oklab,var(--accent-teal)_55%,var(--color-border))] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--accent-teal) disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  <span className="text-sm font-semibold text-(--color-ink)">
+                    {lt(preset.name)}
+                  </span>
+                  <span className="text-xs leading-5 text-(--color-muted)">
+                    {lt(preset.description)}
+                  </span>
+                </button>
+              ))}
+            </div>
           </div>
 
           {profileActionLockedReason ? (

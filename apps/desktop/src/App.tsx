@@ -95,6 +95,7 @@ export default function App() {
   const setLaunchOnLogin = useIorubaStore((state) => state.setLaunchOnLogin);
   const selectProfile = useIorubaStore((state) => state.selectProfile);
   const createProfile = useIorubaStore((state) => state.createProfile);
+  const applyPreset = useIorubaStore((state) => state.applyPreset);
   const duplicateActiveProfile = useIorubaStore(
     (state) => state.duplicateActiveProfile
   );
@@ -696,6 +697,7 @@ export default function App() {
               availablePorts={snapshot.availablePorts}
               configDraft={configDraft}
               createProfile={createProfile}
+              applyPreset={applyPreset}
               draftIsDirty={draftIsDirty}
               draftStatusHint={draftStatusHint}
               draftStatusLabel={draftStatusLabel}

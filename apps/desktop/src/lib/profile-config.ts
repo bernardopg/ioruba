@@ -1,9 +1,11 @@
 import {
+  buildPresetProfile,
   defaultProfile,
   resolveActiveProfile,
   type AudioTarget,
   type FirmwareCalibration,
   type FirmwareSettings,
+  type MixerPresetDefinition,
   type MixerProfile,
   type PersistedState,
   type SerialSettings,
@@ -128,6 +130,19 @@ export function createProfileFromDefault(profiles: MixerProfile[]): MixerProfile
     id: buildUniqueProfileId(name, profiles),
     name
   };
+}
+
+export function createProfileFromPreset(
+  preset: MixerPresetDefinition,
+  profiles: MixerProfile[]
+): MixerProfile {
+  const name = buildUniqueProfileName(preset.name, profiles);
+  return buildPresetProfile(
+    preset,
+    defaultProfile,
+    buildUniqueProfileId(name, profiles),
+    name
+  );
 }
 
 export function duplicateProfileConfig(
