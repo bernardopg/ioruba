@@ -26,6 +26,12 @@ const int NUM_KNOBS = 3;
 const int ANALOG_PINS[NUM_KNOBS] = {A0, A1, A2};
 const long BAUD_RATE = 9600;
 const char BOARD_NAME[] = "Ioruba Nano";
+// O firmware versiona de forma independente do app desktop: FIRMWARE_VERSION
+// rastreia mudancas no sketch, enquanto PROTOCOL_VERSION rastreia o contrato
+// serial. O desktop valida apenas PROTOCOL_VERSION (ver SUPPORTED_PROTOCOL_VERSION
+// em packages/shared). Bump FIRMWARE_VERSION em qualquer mudanca de comportamento
+// do controlador; bump PROTOCOL_VERSION apenas em mudanca incompativel do frame
+// ou do handshake.
 const char FIRMWARE_VERSION[] = "0.5.0";
 const int PROTOCOL_VERSION = 2;
 const int ADC_MIN = 0;

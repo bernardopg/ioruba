@@ -42,6 +42,8 @@ What it sends:
 
 The desktop runtime still accepts the legacy `P1:512` packet format for compatibility, but the current firmware now also reports controller tuning and calibration data in the handshake.
 
+> **Versioning:** the firmware version (`fw=`) and the desktop app version are tracked independently. `fw=` reflects sketch changes; `protocol=` reflects the serial contract. The desktop only validates `protocol=` against its `SUPPORTED_PROTOCOL_VERSION` (currently `2`) and warns when it differs, so a firmware/app version mismatch on its own is expected and harmless.
+
 ## Detect the board
 
 Use `arduino-cli` first:
