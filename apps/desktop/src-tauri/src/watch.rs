@@ -1,6 +1,7 @@
 use serde::{Deserialize, Serialize};
 use std::{
-    fs,
+    fs::{self, OpenOptions},
+    io::Write,
     path::Path,
     sync::{Mutex, OnceLock},
     time::{SystemTime, UNIX_EPOCH},
@@ -148,9 +149,32 @@ pub fn save_entries(path: &Path, entries: &[WatchLogEntry]) -> Result<(), String
 }
 
 pub fn append_entry(path: &Path, entry: WatchLogEntry) -> Result<(), String> {
-    let mut entries = load_entries(path)?;
-    entries.push(entry);
-    save_entries(path, &entries)
+    if let Some(parent) = path.parent() {
+        fs::create_dir_all(parent).map_err(|error| error.to_string())?;
+    }
+
+    let serialized = serde_json::to_string(&entry).map_err(|error| error.to_string())?;
+
+    // Append O(1) amortizado: grava a nova entrada no fim do arquivo em vez de
+    // recarregar e reescrever todo o log a cada evento (que seria O(n²) ao longo
+    // de uma sessão). O trim para o limite de tamanho só roda quando o arquivo
+    // efetivamente ultrapassa WATCH_LOG_MAX_BYTES, tornando o custo amortizado.
+    let mut file = OpenOptions::new()
+        .create(true)
+        .append(true)
+        .open(path)
+        .map_err(|error| error.to_string())?;
+    writeln!(file, "{serialized}").map_err(|error| error.to_string())?;
+    drop(file);
+
+    let current_len = fs::metadata(path).map(|meta| meta.len()).unwrap_or(0);
+    if current_len > WATCH_LOG_MAX_BYTES as u64 {
+        // Rebalanceia: recarrega, descarta o excedente e regrava uma única vez.
+        let entries = load_entries(path)?;
+        save_entries(path, &entries)?;
+    }
+
+    Ok(())
 }
 
 pub fn clear_entries(path: &Path) -> Result<(), String> {
@@ -289,6 +313,36 @@ mod tests {
         assert_eq!(count, 1);
         assert_eq!(payload.lines().count(), 1);
         assert!(payload.contains("\"message\":\"exportado\""));
+    }
+
+    #[test]
+    fn append_entry_writes_incrementally_and_trims_when_over_limit() {
+        let temp_path = std::env::temp_dir().join(format!(
+            "ioruba-watch-append-test-{}.jsonl",
+            std::process::id()
+        ));
+        let _ = fs::remove_file(&temp_path);
+
+        let make_entry = |seq: u64| WatchLogEntry {
+            seq,
+            timestamp_ms: seq,
+            scope: WatchScope::Backend,
+            level: WatchLevel::Info,
+            message: "evento".into(),
+            detail: Some("x".repeat(256)),
+        };
+
+        for seq in 0..50 {
+            append_entry(&temp_path, make_entry(seq)).expect("append should succeed");
+        }
+
+        let result = load_entries_with_report(&temp_path).expect("load should succeed");
+        let _ = fs::remove_file(&temp_path);
+
+        // Todas as linhas continuam parseáveis (append não corrompe o JSON Lines).
+        assert_eq!(result.malformed_count, 0);
+        // A entrada mais recente é preservada após o trim amortizado.
+        assert_eq!(result.entries.last().map(|entry| entry.seq), Some(49));
     }
 
     #[test]
