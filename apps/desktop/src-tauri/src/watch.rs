@@ -14,7 +14,6 @@ static WATCH_LOG_LOCK: OnceLock<Mutex<()>> = OnceLock::new();
 
 #[derive(Clone, Copy, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
-#[allow(dead_code)]
 pub enum WatchScope {
     App,
     Serial,
@@ -23,7 +22,6 @@ pub enum WatchScope {
 
 #[derive(Clone, Copy, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
-#[allow(dead_code)]
 pub enum WatchLevel {
     Info,
     Warning,
