@@ -235,7 +235,9 @@ void sendHandshake() {
 }
 
 char *trimLeadingWhitespace(char *value) {
-  while (*value != '\0' && isspace(*value)) {
+  // isspace exige um valor representavel como unsigned char (ou EOF); passar um
+  // char possivelmente negativo e comportamento indefinido em C/C++.
+  while (*value != '\0' && isspace(static_cast<unsigned char>(*value))) {
     value++;
   }
 
@@ -244,7 +246,7 @@ char *trimLeadingWhitespace(char *value) {
 
 void trimTrailingWhitespace(char *value) {
   int length = strlen(value);
-  while (length > 0 && isspace(value[length - 1])) {
+  while (length > 0 && isspace(static_cast<unsigned char>(value[length - 1]))) {
     value[length - 1] = '\0';
     length--;
   }
@@ -380,9 +382,15 @@ bool applyConfigCommand(char *payload) {
   return true;
 }
 
+void sendError(const char *reason) {
+  Serial.print("ERR ");
+  Serial.println(reason);
+}
+
 void processIncomingSerial() {
   static char commandBuffer[192];
   static int commandLength = 0;
+  static bool overflowed = false;
 
   while (Serial.available() > 0) {
     const char incoming = static_cast<char>(Serial.read());
@@ -392,6 +400,15 @@ void processIncomingSerial() {
     }
 
     if (incoming == '\n') {
+      if (overflowed) {
+        // Um comando longo demais foi truncado: avisa o host em vez de
+        // descartar metade de um CONFIG silenciosamente. O host pode reenviar.
+        sendError("command-too-long");
+        overflowed = false;
+        commandLength = 0;
+        continue;
+      }
+
       commandBuffer[commandLength] = '\0';
 
       if (commandLength > 0) {
@@ -403,6 +420,7 @@ void processIncomingSerial() {
           payloadBuffer[sizeof(payloadBuffer) - 1] = '\0';
 
           if (!applyConfigCommand(payloadBuffer)) {
+            sendError("config-rejected");
             sendHandshake();
           }
         }
@@ -415,7 +433,9 @@ void processIncomingSerial() {
     if (commandLength < static_cast<int>(sizeof(commandBuffer)) - 1) {
       commandBuffer[commandLength++] = incoming;
     } else {
-      commandLength = 0;
+      // Marca overflow e segue consumindo ate o '\n' para nao reinterpretar a
+      // cauda do comando truncado como um novo comando.
+      overflowed = true;
     }
   }
 }
