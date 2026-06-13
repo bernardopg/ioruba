@@ -221,8 +221,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
-          fetch-depth: 0
+          # Build do tag não precisa de histórico nem das credenciais persistidas.
+          fetch-depth: 1
           ref: ${{ env.RELEASE_TAG }}
+          persist-credentials: false
 
       - name: Setup Node
         uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
@@ -368,8 +370,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
-          fetch-depth: 0
+          fetch-depth: 1
           ref: ${{ env.RELEASE_TAG }}
+          persist-credentials: false
 
       - name: Install tooling
         run: |
@@ -669,8 +672,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
-          fetch-depth: 0
+          fetch-depth: 1
           ref: ${{ env.RELEASE_TAG }}
+          persist-credentials: false
 
       - name: Setup Arduino CLI
         uses: arduino/setup-arduino-cli@81d310742121c928ea9c8bbd407b4217b432ae02 # v2.0.0
@@ -679,13 +683,22 @@ jobs:
         uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
         with:
           path: ~/.arduino15
-          key: arduino-avr-core-${{ runner.os }}
+          key: arduino-avr-core-v1-${{ runner.os }}
+          restore-keys: |
+            arduino-avr-core-v1-
 
       - name: Install Arduino AVR core
         run: |
           arduino-cli config init --overwrite
           arduino-cli core update-index
           arduino-cli core install arduino:avr
+
+      - name: Test firmware config parser (host)
+        run: |
+          g++ -std=c++17 -Wall -Wextra -Werror \
+            firmware/arduino/ioruba-controller/tests/config_parser_test.cpp \
+            -o /tmp/ioruba-config-parser-test
+          /tmp/ioruba-config-parser-test
 
       - name: Build firmware
         run: |
@@ -750,7 +763,9 @@ jobs:
         run: |
           set -euo pipefail
           cd release-assets
-          sha256sum * > SHA256SUMS.txt
+          # `./*` evita que nomes de arquivo iniciados por '-' sejam tratados
+          # como opções do sha256sum (SC2035).
+          sha256sum ./* > SHA256SUMS.txt
           cat SHA256SUMS.txt
 
       - name: Upload SHA256SUMS to release
