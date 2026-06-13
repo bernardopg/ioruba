@@ -2,8 +2,13 @@ mod audio;
 mod watch;
 
 use std::{
-    fs,
+    fs::{self, OpenOptions},
+    io::Write,
     path::{Path, PathBuf},
+    sync::{
+        atomic::{AtomicU64, Ordering},
+        Mutex, OnceLock,
+    },
     time::{SystemTime, UNIX_EPOCH},
 };
 
@@ -21,6 +26,17 @@ const TRAY_SHOW_ID: &str = "show-main-window";
 const TRAY_QUIT_ID: &str = "quit-app";
 const STATE_SCHEMA_VERSION_KEY: &str = "schemaVersion";
 
+/// Serializa todo acesso ao `ioruba-state.json` para evitar race entre a leitura
+/// no boot e escritas concorrentes (ex.: salvamentos em rajada vindos da store).
+static STATE_LOCK: OnceLock<Mutex<()>> = OnceLock::new();
+/// Contador monotônico usado no sufixo do arquivo temporário de escrita atômica.
+/// Garante nomes `.tmp` distintos mesmo quando o mesmo processo grava em rajada.
+static TEMP_FILE_COUNTER: AtomicU64 = AtomicU64::new(0);
+
+fn state_lock() -> &'static Mutex<()> {
+    STATE_LOCK.get_or_init(|| Mutex::new(()))
+}
+
 #[derive(serde::Serialize)]
 #[serde(rename_all = "camelCase")]
 struct ExportWatchLogResult {
@@ -30,6 +46,7 @@ struct ExportWatchLogResult {
 
 #[tauri::command]
 fn load_persisted_state(app: tauri::AppHandle) -> Result<String, String> {
+    let _guard = state_lock().lock().map_err(|error| error.to_string())?;
     let path = app_state_path(&app)?;
     if !path.exists() {
         watch::emit(
@@ -55,6 +72,7 @@ fn load_persisted_state(app: tauri::AppHandle) -> Result<String, String> {
 
 #[tauri::command]
 fn save_persisted_state(app: tauri::AppHandle, payload: String) -> Result<(), String> {
+    let _guard = state_lock().lock().map_err(|error| error.to_string())?;
     let path = app_state_path(&app)?;
     let backup_path = save_state_payload(&path, &payload)?;
 
@@ -226,19 +244,30 @@ fn set_launch_on_login_enabled(app: tauri::AppHandle, enabled: bool) -> Result<b
 }
 
 #[tauri::command]
-fn apply_slider_targets_batch(
+async fn apply_slider_targets_batch(
     app: tauri::AppHandle,
     request: audio::ApplySliderTargetsRequest,
 ) -> Result<audio::ApplySliderTargetsResponse, String> {
+    let slider_count = request.sliders.len();
     watch::emit(
         &app,
         watch::WatchScope::Backend,
         watch::WatchLevel::Info,
         "Aplicando lote de sliders",
-        Some(format!("{} slider(s)", request.sliders.len())),
+        Some(format!("{slider_count} slider(s)")),
     );
 
-    match audio::apply_slider_targets_batch(request) {
+    // O backend de áudio dispara vários comandos `pactl` bloqueantes (fork/exec)
+    // por lote. Executá-los na thread de comando do Tauri serializaria o I/O e
+    // poderia travar comandos concorrentes sob rajadas de knobs. spawn_blocking
+    // move o trabalho para o pool de blocking do runtime, mantendo a thread de
+    // comando livre.
+    let result =
+        tauri::async_runtime::spawn_blocking(move || audio::apply_slider_targets_batch(request))
+            .await
+            .map_err(|error| format!("falha ao agendar lote de sliders: {error}"))?;
+
+    match result {
         Ok(response) => {
             watch::emit(
                 &app,
@@ -333,12 +362,48 @@ fn atomic_write(path: &Path, payload: &str) -> Result<(), String> {
         fs::create_dir_all(parent).map_err(|error| error.to_string())?;
     }
 
-    let temp_path = path.with_extension(format!("json.tmp.{}", std::process::id()));
-    fs::write(&temp_path, payload).map_err(|error| error.to_string())?;
+    // Sufixo único por escrita: pid + contador monotônico + timestamp evitam
+    // colisão entre salvamentos em rajada do mesmo processo no mesmo arquivo.
+    let unique = TEMP_FILE_COUNTER.fetch_add(1, Ordering::Relaxed);
+    let stamp = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .map(|duration| duration.as_nanos())
+        .unwrap_or_default();
+    let temp_path =
+        path.with_extension(format!("json.tmp.{}.{unique}.{stamp}", std::process::id()));
+
+    // Escreve o conteúdo e força flush ao disco (fsync) ANTES do rename. Sem isso,
+    // um crash entre rename e flush poderia deixar o arquivo final com tamanho
+    // correto mas conteúdo zerado em alguns filesystems.
+    let write_result = (|| -> std::io::Result<()> {
+        let mut file = OpenOptions::new()
+            .write(true)
+            .create(true)
+            .truncate(true)
+            .open(&temp_path)?;
+        file.write_all(payload.as_bytes())?;
+        file.sync_all()?;
+        Ok(())
+    })();
+
+    if let Err(error) = write_result {
+        let _ = fs::remove_file(&temp_path);
+        return Err(error.to_string());
+    }
+
     fs::rename(&temp_path, path).map_err(|error| {
         let _ = fs::remove_file(&temp_path);
         error.to_string()
     })?;
+
+    // fsync do diretório-pai garante que a entrada de diretório do rename esteja
+    // durável. Best-effort: nem todo filesystem suporta, então não falhamos aqui.
+    if let Some(parent) = path.parent() {
+        if let Ok(dir) = fs::File::open(parent) {
+            let _ = dir.sync_all();
+        }
+    }
+
     Ok(())
 }
 
@@ -464,7 +529,7 @@ pub fn run() {
             setup_tray(app)?;
             if let Err(error) = app.global_shortcut().register(toggle_shortcut) {
                 watch::emit(
-                    &app.handle(),
+                    app.handle(),
                     watch::WatchScope::App,
                     watch::WatchLevel::Warning,
                     "Falha ao registrar atalho global Ctrl+Alt+I",
@@ -472,7 +537,7 @@ pub fn run() {
                 );
             } else {
                 watch::emit(
-                    &app.handle(),
+                    app.handle(),
                     watch::WatchScope::App,
                     watch::WatchLevel::Info,
                     "Atalho global registrado",
@@ -484,7 +549,7 @@ pub fn run() {
                     let _ = window.hide();
                 }
                 watch::emit(
-                    &app.handle(),
+                    app.handle(),
                     watch::WatchScope::App,
                     watch::WatchLevel::Info,
                     "Aplicacao iniciada por autostart",

@@ -37,33 +37,76 @@ pub fn list_audio_inventory() -> AudioInventory {
         };
     }
 
-    let sinks = read_json_command(&["-f", "json", "list", "sinks"])
-        .ok()
-        .and_then(|value| parse_sinks(&value))
-        .unwrap_or_default();
-    let applications = read_json_command(&["-f", "json", "list", "sink-inputs"])
-        .ok()
-        .and_then(|value| parse_sink_inputs(&value))
-        .unwrap_or_default();
-    let sources = read_text_command(&["list", "sources"])
-        .ok()
-        .map(|raw| parse_sources(&raw))
-        .unwrap_or_default();
-    let default_sink = read_text_command(&["get-default-sink"])
-        .ok()
-        .map(trim)
-        .filter(|value| !value.is_empty());
-    let default_source = read_text_command(&["get-default-source"])
-        .ok()
-        .map(trim)
-        .filter(|value| !value.is_empty());
+    // Coleta falhas parciais por comando em vez de engoli-las: assim um pactl
+    // que retorna erro/JSON quebrado em sinks não vira silenciosamente um
+    // inventário vazio sem pista de causa para o usuário.
+    let mut diagnostics = Vec::<String>::new();
+
+    let sinks = match read_json_command(&["-f", "json", "list", "sinks"]) {
+        Ok(value) => match parse_sinks(&value) {
+            Some(parsed) => parsed,
+            None => {
+                diagnostics.push("Falha ao interpretar a lista de sinks do pactl".to_string());
+                Vec::new()
+            }
+        },
+        Err(error) => {
+            diagnostics.push(format!("Falha ao listar sinks: {error}"));
+            Vec::new()
+        }
+    };
+
+    let applications = match read_json_command(&["-f", "json", "list", "sink-inputs"]) {
+        Ok(value) => match parse_sink_inputs(&value) {
+            Some(parsed) => parsed,
+            None => {
+                diagnostics
+                    .push("Falha ao interpretar a lista de sink-inputs do pactl".to_string());
+                Vec::new()
+            }
+        },
+        Err(error) => {
+            diagnostics.push(format!("Falha ao listar sink-inputs: {error}"));
+            Vec::new()
+        }
+    };
+
+    let sources = match read_text_command(&["list", "sources"]) {
+        Ok(raw) => parse_sources(&raw),
+        Err(error) => {
+            diagnostics.push(format!("Falha ao listar sources: {error}"));
+            Vec::new()
+        }
+    };
+
+    let default_sink = match read_text_command(&["get-default-sink"]) {
+        Ok(value) => Some(trim(value)).filter(|value| !value.is_empty()),
+        Err(error) => {
+            diagnostics.push(format!("Falha ao consultar sink padrao: {error}"));
+            None
+        }
+    };
+
+    let default_source = match read_text_command(&["get-default-source"]) {
+        Ok(value) => Some(trim(value)).filter(|value| !value.is_empty()),
+        Err(error) => {
+            diagnostics.push(format!("Falha ao consultar source padrao: {error}"));
+            None
+        }
+    };
+
     let sink_count = sinks.len();
     let source_count = sources.len();
-    let application_count = application_inventory_names(&applications).len();
+    let application_names = application_inventory_names(&applications);
+    let application_count = application_names.len();
+
+    if diagnostics.is_empty() {
+        diagnostics.push("pactl backend ready".to_string());
+    }
 
     AudioInventory {
         backend: "pactl".to_string(),
-        applications: application_inventory_names(&applications),
+        applications: application_names,
         sinks,
         sources,
         default_sink,
@@ -72,7 +115,7 @@ pub fn list_audio_inventory() -> AudioInventory {
             "{} app(s), {} sink(s), {} source(s)",
             application_count, sink_count, source_count
         ),
-        diagnostics: vec!["pactl backend ready".to_string()],
+        diagnostics,
     }
 }
 
