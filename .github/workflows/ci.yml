@@ -80,6 +80,23 @@ jobs:
       - name: Run Rust tests
         run: cargo test --manifest-path apps/desktop/src-tauri/Cargo.toml
 
+      - name: Check glib vendor patch is still required
+        shell: bash
+        run: |
+          # The vendored glib-0.18.5 backports GHSA-wrw7-89jp-8q8g while the
+          # Tauri Linux stack resolves through the GTK3 glib 0.18.x line. When
+          # upstream moves to glib >= 0.20 this gate fails so we remember to
+          # drop the vendor override (see apps/desktop/src-tauri/vendor/README.md).
+          set -euo pipefail
+          lock="apps/desktop/src-tauri/Cargo.lock"
+          versions="$(awk '/^name = "glib"$/{f=1;next} f&&/^version = /{gsub(/[",]/,"");print $3;f=0}' "$lock")"
+          echo "Resolved glib versions:"
+          echo "${versions}"
+          if echo "${versions}" | grep -qvE '^0\.18\.'; then
+            echo "::error::glib resolved outside 0.18.x — drop the vendored glib-0.18.5 patch in Cargo.toml and remove vendor/glib-0.18.5."
+            exit 1
+          fi
+
       - name: Build desktop app
         run: npm run desktop:build
 
