@@ -7,6 +7,6 @@
     "core:default",
     "serialplugin:default",
     "global-shortcut:default",
-    "dialog:default"
+    "dialog:allow-save"
   ]
 }
