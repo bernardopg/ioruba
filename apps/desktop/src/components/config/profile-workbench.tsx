@@ -1,4 +1,4 @@
-import { ArrowDown, ArrowUp, Copy, Plus, Sparkles, Trash2 } from "lucide-react";
+import { ArrowDown, ArrowUp, Copy, Download, Plus, Sparkles, Trash2, Upload } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
@@ -48,6 +48,8 @@ interface ProfileWorkbenchProps {
   selectProfile: (profileId: string) => void;
   createProfile: () => void;
   applyPreset: (presetKey: string) => void;
+  exportActiveProfile: () => void;
+  importProfileFromFile: () => void;
   duplicateActiveProfile: () => void;
   removeActiveProfile: () => void;
   appendWatchLog: (entry: WatchLogInput) => void;
@@ -71,6 +73,8 @@ export function ProfileWorkbench({
   selectProfile,
   createProfile,
   applyPreset,
+  exportActiveProfile,
+  importProfileFromFile,
   duplicateActiveProfile,
   removeActiveProfile,
   appendWatchLog
@@ -209,6 +213,14 @@ export function ProfileWorkbench({
     applyPreset(presetKey);
   }
 
+  function handleImportProfile() {
+    if (!syncDraftBeforeProfileAction()) {
+      return;
+    }
+
+    importProfileFromFile();
+  }
+
   function handleRemoveProfile() {
     if (!syncDraftBeforeProfileAction()) {
       return;
@@ -310,6 +322,18 @@ export function ProfileWorkbench({
             >
               <Trash2 className="h-4 w-4" />
               {lt("Remover ativo")}
+            </Button>
+            <Button onClick={exportActiveProfile} variant="secondary">
+              <Download className="h-4 w-4" />
+              {lt("Exportar perfil")}
+            </Button>
+            <Button
+              disabled={structuredEditorLocked}
+              onClick={handleImportProfile}
+              variant="secondary"
+            >
+              <Upload className="h-4 w-4" />
+              {lt("Importar perfil")}
             </Button>
             {draftIsDirty ? <Badge tone="warning">{lt("Rascunho pendente")}</Badge> : null}
           </div>

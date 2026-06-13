@@ -32,6 +32,7 @@ import {
   createProfileFromPreset,
   duplicateProfileConfig,
   parseProfileDraft,
+  prepareImportedProfile,
   removeProfileById,
   replaceActiveProfile,
   selectProfileById,
@@ -39,7 +40,9 @@ import {
 } from "@/lib/profile-config";
 import {
   appendWatchLogEntry,
-  clearWatchLogEntries
+  clearWatchLogEntries,
+  exportProfile,
+  importProfile
 } from "@/lib/backend";
 import { sameSerialPorts } from "@/lib/serial";
 import { type WatchLogEntry, type WatchLogInput } from "@/lib/watch";
@@ -86,6 +89,8 @@ interface IorubaState {
   selectProfile: (profileId: string) => void;
   createProfile: () => void;
   applyPreset: (presetKey: string) => void;
+  exportActiveProfile: () => Promise<void>;
+  importProfileFromFile: () => Promise<void>;
   duplicateActiveProfile: () => void;
   removeActiveProfile: () => void;
   updateActiveProfileConfig: (profile: MixerProfile) => void;
@@ -554,6 +559,86 @@ export const useIorubaStore = create<IorubaState>((set, get) => {
         level: "info",
         message: "Perfil criado a partir de preset",
         detail: `${preset.name} (${nextProfile.name})`
+      });
+    },
+    exportActiveProfile: async () => {
+      const state = get();
+      const profile = resolveActiveProfile(state.persisted);
+      const safeName = profile.name
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "");
+      const fileName = `ioruba-perfil-${safeName || "perfil"}.json`;
+
+      try {
+        const path = await exportProfile(fileName, serializeProfileDraft(profile));
+        get().appendWatchLog({
+          scope: "app",
+          level: path ? "info" : "warning",
+          message: path ? "Perfil exportado" : "Exportacao de perfil cancelada",
+          detail: path ?? undefined
+        });
+      } catch (error) {
+        get().appendWatchLog({
+          scope: "backend",
+          level: "error",
+          message: "Falha ao exportar perfil",
+          detail: error instanceof Error ? error.message : String(error)
+        });
+      }
+    },
+    importProfileFromFile: async () => {
+      let raw: string | null;
+      try {
+        raw = await importProfile();
+      } catch (error) {
+        get().appendWatchLog({
+          scope: "backend",
+          level: "error",
+          message: "Falha ao importar perfil",
+          detail: error instanceof Error ? error.message : String(error)
+        });
+        return;
+      }
+
+      if (raw === null) {
+        return;
+      }
+
+      const parsed = parseProfileDraft(raw);
+      if (!parsed.ok) {
+        get().appendWatchLog({
+          scope: "app",
+          level: "error",
+          message: "Perfil importado invalido",
+          detail: parsed.error
+        });
+        return;
+      }
+
+      const state = get();
+      const nextProfile = prepareImportedProfile(parsed.value, state.persisted.profiles);
+      const persisted = {
+        ...state.persisted,
+        selectedProfileId: nextProfile.id,
+        profiles: [...state.persisted.profiles, nextProfile]
+      };
+
+      set(
+        createPersistedSnapshotUpdate(state, persisted, {
+          currentValues: {},
+          appliedValues: {},
+          outcomes: {},
+          telemetry: [],
+          lastSerialLine: null,
+          firmwareInfo: null
+        })
+      );
+      get().appendWatchLog({
+        scope: "app",
+        level: "info",
+        message: "Perfil importado",
+        detail: nextProfile.name
       });
     },
     duplicateActiveProfile: () => {

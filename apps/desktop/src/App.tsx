@@ -96,6 +96,8 @@ export default function App() {
   const selectProfile = useIorubaStore((state) => state.selectProfile);
   const createProfile = useIorubaStore((state) => state.createProfile);
   const applyPreset = useIorubaStore((state) => state.applyPreset);
+  const exportActiveProfile = useIorubaStore((state) => state.exportActiveProfile);
+  const importProfileFromFile = useIorubaStore((state) => state.importProfileFromFile);
   const duplicateActiveProfile = useIorubaStore(
     (state) => state.duplicateActiveProfile
   );
@@ -698,6 +700,8 @@ export default function App() {
               configDraft={configDraft}
               createProfile={createProfile}
               applyPreset={applyPreset}
+              exportActiveProfile={exportActiveProfile}
+              importProfileFromFile={importProfileFromFile}
               draftIsDirty={draftIsDirty}
               draftStatusHint={draftStatusHint}
               draftStatusLabel={draftStatusLabel}

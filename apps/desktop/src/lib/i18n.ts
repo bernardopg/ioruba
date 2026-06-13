@@ -371,6 +371,8 @@ const TEXT_MAP: Record<string, string> = {
   Música: "Music",
   "Ajuste o volume geral, o player de música e a saída padrão para audição ou produção.":
     "Adjust overall volume, the music player and the default output for listening or production.",
+  "Exportar perfil": "Export profile",
+  "Importar perfil": "Import profile",
 };
 
 export function translateText(language: UiLanguage, text: string): string {

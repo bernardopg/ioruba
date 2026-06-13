@@ -204,6 +204,75 @@ async fn export_watch_log(
 }
 
 #[tauri::command]
+async fn export_profile(
+    app: tauri::AppHandle,
+    file_name: String,
+    payload: String,
+) -> Result<Option<String>, String> {
+    let Some(file_path) = app
+        .dialog()
+        .file()
+        .add_filter("JSON", &["json"])
+        .set_file_name(&file_name)
+        .set_title("Exportar perfil")
+        .blocking_save_file()
+    else {
+        watch::emit(
+            &app,
+            watch::WatchScope::App,
+            watch::WatchLevel::Warning,
+            "Exportacao de perfil cancelada",
+            None,
+        );
+        return Ok(None);
+    };
+
+    let path = file_path.into_path().map_err(|error| error.to_string())?;
+    atomic_write(&path, &payload)?;
+    watch::emit(
+        &app,
+        watch::WatchScope::Backend,
+        watch::WatchLevel::Info,
+        "Perfil exportado",
+        Some(path.display().to_string()),
+    );
+
+    Ok(Some(path.display().to_string()))
+}
+
+#[tauri::command]
+async fn import_profile(app: tauri::AppHandle) -> Result<Option<String>, String> {
+    let Some(file_path) = app
+        .dialog()
+        .file()
+        .add_filter("JSON", &["json"])
+        .set_title("Importar perfil")
+        .blocking_pick_file()
+    else {
+        watch::emit(
+            &app,
+            watch::WatchScope::App,
+            watch::WatchLevel::Warning,
+            "Importacao de perfil cancelada",
+            None,
+        );
+        return Ok(None);
+    };
+
+    let path = file_path.into_path().map_err(|error| error.to_string())?;
+    let payload = fs::read_to_string(&path).map_err(|error| error.to_string())?;
+    watch::emit(
+        &app,
+        watch::WatchScope::Backend,
+        watch::WatchLevel::Info,
+        "Perfil importado do disco",
+        Some(format!("{} bytes de {}", payload.len(), path.display())),
+    );
+
+    Ok(Some(payload))
+}
+
+#[tauri::command]
 fn get_launch_on_login_enabled(app: tauri::AppHandle) -> Result<bool, String> {
     let enabled = app
         .autolaunch()
@@ -570,6 +639,8 @@ pub fn run() {
             append_watch_log_entry,
             clear_watch_log_entries,
             export_watch_log,
+            export_profile,
+            import_profile,
             get_launch_on_login_enabled,
             set_launch_on_login_enabled
         ])

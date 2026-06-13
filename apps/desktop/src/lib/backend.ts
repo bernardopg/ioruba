@@ -98,6 +98,25 @@ export async function exportWatchLog(
   });
 }
 
+export async function exportProfile(
+  fileName: string,
+  payload: string
+): Promise<string | null> {
+  if (!isTauri()) {
+    return null;
+  }
+
+  return invoke<string | null>("export_profile", { fileName, payload });
+}
+
+export async function importProfile(): Promise<string | null> {
+  if (!isTauri()) {
+    return null;
+  }
+
+  return invoke<string | null>("import_profile");
+}
+
 export async function getLaunchOnLoginEnabled(): Promise<boolean> {
   if (!isTauri()) {
     return false;

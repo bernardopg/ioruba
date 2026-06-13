@@ -132,6 +132,22 @@ export function createProfileFromDefault(profiles: MixerProfile[]): MixerProfile
   };
 }
 
+/**
+ * Reatribui id e nome únicos a um perfil importado, evitando colidir com perfis
+ * existentes. Preserva o nome original como base, desambiguando se necessário.
+ */
+export function prepareImportedProfile(
+  imported: MixerProfile,
+  profiles: MixerProfile[]
+): MixerProfile {
+  const name = buildUniqueProfileName(imported.name || "Perfil importado", profiles);
+  return {
+    ...cloneProfile(imported),
+    id: buildUniqueProfileId(name, profiles),
+    name
+  };
+}
+
 export function createProfileFromPreset(
   preset: MixerPresetDefinition,
   profiles: MixerProfile[]
