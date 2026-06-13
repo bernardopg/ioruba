@@ -14,35 +14,34 @@ on:
 env:
   RELEASE_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.release_tag || github.ref_name }}
 
+# Least privilege by default; each job declares the scopes it needs.
 permissions:
-  contents: write
+  contents: read
 
+# Never cancel a half-published release: asset uploads are not atomic.
 concurrency:
   group: release-${{ github.event_name == 'workflow_dispatch' && inputs.release_tag || github.ref_name }}
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   prepare-release-notes:
     name: Prepare Release Notes
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     permissions:
       contents: write
 
     steps:
       - name: Checkout main branch
-        uses: actions/checkout@v6.0.3
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
           fetch-depth: 0
           ref: main
 
       - name: Setup Node
-        uses: actions/setup-node@v6.4.0
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
         with:
           node-version: 22
-          cache: npm
-
-      - name: Install dependencies
-        run: npm ci
 
       - name: Validate RELEASE_TAG
         shell: bash
@@ -121,7 +120,7 @@ jobs:
         id: codex_changelog
         if: steps.copilot_changelog.outcome != 'success'
         continue-on-error: true
-        uses: openai/codex-action@v1
+        uses: openai/codex-action@e0fdf01220eb9a88167c4898839d273e3f2609d1 # v1
         with:
           openai-api-key: ${{ secrets.OPENAI_API_KEY }}
           prompt: |
@@ -182,57 +181,67 @@ jobs:
           git push origin HEAD:main
 
   desktop-bundles:
-    name: Desktop Bundles (${{ matrix.platform }})
+    name: Desktop Bundles (${{ matrix.label }})
     needs:
       - prepare-release-notes
     timeout-minutes: 90
     permissions:
       contents: write
+      id-token: write
+      attestations: write
     strategy:
       fail-fast: false
       matrix:
         include:
-          - platform: ubuntu-22.04
-            args: "--bundles deb,rpm"
-          - platform: windows-latest
+          - label: linux-x86_64
+            platform: ubuntu-22.04
+            args: "--bundles deb,rpm,appimage"
+          - label: windows-x86_64
+            platform: windows-latest
             args: "--bundles nsis,msi"
-          - platform: macos-latest
-            # DMG packaging can fail on GitHub-hosted macOS runners because
-            # Tauri's generated bundle script invokes Finder/AppleScript
-            # operations that are not always authorized in CI. Build the .app
-            # bundle instead so the release can still publish the macOS binary.
-            args: "--bundles app"
+          # DMG packaging can fail on GitHub-hosted macOS runners because
+          # Tauri's generated bundle script invokes Finder/AppleScript
+          # operations that are not always authorized in CI. Build the .app
+          # bundle instead so the release can still publish the macOS binary.
+          - label: macos-aarch64
+            platform: macos-latest
+            args: "--bundles app --target aarch64-apple-darwin"
+          - label: macos-x86_64
+            platform: macos-latest
+            args: "--bundles app --target x86_64-apple-darwin"
     runs-on: ${{ matrix.platform }}
     # Secrets cannot be referenced in step-level `if:` expressions directly.
-    # Expose them as env vars at the job level so step conditionals can use
-    # `env.VAR != ''` which is a valid named-value in that context.
+    # Expose only their *presence* as job env flags so step conditionals can
+    # branch without leaking the secret material into every step's process env.
     env:
-      WINDOWS_CERTIFICATE: ${{ secrets.WINDOWS_CERTIFICATE }}
-      APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+      HAS_WINDOWS_CERT: ${{ secrets.WINDOWS_CERTIFICATE != '' && '1' || '' }}
+      HAS_APPLE_CERT: ${{ secrets.APPLE_CERTIFICATE != '' && '1' || '' }}
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v6.0.3
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
           fetch-depth: 0
           ref: ${{ env.RELEASE_TAG }}
 
       - name: Setup Node
-        uses: actions/setup-node@v6.4.0
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
         with:
           node-version: 22
           cache: npm
 
       - name: Setup Rust stable
-        uses: dtolnay/rust-toolchain@stable
+        uses: dtolnay/rust-toolchain@3c5f7ea28cd621ae0bf5283f0e981fb97b8a7af9 # master
         with:
+          toolchain: stable
           targets: ${{ matrix.platform == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
 
       - name: Cache Rust
-        uses: Swatinem/rust-cache@v2.9.1
+        uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
         with:
           workspaces: |
             apps/desktop/src-tauri -> target
+          key: ${{ matrix.label }}
 
       - name: Install Linux desktop dependencies
         if: matrix.platform == 'ubuntu-22.04'
@@ -251,7 +260,7 @@ jobs:
         run: npm ci
 
       - name: Import Windows certificate
-        if: matrix.platform == 'windows-latest' && env.WINDOWS_CERTIFICATE != ''
+        if: matrix.platform == 'windows-latest' && env.HAS_WINDOWS_CERT == '1'
         env:
           WINDOWS_CERTIFICATE: ${{ secrets.WINDOWS_CERTIFICATE }}
           WINDOWS_CERTIFICATE_PASSWORD: ${{ secrets.WINDOWS_CERTIFICATE_PASSWORD }}
@@ -268,7 +277,7 @@ jobs:
           Remove-Item -Path certificate/certificate.pfx
 
       - name: Import Apple Developer certificate
-        if: matrix.platform == 'macos-latest' && env.APPLE_CERTIFICATE != ''
+        if: matrix.platform == 'macos-latest' && env.HAS_APPLE_CERT == '1'
         env:
           APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
           APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
@@ -289,8 +298,8 @@ jobs:
           echo "APPLE_SIGNING_IDENTITY=$CERT_IDENTITY" >> "$GITHUB_ENV"
 
       - name: Build and upload installers (with signing)
-        if: env.APPLE_CERTIFICATE != '' || matrix.platform != 'macos-latest'
-        uses: tauri-apps/tauri-action@v0.6.2
+        if: env.HAS_APPLE_CERT == '1' || matrix.platform != 'macos-latest'
+        uses: tauri-apps/tauri-action@84b9d35b5fc46c1e45415bdb6144030364f7ebc5 # v0.6.2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAURI_WINDOWS_CERTIFICATE_THUMBPRINT: ${{ env.WINDOWS_CERTIFICATE_THUMBPRINT }}
@@ -306,6 +315,9 @@ jobs:
           releaseName: Ioruba ${{ env.RELEASE_TAG }}
           releaseBody: |
             Cross-platform installers for the Tauri 2 desktop app.
+
+            Verify any download with `SHA256SUMS.txt` or with GitHub artifact attestations:
+            `gh attestation verify <asset> --repo bernardopg/ioruba`
           releaseDraft: false
           prerelease: false
           # Ioruba does not ship tauri-plugin-updater yet. Keep latest.json
@@ -317,8 +329,8 @@ jobs:
         # tauri-action passes APPLE_CERTIFICATE even when empty, triggering a
         # codesign attempt that fails on unsigned CI runners. Run without any
         # signing env vars when no Apple certificate secret is configured.
-        if: env.APPLE_CERTIFICATE == '' && matrix.platform == 'macos-latest'
-        uses: tauri-apps/tauri-action@v0.6.2
+        if: env.HAS_APPLE_CERT != '1' && matrix.platform == 'macos-latest'
+        uses: tauri-apps/tauri-action@84b9d35b5fc46c1e45415bdb6144030364f7ebc5 # v0.6.2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
@@ -327,6 +339,9 @@ jobs:
           releaseName: Ioruba ${{ env.RELEASE_TAG }}
           releaseBody: |
             Cross-platform installers for the Tauri 2 desktop app.
+
+            Verify any download with `SHA256SUMS.txt` or with GitHub artifact attestations:
+            `gh attestation verify <asset> --repo bernardopg/ioruba`
           releaseDraft: false
           prerelease: false
           # Ioruba does not ship tauri-plugin-updater yet. Keep latest.json
@@ -339,83 +354,19 @@ jobs:
         run: |
           security delete-keychain build.keychain 2>/dev/null || true
 
-  desktop-appimage:
-    name: Desktop AppImage
-    timeout-minutes: 90
-    needs:
-      - desktop-bundles
-    if: ${{ always() && needs.desktop-bundles.result != 'cancelled' }}
-    permissions:
-      contents: write
-    runs-on: ubuntu-22.04
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v6.0.3
-        with:
-          fetch-depth: 0
-          ref: ${{ env.RELEASE_TAG }}
-
-      - name: Setup Node
-        uses: actions/setup-node@v6.4.0
-        with:
-          node-version: 22
-          cache: npm
-
-      - name: Setup Rust stable
-        uses: dtolnay/rust-toolchain@stable
-
-      - name: Cache Rust
-        uses: Swatinem/rust-cache@v2.9.1
-        with:
-          workspaces: |
-            apps/desktop/src-tauri -> target
-
-      - name: Install Linux desktop dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            pkgconf \
-            libudev-dev \
-            libwebkit2gtk-4.1-dev \
-            libgtk-3-dev \
-            librsvg2-dev \
-            patchelf \
-            libayatana-appindicator3-dev
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Build and upload AppImage
-        uses: tauri-apps/tauri-action@v0.6.2
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          projectPath: apps/desktop
-          tagName: ${{ env.RELEASE_TAG }}
-          releaseName: Ioruba ${{ env.RELEASE_TAG }}
-          releaseBody: |
-            Cross-platform installers for the Tauri 2 desktop app.
-          releaseDraft: false
-          prerelease: false
-          # Ioruba does not ship tauri-plugin-updater yet. Keep latest.json
-          # disabled until updater artifacts and TAURI_SIGNING_PRIVATE_KEY are configured.
-          includeUpdaterJson: false
-          args: --bundles appimage
-
   arch-pkgbuild:
     name: Arch Packaging Metadata
     needs:
       - desktop-bundles
-      - desktop-appimage
-    if: ${{ always() && needs.desktop-bundles.result != 'cancelled' && needs.desktop-appimage.result != 'cancelled' }}
+    if: ${{ always() && needs.desktop-bundles.result != 'cancelled' }}
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     permissions:
       contents: write
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v6.0.3
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
           fetch-depth: 0
           ref: ${{ env.RELEASE_TAG }}
@@ -710,18 +661,25 @@ jobs:
     needs:
       - prepare-release-notes
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     permissions:
       contents: write
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v6.0.3
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
           fetch-depth: 0
           ref: ${{ env.RELEASE_TAG }}
 
       - name: Setup Arduino CLI
-        uses: arduino/setup-arduino-cli@v2.0.0
+        uses: arduino/setup-arduino-cli@81d310742121c928ea9c8bbd407b4217b432ae02 # v2.0.0
+
+      - name: Cache Arduino toolchain
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+        with:
+          path: ~/.arduino15
+          key: arduino-avr-core-${{ runner.os }}
 
       - name: Install Arduino AVR core
         run: |
@@ -738,7 +696,7 @@ jobs:
             firmware/arduino/ioruba-controller
 
       - name: Upload firmware to release
-        uses: softprops/action-gh-release@v3
+        uses: softprops/action-gh-release@b4309332981a82ec1c5618f44dd2e27cc8bfbfda # v3.0.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
@@ -750,10 +708,10 @@ jobs:
     name: Attest Provenance and Checksums
     needs:
       - desktop-bundles
-      - desktop-appimage
       - firmware
-    if: ${{ always() && needs.desktop-bundles.result != 'cancelled' && needs.desktop-appimage.result != 'cancelled' && needs.firmware.result != 'cancelled' }}
+    if: ${{ always() && needs.desktop-bundles.result != 'cancelled' && needs.firmware.result != 'cancelled' }}
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     permissions:
       contents: write
       id-token: write
@@ -774,9 +732,17 @@ jobs:
             --pattern "*.msi" \
             --pattern "*-setup.exe" \
             --pattern "*.app.tar.gz" \
+            --pattern "*.hex" \
+            --pattern "*.elf" \
+            --pattern "*.eep" \
             --dir release-assets \
             --repo "${GITHUB_REPOSITORY}" \
             --clobber || true
+
+          if [ -z "$(ls -A release-assets)" ]; then
+            echo "No release assets found for ${RELEASE_TAG} — nothing to checksum or attest." >&2
+            exit 1
+          fi
 
           ls -lh release-assets/
 
@@ -784,7 +750,7 @@ jobs:
         run: |
           set -euo pipefail
           cd release-assets
-          sha256sum ./* > SHA256SUMS.txt
+          sha256sum * > SHA256SUMS.txt
           cat SHA256SUMS.txt
 
       - name: Upload SHA256SUMS to release
@@ -794,41 +760,17 @@ jobs:
           gh release upload "${RELEASE_TAG}" release-assets/SHA256SUMS.txt --clobber \
             --repo "${GITHUB_REPOSITORY}"
 
-      - name: Attest .deb
-        uses: actions/attest-build-provenance@v4
-        if: hashFiles('release-assets/*.deb') != ''
+      - name: Attest build provenance
+        uses: actions/attest-build-provenance@a2bbfa25375fe432b6a289bc6b6cd05ecd0c4c32 # v4.1.0
         with:
-          subject-path: release-assets/*.deb
-
-      - name: Attest .rpm
-        uses: actions/attest-build-provenance@v4
-        if: hashFiles('release-assets/*.rpm') != ''
-        with:
-          subject-path: release-assets/*.rpm
-
-      - name: Attest .AppImage
-        uses: actions/attest-build-provenance@v4
-        if: hashFiles('release-assets/*.AppImage') != ''
-        with:
-          subject-path: release-assets/*.AppImage
-
-      - name: Attest .msi
-        uses: actions/attest-build-provenance@v4
-        if: hashFiles('release-assets/*.msi') != ''
-        with:
-          subject-path: release-assets/*.msi
-
-      - name: Attest Windows setup installer
-        uses: actions/attest-build-provenance@v4
-        if: hashFiles('release-assets/*-setup.exe') != ''
-        with:
-          subject-path: release-assets/*-setup.exe
-
-      - name: Attest macOS app bundle
-        uses: actions/attest-build-provenance@v4
-        if: hashFiles('release-assets/*.app.tar.gz') != ''
-        with:
-          subject-path: release-assets/*.app.tar.gz
+          subject-path: |
+            release-assets/*.deb
+            release-assets/*.rpm
+            release-assets/*.AppImage
+            release-assets/*.msi
+            release-assets/*-setup.exe
+            release-assets/*.app.tar.gz
+            release-assets/*.hex
 
   aur-publish:
     name: Publish to AUR
@@ -837,6 +779,9 @@ jobs:
       - attest-and-checksum
     if: ${{ always() && needs.arch-pkgbuild.result == 'success' && needs.attest-and-checksum.result != 'cancelled' }}
     runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
 
     steps:
       - name: Install AUR SSH key
@@ -847,7 +792,11 @@ jobs:
           chmod 700 ~/.ssh
           printf '%s\n' "${AUR_SSH_PRIVATE_KEY}" > ~/.ssh/aur_ed25519
           chmod 600 ~/.ssh/aur_ed25519
-          ssh-keyscan aur.archlinux.org >> ~/.ssh/known_hosts
+          # Pinned host key published at https://aur.archlinux.org (avoids
+          # trust-on-first-use via ssh-keyscan, which is MITM-able).
+          cat >> ~/.ssh/known_hosts <<'KNOWN'
+          aur.archlinux.org ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIEuBKrPzbawxA/k2g6NcyV5jmqwJ2s+zpgZGZ7tpLIcN
+          KNOWN
           cat >> ~/.ssh/config <<'SSHCONF'
           Host aur.archlinux.org
             IdentityFile ~/.ssh/aur_ed25519

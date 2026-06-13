@@ -20,22 +20,26 @@ jobs:
   desktop-and-shared:
     name: Desktop And Shared
     runs-on: ubuntu-latest
+    timeout-minutes: 30
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v6.0.3
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
 
       - name: Setup Node
-        uses: actions/setup-node@v6.4.0
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
         with:
           node-version: 22
           cache: npm
 
       - name: Setup Rust
-        uses: dtolnay/rust-toolchain@stable
+        uses: dtolnay/rust-toolchain@3c5f7ea28cd621ae0bf5283f0e981fb97b8a7af9 # master
+        with:
+          toolchain: stable
+          components: clippy, rustfmt
 
       - name: Cache Rust
-        uses: Swatinem/rust-cache@v2.9.1
+        uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
         with:
           workspaces: |
             apps/desktop/src-tauri -> target
@@ -61,11 +65,17 @@ jobs:
       - name: Typecheck desktop app
         run: npm run desktop:typecheck
 
-      - name: Run shared tests
-        run: npm run shared:test
+      - name: Run shared tests with coverage
+        run: npm --workspace @ioruba/shared run test -- --coverage
 
-      - name: Run desktop tests
-        run: npm run desktop:test
+      - name: Run desktop tests with coverage
+        run: npm --workspace @ioruba/desktop run test -- --coverage
+
+      - name: Check Rust formatting
+        run: cargo fmt --check --manifest-path apps/desktop/src-tauri/Cargo.toml
+
+      - name: Lint Rust (clippy)
+        run: cargo clippy --manifest-path apps/desktop/src-tauri/Cargo.toml --all-targets -- -D warnings
 
       - name: Run Rust tests
         run: cargo test --manifest-path apps/desktop/src-tauri/Cargo.toml
@@ -79,13 +89,20 @@ jobs:
   firmware:
     name: Firmware
     runs-on: ubuntu-latest
+    timeout-minutes: 15
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v6.0.3
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
 
       - name: Setup Arduino CLI
-        uses: arduino/setup-arduino-cli@v2.0.0
+        uses: arduino/setup-arduino-cli@81d310742121c928ea9c8bbd407b4217b432ae02 # v2.0.0
+
+      - name: Cache Arduino toolchain
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+        with:
+          path: ~/.arduino15
+          key: arduino-avr-core-${{ runner.os }}
 
       - name: Install Arduino AVR core
         run: |
@@ -99,10 +116,11 @@ jobs:
   repo-smoke:
     name: Repo Smoke
     runs-on: ubuntu-latest
+    timeout-minutes: 5
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v6.0.3
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
 
       - name: Validate migration docs
         run: |
