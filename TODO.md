@@ -157,10 +157,10 @@ Itens resolvidos nesta rodada estão marcados `[x]`. Verificação completa ao f
 
 ## Scrum 09
 
-- [ ] Otimizar a telemetria para sessões longas e janelas maiores sem inflar memória `(frontend/performance/charts)` - `médio`
-- [ ] Revisar bundle do frontend e separar ainda melhor código de gráficos se necessário `(frontend/performance/build)` - `médio`
-- [ ] Melhorar a suavização visual dos knobs respeitando `transitionDurationMs` e estado aplicado `(frontend/audio/design)` - `médio`
-- [ ] Adicionar medições de tempo de boot, reconexão e refresh de inventário `(debug/performance/observability)` - `médio`
+- [x] Telemetria otimizada para sessões longas: `pushTelemetry` reescrito para alocação única (era `[...a,...b]`+slice por frame, ~25/s) e `buildSeries` memoizado + `TelemetryChart` em `React.memo` com comparador por conteúdo. Cobertura com oracle contra a semântica anterior `(frontend/performance/charts)` - `médio`
+- [x] Bundle do frontend: `TelemetryChart` (recharts ~353 KB / gzip ~104 KB) agora é `React.lazy` + `Suspense` — sai do caminho crítico até a aba de telemetria abrir. Chunk `charts` separado e fora do bundle inicial `(frontend/performance/build)` - `médio`
+- [x] Suavização dos knobs respeita `profile.audio.transitionDurationMs` (antes `duration-300` fixo): exposto em `RuntimeSnapshot`, propagado a `KnobPanel`/overview, com `motion-reduce:transition-none` para acessibilidade `(frontend/audio/design)` - `médio`
+- [x] Medições de tempo de boot, conexão serial e refresh de inventário via `performance.now()` no watch log (carga backend, boot-to-ready, conexão open→listen, refresh lento >500ms) `(debug/performance/observability)` - `médio`
 - [ ] Fazer um passe de polish em microcopy, empty states e feedback visual `(frontend/design/polish)` - `fácil`
 
 ## Scrum 10
