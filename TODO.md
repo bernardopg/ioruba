@@ -63,7 +63,7 @@ Itens resolvidos nesta rodada estão marcados `[x]`. Verificação completa ao f
 
 - [x] Commitado e enviado o endurecimento de CI/CD + as correções desta rodada em commits coerentes (gate verde local) `(repo/ci)` - `fácil`
 - [x] PRs do Dependabot/cargo: todos já estavam fechados/merged no remoto; as branches `dependabot/cargo/*` não existiam mais. Refs locais stale podadas com `git remote prune origin` `(repo/dependabot)` - `fácil`
-- [ ] Triagem das branches `copilot/*` no remoto: mesclar ou descartar `(repo/maintenance)` - `fácil`
+- [x] Triagem das branches `copilot/*`: já não existiam no remoto (PRs fechados/merged, branches deletadas). Refs locais stale podadas. Remoto agora só tem `main`; local em paridade exata `(repo/maintenance)` - `fácil`
 
 ## Atualizações recentes (main pós-v0.6.0)
 
