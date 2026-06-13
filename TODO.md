@@ -32,7 +32,7 @@ Itens resolvidos nesta rodada estão marcados `[x]`. Verificação completa ao f
 
 - [x] ~~Enviar comando `CONFIG ...` do desktop para o firmware~~ — **correção do review anterior: já estava implementado**. `use-serial-runtime.ts:441` já faz `port.write("CONFIG ...\n")` quando `firmwareConfigMatchesProfile` detecta divergência, com dedup via `lastFirmwareConfigRef` e tratamento de erro. O shared já tem `encodeFirmwareConfigCommand`/`firmwareConfigMatchesProfile`. Fluxo completo: handshake → compara → envia CONFIG → re-handshake `(firmware/frontend/protocol)` - `difícil`
 - [x] Versionar a expectativa de protocolo no desktop. Adicionado `SUPPORTED_PROTOCOL_VERSION = 2` em `protocol.ts`, campo `protocolSupported` em `FirmwareInfo`, aviso no watch log + sufixo `(incompatível)` no label quando diverge. Cobertura de teste no shared `(firmware/frontend/protocol)` - `médio`
-- [ ] Alinhar `FIRMWARE_VERSION = "0.5.0"` no `.ino` com a release `v1.0.0` do app, ou documentar explicitamente que firmware e app têm cadência de versão independente `(firmware/docs/version)` - `fácil`
+- [x] Documentado que firmware (`FIRMWARE_VERSION`) e app têm cadência de versão independente — comentário no `.ino` + nota em `NANO_SETUP.md`. O desktop valida só `PROTOCOL_VERSION` `(firmware/docs/version)` - `fácil`
 
 ### 🟡 Backend Rust/Tauri — robustez e correção
 
@@ -42,27 +42,27 @@ Itens resolvidos nesta rodada estão marcados `[x]`. Verificação completa ao f
 - [x] `append_entry` reescrito para append real (`OpenOptions::append` + `writeln!`), com trim amortizado disparado só quando o arquivo ultrapassa `WATCH_LOG_MAX_BYTES`. Eliminado o O(n²) por evento. Novo teste cobre append incremental + trim `(backend/observability/performance)` - `médio`
 - [x] `list_audio_inventory` agora coleta falhas parciais de `pactl` (por comando) e as anexa ao campo `diagnostics` em vez de virar inventário vazio silencioso. Eliminada chamada dupla de `application_inventory_names` `(backend/audio/observability)` - `fácil`
 - [x] Removida a entrada morta `--ignore RUSTSEC-2024-0429` do `rust:audit`. O advisory (glib `GHSA-wrw7-89jp-8q8g`) é corrigido na fonte pelo vendor `glib-0.18.5`, então não há o que ignorar. `CLAUDE.md` atualizado. `cargo audit` sem `--ignore` retorna exit 0 `(backend/ci/maintenance)` - `fácil`
-- [ ] Reaproveitar o inventário entre `list_audio_inventory` e `apply_slider_targets_batch`: cada `apply` re-executa 5 comandos `pactl` do zero. Considerar cache curto (TTL ~250ms) ou passar o inventário do frontend para reduzir fork/exec por movimento de knob. (Pré-requisito do Scrum 09 de performance) `(backend/audio/performance)` - `médio`
-- [ ] Documentar/automatizar a manutenção do patch `glib = vendor/glib-0.18.5`. Adicionar verificação no CI que alerte quando o Tauri Linux stack migrar para `glib >= 0.20` para então remover o vendor `(backend/security/maintenance)` - `médio`
-- [ ] Reduzir o ruído de `#[allow(dead_code)]` em `watch.rs` (`WatchScope::Serial` nunca é emitido pelo Rust, só pelo TS). Decidir se o variant fica no backend ou se o `allow` sai com uso real `(backend/cleanup)` - `fácil`
+- [x] Cache de inventário `pactl` implementado: `PactlSnapshot` lido uma vez e reusado por 250ms (TTL) entre `list_audio_inventory` e `apply_slider_targets_batch`, invalidado após escrita de volume. Colapsa o fork/exec por movimento de knob. +teste `(backend/audio/performance)` - `médio`
+- [x] Gate de CI que lê a versão resolvida de `glib` no `Cargo.lock` e falha se sair da linha `0.18.x` — sinal para remover o vendor patch quando o Tauri Linux stack migrar para `glib >= 0.20` `(backend/security/maintenance)` - `médio`
+- [x] Removido `#[allow(dead_code)]` de `WatchScope`/`WatchLevel` em `watch.rs` — variants são lidos por `scope_label`/`level_label` e exercitados por testes; clippy `-D warnings` segue limpo `(backend/cleanup)` - `fácil`
 
 ### 🟡 Firmware C/C++ — robustez
 
 - [x] `isspace(*value)` → `isspace(static_cast<unsigned char>(*value))` em `trimLeadingWhitespace`/`trimTrailingWhitespace` — corrige UB de passar `char` possivelmente negativo a `isspace` `(firmware/correctness/portability)` - `fácil`
 - [x] Overflow de comando serial agora é observável: flag `overflowed` consome a cauda até `\n` e emite `ERR command-too-long` em vez de resetar silenciosamente (que podia reinterpretar metade de um `CONFIG` como comando novo). Também adicionado `ERR config-rejected` quando `applyConfigCommand` falha. Firmware compila em 19% flash / 30% RAM `(firmware/protocol/error)` - `fácil`
-- [ ] Adicionar nota sobre o ciclo de escrita da EEPROM em `saveControllerConfig` (`EEPROM.put` já evita reescrever bytes iguais; documentar e evitar saves redundantes quando o config não muda) `(firmware/hardware/eeprom)` - `fácil`
-- [ ] Cobrir o parser `CONFIG` do firmware com teste de host (extrair a lógica de parsing para um TU compilável fora do AVR ou usar simulador serial) validando `mins/maxs` inválidos, `smooth>100` e campos desconhecidos `(firmware/test/coverage)` - `médio`
+- [x] EEPROM: `applyConfigCommand` agora só persiste quando `iorubaControllerConfigEquals` detecta mudança real — hosts que reenviam o mesmo CONFIG (boot/reconexão) não disparam escrita. Documentado que `EEPROM.put` já é byte-wise `(firmware/hardware/eeprom)` - `fácil`
+- [x] Parser `CONFIG` extraído para `config_parser.h` (lógica pura, sem deps Arduino) e coberto por teste de host g++ (`tests/config_parser_test.cpp`, 11 casos: `mins/maxs` inválidos/invertidos/fora de faixa, `smooth>100`, contagem de knobs errada, campos desconhecidos, separador ausente, valor não-numérico, payload vazio). Roda como `npm run firmware:test` no CI antes do compile `(firmware/test/coverage)` - `médio`
 
 ### 🟢 Tauri shell / empacotamento
 
 - [x] CSP restritiva definida em `tauri.conf.json` (`script-src 'self'`, `style-src 'self' 'unsafe-inline'` para recharts/radix, `connect-src 'self' ipc: http://ipc.localhost`, `object-src 'none'`, `frame-ancestors 'none'`). `csp: null` removido. `desktop:build` valida que o bundle não usa assets externos `(tauri/security/hardening)` - `médio`
-- [ ] Auditar a capability `default.json`: confirmar que `serialplugin:default`, `dialog:default` e `global-shortcut:default` concedem só o necessário e não expõem comandos extras do plugin não usados `(tauri/security/capabilities)` - `fácil`
+- [x] Capability `default.json` auditada e restringida: `dialog:default` → `dialog:allow-save` (app só usa `blocking_save_file`). `serialplugin:default` e `global-shortcut:default` mantidos (ambos exercitados). Validado com `tauri build` (ACL compila) `(tauri/security/capabilities)` - `fácil`
 - [ ] Validar o bundle AppImage agora incluído na matriz de release (`--bundles deb,rpm,appimage`) contra o problema histórico de `linuxdeploy` + `.relr.dyn` no Arch, garantindo que o runner Ubuntu 22.04 gera AppImage funcional `(release/linux/appimage)` - `médio`
 
 ### Ações de manutenção de repo (fora de código)
 
-- [ ] Commitar o working tree de endurecimento de CI/CD + as correções desta rodada (gate verde confirmado localmente) `(repo/ci)` - `fácil`
-- [ ] Fechar os 8 PRs obsoletos do Dependabot/cargo (versões já no `Cargo.lock`) `(repo/dependabot)` - `fácil`
+- [x] Commitado e enviado o endurecimento de CI/CD + as correções desta rodada em commits coerentes (gate verde local) `(repo/ci)` - `fácil`
+- [x] PRs do Dependabot/cargo: todos já estavam fechados/merged no remoto; as branches `dependabot/cargo/*` não existiam mais. Refs locais stale podadas com `git remote prune origin` `(repo/dependabot)` - `fácil`
 - [ ] Triagem das branches `copilot/*` no remoto: mesclar ou descartar `(repo/maintenance)` - `fácil`
 
 ## Atualizações recentes (main pós-v0.6.0)
