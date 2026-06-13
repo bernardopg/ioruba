@@ -1,3 +1,4 @@
+import { Activity } from "lucide-react";
 import { memo, useMemo } from "react";
 import {
   CartesianGrid,
@@ -110,6 +111,17 @@ function TelemetryChartImpl({ snapshot, language = "pt-BR" }: TelemetryChartProp
       </CardHeader>
       <CardContent className="pt-6">
         <div className="h-[320px] w-full sm:h-[380px]">
+          {data.length === 0 ? (
+            <div className="flex h-full w-full flex-col items-center justify-center gap-2 rounded-[var(--radius-card)] border border-dashed border-(--color-border) bg-[color-mix(in_oklab,var(--color-panel)_92%,var(--color-shell)_8%)] px-6 text-center">
+              <Activity className="h-6 w-6 text-(--color-muted)" />
+              <p className="text-sm font-semibold text-(--color-ink)">
+                {lt("Sem dados de telemetria ainda")}
+              </p>
+              <p className="max-w-sm text-xs leading-5 text-(--color-muted)">
+                {lt("Mova um knob com o controlador conectado para começar a registrar a linha do tempo.")}
+              </p>
+            </div>
+          ) : (
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={data}>
               <CartesianGrid
@@ -169,6 +181,7 @@ function TelemetryChartImpl({ snapshot, language = "pt-BR" }: TelemetryChartProp
               ))}
             </LineChart>
           </ResponsiveContainer>
+          )}
         </div>
       </CardContent>
     </Card>

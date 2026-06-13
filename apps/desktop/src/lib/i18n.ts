@@ -388,6 +388,9 @@ const TEXT_MAP: Record<string, string> = {
   "Backend de áudio pactl disponível.": "pactl audio backend available.",
   "Backend de áudio indisponível. Instale o pipewire-pulse ou pulseaudio-utils.":
     "Audio backend unavailable. Install pipewire-pulse or pulseaudio-utils.",
+  "Sem dados de telemetria ainda": "No telemetry data yet",
+  "Mova um knob com o controlador conectado para começar a registrar a linha do tempo.":
+    "Move a knob with the controller connected to start recording the timeline.",
 };
 
 export function translateText(language: UiLanguage, text: string): string {
