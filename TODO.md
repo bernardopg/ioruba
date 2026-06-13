@@ -1,6 +1,6 @@
 # TODO
 
-Atualizado para o projeto ativo em `2026-04-19`, com checks revisados a partir do estado real do código, da documentação, dos testes e dos assets do repositório.
+Atualizado para o projeto ativo em `2026-06-13`, com checks revisados a partir do estado real do código, da documentação, dos testes e dos assets do repositório.
 
 Formato:
 
@@ -9,6 +9,61 @@ Formato:
 - descrição `(tag/tag/tag)` - `fácil|médio|difícil`
 
 Prioridade atual: concluir primeiro tudo que é Linux/firmware/desktop. O backlog multiplataforma do Scrum 04 fica para o final.
+
+## Estado de sincronia com o remoto (snapshot 2026-06-13)
+
+- `main` local está em paridade exata com `origin/main` (0 commits ahead / 0 behind). Último corte: `13193cc release: cut v1.0.0`.
+- Há working tree **não commitado** de endurecimento de CI/CD (não publicado no remoto):
+  - `release.yml`, `ci.yml`, `codeql.yml`, `pages.yml` — SHA-pinning de actions, `permissions: read` por padrão com escopo elevado por job, `timeout-minutes`, `concurrency.cancel-in-progress: false` em release/pages, matriz CodeQL (js-ts + rust + actions), matriz de release com macOS aarch64/x86_64 + AppImage, attestations (`id-token`/`attestations: write`), gate de `cargo fmt --check` e `cargo clippy -D warnings`, coverage v8 no shared/desktop.
+  - `apps/desktop/package.json` e `packages/shared/package.json` — adição de `@vitest/coverage-v8`.
+- **8 PRs do Dependabot/cargo estão obsoletos** e devem ser fechados: o `Cargo.toml`/`Cargo.lock` já fixam `tauri 2.11.2`, `serde_json 1.0.150`, `tauri-plugin-serialplugin 2.22.0`, `tauri-plugin-global-shortcut 2.3.2` (branches `tauri-2.11.0`, `tauri-build-2.6.0`, etc. ficaram para trás do estado atual).
+- Branches `copilot/*` no remoto (`fix-ci-error-go-actions`, `deploy-new-content-to-pages`) precisam de triagem: mesclar ou descartar.
+
+## Review técnico — Rust/Tauri/C (rodada 2026-06-13)
+
+Itens resolvidos nesta rodada estão marcados `[x]`. Verificação completa ao final: `cargo clippy -D warnings`, `cargo fmt --check`, `cargo test` (15), `shared:test` (20), `desktop:test` (41), typecheck shared+desktop, `firmware:compile` (19% flash), `desktop:build`, `cargo audit` (0 vuln) — todos verdes.
+
+### 🔴 Bloqueante — gate de CI (RESOLVIDO)
+
+- [x] Corrigir 3 erros `clippy::needless_borrow` em `src/lib.rs` (`&app.handle()` → `app.handle()`). O diff de CI adiciona `cargo clippy -D warnings`; os erros quebravam o job. Corrigido e revalidado com clippy limpo `(backend/ci/clippy)` - `fácil`
+- [x] Rodar `cargo clippy -D warnings` + `cargo fmt --check` + testes localmente antes de commitar o working tree de CI. Gate passa de ponta a ponta `(backend/ci/verify)` - `fácil`
+
+### 🟠 Integração firmware ↔ desktop
+
+- [x] ~~Enviar comando `CONFIG ...` do desktop para o firmware~~ — **correção do review anterior: já estava implementado**. `use-serial-runtime.ts:441` já faz `port.write("CONFIG ...\n")` quando `firmwareConfigMatchesProfile` detecta divergência, com dedup via `lastFirmwareConfigRef` e tratamento de erro. O shared já tem `encodeFirmwareConfigCommand`/`firmwareConfigMatchesProfile`. Fluxo completo: handshake → compara → envia CONFIG → re-handshake `(firmware/frontend/protocol)` - `difícil`
+- [x] Versionar a expectativa de protocolo no desktop. Adicionado `SUPPORTED_PROTOCOL_VERSION = 2` em `protocol.ts`, campo `protocolSupported` em `FirmwareInfo`, aviso no watch log + sufixo `(incompatível)` no label quando diverge. Cobertura de teste no shared `(firmware/frontend/protocol)` - `médio`
+- [ ] Alinhar `FIRMWARE_VERSION = "0.5.0"` no `.ino` com a release `v1.0.0` do app, ou documentar explicitamente que firmware e app têm cadência de versão independente `(firmware/docs/version)` - `fácil`
+
+### 🟡 Backend Rust/Tauri — robustez e correção
+
+- [x] `apply_slider_targets_batch` agora é `async` e move o trabalho `pactl` bloqueante para `tauri::async_runtime::spawn_blocking`, liberando a thread de comando do Tauri `(backend/audio/performance)` - `médio`
+- [x] Hardening de `atomic_write`: sufixo único do `.tmp` (pid + contador atômico + timestamp ns), `sync_all` do arquivo antes do `rename` e fsync best-effort do diretório-pai após o rename `(backend/persistence/durability)` - `médio`
+- [x] Serializar acesso ao `ioruba-state.json` com `STATE_LOCK` dedicado em `save_persisted_state`/`load_persisted_state`, evitando race entre boot e escrita concorrente `(backend/persistence/concurrency)` - `médio`
+- [x] `append_entry` reescrito para append real (`OpenOptions::append` + `writeln!`), com trim amortizado disparado só quando o arquivo ultrapassa `WATCH_LOG_MAX_BYTES`. Eliminado o O(n²) por evento. Novo teste cobre append incremental + trim `(backend/observability/performance)` - `médio`
+- [x] `list_audio_inventory` agora coleta falhas parciais de `pactl` (por comando) e as anexa ao campo `diagnostics` em vez de virar inventário vazio silencioso. Eliminada chamada dupla de `application_inventory_names` `(backend/audio/observability)` - `fácil`
+- [x] Removida a entrada morta `--ignore RUSTSEC-2024-0429` do `rust:audit`. O advisory (glib `GHSA-wrw7-89jp-8q8g`) é corrigido na fonte pelo vendor `glib-0.18.5`, então não há o que ignorar. `CLAUDE.md` atualizado. `cargo audit` sem `--ignore` retorna exit 0 `(backend/ci/maintenance)` - `fácil`
+- [ ] Reaproveitar o inventário entre `list_audio_inventory` e `apply_slider_targets_batch`: cada `apply` re-executa 5 comandos `pactl` do zero. Considerar cache curto (TTL ~250ms) ou passar o inventário do frontend para reduzir fork/exec por movimento de knob. (Pré-requisito do Scrum 09 de performance) `(backend/audio/performance)` - `médio`
+- [ ] Documentar/automatizar a manutenção do patch `glib = vendor/glib-0.18.5`. Adicionar verificação no CI que alerte quando o Tauri Linux stack migrar para `glib >= 0.20` para então remover o vendor `(backend/security/maintenance)` - `médio`
+- [ ] Reduzir o ruído de `#[allow(dead_code)]` em `watch.rs` (`WatchScope::Serial` nunca é emitido pelo Rust, só pelo TS). Decidir se o variant fica no backend ou se o `allow` sai com uso real `(backend/cleanup)` - `fácil`
+
+### 🟡 Firmware C/C++ — robustez
+
+- [x] `isspace(*value)` → `isspace(static_cast<unsigned char>(*value))` em `trimLeadingWhitespace`/`trimTrailingWhitespace` — corrige UB de passar `char` possivelmente negativo a `isspace` `(firmware/correctness/portability)` - `fácil`
+- [x] Overflow de comando serial agora é observável: flag `overflowed` consome a cauda até `\n` e emite `ERR command-too-long` em vez de resetar silenciosamente (que podia reinterpretar metade de um `CONFIG` como comando novo). Também adicionado `ERR config-rejected` quando `applyConfigCommand` falha. Firmware compila em 19% flash / 30% RAM `(firmware/protocol/error)` - `fácil`
+- [ ] Adicionar nota sobre o ciclo de escrita da EEPROM em `saveControllerConfig` (`EEPROM.put` já evita reescrever bytes iguais; documentar e evitar saves redundantes quando o config não muda) `(firmware/hardware/eeprom)` - `fácil`
+- [ ] Cobrir o parser `CONFIG` do firmware com teste de host (extrair a lógica de parsing para um TU compilável fora do AVR ou usar simulador serial) validando `mins/maxs` inválidos, `smooth>100` e campos desconhecidos `(firmware/test/coverage)` - `médio`
+
+### 🟢 Tauri shell / empacotamento
+
+- [x] CSP restritiva definida em `tauri.conf.json` (`script-src 'self'`, `style-src 'self' 'unsafe-inline'` para recharts/radix, `connect-src 'self' ipc: http://ipc.localhost`, `object-src 'none'`, `frame-ancestors 'none'`). `csp: null` removido. `desktop:build` valida que o bundle não usa assets externos `(tauri/security/hardening)` - `médio`
+- [ ] Auditar a capability `default.json`: confirmar que `serialplugin:default`, `dialog:default` e `global-shortcut:default` concedem só o necessário e não expõem comandos extras do plugin não usados `(tauri/security/capabilities)` - `fácil`
+- [ ] Validar o bundle AppImage agora incluído na matriz de release (`--bundles deb,rpm,appimage`) contra o problema histórico de `linuxdeploy` + `.relr.dyn` no Arch, garantindo que o runner Ubuntu 22.04 gera AppImage funcional `(release/linux/appimage)` - `médio`
+
+### Ações de manutenção de repo (fora de código)
+
+- [ ] Commitar o working tree de endurecimento de CI/CD + as correções desta rodada (gate verde confirmado localmente) `(repo/ci)` - `fácil`
+- [ ] Fechar os 8 PRs obsoletos do Dependabot/cargo (versões já no `Cargo.lock`) `(repo/dependabot)` - `fácil`
+- [ ] Triagem das branches `copilot/*` no remoto: mesclar ou descartar `(repo/maintenance)` - `fácil`
 
 ## Atualizações recentes (main pós-v0.6.0)
 
