@@ -124,8 +124,46 @@ export function pushTelemetry(
   nextPoints: TelemetryPoint[],
   windowSize: number
 ): TelemetryPoint[] {
-  const merged = [...telemetry, ...nextPoints];
-  return merged.slice(Math.max(0, merged.length - windowSize));
+  // Janela <= 0 desliga a telemetria sem alocar nada.
+  if (windowSize <= 0) {
+    return telemetry.length === 0 ? telemetry : [];
+  }
+
+  // Nada a anexar: preserva a referência existente para não invalidar memos a
+  // jusante (React/Zustand) à toa.
+  if (nextPoints.length === 0) {
+    return telemetry.length <= windowSize
+      ? telemetry
+      : telemetry.slice(telemetry.length - windowSize);
+  }
+
+  const total = telemetry.length + nextPoints.length;
+
+  // Caminho comum em regime: o resultado cabe na janela. Uma única alocação
+  // (concat) em vez do `[...a, ...b]` seguido de `slice` (duas alocações).
+  if (total <= windowSize) {
+    return telemetry.concat(nextPoints);
+  }
+
+  // Excedeu a janela: monta direto o sufixo de `windowSize` pontos sem criar o
+  // array intermediário `merged`. Copia apenas a cauda necessária de cada lado.
+  const result: TelemetryPoint[] = new Array(windowSize);
+  const dropCount = total - windowSize;
+
+  let writeIndex = 0;
+  // Quantos pontos antigos sobrevivem após descartar os mais velhos.
+  const keptFromOld = Math.max(0, telemetry.length - dropCount);
+  for (let readIndex = telemetry.length - keptFromOld; readIndex < telemetry.length; readIndex++) {
+    result[writeIndex++] = telemetry[readIndex];
+  }
+
+  // Quantos pontos novos entram (a cauda, caso nextPoints sozinho já exceda).
+  const startNew = Math.max(0, nextPoints.length - windowSize);
+  for (let readIndex = startNew; readIndex < nextPoints.length; readIndex++) {
+    result[writeIndex++] = nextPoints[readIndex];
+  }
+
+  return result;
 }
 
 export function describeTarget(
