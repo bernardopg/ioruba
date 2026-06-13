@@ -79,6 +79,8 @@ export interface PersistedState {
   demoMode: boolean;
   launchOnLogin: boolean;
   lastPort: string | null;
+  /** Quando true, o cartão de onboarding inicial não é mais exibido. */
+  onboardingDismissed?: boolean;
 }
 
 export interface AudioEndpoint {

@@ -373,6 +373,21 @@ const TEXT_MAP: Record<string, string> = {
     "Adjust overall volume, the music player and the default output for listening or production.",
   "Exportar perfil": "Export profile",
   "Importar perfil": "Import profile",
+  "Primeiros passos": "Getting started",
+  concluídos: "completed",
+  "Dispensar primeiros passos": "Dismiss getting started",
+  "Conecte o controlador": "Connect the controller",
+  "Handshake do firmware recebido.": "Firmware handshake received.",
+  "Ligue o Arduino e aguarde o handshake do firmware.":
+    "Power on the Arduino and wait for the firmware handshake.",
+  "Encontre a porta serial": "Find the serial port",
+  "Porta serial detectada.": "Serial port detected.",
+  "Nenhuma porta serial disponível ainda. Verifique o cabo USB.":
+    "No serial port available yet. Check the USB cable.",
+  "Verifique o áudio do sistema": "Check system audio",
+  "Backend de áudio pactl disponível.": "pactl audio backend available.",
+  "Backend de áudio indisponível. Instale o pipewire-pulse ou pulseaudio-utils.":
+    "Audio backend unavailable. Install pipewire-pulse or pulseaudio-utils.",
 };
 
 export function translateText(language: UiLanguage, text: string): string {

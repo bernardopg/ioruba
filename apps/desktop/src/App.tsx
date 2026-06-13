@@ -29,6 +29,7 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { AudioBackendBanner } from "@/components/dashboard/audio-backend-banner";
 import { KnobPanel } from "@/components/dashboard/knob-panel";
+import { OnboardingChecklist } from "@/components/dashboard/onboarding-checklist";
 import { OverviewSignalPanel } from "@/components/dashboard/overview-signal-panel";
 import { WatchLogPanel } from "@/components/dashboard/watch-log-panel";
 // recharts pesa ~350 KB (gzip ~104 KB) e só é usado na aba de telemetria.
@@ -98,6 +99,7 @@ export default function App() {
   const applyPreset = useIorubaStore((state) => state.applyPreset);
   const exportActiveProfile = useIorubaStore((state) => state.exportActiveProfile);
   const importProfileFromFile = useIorubaStore((state) => state.importProfileFromFile);
+  const dismissOnboarding = useIorubaStore((state) => state.dismissOnboarding);
   const duplicateActiveProfile = useIorubaStore(
     (state) => state.duplicateActiveProfile
   );
@@ -324,6 +326,14 @@ export default function App() {
 
           {activeSection === "home" ? (
             <>
+              {!persisted.onboardingDismissed ? (
+                <OnboardingChecklist
+                  audioInventory={audioInventory}
+                  language={language}
+                  onDismiss={dismissOnboarding}
+                  snapshot={snapshot}
+                />
+              ) : null}
               <AudioBackendBanner
                 backend={audioInventory.backend}
                 diagnostics={audioInventory.diagnostics}

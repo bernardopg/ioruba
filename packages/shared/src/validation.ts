@@ -55,7 +55,8 @@ export function normalizePersistedState(
         ? candidate.launchOnLogin
         : defaultPersistedState.launchOnLogin,
     lastPort:
-      typeof candidate.lastPort === "string" ? candidate.lastPort : null
+      typeof candidate.lastPort === "string" ? candidate.lastPort : null,
+    onboardingDismissed: candidate.onboardingDismissed === true
   };
 }
 

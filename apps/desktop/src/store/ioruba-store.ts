@@ -91,6 +91,7 @@ interface IorubaState {
   applyPreset: (presetKey: string) => void;
   exportActiveProfile: () => Promise<void>;
   importProfileFromFile: () => Promise<void>;
+  dismissOnboarding: () => void;
   duplicateActiveProfile: () => void;
   removeActiveProfile: () => void;
   updateActiveProfileConfig: (profile: MixerProfile) => void;
@@ -472,6 +473,23 @@ export const useIorubaStore = create<IorubaState>((set, get) => {
         message: enabled
           ? "Inicializacao com a sessao ativada"
           : "Inicializacao com a sessao desativada"
+      });
+    },
+    dismissOnboarding: () => {
+      const state = get();
+      if (state.persisted.onboardingDismissed) {
+        return;
+      }
+      set({
+        persisted: {
+          ...state.persisted,
+          onboardingDismissed: true
+        }
+      });
+      get().appendWatchLog({
+        scope: "app",
+        level: "info",
+        message: "Onboarding inicial dispensado"
       });
     },
     selectProfile: (profileId) => {
