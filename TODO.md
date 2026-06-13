@@ -161,15 +161,15 @@ Itens resolvidos nesta rodada estão marcados `[x]`. Verificação completa ao f
 - [x] Bundle do frontend: `TelemetryChart` (recharts ~353 KB / gzip ~104 KB) agora é `React.lazy` + `Suspense` — sai do caminho crítico até a aba de telemetria abrir. Chunk `charts` separado e fora do bundle inicial `(frontend/performance/build)` - `médio`
 - [x] Suavização dos knobs respeita `profile.audio.transitionDurationMs` (antes `duration-300` fixo): exposto em `RuntimeSnapshot`, propagado a `KnobPanel`/overview, com `motion-reduce:transition-none` para acessibilidade `(frontend/audio/design)` - `médio`
 - [x] Medições de tempo de boot, conexão serial e refresh de inventário via `performance.now()` no watch log (carga backend, boot-to-ready, conexão open→listen, refresh lento >500ms) `(debug/performance/observability)` - `médio`
-- [ ] Fazer um passe de polish em microcopy, empty states e feedback visual `(frontend/design/polish)` - `fácil`
+- [x] Passe de polish: empty state no gráfico de telemetria (placeholder com ícone + dica quando não há dados); empty states de watch log e demais painéis já existiam. Microcopy pt-BR/en revisada nas novas superfícies `(frontend/design/polish)` - `fácil`
 
 ## Scrum 10
 
-- [ ] Criar onboarding inicial com checklist de firmware, porta serial e inventário de áudio `(frontend/onboarding/docs)` - `médio`
-- [ ] Adicionar import/export de perfis para backup e compartilhamento `(frontend/backend/data)` - `médio`
-- [ ] Permitir presets prontos para casos comuns como streaming, chamadas e música `(frontend/product/config)` - `fácil`
-- [ ] Estudar suporte a múltiplos controladores ou mais de 3 knobs no modelo do domínio `(backend/firmware/architecture)` - `difícil`
-- [ ] Definir backlog pós-migração com metas de produto além da paridade com o legado `(product/docs/roadmap)` - `fácil`
+- [x] Onboarding inicial: cartão dispensável na home com checklist derivado do estado ao vivo (controlador conectado, porta serial, backend de áudio pactl). Flag `onboardingDismissed` persistida e auto-salva `(frontend/onboarding/docs)` - `médio`
+- [x] Import/export de perfis: comandos Tauri `export_profile`/`import_profile` (dialogs save/open + escrita atômica), validação via `parseProfileDraft` no import com id/nome desambiguados, botões na workbench `(frontend/backend/data)` - `médio`
+- [x] Presets prontos (streaming/chamadas/música) em `presets.ts` no shared, action `applyPreset` e seletor de presets na workbench. Cobertos por testes `(frontend/product/config)` - `fácil`
+- [x] Estudo de suporte a múltiplos controladores / >3 knobs documentado em `docs/roadmap.md`: protocolo e perfil/UI já são genéricos; o limite é firmware/hardware. Caminhos e esforços mapeados `(backend/firmware/architecture)` - `difícil`
+- [x] Backlog pós-migração com metas de produto documentado em `docs/roadmap.md` `(product/docs/roadmap)` - `fácil`
 
 ## Scrum 04 — Multiplataforma (deixar para o final)
 
