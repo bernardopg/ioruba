@@ -12,6 +12,7 @@ import {
   resolveFilteredUpdates,
   sliderToAppliedPercent,
   sliderValueToPercent,
+  SUPPORTED_PROTOCOL_VERSION,
   type AudioInventory,
   type FirmwareInfo,
   type OutcomeMap,
@@ -166,7 +167,8 @@ function sliderNameForId(profile: MixerProfile, sliderId: number): string {
 }
 
 function formatFirmwareLabel(firmwareInfo: FirmwareInfo): string {
-  return `${firmwareInfo.boardName} v${firmwareInfo.firmwareVersion} · protocolo ${firmwareInfo.protocolVersion}`;
+  const base = `${firmwareInfo.boardName} v${firmwareInfo.firmwareVersion} · protocolo ${firmwareInfo.protocolVersion}`;
+  return firmwareInfo.protocolSupported ? base : `${base} (incompatível)`;
 }
 
 function normalizeWatchEntries(entries: WatchLogEntry[]): WatchLogEntry[] {
@@ -720,6 +722,15 @@ export const useIorubaStore = create<IorubaState>((set, get) => {
           message: "Handshake do firmware recebido",
           detail: formatFirmwareLabel(firmwareInfo)
         });
+
+        if (!firmwareInfo.protocolSupported) {
+          get().appendWatchLog({
+            scope: "serial",
+            level: "warning",
+            message: "Protocolo do firmware incompativel com o esperado",
+            detail: `firmware protocolo ${firmwareInfo.protocolVersion} | esperado ${SUPPORTED_PROTOCOL_VERSION}`
+          });
+        }
 
         if (
           firmwareInfo.knobCount !== null &&

@@ -101,6 +101,12 @@ export interface FirmwareInfo {
   boardName: string;
   firmwareVersion: string;
   protocolVersion: number;
+  /**
+   * `true` quando `protocolVersion` casa com `SUPPORTED_PROTOCOL_VERSION`. Quando
+   * `false`, o firmware conectado fala um protocolo diferente do esperado e a UI
+   * deve sinalizar possível incompatibilidade.
+   */
+  protocolSupported: boolean;
   knobCount: number | null;
   controllerConfig: FirmwareControllerConfig | null;
 }

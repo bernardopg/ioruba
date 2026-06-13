@@ -61,6 +61,7 @@ describe("serial protocol parity", () => {
         boardName: "Ioruba Nano",
         firmwareVersion: "0.5.0",
         protocolVersion: 2,
+        protocolSupported: true,
         knobCount: 3,
         controllerConfig: {
           changeThreshold: 4,
@@ -74,6 +75,18 @@ describe("serial protocol parity", () => {
         },
       },
     });
+  });
+
+  it("flags handshake protocols that diverge from the supported version", () => {
+    const packet = parseSerialPacket(
+      "HELLO board=Ioruba Nano; fw=9.9.9; protocol=99; knobs=3",
+    );
+
+    expect(packet.kind).toBe("handshake");
+    if (packet.kind === "handshake") {
+      expect(packet.info.protocolVersion).toBe(99);
+      expect(packet.info.protocolSupported).toBe(false);
+    }
   });
 
   it("rejects handshake payloads when parsed as slider frames", () => {
@@ -95,6 +108,7 @@ describe("serial protocol parity", () => {
       boardName: "Ioruba Nano",
       firmwareVersion: "0.5.0",
       protocolVersion: 2,
+      protocolSupported: true,
       knobCount: 3,
       controllerConfig: buildFirmwareControllerConfig(defaultProfile),
     };

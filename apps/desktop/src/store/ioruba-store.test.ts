@@ -154,6 +154,7 @@ describe("ioruba store", () => {
       boardName: "Ioruba Nano",
       firmwareVersion: "0.5.0",
       protocolVersion: 2,
+      protocolSupported: true,
       knobCount: 3,
       controllerConfig: {
         changeThreshold: 4,
@@ -174,6 +175,7 @@ describe("ioruba store", () => {
       boardName: "Ioruba Nano",
       firmwareVersion: "0.5.0",
       protocolVersion: 2,
+      protocolSupported: true,
       knobCount: 3,
       controllerConfig: {
         changeThreshold: 4,

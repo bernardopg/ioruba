@@ -9,6 +9,15 @@ import type {
 
 const handshakePrefix = "HELLO";
 
+/**
+ * Versão de protocolo serial que este desktop entende plenamente. O firmware
+ * atual (`ioruba-controller.ino`) emite `protocol=2`. Quando o handshake reporta
+ * uma versão diferente, o app continua funcionando para frames de knob básicos,
+ * mas marca `protocolSupported = false` para que a UI possa avisar sobre firmware
+ * possivelmente incompatível (mais novo ou mais antigo que o esperado).
+ */
+export const SUPPORTED_PROTOCOL_VERSION = 2;
+
 function parseLegacySliderPacket(payload: string): { sliderId: number; value: number } | null {
   if (!payload.length || payload[0] !== "P") {
     return null;
@@ -232,6 +241,7 @@ function parseHandshakePacket(payload: string): FirmwareInfo | null {
     boardName,
     firmwareVersion,
     protocolVersion,
+    protocolSupported: protocolVersion === SUPPORTED_PROTOCOL_VERSION,
     knobCount,
     controllerConfig
   };
