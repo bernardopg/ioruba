@@ -3,6 +3,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "config_parser.h"
+
 // Active Ioruba controller firmware for Arduino Nano-compatible boards.
 //
 // Hardware:
@@ -22,7 +24,10 @@
 // - emits a heartbeat frame while idle to keep the desktop runtime alive
 // - persists controller tuning and knob calibration in EEPROM
 
-const int NUM_KNOBS = 3;
+// Constantes de domínio e a struct ControllerConfig vivem em config_parser.h
+// (lógica pura, testável em host). Aqui só ficam os apelidos e as constantes
+// específicas do runtime Arduino.
+const int NUM_KNOBS = IORUBA_NUM_KNOBS;
 const int ANALOG_PINS[NUM_KNOBS] = {A0, A1, A2};
 const long BAUD_RATE = 9600;
 const char BOARD_NAME[] = "Ioruba Nano";
@@ -34,29 +39,14 @@ const char BOARD_NAME[] = "Ioruba Nano";
 // ou do handshake.
 const char FIRMWARE_VERSION[] = "0.5.0";
 const int PROTOCOL_VERSION = 2;
-const int ADC_MIN = 0;
-const int ADC_MAX = 1023;
+const int ADC_MIN = IORUBA_ADC_MIN;
+const int ADC_MAX = IORUBA_ADC_MAX;
 const unsigned long SEND_INTERVAL_MS = 40;
 const unsigned long HEARTBEAT_INTERVAL_MS = 500;
 const unsigned long STARTUP_SERIAL_DELAY_MS = 120;
 
-const int DEFAULT_CHANGE_THRESHOLD = 4;
-const int DEFAULT_EDGE_DEADZONE = 7;
-const int DEFAULT_SMOOTHING_STRENGTH = 75;
-
-const uint16_t EEPROM_MAGIC = 0x49A5;
-const uint8_t EEPROM_SCHEMA_VERSION = 1;
-
-struct ControllerConfig {
-  uint16_t magic;
-  uint8_t schemaVersion;
-  uint8_t knobCount;
-  uint8_t changeThreshold;
-  uint8_t edgeDeadzone;
-  uint8_t smoothingStrength;
-  uint16_t minRaw[NUM_KNOBS];
-  uint16_t maxRaw[NUM_KNOBS];
-};
+const uint16_t EEPROM_MAGIC = IORUBA_EEPROM_MAGIC;
+const uint8_t EEPROM_SCHEMA_VERSION = IORUBA_EEPROM_SCHEMA_VERSION;
 
 ControllerConfig controllerConfig;
 int knobValues[NUM_KNOBS];
@@ -68,56 +58,12 @@ int clampAdcValue(int value) {
   return constrain(value, ADC_MIN, ADC_MAX);
 }
 
-bool isValidCalibrationRange(int minRaw, int maxRaw) {
-  return minRaw >= ADC_MIN && maxRaw <= ADC_MAX && minRaw < maxRaw;
-}
-
 bool validateControllerConfig(const ControllerConfig &config) {
-  if (config.knobCount != NUM_KNOBS) {
-    return false;
-  }
-
-  if (config.smoothingStrength > 100) {
-    return false;
-  }
-
-  for (int index = 0; index < NUM_KNOBS; index++) {
-    if (!isValidCalibrationRange(config.minRaw[index], config.maxRaw[index])) {
-      return false;
-    }
-  }
-
-  return true;
+  return iorubaValidateControllerConfig(config);
 }
 
 void applyDefaultControllerConfig() {
-  controllerConfig.magic = EEPROM_MAGIC;
-  controllerConfig.schemaVersion = EEPROM_SCHEMA_VERSION;
-  controllerConfig.knobCount = NUM_KNOBS;
-  controllerConfig.changeThreshold = DEFAULT_CHANGE_THRESHOLD;
-  controllerConfig.edgeDeadzone = DEFAULT_EDGE_DEADZONE;
-  controllerConfig.smoothingStrength = DEFAULT_SMOOTHING_STRENGTH;
-
-  for (int index = 0; index < NUM_KNOBS; index++) {
-    controllerConfig.minRaw[index] = ADC_MIN;
-    controllerConfig.maxRaw[index] = ADC_MAX;
-  }
-}
-
-bool controllerConfigEquals(const ControllerConfig &a, const ControllerConfig &b) {
-  if (a.changeThreshold != b.changeThreshold ||
-      a.edgeDeadzone != b.edgeDeadzone ||
-      a.smoothingStrength != b.smoothingStrength) {
-    return false;
-  }
-
-  for (int index = 0; index < NUM_KNOBS; index++) {
-    if (a.minRaw[index] != b.minRaw[index] || a.maxRaw[index] != b.maxRaw[index]) {
-      return false;
-    }
-  }
-
-  return true;
+  iorubaApplyDefaultControllerConfig(controllerConfig);
 }
 
 void saveControllerConfig() {
@@ -260,75 +206,6 @@ void sendHandshake() {
   Serial.println();
 }
 
-char *trimLeadingWhitespace(char *value) {
-  // isspace exige um valor representavel como unsigned char (ou EOF); passar um
-  // char possivelmente negativo e comportamento indefinido em C/C++.
-  while (*value != '\0' && isspace(static_cast<unsigned char>(*value))) {
-    value++;
-  }
-
-  return value;
-}
-
-void trimTrailingWhitespace(char *value) {
-  int length = strlen(value);
-  while (length > 0 && isspace(static_cast<unsigned char>(value[length - 1]))) {
-    value[length - 1] = '\0';
-    length--;
-  }
-}
-
-char *trimWhitespace(char *value) {
-  char *trimmed = trimLeadingWhitespace(value);
-  trimTrailingWhitespace(trimmed);
-  return trimmed;
-}
-
-bool parseIntegerValue(const char *value, int minimum, int maximum, int *destination) {
-  if (value == NULL || *value == '\0') {
-    return false;
-  }
-
-  char *end = NULL;
-  const long parsed = strtol(value, &end, 10);
-  if (end == value || *trimLeadingWhitespace(end) != '\0') {
-    return false;
-  }
-
-  if (parsed < minimum || parsed > maximum) {
-    return false;
-  }
-
-  *destination = static_cast<int>(parsed);
-  return true;
-}
-
-bool parseIntegerList(char *value, uint16_t *destination) {
-  if (value == NULL || *value == '\0') {
-    return false;
-  }
-
-  int index = 0;
-  char *context = NULL;
-  char *entry = strtok_r(value, ",", &context);
-  while (entry != NULL) {
-    if (index >= NUM_KNOBS) {
-      return false;
-    }
-
-    int parsed = 0;
-    char *trimmed = trimWhitespace(entry);
-    if (!parseIntegerValue(trimmed, ADC_MIN, ADC_MAX, &parsed)) {
-      return false;
-    }
-
-    destination[index++] = static_cast<uint16_t>(parsed);
-    entry = strtok_r(NULL, ",", &context);
-  }
-
-  return index == NUM_KNOBS;
-}
-
 void refreshKnobBuffers() {
   for (int index = 0; index < NUM_KNOBS; index++) {
     knobValues[index] = readKnobValue(index);
@@ -340,69 +217,16 @@ void refreshKnobBuffers() {
 }
 
 bool applyConfigCommand(char *payload) {
-  if (payload == NULL) {
-    return false;
-  }
-
-  ControllerConfig nextConfig = controllerConfig;
-  bool sawField = false;
-
-  char *context = NULL;
-  char *entry = strtok_r(payload, ";", &context);
-  while (entry != NULL) {
-    char *trimmedEntry = trimWhitespace(entry);
-    if (*trimmedEntry != '\0') {
-      char *separator = strchr(trimmedEntry, '=');
-      if (separator == NULL) {
-        return false;
-      }
-
-      *separator = '\0';
-      char *key = trimWhitespace(trimmedEntry);
-      char *value = trimWhitespace(separator + 1);
-      sawField = true;
-
-      if (strcmp(key, "threshold") == 0) {
-        int parsed = 0;
-        if (!parseIntegerValue(value, 0, 255, &parsed)) {
-          return false;
-        }
-        nextConfig.changeThreshold = static_cast<uint8_t>(parsed);
-      } else if (strcmp(key, "deadzone") == 0) {
-        int parsed = 0;
-        if (!parseIntegerValue(value, 0, 255, &parsed)) {
-          return false;
-        }
-        nextConfig.edgeDeadzone = static_cast<uint8_t>(parsed);
-      } else if (strcmp(key, "smooth") == 0) {
-        int parsed = 0;
-        if (!parseIntegerValue(value, 0, 100, &parsed)) {
-          return false;
-        }
-        nextConfig.smoothingStrength = static_cast<uint8_t>(parsed);
-      } else if (strcmp(key, "mins") == 0) {
-        if (!parseIntegerList(value, nextConfig.minRaw)) {
-          return false;
-        }
-      } else if (strcmp(key, "maxs") == 0) {
-        if (!parseIntegerList(value, nextConfig.maxRaw)) {
-          return false;
-        }
-      } else {
-        return false;
-      }
-    }
-
-    entry = strtok_r(NULL, ";", &context);
-  }
-
-  if (!sawField || !validateControllerConfig(nextConfig)) {
+  // Parsing e validacao puros vivem em config_parser.h (testados em host). Aqui
+  // so cuidamos do efeito colateral: persistir e reaplicar buffers.
+  ControllerConfig nextConfig;
+  if (!iorubaApplyConfigFields(controllerConfig, payload, &nextConfig)) {
     return false;
   }
 
   // So persiste quando algo de fato mudou: economiza ciclos de escrita da EEPROM
   // em hosts que reenviam o mesmo CONFIG (ex.: reaplicacao no boot/reconexao).
-  if (!controllerConfigEquals(controllerConfig, nextConfig)) {
+  if (!iorubaControllerConfigEquals(controllerConfig, nextConfig)) {
     controllerConfig = nextConfig;
     saveControllerConfig();
     refreshKnobBuffers();

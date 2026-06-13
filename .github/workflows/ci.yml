@@ -127,6 +127,9 @@ jobs:
           arduino-cli core update-index
           arduino-cli core install arduino:avr
 
+      - name: Test firmware config parser (host)
+        run: npm run firmware:test
+
       - name: Compile firmware
         run: npm run firmware:compile
 
