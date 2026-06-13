@@ -73,14 +73,19 @@ function toneForTargetStatus(
 export function KnobPanel({
   className,
   knob,
-  language = "pt-BR"
+  language = "pt-BR",
+  transitionDurationMs = 300
 }: {
   className?: HTMLAttributes<HTMLDivElement>["className"];
   knob: RuntimeKnobSnapshot;
   language?: UiLanguage;
+  transitionDurationMs?: number;
 }) {
   const lt = (text: string) => translateText(language, text);
   const accent = accentColor(knob.accent);
+  // A barra de resposta respeita o tempo de transição configurado em
+  // profile.audio.transitionDurationMs em vez de um valor fixo de 300ms.
+  const barTransition = `width ${Math.max(0, transitionDurationMs)}ms ease-out`;
 
   return (
     <Card
@@ -154,9 +159,10 @@ export function KnobPanel({
             </div>
             <div className="mt-3 h-2 overflow-hidden rounded-full bg-[color-mix(in_oklab,var(--color-border)_55%,transparent)]">
               <div
-                className="h-full rounded-full transition-[width] duration-300"
+                className="h-full rounded-full motion-reduce:transition-none"
                 style={{
                   width: `${knob.percent}%`,
+                  transition: barTransition,
                   background: `linear-gradient(90deg, ${accent}, color-mix(in oklab, ${accent} 68%, var(--color-glow)))`
                 }}
               />

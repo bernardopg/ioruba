@@ -561,7 +561,12 @@ export default function App() {
 
               <section className="grid gap-5">
                 {snapshot.knobs.map((knob) => (
-                  <KnobPanel key={knob.id} knob={knob} language={language} />
+                  <KnobPanel
+                    key={knob.id}
+                    knob={knob}
+                    language={language}
+                    transitionDurationMs={snapshot.transitionDurationMs}
+                  />
                 ))}
               </section>
             </section>
@@ -580,7 +585,12 @@ export default function App() {
 
               <section className="grid gap-5 md:grid-cols-2 2xl:grid-cols-3">
                 {snapshot.knobs.map((knob) => (
-                  <KnobPanel key={knob.id} knob={knob} language={language} />
+                  <KnobPanel
+                    key={knob.id}
+                    knob={knob}
+                    language={language}
+                    transitionDurationMs={snapshot.transitionDurationMs}
+                  />
                 ))}
               </section>
             </>

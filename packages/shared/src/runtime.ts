@@ -90,7 +90,8 @@ export function buildRuntimeSnapshot(args: {
       firmware: firmwareInfo
     },
     demoMode,
-    telemetry
+    telemetry,
+    transitionDurationMs: profile.audio.transitionDurationMs
   };
 }
 

@@ -173,6 +173,8 @@ export interface RuntimeSnapshot {
   diagnostics: RuntimeDiagnostics;
   demoMode: boolean;
   telemetry: TelemetryPoint[];
+  /** Duração (ms) da transição visual dos knobs, vinda de `profile.audio`. */
+  transitionDurationMs: number;
 }
 
 export type SliderStateMap = Record<number, number>;

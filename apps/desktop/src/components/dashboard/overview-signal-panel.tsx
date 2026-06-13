@@ -115,7 +115,12 @@ export function OverviewSignalPanel({
 
           <div className="mt-4 grid gap-3">
             {snapshot.knobs.map((knob) => (
-              <KnobLiveRow key={knob.id} knob={knob} language={language} />
+              <KnobLiveRow
+            key={knob.id}
+            knob={knob}
+            language={language}
+            transitionDurationMs={snapshot.transitionDurationMs}
+          />
             ))}
           </div>
         </div>
@@ -164,12 +169,15 @@ function SignalStat({
 
 function KnobLiveRow({
   knob,
-  language
+  language,
+  transitionDurationMs
 }: {
   knob: RuntimeKnobSnapshot;
   language: UiLanguage;
+  transitionDurationMs: number;
 }) {
   const accent = accentColor(knob.accent);
+  const barTransition = `width ${Math.max(0, transitionDurationMs)}ms ease-out`;
 
   return (
     <div className="rounded-[20px] border border-(--color-border) bg-(--color-panel) px-4 py-3">
@@ -195,9 +203,10 @@ function KnobLiveRow({
 
       <div className="mt-3 h-2 overflow-hidden rounded-full bg-[color-mix(in_oklab,var(--color-border)_60%,transparent)]">
         <div
-          className="h-full rounded-full transition-[width] duration-300"
+          className="h-full rounded-full motion-reduce:transition-none"
           style={{
             width: `${knob.percent}%`,
+            transition: barTransition,
             background: `linear-gradient(90deg, ${accent}, color-mix(in oklab, ${accent} 68%, var(--color-glow)))`
           }}
         />
