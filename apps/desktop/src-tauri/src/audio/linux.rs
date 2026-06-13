@@ -1,6 +1,8 @@
 use std::{
     collections::{HashMap, HashSet},
     process::Command,
+    sync::{Mutex, OnceLock},
+    time::{Duration, Instant},
 };
 
 use serde_json::Value;
@@ -11,6 +13,15 @@ use super::{
     SliderTargetChange, TargetOutcomeStatus,
 };
 
+/// Janela durante a qual um snapshot do `pactl` é reusado entre chamadas. Movimentos
+/// rápidos de knob disparam vários `apply_slider_targets_batch` em sequência; sem
+/// cache cada um re-executa 5 comandos `pactl` (fork/exec) só para reler o mesmo
+/// inventário. 250 ms é curto o bastante para refletir plugs/unplugs quase em tempo
+/// real e longo o bastante para colapsar rajadas.
+const SNAPSHOT_TTL: Duration = Duration::from_millis(250);
+
+static SNAPSHOT_CACHE: OnceLock<Mutex<Option<(Instant, PactlSnapshot)>>> = OnceLock::new();
+
 #[derive(Debug, Clone)]
 struct SinkInput {
     index: u64,
@@ -19,6 +30,111 @@ struct SinkInput {
     binary_name: String,
     media_name: String,
     application_id: String,
+}
+
+/// Inventário bruto do `pactl` lido de uma vez. As falhas por comando são
+/// preservadas em `errors` para que `list_audio_inventory` possa reportá-las.
+#[derive(Debug, Clone)]
+struct PactlSnapshot {
+    sink_inputs: Vec<SinkInput>,
+    sinks: Vec<AudioEndpoint>,
+    sources: Vec<AudioEndpoint>,
+    default_sink: Option<String>,
+    default_source: Option<String>,
+    errors: Vec<String>,
+}
+
+fn snapshot_cache() -> &'static Mutex<Option<(Instant, PactlSnapshot)>> {
+    SNAPSHOT_CACHE.get_or_init(|| Mutex::new(None))
+}
+
+/// Lê o snapshot do `pactl`, reusando o último resultado se ainda estiver dentro
+/// da janela `SNAPSHOT_TTL`. Threads concorrentes podem, no pior caso, recomputar
+/// em paralelo na expiração — aceitável, pois o resultado é idempotente e o lock
+/// nunca é segurado durante o I/O do `pactl`.
+fn read_pactl_snapshot() -> PactlSnapshot {
+    if let Ok(guard) = snapshot_cache().lock() {
+        if let Some((captured_at, snapshot)) = guard.as_ref() {
+            if captured_at.elapsed() < SNAPSHOT_TTL {
+                return snapshot.clone();
+            }
+        }
+    }
+
+    let snapshot = capture_pactl_snapshot();
+
+    if let Ok(mut guard) = snapshot_cache().lock() {
+        *guard = Some((Instant::now(), snapshot.clone()));
+    }
+
+    snapshot
+}
+
+fn capture_pactl_snapshot() -> PactlSnapshot {
+    let mut errors = Vec::<String>::new();
+
+    let sinks = match read_json_command(&["-f", "json", "list", "sinks"]) {
+        Ok(value) => parse_sinks(&value).unwrap_or_else(|| {
+            errors.push("Falha ao interpretar a lista de sinks do pactl".to_string());
+            Vec::new()
+        }),
+        Err(error) => {
+            errors.push(format!("Falha ao listar sinks: {error}"));
+            Vec::new()
+        }
+    };
+
+    let sink_inputs = match read_json_command(&["-f", "json", "list", "sink-inputs"]) {
+        Ok(value) => parse_sink_inputs(&value).unwrap_or_else(|| {
+            errors.push("Falha ao interpretar a lista de sink-inputs do pactl".to_string());
+            Vec::new()
+        }),
+        Err(error) => {
+            errors.push(format!("Falha ao listar sink-inputs: {error}"));
+            Vec::new()
+        }
+    };
+
+    let sources = match read_text_command(&["list", "sources"]) {
+        Ok(raw) => parse_sources(&raw),
+        Err(error) => {
+            errors.push(format!("Falha ao listar sources: {error}"));
+            Vec::new()
+        }
+    };
+
+    let default_sink = match read_text_command(&["get-default-sink"]) {
+        Ok(value) => Some(trim(value)).filter(|value| !value.is_empty()),
+        Err(error) => {
+            errors.push(format!("Falha ao consultar sink padrao: {error}"));
+            None
+        }
+    };
+
+    let default_source = match read_text_command(&["get-default-source"]) {
+        Ok(value) => Some(trim(value)).filter(|value| !value.is_empty()),
+        Err(error) => {
+            errors.push(format!("Falha ao consultar source padrao: {error}"));
+            None
+        }
+    };
+
+    PactlSnapshot {
+        sink_inputs,
+        sinks,
+        sources,
+        default_sink,
+        default_source,
+        errors,
+    }
+}
+
+/// Invalida o cache após uma escrita de volume: os valores reportados pelo `pactl`
+/// mudaram, então a próxima leitura deve refletir o estado novo imediatamente.
+fn invalidate_snapshot_cache() {
+    if let Ok(mut guard) = snapshot_cache().lock() {
+        *guard = None;
+    }
 }
 
 pub fn list_audio_inventory() -> AudioInventory {
@@ -37,68 +153,16 @@ pub fn list_audio_inventory() -> AudioInventory {
         };
     }
 
-    // Coleta falhas parciais por comando em vez de engoli-las: assim um pactl
-    // que retorna erro/JSON quebrado em sinks não vira silenciosamente um
-    // inventário vazio sem pista de causa para o usuário.
-    let mut diagnostics = Vec::<String>::new();
+    // Snapshot único do pactl (cacheado por SNAPSHOT_TTL). Falhas parciais por
+    // comando ficam em `snapshot.errors` em vez de virar inventário vazio sem
+    // pista de causa para o usuário.
+    let snapshot = read_pactl_snapshot();
+    let mut diagnostics = snapshot.errors.clone();
 
-    let sinks = match read_json_command(&["-f", "json", "list", "sinks"]) {
-        Ok(value) => match parse_sinks(&value) {
-            Some(parsed) => parsed,
-            None => {
-                diagnostics.push("Falha ao interpretar a lista de sinks do pactl".to_string());
-                Vec::new()
-            }
-        },
-        Err(error) => {
-            diagnostics.push(format!("Falha ao listar sinks: {error}"));
-            Vec::new()
-        }
-    };
-
-    let applications = match read_json_command(&["-f", "json", "list", "sink-inputs"]) {
-        Ok(value) => match parse_sink_inputs(&value) {
-            Some(parsed) => parsed,
-            None => {
-                diagnostics
-                    .push("Falha ao interpretar a lista de sink-inputs do pactl".to_string());
-                Vec::new()
-            }
-        },
-        Err(error) => {
-            diagnostics.push(format!("Falha ao listar sink-inputs: {error}"));
-            Vec::new()
-        }
-    };
-
-    let sources = match read_text_command(&["list", "sources"]) {
-        Ok(raw) => parse_sources(&raw),
-        Err(error) => {
-            diagnostics.push(format!("Falha ao listar sources: {error}"));
-            Vec::new()
-        }
-    };
-
-    let default_sink = match read_text_command(&["get-default-sink"]) {
-        Ok(value) => Some(trim(value)).filter(|value| !value.is_empty()),
-        Err(error) => {
-            diagnostics.push(format!("Falha ao consultar sink padrao: {error}"));
-            None
-        }
-    };
-
-    let default_source = match read_text_command(&["get-default-source"]) {
-        Ok(value) => Some(trim(value)).filter(|value| !value.is_empty()),
-        Err(error) => {
-            diagnostics.push(format!("Falha ao consultar source padrao: {error}"));
-            None
-        }
-    };
-
-    let sink_count = sinks.len();
-    let source_count = sources.len();
-    let application_names = application_inventory_names(&applications);
+    let application_names = application_inventory_names(&snapshot.sink_inputs);
     let application_count = application_names.len();
+    let sink_count = snapshot.sinks.len();
+    let source_count = snapshot.sources.len();
 
     if diagnostics.is_empty() {
         diagnostics.push("pactl backend ready".to_string());
@@ -107,10 +171,10 @@ pub fn list_audio_inventory() -> AudioInventory {
     AudioInventory {
         backend: "pactl".to_string(),
         applications: application_names,
-        sinks,
-        sources,
-        default_sink,
-        default_source,
+        sinks: snapshot.sinks,
+        sources: snapshot.sources,
+        default_sink: snapshot.default_sink,
+        default_source: snapshot.default_source,
         summary: format!(
             "{} app(s), {} sink(s), {} source(s)",
             application_count, sink_count, source_count
@@ -129,26 +193,23 @@ pub fn apply_slider_targets_batch(
     }
 
     let mut outcomes = HashMap::new();
-    let sink_inputs =
-        parse_sink_inputs(&read_json_command(&["-f", "json", "list", "sink-inputs"])?)
-            .unwrap_or_default();
-    let sinks =
-        parse_sinks(&read_json_command(&["-f", "json", "list", "sinks"])?).unwrap_or_default();
-    let sources = parse_sources(&read_text_command(&["list", "sources"])?);
-    let default_sink = read_text_command(&["get-default-sink"]).ok().map(trim);
-    let default_source = read_text_command(&["get-default-source"]).ok().map(trim);
+    let snapshot = read_pactl_snapshot();
 
     for slider in request.sliders {
         let outcome = apply_targets(
             &slider,
-            &sink_inputs,
-            &sinks,
-            &sources,
-            default_sink.as_deref(),
-            default_source.as_deref(),
+            &snapshot.sink_inputs,
+            &snapshot.sinks,
+            &snapshot.sources,
+            snapshot.default_sink.as_deref(),
+            snapshot.default_source.as_deref(),
         )?;
         outcomes.insert(slider.slider_id, outcome);
     }
+
+    // O lote alterou volumes: invalida o cache para que a próxima leitura
+    // (ex.: refresh de inventário no frontend) reflita os novos valores.
+    invalidate_snapshot_cache();
 
     Ok(ApplySliderTargetsResponse { outcomes })
 }
@@ -840,10 +901,41 @@ impl SinkInput {
 #[cfg(test)]
 mod tests {
     use super::{
-        application_inventory_names, parse_sink_inputs, parse_sinks, parse_sources,
-        resolve_application_matches,
+        application_inventory_names, invalidate_snapshot_cache, parse_sink_inputs, parse_sinks,
+        parse_sources, resolve_application_matches, snapshot_cache, PactlSnapshot, SNAPSHOT_TTL,
     };
     use serde_json::json;
+    use std::time::Instant;
+
+    #[test]
+    fn snapshot_cache_serves_fresh_entries_and_clears_on_invalidate() {
+        let snapshot = PactlSnapshot {
+            sink_inputs: Vec::new(),
+            sinks: Vec::new(),
+            sources: Vec::new(),
+            default_sink: Some("sink-cacheado".to_string()),
+            default_source: None,
+            errors: Vec::new(),
+        };
+
+        {
+            let mut guard = snapshot_cache().lock().expect("cache lock");
+            *guard = Some((Instant::now(), snapshot));
+        }
+
+        // Entrada recente (dentro do TTL) continua disponível para reuso.
+        {
+            let guard = snapshot_cache().lock().expect("cache lock");
+            let (captured_at, cached) = guard.as_ref().expect("cache should be populated");
+            assert!(captured_at.elapsed() < SNAPSHOT_TTL);
+            assert_eq!(cached.default_sink.as_deref(), Some("sink-cacheado"));
+        }
+
+        // Após uma escrita de volume o cache é descartado para forçar releitura.
+        invalidate_snapshot_cache();
+        let guard = snapshot_cache().lock().expect("cache lock");
+        assert!(guard.is_none());
+    }
 
     #[test]
     fn parses_sink_inventory() {
