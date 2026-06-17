@@ -15,7 +15,9 @@ import type {
   RuntimeSnapshot,
   RuntimeStatus,
   SliderStateMap,
-  TelemetryPoint
+  TelemetryPoint,
+  KnobSessionStats,
+  SessionTelemetryStats
 } from "./types";
 
 const accentPalette = ["cyan", "amber", "teal", "rose", "lime"];
@@ -165,6 +167,64 @@ export function pushTelemetry(
   }
 
   return result;
+}
+
+export function createSessionStats(): SessionTelemetryStats {
+  return { sampleCount: 0, firstTick: null, lastTick: null, perKnob: {} };
+}
+
+/**
+ * Folds new telemetry points into the running session aggregates. Runs in
+ * O(nextPoints) with no unbounded growth — only one entry per knob is kept.
+ * Returns the same reference when there is nothing to add, so downstream memos
+ * (React/Zustand selectors) are not invalidated needlessly.
+ */
+export function updateSessionStats(
+  stats: SessionTelemetryStats,
+  nextPoints: TelemetryPoint[]
+): SessionTelemetryStats {
+  if (nextPoints.length === 0) {
+    return stats;
+  }
+
+  const perKnob: Record<number, KnobSessionStats> = { ...stats.perKnob };
+  let sampleCount = stats.sampleCount;
+  let firstTick = stats.firstTick;
+  let lastTick = stats.lastTick;
+
+  for (const point of nextPoints) {
+    const existing = perKnob[point.knobId];
+    perKnob[point.knobId] = existing
+      ? {
+          knobId: point.knobId,
+          sampleCount: existing.sampleCount + 1,
+          minPercent: Math.min(existing.minPercent, point.percent),
+          maxPercent: Math.max(existing.maxPercent, point.percent),
+          sumPercent: existing.sumPercent + point.percent,
+          lastPercent: point.percent
+        }
+      : {
+          knobId: point.knobId,
+          sampleCount: 1,
+          minPercent: point.percent,
+          maxPercent: point.percent,
+          sumPercent: point.percent,
+          lastPercent: point.percent
+        };
+
+    sampleCount += 1;
+    if (firstTick === null) {
+      firstTick = point.tick;
+    }
+    lastTick = point.tick;
+  }
+
+  return { sampleCount, firstTick, lastTick, perKnob };
+}
+
+/** Average percent for a knob over the session, guarding against divide-by-zero. */
+export function knobAveragePercent(stats: KnobSessionStats): number {
+  return stats.sampleCount === 0 ? 0 : stats.sumPercent / stats.sampleCount;
 }
 
 export function describeTarget(

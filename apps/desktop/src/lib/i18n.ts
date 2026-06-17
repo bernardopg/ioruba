@@ -397,6 +397,18 @@ const TEXT_MAP: Record<string, string> = {
   "Backend de áudio disponível.": "Audio backend available.",
   "Controle de áudio do sistema indisponível. No Linux, instale pipewire-pulse ou pulseaudio-utils.":
     "System audio control unavailable. On Linux, install pipewire-pulse or pulseaudio-utils.",
+  "Estatísticas da sessão": "Session statistics",
+  "Resetar estatísticas da sessão": "Reset session statistics",
+  "amostras": "samples",
+  "ticks": "ticks",
+  "Resetar": "Reset",
+  "Nenhuma amostra ainda. Conecte o controlador ou inicie o modo demo.":
+    "No samples yet. Connect the controller or start demo mode.",
+  "Amostras": "Samples",
+  "Mín": "Min",
+  "Méd": "Avg",
+  "Máx": "Max",
+  "Atual": "Current",
   "Sem dados de telemetria ainda": "No telemetry data yet",
   "Mova um knob com o controlador conectado para começar a registrar a linha do tempo.":
     "Move a knob with the controller connected to start recording the timeline.",

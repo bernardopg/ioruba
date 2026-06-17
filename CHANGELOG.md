@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Features
 
+- Session telemetry statistics: per-knob sample count, min/avg/max and current percent that persist for the whole session (independent of the sliding chart window), shown in a new `SessionStatsPanel` on the telemetry tab with a reset action
+- `updateSessionStats` / `createSessionStats` / `knobAveragePercent` pure reducers in `@ioruba/shared` (O(points), no unbounded growth); session aggregates reset automatically whenever telemetry is cleared (new connection, demo toggle, profile reset)
+
 - Windows Core Audio backend (`audio/windows.rs`) using WASAPI via `windows` crate for default output (`master`) volume control
 - macOS Core Audio backend (`audio/macos.rs`) using the system `CoreAudio` framework (hand-rolled FFI, no extra crate) for default output (`master`) volume control, with per-channel scalar fallback
 - Application/source/sink targets return explicit `unavailable` outcome on Windows and macOS instead of pretending to work

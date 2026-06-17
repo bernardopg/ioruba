@@ -2,6 +2,7 @@ import { create } from "zustand";
 import {
   buildDemoFrame,
   buildRuntimeSnapshot,
+  createSessionStats,
   createWaitingOutcome,
   defaultPersistedState,
   emptyAudioInventory,
@@ -14,12 +15,14 @@ import {
   sliderToAppliedPercent,
   sliderValueToPercent,
   SUPPORTED_PROTOCOL_VERSION,
+  updateSessionStats,
   type AudioInventory,
   type FirmwareInfo,
   type OutcomeMap,
   type PersistedState,
   type MixerProfile,
   type RuntimeStatus,
+  type SessionTelemetryStats,
   type SliderOutcome,
   type SliderStateMap,
   type SliderUpdate,
@@ -62,6 +65,7 @@ interface IorubaState {
   availablePorts: string[];
   lastSerialLine: string | null;
   telemetry: TelemetryPoint[];
+  sessionStats: SessionTelemetryStats;
   watchLog: WatchLogEntry[];
   watchLogPersistenceReady: boolean;
   tick: number;
@@ -77,6 +81,7 @@ interface IorubaState {
   setAvailablePorts: (ports: string[]) => void;
   appendWatchLog: (entry: WatchLogInput) => void;
   clearWatchLog: () => void;
+  resetSessionStats: () => void;
   setStatus: (
     status: RuntimeStatus,
     statusText: string,
@@ -224,7 +229,27 @@ function appendWatchEntry(
   };
 }
 
-export const useIorubaStore = create<IorubaState>((set, get) => {
+export const useIorubaStore = create<IorubaState>((rawSet, get) => {
+  // Session telemetry aggregates accumulate across the sliding window. Any
+  // action that clears telemetry (new connection, demo toggle, profile reset,
+  // disconnect, ...) ends the session, so reset the aggregates in the same
+  // update. Centralised here so individual set() call sites don't each have to
+  // remember — the only exception is the live-append path, which sets
+  // sessionStats explicitly and is left untouched by the guard below.
+  const set: typeof rawSet = (partial, replace) => {
+    if (
+      partial &&
+      typeof partial === "object" &&
+      "telemetry" in partial &&
+      Array.isArray((partial as Partial<IorubaState>).telemetry) &&
+      (partial as Partial<IorubaState>).telemetry!.length === 0 &&
+      !("sessionStats" in partial)
+    ) {
+      (partial as Partial<IorubaState>).sessionStats = createSessionStats();
+    }
+    return rawSet(partial as Parameters<typeof rawSet>[0], replace as never);
+  };
+
   const initialSnapshot = buildRuntimeSnapshot({
     profile: resolveActiveProfile(defaultPersistedState),
     status: "booting",
@@ -252,6 +277,7 @@ export const useIorubaStore = create<IorubaState>((set, get) => {
     availablePorts: [],
     lastSerialLine: null,
     telemetry: [],
+    sessionStats: createSessionStats(),
     watchLog: [],
     watchLogPersistenceReady: false,
     tick: 0,
@@ -282,6 +308,9 @@ export const useIorubaStore = create<IorubaState>((set, get) => {
       if (state.watchLogPersistenceReady) {
         void clearWatchLogEntries().catch(() => {});
       }
+    },
+    resetSessionStats: () => {
+      set({ sessionStats: createSessionStats() });
     },
     hydrateWatchLog: (watchLog) => {
       const state = get();
@@ -953,6 +982,9 @@ export const useIorubaStore = create<IorubaState>((set, get) => {
         telemetryPoints,
         activeProfile.ui.telemetryWindow
       );
+      // Session aggregates track every point, independent of the display
+      // window (so they hold even when telemetryWindow is 0).
+      const sessionStats = updateSessionStats(state.sessionStats, telemetryPoints);
       const trimmedLine = rawLine.trim();
 
       get().appendWatchLog({
@@ -965,6 +997,7 @@ export const useIorubaStore = create<IorubaState>((set, get) => {
       set({
         currentValues: nextCurrentValues,
         telemetry,
+        sessionStats,
         tick: state.tick + 1,
         lastSerialLine: rawLine,
         snapshot: createSnapshot({

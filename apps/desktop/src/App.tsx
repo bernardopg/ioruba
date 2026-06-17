@@ -31,6 +31,7 @@ import { AudioBackendBanner } from "@/components/dashboard/audio-backend-banner"
 import { KnobPanel } from "@/components/dashboard/knob-panel";
 import { OnboardingChecklist } from "@/components/dashboard/onboarding-checklist";
 import { OverviewSignalPanel } from "@/components/dashboard/overview-signal-panel";
+import { SessionStatsPanel } from "@/components/dashboard/session-stats-panel";
 import { WatchLogPanel } from "@/components/dashboard/watch-log-panel";
 // recharts pesa ~350 KB (gzip ~104 KB) e só é usado na aba de telemetria.
 // Carregamento lazy mantém esse peso fora do bundle inicial até a aba abrir.
@@ -85,6 +86,8 @@ export default function App() {
 
   const persisted = useIorubaStore((state) => state.persisted);
   const snapshot = useIorubaStore((state) => state.snapshot);
+  const sessionStats = useIorubaStore((state) => state.sessionStats);
+  const resetSessionStats = useIorubaStore((state) => state.resetSessionStats);
   const watchLog = useIorubaStore((state) => state.watchLog);
   const configDraft = useIorubaStore((state) => state.configDraft);
   const setConfigDraft = useIorubaStore((state) => state.setConfigDraft);
@@ -613,6 +616,13 @@ export default function App() {
                   snapshot={snapshot}
                 />
               </section>
+
+              <SessionStatsPanel
+                knobs={snapshot.knobs}
+                language={language}
+                onReset={resetSessionStats}
+                stats={sessionStats}
+              />
 
               <section className="grid gap-5 md:grid-cols-2 2xl:grid-cols-3">
                 {snapshot.knobs.map((knob) => (

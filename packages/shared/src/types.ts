@@ -166,6 +166,28 @@ export interface TelemetryPoint {
   percent: number;
 }
 
+/**
+ * Running per-knob aggregates for the current session. These survive the
+ * sliding telemetry window (which only keeps the last N points), giving a
+ * whole-session view at O(1) memory. `sumPercent` is the internal accumulator
+ * for the average; read it through {@link KnobSessionStats} consumers, not directly.
+ */
+export interface KnobSessionStats {
+  knobId: number;
+  sampleCount: number;
+  minPercent: number;
+  maxPercent: number;
+  sumPercent: number;
+  lastPercent: number;
+}
+
+export interface SessionTelemetryStats {
+  sampleCount: number;
+  firstTick: number | null;
+  lastTick: number | null;
+  perKnob: Record<number, KnobSessionStats>;
+}
+
 export interface RuntimeSnapshot {
   status: RuntimeStatus;
   statusText: string;
