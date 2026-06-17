@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.0](https://github.com/bernardopg/ioruba/compare/v1.1.0...v1.2.0) (2026-06-17)
+
 ### Features
 
 - Cross-platform one-line installer: `scripts/install.sh` (Linux/macOS) and `scripts/install.ps1` (Windows) auto-detect OS and architecture, download the matching asset from the latest release (or a pinned `--version`/`-Version`), verify it against `SHA256SUMS.txt`, and install it (rootless AppImage by default on Linux, `.app` into `/Applications` on macOS, MSI/NSIS on Windows)
@@ -26,6 +28,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Platform matrix: Windows and macOS now "Partial" (master/default-output volume only via Core Audio)
 - Updated docs (README, QUICKSTART, TESTING) to reflect Windows and macOS partial audio support
+
+### Fixed
+
+- Onboarding checklist marks audio as ready for any functional backend (Windows/macOS Core Audio), not only the Linux `pactl` backend
+- Completed the `AudioInventory.backend` type union with the `"macos"` member the Rust backend already serializes
+- Collapsed identical severity branches in `audio/windows.rs` (clippy `if_same_then_else`), surfaced for the first time by the new Windows CI smoke job
 
 ## [1.1.0](https://github.com/bernardopg/ioruba/compare/v1.0.0...v1.1.0) (2026-06-13)
 

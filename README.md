@@ -78,7 +78,8 @@ The project preserves the hands‑on feel of a small mixer while modernising the
 - Serial packets like `512|768|1023` (three 10‑bit values)
 - Firmware handshake: `HELLO board=...; fw=...; protocol=...; knobs=...`
 - Backward compatibility with legacy packet format `P1:512`
-- Live telemetry and a persistent watch log inside the desktop app
+- Live telemetry plus whole-session statistics (per-knob min/avg/max) and a persistent watch log inside the desktop app
+- One-line cross-platform installer with OS/architecture detection and checksum verification
 - Editable JSON profiles (stored per‑platform config directory)
 - Ready-made presets for streaming, calls, and music
 - Profile import/export as JSON files for backup and sharing
