@@ -58,9 +58,10 @@ estão majoritariamente fechados (ver `TODO.md`).
   acima do mapeamento direto knob→target.
 - **Presets compartilháveis pela comunidade:** o import/export por arquivo já
   existe; um repositório/galeria de presets seria o próximo passo.
-- **Suporte multiplataforma real:** Windows já tem backend Core Audio para
-  `master`/saída padrão; ainda faltam targets por app/source/sink e backend macOS
-  (Core Audio equivalente) — ver Scrum 04 no `TODO.md`.
+- **Suporte multiplataforma real:** Windows (WASAPI) e macOS (framework CoreAudio)
+  já têm backend para `master`/saída padrão; o Scrum 04 está fechado. O próximo
+  passo é cobertura de targets por app/source/sink fora do Linux (per-app volume
+  via APIs de sessão de áudio) — ainda não mapeado.
 - **Mais knobs / múltiplos controladores:** ver o estudo acima.
 - **Atualizações automáticas:** integrar `tauri-plugin-updater` + assinatura de
   artefatos para entregar updates in-app (hoje desabilitado; falta a chave de
