@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Features
 
+- Cross-platform one-line installer: `scripts/install.sh` (Linux/macOS) and `scripts/install.ps1` (Windows) auto-detect OS and architecture, download the matching asset from the latest release (or a pinned `--version`/`-Version`), verify it against `SHA256SUMS.txt`, and install it (rootless AppImage by default on Linux, `.app` into `/Applications` on macOS, MSI/NSIS on Windows)
 - Session telemetry statistics: per-knob sample count, min/avg/max and current percent that persist for the whole session (independent of the sliding chart window), shown in a new `SessionStatsPanel` on the telemetry tab with a reset action
 - `updateSessionStats` / `createSessionStats` / `knobAveragePercent` pure reducers in `@ioruba/shared` (O(points), no unbounded growth); session aggregates reset automatically whenever telemetry is cleared (new connection, demo toggle, profile reset)
 

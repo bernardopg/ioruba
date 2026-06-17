@@ -2,6 +2,15 @@
 
 This is the fastest path from a fresh clone to a working Ioruba session on the **active Linux stack**.
 
+> **Just want to install the app?** Skip the source build and use the one‑line installer
+> (auto‑detects OS/arch, verifies checksums):
+> ```bash
+> curl -fsSL https://raw.githubusercontent.com/bernardopg/ioruba/main/scripts/install.sh | sh
+> ```
+> Windows: `irm https://raw.githubusercontent.com/bernardopg/ioruba/main/scripts/install.ps1 | iex`.
+> See the [README installation section](README.md#-fast-installation) for options. This guide
+> below covers building from source.
+
 > **Heads up**
 > Real system-audio control is production-ready on Linux via `pactl`.
 > **Windows** and **macOS** provide `master`/default-output volume via Core Audio.

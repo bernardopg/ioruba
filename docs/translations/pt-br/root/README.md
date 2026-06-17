@@ -101,6 +101,32 @@ O projeto preserva a sensação prática de um mixer pequeno enquanto moderniza 
 Instaladores pré-build ficam no latest release:
 [https://github.com/bernardopg/ioruba/releases/latest](https://github.com/bernardopg/ioruba/releases/latest)
 
+### Instalador de uma linha (recomendado)
+
+O instalador detecta seu SO e a arquitetura da CPU, baixa o asset correspondente
+do último release, verifica contra o `SHA256SUMS.txt` e instala.
+
+**Linux / macOS:**
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/bernardopg/ioruba/main/scripts/install.sh | sh
+```
+
+Opções: `--version v1.1.0` (fixar release), `--type deb|rpm` (pacote Linux em vez do
+AppImage padrão), `--dir <caminho>` (local de instalação). No Linux o padrão é um AppImage
+sem root em `~/.local/bin`; no macOS instala o `.app` em `/Applications`.
+
+**Windows (PowerShell):**
+
+```powershell
+irm https://raw.githubusercontent.com/bernardopg/ioruba/main/scripts/install.ps1 | iex
+```
+
+Opções: `-Version v1.1.0`, `-Type msi|nsis` (padrão `msi`).
+
+> Sempre revise um script de instalação por pipe antes de executar. Fonte:
+> [`scripts/install.sh`](../../../scripts/install.sh) · [`scripts/install.ps1`](../../../scripts/install.ps1).
+
 ### Arch Linux (AUR)
 
 ```bash

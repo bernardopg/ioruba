@@ -2,6 +2,15 @@
 
 Este e o caminho mais rapido de um clone limpo para uma sessao Ioruba funcionando na stack Linux ativa.
 
+> **So quer instalar o app?** Pule o build por codigo-fonte e use o instalador de uma linha
+> (detecta SO/arch, verifica checksums):
+> ```bash
+> curl -fsSL https://raw.githubusercontent.com/bernardopg/ioruba/main/scripts/install.sh | sh
+> ```
+> Windows: `irm https://raw.githubusercontent.com/bernardopg/ioruba/main/scripts/install.ps1 | iex`.
+> Veja a [secao de instalacao do README](README.md#-instalacao-rapida) para opcoes. O guia
+> abaixo cobre o build por codigo-fonte.
+
 > **Atencao**
 > O controle real de audio do sistema esta pronto para producao no Linux via `pactl`.
 > **Windows** e **macOS** fornecem volume `master`/saida padrao via Core Audio.

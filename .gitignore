@@ -61,3 +61,6 @@ apps/desktop/src-tauri/gen/
 /.mypy_cache/
 .worktrees/
 .gitnexus
+
+# Obsidian vault config (local editor cruft)
+.obsidian/
