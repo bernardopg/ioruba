@@ -241,8 +241,6 @@ fn summarize_slider_outcome(
         OutcomeSeverity::Error
     } else if updated > 0 && unavailable == 0 {
         OutcomeSeverity::Success
-    } else if updated > 0 {
-        OutcomeSeverity::Warning
     } else {
         OutcomeSeverity::Warning
     };
