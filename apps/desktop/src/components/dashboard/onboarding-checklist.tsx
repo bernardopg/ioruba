@@ -26,7 +26,9 @@ export function OnboardingChecklist({
   const firmwareReady = snapshot.diagnostics.firmware !== null;
   const portReady =
     snapshot.connectionPort !== null || snapshot.availablePorts.length > 0;
-  const audioReady = audioInventory.backend === "pactl";
+  // Any backend other than the "unsupported" sentinel can drive at least the
+  // master/default-output volume (pactl on Linux, Core Audio on Windows/macOS).
+  const audioReady = audioInventory.backend !== "unsupported";
 
   const items: ChecklistItem[] = [
     {
@@ -47,8 +49,8 @@ export function OnboardingChecklist({
       done: audioReady,
       title: lt("Verifique o áudio do sistema"),
       hint: audioReady
-        ? lt("Backend de áudio pactl disponível.")
-        : lt("Backend de áudio indisponível. Instale o pipewire-pulse ou pulseaudio-utils.")
+        ? `${lt("Backend de áudio disponível.")} (${audioInventory.backend})`
+        : lt("Controle de áudio do sistema indisponível. No Linux, instale pipewire-pulse ou pulseaudio-utils.")
     }
   ];
 

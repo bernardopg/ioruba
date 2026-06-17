@@ -394,9 +394,9 @@ const TEXT_MAP: Record<string, string> = {
   "Nenhuma porta serial disponível ainda. Verifique o cabo USB.":
     "No serial port available yet. Check the USB cable.",
   "Verifique o áudio do sistema": "Check system audio",
-  "Backend de áudio pactl disponível.": "pactl audio backend available.",
-  "Backend de áudio indisponível. Instale o pipewire-pulse ou pulseaudio-utils.":
-    "Audio backend unavailable. Install pipewire-pulse or pulseaudio-utils.",
+  "Backend de áudio disponível.": "Audio backend available.",
+  "Controle de áudio do sistema indisponível. No Linux, instale pipewire-pulse ou pulseaudio-utils.":
+    "System audio control unavailable. On Linux, install pipewire-pulse or pulseaudio-utils.",
   "Sem dados de telemetria ainda": "No telemetry data yet",
   "Mova um knob com o controlador conectado para começar a registrar a linha do tempo.":
     "Move a knob with the controller connected to start recording the timeline.",
