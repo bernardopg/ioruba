@@ -3,7 +3,7 @@
 Este documento e a matriz pratica de validacao da stack ativa do Ioruba.
 
 > **Importante**
-> O controle real de audio atualmente esta implementado apenas no Linux. Em macOS e Windows, foque testes em comportamento de UI, packaging e modo demo em vez de paridade de backend de audio.
+> A cobertura completa de targets atualmente esta implementada apenas no Linux. Windows suporta volume real de `master`/saida padrao via Core Audio; macOS permanece apenas em modo UI/demo.
 
 ## 1. Caminho rapido de validacao
 
@@ -52,6 +52,7 @@ O que verificar:
 - autodetecta portas seriais ou respeita a porta preferida
 - a area de status percorre estados realistas de conexao
 - modo demo gera telemetria sem tocar audio do sistema
+- plataformas sem backend de audio mostram o banner de fallback explicito em vez dos passos de instalacao do pactl no Linux
 - aba Watch registra eventos estruturados relevantes
 - pacotes reais atualizam o grafico e os cards de knob
 - mudar o JSON de perfil persiste entre reinicios
@@ -106,7 +107,16 @@ Interpretacao:
 - sink e source padrao devem existir se master ou default_microphone estiverem mapeados
 - Atualizar audio no app desktop deve refletir inventario atual sem crash
 
-## 6. Validacao de firmware
+## 6. Checks de backend de audio Windows
+
+No Windows, o backend e intencionalmente mais estreito que no Linux:
+
+- targets `master` devem atualizar o volume da saida padrao via Core Audio
+- targets `application`, `source` e `sink` devem retornar outcome explicito de nao suportado
+- Atualizar audio deve reportar backend `windows` e listar a saida padrao
+- modo demo, leitura serial, telemetria, persistencia e packaging devem seguir funcionando normalmente
+
+## 7. Validacao de firmware
 
 Compile firmware:
 
@@ -120,7 +130,7 @@ Upload para clone Nano classico se necessario:
 arduino-cli upload -p /dev/ttyUSB0 --fqbn arduino:avr:nano:cpu=atmega328old firmware/arduino/ioruba-controller
 ```
 
-## 7. Validacao de persistencia
+## 8. Validacao de persistencia
 
 Durante smoke test manual, verifique tambem:
 
@@ -134,7 +144,7 @@ Diretorios tipicos:
 - macOS: ~/Library/Application Support/io.ioruba.desktop/
 - Windows: %APPDATA%\\io.ioruba.desktop\\
 
-## 8. Troubleshooting
+## 9. Troubleshooting
 
 ### Permissao negada em /dev/ttyUSB0
 
@@ -174,7 +184,7 @@ sudo pacman -S --needed \
 - rode pactl list short sink-inputs
 - atualize inventario no app desktop antes de retestar
 
-### Rodando em macOS ou Windows
+### Rodando em macOS
 
 Trate como passagem parcial por design:
 
@@ -183,7 +193,17 @@ Trate como passagem parcial por design:
 - persistencia deve funcionar
 - inventario de audio deve reportar backend nao suportado em vez de fingir funcionar
 
-## 9. Gate recomendado de release
+### Rodando em Windows
+
+Trate como suporte parcial de audio:
+
+- launch e layout desktop devem funcionar
+- modo demo deve funcionar
+- persistencia deve funcionar
+- `master` deve alterar o volume da saida padrao
+- targets app/source/sink devem reportar outcomes nao suportados em vez de fingir funcionar
+
+## 10. Gate recomendado de release
 
 Antes de cortar release publica, verifique:
 
@@ -191,11 +211,13 @@ Antes de cortar release publica, verifique:
 2. npm run firmware:compile passa
 3. app desktop funciona com Nano real no Linux
 4. backend Linux aplica alvos master, application, source e sink como esperado
-5. fechar janela principal esconde para tray e Sair no tray encerra limpo no binario de release
-6. AppImage gerado por tauri build -- --bundles appimage abre corretamente quando construida em base Linux compativel
-7. packaging local no Arch e checado contra limitacao conhecida linuxdeploy + .relr.dyn antes de release
-8. GitHub Actions CI passa
-9. tagged releases continuam produzindo bundles desktop e artefatos de firmware
-10. tagged releases enviam metadados Arch (PKGBUILD, .SRCINFO, PKGBUILD-bin, .SRCINFO-bin) e source tarball usado por PKGBUILD
+5. backend Windows aplica `master` na saida padrao e marca outros tipos de target como nao suportados
+6. fechar janela principal esconde para tray e Sair no tray encerra limpo no binario de release
+7. o job Linux de release valida o AppImage gerado com scripts/validate-appimage.sh --require-launch
+8. um AppImage baixado do release passa em scripts/validate-appimage.sh <arquivo> antes da publicacao do packaging Arch
+9. packaging local no Arch e checado contra a limitacao conhecida linuxdeploy + .relr.dyn antes de release
+10. GitHub Actions CI passa
+11. tagged releases continuam produzindo bundles desktop e artefatos de firmware
+12. tagged releases enviam metadados Arch (PKGBUILD, .SRCINFO, PKGBUILD-bin, .SRCINFO-bin) e source tarball usado por PKGBUILD
 
 Se voce precisa de checklist de suporte para triagem manual, leia [docs/debug/support.md](../../debug/support.md).

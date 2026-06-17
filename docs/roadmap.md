@@ -58,9 +58,9 @@ estão majoritariamente fechados (ver `TODO.md`).
   acima do mapeamento direto knob→target.
 - **Presets compartilháveis pela comunidade:** o import/export por arquivo já
   existe; um repositório/galeria de presets seria o próximo passo.
-- **Suporte multiplataforma real:** backends de áudio nativos para Windows
-  (WASAPI/Core Audio equivalente) e macOS — ver Scrum 04 no `TODO.md`. Maior item
-  de produto pendente.
+- **Suporte multiplataforma real:** Windows já tem backend Core Audio para
+  `master`/saída padrão; ainda faltam targets por app/source/sink e backend macOS
+  (Core Audio equivalente) — ver Scrum 04 no `TODO.md`.
 - **Mais knobs / múltiplos controladores:** ver o estudo acima.
 - **Atualizações automáticas:** integrar `tauri-plugin-updater` + assinatura de
   artefatos para entregar updates in-app (hoje desabilitado; falta a chave de
@@ -69,5 +69,5 @@ estão majoritariamente fechados (ver `TODO.md`).
 ## Não-objetivos
 
 - Reescrever ou estender o protótipo `legacy/` (apenas referência histórica).
-- Suporte a áudio em plataformas sem um backend real implementado — nessas, o app
-  roda em modo UI/demo com banners explícitos.
+- Suporte completo a áudio em plataformas sem backend real implementado — nessas, o
+  app roda em modo UI/demo ou suporte parcial com banners explícitos.

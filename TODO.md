@@ -70,7 +70,7 @@ Itens resolvidos nesta rodada estão marcados `[x]`. Verificação completa ao f
 
 - [x] CSP restritiva definida em `tauri.conf.json` (`script-src 'self'`, `style-src 'self' 'unsafe-inline'` para recharts/radix, `connect-src 'self' ipc: http://ipc.localhost`, `object-src 'none'`, `frame-ancestors 'none'`). `csp: null` removido. `desktop:build` valida que o bundle não usa assets externos `(tauri/security/hardening)` - `médio`
 - [x] Capability `default.json` auditada e restringida: `dialog:default` → `dialog:allow-save` (app só usa `blocking_save_file`). `serialplugin:default` e `global-shortcut:default` mantidos (ambos exercitados). Validado com `tauri build` (ACL compila) `(tauri/security/capabilities)` - `fácil`
-- [ ] Validar o bundle AppImage agora incluído na matriz de release (`--bundles deb,rpm,appimage`) contra o problema histórico de `linuxdeploy` + `.relr.dyn` no Arch, garantindo que o runner Ubuntu 22.04 gera AppImage funcional `(release/linux/appimage)` - `médio`
+- [x] Validar o bundle AppImage agora incluído na matriz de release (`--bundles deb,rpm,appimage`) contra o problema histórico de `linuxdeploy` + `.relr.dyn` no Arch, garantindo que o runner Ubuntu 22.04 gera AppImage funcional `(release/linux/appimage)` - `médio` (release `v1.1.0` gerou `Ioruba_1.1.0_amd64.AppImage` no job Linux Ubuntu 22.04; `scripts/validate-appimage.sh` valida extração/estrutura localmente e o workflow agora roda `--require-launch` sob Xvfb antes de seguir com os assets)
 
 ### Ações de manutenção de repo (fora de código)
 
@@ -173,8 +173,8 @@ Itens resolvidos nesta rodada estão marcados `[x]`. Verificação completa ao f
 
 ## Scrum 04 — Multiplataforma (deixar para o final)
 
-- [ ] Definir a experiência de produto para plataformas sem backend real, incluindo banners, limitações e fallback explícito `(frontend/product/ux)` - `médio`
-- [ ] Implementar backend de áudio para Windows com API nativa ou estratégia equivalente `(backend/audio/windows)` - `difícil`
+- [x] Definir a experiência de produto para plataformas sem backend real, incluindo banners, limitações e fallback explícito `(frontend/product/ux)` - `médio` (`AudioBackendBanner` agora distingue Linux sem `pactl` de Windows/macOS sem backend nativo; plataformas sem backend real mostram fallback para modo demo, telemetria e leitura serial sem prometer controle de volume. Coberto por `audio-backend-banner.test.tsx`)
+- [x] Implementar backend de áudio para Windows com API nativa ou estratégia equivalente `(backend/audio/windows)` - `difícil` (`audio/windows.rs` usa Core Audio/WASAPI via crate `windows` para controlar o volume `master` da saída padrão; targets application/source/sink retornam `unavailable` explicitamente. Validado com `cargo check --target x86_64-pc-windows-msvc`)
 - [ ] Implementar backend de áudio para macOS com API nativa ou estratégia equivalente `(backend/audio/macos)` - `difícil`
 - [ ] Adicionar cobertura de CI e smoke checks por plataforma com expectativa clara de suporte `(ci/test/release)` - `médio`
 - [x] Publicar uma matriz oficial de suporte por sistema operacional e recurso `(docs/platform/release)` - `fácil`

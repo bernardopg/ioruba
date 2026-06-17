@@ -256,7 +256,9 @@ jobs:
             libgtk-3-dev \
             librsvg2-dev \
             patchelf \
-            libayatana-appindicator3-dev
+            libayatana-appindicator3-dev \
+            dbus-x11 \
+            xvfb
 
       - name: Install dependencies
         run: npm ci
@@ -326,6 +328,25 @@ jobs:
           # disabled until updater artifacts and TAURI_SIGNING_PRIVATE_KEY are configured.
           includeUpdaterJson: false
           args: ${{ matrix.args }}
+
+      - name: Validate AppImage bundle
+        if: matrix.platform == 'ubuntu-22.04'
+        shell: bash
+        run: |
+          set -euo pipefail
+          APPIMAGE="$(find apps/desktop/src-tauri/target/release/bundle/appimage \
+            -maxdepth 1 \
+            -type f \
+            -name "*.AppImage" \
+            -print \
+            -quit)"
+
+          if [[ -z "${APPIMAGE}" ]]; then
+            echo "No AppImage produced by the Linux release build." >&2
+            exit 1
+          fi
+
+          scripts/validate-appimage.sh --require-launch "${APPIMAGE}"
 
       - name: Build and upload installers (unsigned macOS)
         # tauri-action passes APPLE_CERTIFICATE even when empty, triggering a

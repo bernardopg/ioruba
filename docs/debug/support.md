@@ -212,7 +212,15 @@ Any StatusNotifierItem/AppIndicator-compatible environment shows the tray icon n
 
 ## 🖥️ Non-Linux platforms
 
-On macOS and Windows, treat the current app as:
+On Windows, treat the current app as partial audio support:
+
+- valid for layout review
+- valid for demo mode
+- valid for persistence checks
+- real default-output (`master`) volume control through Core Audio
+- app/source/sink targets should report unsupported outcomes
+
+On macOS, treat the current app as:
 
 - valid for layout review
 - valid for demo mode

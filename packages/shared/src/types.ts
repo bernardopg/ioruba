@@ -89,7 +89,7 @@ export interface AudioEndpoint {
 }
 
 export interface AudioInventory {
-  backend: "pactl" | "unsupported";
+  backend: "pactl" | "windows" | "unsupported";
   applications: string[];
   sinks: AudioEndpoint[];
   sources: AudioEndpoint[];

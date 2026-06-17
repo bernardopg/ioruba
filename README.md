@@ -93,9 +93,9 @@ The project preserves the hands‑on feel of a small mixer while modernising the
 |----------|-----------|---------------------------------------------------------------------------------------------------|
 | Linux    | ✅ Supported | Main production path: serial workflow, `pactl` audio backend, demo mode, hardware validation.    |
 | macOS    | ⚠️ Partial  | Desktop shell and demo‑mode validation work; real audio control not yet implemented.             |
-| Windows  | ⚠️ Partial  | Desktop shell and demo‑mode validation work; real audio control not yet implemented.             |
+| Windows  | ⚠️ Partial  | Core Audio backend controls the default output (`master`) volume; app/source/sink targets remain unsupported. |
 
-> **Note:** Linux is the only platform with a production‑ready audio backend (`pactl`) at this time.
+> **Note:** Linux is still the only platform with full target coverage (`master`, applications, sinks, sources). Windows currently supports default output volume only.
 
 ## ⚡ Fast installation
 
@@ -155,14 +155,14 @@ Download the macOS app bundle archive from the latest release page:
 - `Ioruba_..._aarch64.app.tar.gz`
 - `Ioruba_..._x64.app.tar.gz`
 
-> **Reminder:** On macOS and Windows the app runs in UI/demo mode only; audio control requires Linux.
+> **Reminder:** On Windows, the app can control the default output volume only. On macOS, the app currently runs in UI/demo mode only; full audio target coverage requires Linux.
 
 ## 🧰 Prerequisites (for source builds)
 
 - **Node.js** `22` (same major used in CI) + `npm`
 - **Rust** stable + `cargo`
 - `arduino-cli`
-- `pactl` (Linux only, for audio backend)
+- `pactl` (Linux only, for the full audio backend)
 - Git
 
 ## 🚀 Quick start (source)

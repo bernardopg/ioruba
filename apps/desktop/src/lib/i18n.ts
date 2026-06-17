@@ -351,6 +351,15 @@ const TEXT_MAP: Record<string, string> = {
   "O Ioruba não encontrou o pactl no PATH. O controle de volume está desativado até que o backend seja instalado.":
     "Ioruba could not find pactl on PATH. Volume control is disabled until the backend is installed.",
   "Como instalar": "How to install",
+  "Esta plataforma ainda não tem backend de áudio nativo. O Ioruba mantém perfis, conexão serial, telemetria e modo demo, mas não altera volumes reais.":
+    "This platform does not have a native audio backend yet. Ioruba keeps profiles, serial connection, telemetry, and demo mode available, but it does not change real volumes.",
+  "Fallback disponível": "Available fallback",
+  "Use o modo demo para validar perfis e telemetria.":
+    "Use demo mode to validate profiles and telemetry.",
+  "Conecte o Arduino para testar a leitura serial sem aplicar áudio.":
+    "Connect the Arduino to test serial readings without applying audio.",
+  "Use Linux com pactl para controle de volume real.":
+    "Use Linux with pactl for real volume control.",
   "em uso por outro processo. Feche o monitor serial ou outro app que esteja com a porta aberta.":
     "is in use by another process. Close the serial monitor or any other app holding the port open.",
   "Sem permissão para abrir": "No permission to open",

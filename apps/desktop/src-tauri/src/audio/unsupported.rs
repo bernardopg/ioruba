@@ -15,9 +15,7 @@ pub fn list_audio_inventory() -> AudioInventory {
         default_sink: None,
         default_source: None,
         summary: "Audio backend unavailable on this platform".to_string(),
-        diagnostics: vec![
-            "Only the Linux pactl backend is implemented in this migration".to_string(),
-        ],
+        diagnostics: vec!["No native audio backend is implemented for this platform".to_string()],
     }
 }
 
@@ -39,7 +37,7 @@ pub fn apply_slider_targets_batch(
                         .map(|target| RuntimeTargetOutcome {
                             target: describe_target(target),
                             status: TargetOutcomeStatus::Unavailable,
-                            detail: "Only the Linux pactl backend is implemented in this migration"
+                            detail: "No native audio backend is implemented for this platform"
                                 .to_string(),
                             matched: Vec::new(),
                         })

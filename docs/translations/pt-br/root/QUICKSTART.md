@@ -191,6 +191,12 @@ O AppImage fica em:
 apps/desktop/src-tauri/target/release/bundle/appimage/
 ```
 
+Valide a estrutura do AppImage gerado antes de executar:
+
+```bash
+scripts/validate-appimage.sh apps/desktop/src-tauri/target/release/bundle/appimage/Ioruba_*.AppImage
+```
+
 Execute como um usuario final faria:
 
 ```bash
@@ -211,6 +217,7 @@ Limitacao conhecida em hosts Arch atuais:
 - o passo de bundling AppImage ainda pode falhar dentro do linuxdeploy porque o strip embutido nao entende libs novas do Arch com .relr.dyn
 - quando isso acontecer, trate o binario de release em apps/desktop/src-tauri/target/release/ioruba-desktop como alvo local de smoke test para tray/background
 - para artefatos AppImage publicos, prefira build em CI ou em imagem Linux mais antiga em vez de um Arch bleeding-edge
+- o workflow de release roda scripts/validate-appimage.sh --require-launch no Ubuntu 22.04, entao AppImages publicos tem checks automatizados de extracao e smoke launch
 
 ### O app abre mas nenhum pacote chega
 
