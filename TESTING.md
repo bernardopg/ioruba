@@ -3,7 +3,7 @@
 This document is the practical validation matrix for the **active** Ioruba stack.
 
 > **Important**
-> Full target coverage is currently implemented on **Linux** only. Windows supports real `master`/default-output volume through Core Audio; macOS remains UI/demo mode only.
+> Full target coverage is currently implemented on **Linux** only. Windows and macOS support real `master`/default-output volume through Core Audio; application/source/sink targets remain Linux-only.
 
 ## 1. Fast validation path
 
@@ -186,12 +186,13 @@ sudo pacman -S --needed \
 
 ### Running on macOS
 
-Treat that test pass as partial by design:
+Treat that test pass as partial audio support:
 
 - desktop launch and layout should work
 - demo mode should work
 - persistence should work
-- audio inventory should report an unsupported backend instead of pretending to work
+- `master` should change the default output volume through Core Audio
+- app/source/sink targets should report unsupported outcomes instead of pretending to work
 
 ### Running on Windows
 

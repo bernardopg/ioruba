@@ -4,8 +4,8 @@ This is the fastest path from a fresh clone to a working Ioruba session on the *
 
 > **Heads up**
 > Real system-audio control is production-ready on Linux via `pactl`.
-> **Windows** provides `master`/default-output volume via Core Audio.
-> macOS builds remain UI/demo only; real audio control not yet implemented.
+> **Windows** and **macOS** provide `master`/default-output volume via Core Audio.
+> Application/source/sink targets remain Linux-only.
 
 ## 1. What you need
 
@@ -244,7 +244,7 @@ Windows has partial audio support: `master` targets control the default output v
 
 ### You are on macOS
 
-This path is best treated as **UI/demo validation only**. The desktop shell may build and open, but the real audio backend is intentionally unsupported on macOS.
+macOS has partial audio support: `master` targets control the default output volume via the Core Audio framework. Application/source/sink targets are explicitly unsupported. Demo mode, serial, telemetry, and packaging work normally.
 
 ## 12. Verify a release download
 

@@ -220,12 +220,13 @@ On Windows, treat the current app as partial audio support:
 - real default-output (`master`) volume control through Core Audio
 - app/source/sink targets should report unsupported outcomes
 
-On macOS, treat the current app as:
+On macOS, treat the current app as partial audio support:
 
 - valid for layout review
 - valid for demo mode
 - valid for persistence checks
-- **not yet** production-ready for real system-audio control
+- real default-output (`master`) volume control through the Core Audio framework
+- app/source/sink targets should report unsupported outcomes
 
 ## Related docs
 

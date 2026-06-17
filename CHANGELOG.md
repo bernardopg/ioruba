@@ -10,16 +10,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Features
 
 - Windows Core Audio backend (`audio/windows.rs`) using WASAPI via `windows` crate for default output (`master`) volume control
-- Application/source/sink targets return explicit `unavailable` outcome on Windows instead of pretending to work
+- macOS Core Audio backend (`audio/macos.rs`) using the system `CoreAudio` framework (hand-rolled FFI, no extra crate) for default output (`master`) volume control, with per-channel scalar fallback
+- Application/source/sink targets return explicit `unavailable` outcome on Windows and macOS instead of pretending to work
 - AppImage validation script (`scripts/validate-appimage.sh`) with extraction, structure, and optional launch smoke test under Xvfb
 - CI integration: Linux release job runs `scripts/validate-appimage.sh --require-launch` on Ubuntu 22.04 before publishing assets
+- CI: `native-audio-smoke` matrix job compiles, lints, and links the Rust backend on `macos-latest` and `windows-latest`, validating the cfg-gated CoreAudio/WASAPI code that the Linux gate never builds
 - `AudioBackendBanner` distinguishes platform-unsupported (Windows/macOS) from missing-pactl (Linux) with tailored fallback UX
 - Test coverage for audio backend banner fallback behavior (`audio-backend-banner.test.tsx`)
 
 ### Changed
 
-- Platform matrix: Windows now "Partial" (master volume only via Core Audio); macOS remains UI/demo only
-- Updated docs (README, QUICKSTART, TESTING) to reflect Windows partial audio support
+- Platform matrix: Windows and macOS now "Partial" (master/default-output volume only via Core Audio)
+- Updated docs (README, QUICKSTART, TESTING) to reflect Windows and macOS partial audio support
 
 ## [1.1.0](https://github.com/bernardopg/ioruba/compare/v1.0.0...v1.1.0) (2026-06-13)
 

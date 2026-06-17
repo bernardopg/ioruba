@@ -38,8 +38,8 @@ A stack ativa é um app desktop em **Tauri 2 + React + TypeScript**, com camada 
 
 > **Status atual de plataforma**
 > O controle real de áudio está pronto para produção no **Linux** via `pactl`.
-> **Windows** fornece volume `master`/saída padrão via Core Audio.
-> Builds para macOS permanecem UI/demo apenas; controle de áudio real ainda não implementado.
+> **Windows** e **macOS** fornecem volume `master`/saída padrão via Core Audio.
+> Alvos application/source/sink permanecem exclusivos do Linux.
 
 ## 📚 Links rápidos
 
@@ -82,7 +82,7 @@ O projeto preserva a sensação prática de um mixer pequeno enquanto moderniza 
 - Perfis JSON editáveis (persistidos por plataforma)
 - Modo demo para validar UI sem alterar o áudio real
 - Tratamento de alvos Linux para **master**, **application**, **source** e **sink**
-- Backend Windows Core Audio para controle de volume **master** (saída padrão)
+- Backends Windows e macOS Core Audio para controle de volume **master** (saída padrão)
 - CI para validação desktop/shared e compilação do firmware
 - Workflows de release com bundles desktop e metadados Arch (`PKGBUILD` + `.SRCINFO`)
 
@@ -91,10 +91,10 @@ O projeto preserva a sensação prática de um mixer pequeno enquanto moderniza 
 | Plataforma | Status | Notas |
 |----------|-----------|---------------------------------------------------------------------------------------------------|
 | Linux    | ✅ Suportado | Caminho principal de produção: serial, backend `pactl`, modo demo e validação de hardware. |
-| macOS    | ⚠️ Parcial  | Shell desktop e modo demo funcionam; controle de áudio real ainda não implementado. |
+| macOS    | ⚠️ Parcial  | Backend Core Audio controla o volume da saída padrão (`master`); alvos app/source/sink ainda não são suportados. |
 | Windows  | ⚠️ Parcial  | Backend Core Audio controla o volume da saída padrão (`master`); alvos app/source/sink ainda não são suportados. |
 
-> **Nota:** Linux ainda é a única plataforma com cobertura completa de targets (`master`, aplicações, sinks, sources). Windows atualmente suporta apenas volume da saída padrão.
+> **Nota:** Linux ainda é a única plataforma com cobertura completa de targets (`master`, aplicações, sinks, sources). Windows e macOS atualmente suportam apenas volume da saída padrão.
 
 ## ⚡ Instalação rápida
 
@@ -154,7 +154,7 @@ Baixe o arquivo do bundle de app do macOS no latest release:
 - `Ioruba_..._aarch64.app.tar.gz`
 - `Ioruba_..._x64.app.tar.gz`
 
-> **Lembrete:** no Windows, o app controla apenas o volume da saída padrão. No macOS, o app ainda roda apenas em modo UI/demo; cobertura completa de targets exige Linux.
+> **Lembrete:** no Windows e no macOS, o app controla apenas o volume da saída padrão (`master`). Cobertura completa de targets (aplicações, sinks, sources) exige Linux.
 
 ## 🧰 Pré-requisitos (para build por código-fonte)
 

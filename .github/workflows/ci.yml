@@ -139,6 +139,45 @@ jobs:
       - name: Compile firmware
         run: npm run firmware:compile
 
+  native-audio-smoke:
+    name: Native Audio Smoke (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - macos-latest
+          - windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          persist-credentials: false
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@3c5f7ea28cd621ae0bf5283f0e981fb97b8a7af9 # master
+        with:
+          toolchain: stable
+          components: clippy
+
+      - name: Cache Rust
+        uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
+        with:
+          workspaces: |
+            apps/desktop/src-tauri -> target
+
+      # The macOS/Windows audio backends are cfg-gated and never compiled on the
+      # Linux gate. clippy compiles and lints the platform module; cargo test
+      # links the test binary, validating the CoreAudio framework / WASAPI bindings.
+      - name: Lint native audio backend (clippy)
+        run: cargo clippy --manifest-path apps/desktop/src-tauri/Cargo.toml --all-targets -- -D warnings
+
+      - name: Build and test Rust backend
+        run: cargo test --manifest-path apps/desktop/src-tauri/Cargo.toml
+
   repo-smoke:
     name: Repo Smoke
     runs-on: ubuntu-latest

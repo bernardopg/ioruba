@@ -136,12 +136,13 @@ No Windows, trate o app atual como suporte parcial de audio:
 - controle real de volume de saida padrao (`master`) via Core Audio
 - targets app/source/sink devem reportar outcomes nao suportados
 
-No macOS, trate o app atual como:
+No macOS, trate o app atual como suporte parcial de audio:
 
 - valido para revisao de layout
 - valido para modo demo
 - valido para validacao de persistencia
-- **ainda nao** pronto para producao em controle real de audio do sistema
+- controle real de volume de saida padrao (`master`) via framework Core Audio
+- targets app/source/sink devem reportar outcomes nao suportados
 
 ## Documentos relacionados
 

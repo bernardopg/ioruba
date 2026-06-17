@@ -4,7 +4,9 @@ use thiserror::Error;
 
 #[cfg(target_os = "linux")]
 mod linux;
-#[cfg(not(any(target_os = "linux", target_os = "windows")))]
+#[cfg(target_os = "macos")]
+mod macos;
+#[cfg(not(any(target_os = "linux", target_os = "windows", target_os = "macos")))]
 mod unsupported;
 #[cfg(target_os = "windows")]
 mod windows;
@@ -118,7 +120,12 @@ pub fn list_audio_inventory() -> AudioInventory {
     windows::list_audio_inventory()
 }
 
-#[cfg(not(any(target_os = "linux", target_os = "windows")))]
+#[cfg(target_os = "macos")]
+pub fn list_audio_inventory() -> AudioInventory {
+    macos::list_audio_inventory()
+}
+
+#[cfg(not(any(target_os = "linux", target_os = "windows", target_os = "macos")))]
 pub fn list_audio_inventory() -> AudioInventory {
     unsupported::list_audio_inventory()
 }
@@ -137,7 +144,14 @@ pub fn apply_slider_targets_batch(
     windows::apply_slider_targets_batch(request)
 }
 
-#[cfg(not(any(target_os = "linux", target_os = "windows")))]
+#[cfg(target_os = "macos")]
+pub fn apply_slider_targets_batch(
+    request: ApplySliderTargetsRequest,
+) -> Result<ApplySliderTargetsResponse, AudioError> {
+    macos::apply_slider_targets_batch(request)
+}
+
+#[cfg(not(any(target_os = "linux", target_os = "windows", target_os = "macos")))]
 pub fn apply_slider_targets_batch(
     request: ApplySliderTargetsRequest,
 ) -> Result<ApplySliderTargetsResponse, AudioError> {

@@ -38,8 +38,8 @@ The active stack is a **Tauri 2 + React + TypeScript** desktop app backed by a *
 
 > **Current platform status**
 > Real audio control is production‑ready on **Linux** via `pactl`.
-> **Windows** provides `master`/default-output volume via Core Audio.
-> macOS builds remain UI/demo only; real audio control not yet implemented.
+> **Windows** and **macOS** provide `master`/default-output volume via Core Audio.
+> Application/source/sink targets remain Linux-only.
 
 ## 📚 Quick links
 
@@ -85,7 +85,7 @@ The project preserves the hands‑on feel of a small mixer while modernising the
 - A first-run onboarding checklist (controller, serial port, audio backend)
 - Demo mode for UI validation without touching system audio
 - Linux audio target handling for **master**, **application**, **source**, and **sink**
-- Windows Core Audio backend for **master** (default output) volume control
+- Windows and macOS Core Audio backends for **master** (default output) volume control
 - CI for desktop/shared validation plus firmware compilation
 - Tagged release workflows producing desktop bundles (`deb`, `rpm`, `AppImage`), firmware artifacts, and Arch packaging metadata (`PKGBUILD` + `.SRCINFO`)
 
@@ -94,10 +94,10 @@ The project preserves the hands‑on feel of a small mixer while modernising the
 | Platform | Status    | Notes                                                                                             |
 |----------|-----------|---------------------------------------------------------------------------------------------------|
 | Linux    | ✅ Supported | Main production path: serial workflow, `pactl` audio backend, demo mode, hardware validation.    |
-| macOS    | ⚠️ Partial  | Desktop shell and demo‑mode validation work; real audio control not yet implemented.             |
+| macOS    | ⚠️ Partial  | Core Audio backend controls the default output (`master`) volume; app/source/sink targets remain unsupported. |
 | Windows  | ⚠️ Partial  | Core Audio backend controls the default output (`master`) volume; app/source/sink targets remain unsupported. |
 
-> **Note:** Linux is still the only platform with full target coverage (`master`, applications, sinks, sources). Windows currently supports default output volume only.
+> **Note:** Linux is still the only platform with full target coverage (`master`, applications, sinks, sources). Windows and macOS currently support default output volume only.
 
 ## ⚡ Fast installation
 
@@ -157,7 +157,7 @@ Download the macOS app bundle archive from the latest release page:
 - `Ioruba_..._aarch64.app.tar.gz`
 - `Ioruba_..._x64.app.tar.gz`
 
-> **Reminder:** On Windows, the app can control the default output volume only. On macOS, the app currently runs in UI/demo mode only; full audio target coverage requires Linux.
+> **Reminder:** On Windows and macOS, the app can control the default output (`master`) volume only. Full audio target coverage (applications, sinks, sources) requires Linux.
 
 ## 🧰 Prerequisites (for source builds)
 

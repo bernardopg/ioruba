@@ -4,8 +4,8 @@ Este e o caminho mais rapido de um clone limpo para uma sessao Ioruba funcionand
 
 > **Atencao**
 > O controle real de audio do sistema esta pronto para producao no Linux via `pactl`.
-> **Windows** fornece volume `master`/saida padrao via Core Audio.
-> Builds para macOS permanecem UI/demo apenas; controle de audio real ainda nao implementado.
+> **Windows** e **macOS** fornecem volume `master`/saida padrao via Core Audio.
+> Alvos application/source/sink permanecem exclusivos do Linux.
 
 ## 1. O que voce precisa
 
@@ -244,7 +244,7 @@ O Windows tem suporte parcial de audio: alvos `master` controlam o volume da sai
 
 ### Voce esta no macOS
 
-Esse caminho deve ser tratado como validacao de UI/demo apenas. O shell desktop pode compilar e abrir, mas o backend real de audio esta intencionalmente sem suporte no macOS.
+O macOS tem suporte parcial de audio: alvos `master` controlam o volume da saida padrao via framework Core Audio. Alvos application/source/sink sao explicitamente nao suportados. Modo demo, serial, telemetria e empacotamento funcionam normalmente.
 
 ## Leituras seguintes
 
