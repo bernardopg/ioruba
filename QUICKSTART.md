@@ -3,7 +3,9 @@
 This is the fastest path from a fresh clone to a working Ioruba session on the **active Linux stack**.
 
 > **Heads up**
-> Real system-audio control currently depends on the Linux `pactl` backend. On macOS and Windows, the desktop shell is still useful for UI review and demo mode, but audio control is not implemented yet.
+> Real system-audio control is production-ready on Linux via `pactl`.
+> **Windows** provides `master`/default-output volume via Core Audio.
+> macOS builds remain UI/demo only; real audio control not yet implemented.
 
 ## 1. What you need
 
@@ -236,9 +238,13 @@ Known limitation on current Arch hosts:
 - refresh the inventory from the desktop app
 - inspect the JSON profile in the `Config` tab
 
-### You are on macOS or Windows
+### You are on Windows
 
-That path is currently best treated as **UI/demo validation only**. The desktop shell may build and open, but the real audio backend is intentionally marked unsupported outside Linux.
+Windows has partial audio support: `master` targets control the default output volume via Core Audio. Application/source/sink targets are explicitly unsupported. Demo mode, serial, telemetry, and packaging work normally.
+
+### You are on macOS
+
+This path is best treated as **UI/demo validation only**. The desktop shell may build and open, but the real audio backend is intentionally unsupported on macOS.
 
 ## 12. Verify a release download
 

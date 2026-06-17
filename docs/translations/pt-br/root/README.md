@@ -38,7 +38,8 @@ A stack ativa é um app desktop em **Tauri 2 + React + TypeScript**, com camada 
 
 > **Status atual de plataforma**
 > O controle real de áudio está pronto para produção no **Linux** via `pactl`.
-> Builds para macOS e Windows são úteis para revisão de UI, empacotamento e modo demo, mas ainda **não** possuem backend de áudio funcional.
+> **Windows** fornece volume `master`/saída padrão via Core Audio.
+> Builds para macOS permanecem UI/demo apenas; controle de áudio real ainda não implementado.
 
 ## 📚 Links rápidos
 
@@ -81,6 +82,7 @@ O projeto preserva a sensação prática de um mixer pequeno enquanto moderniza 
 - Perfis JSON editáveis (persistidos por plataforma)
 - Modo demo para validar UI sem alterar o áudio real
 - Tratamento de alvos Linux para **master**, **application**, **source** e **sink**
+- Backend Windows Core Audio para controle de volume **master** (saída padrão)
 - CI para validação desktop/shared e compilação do firmware
 - Workflows de release com bundles desktop e metadados Arch (`PKGBUILD` + `.SRCINFO`)
 

@@ -38,7 +38,8 @@ The active stack is a **Tauri 2 + React + TypeScript** desktop app backed by a *
 
 > **Current platform status**
 > Real audio control is production‑ready on **Linux** via `pactl`.
-> macOS and Windows builds are useful for UI review, packaging checks, and demo mode, but they do **not** yet provide a functional audio backend.
+> **Windows** provides `master`/default-output volume via Core Audio.
+> macOS builds remain UI/demo only; real audio control not yet implemented.
 
 ## 📚 Quick links
 
@@ -84,6 +85,7 @@ The project preserves the hands‑on feel of a small mixer while modernising the
 - A first-run onboarding checklist (controller, serial port, audio backend)
 - Demo mode for UI validation without touching system audio
 - Linux audio target handling for **master**, **application**, **source**, and **sink**
+- Windows Core Audio backend for **master** (default output) volume control
 - CI for desktop/shared validation plus firmware compilation
 - Tagged release workflows producing desktop bundles (`deb`, `rpm`, `AppImage`), firmware artifacts, and Arch packaging metadata (`PKGBUILD` + `.SRCINFO`)
 

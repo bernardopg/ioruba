@@ -128,12 +128,20 @@ Se a UI abrir mas o comportamento ainda parecer incorreto:
 
 ## 🖥️ Plataformas nao Linux
 
-No macOS e Windows, trate o app atual como:
+No Windows, trate o app atual como suporte parcial de audio:
 
 - valido para revisao de layout
 - valido para modo demo
 - valido para validacao de persistencia
-- ainda nao pronto para producao em controle real de audio do sistema
+- controle real de volume de saida padrao (`master`) via Core Audio
+- targets app/source/sink devem reportar outcomes nao suportados
+
+No macOS, trate o app atual como:
+
+- valido para revisao de layout
+- valido para modo demo
+- valido para validacao de persistencia
+- **ainda nao** pronto para producao em controle real de audio do sistema
 
 ## Documentos relacionados
 
