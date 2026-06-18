@@ -161,6 +161,8 @@ const TEXT_MAP: Record<string, string> = {
   Erro: "Error",
   "Saúde da conexão": "Connection health",
   Sinal: "Signal",
+  "Exportar estatísticas em JSON": "Export statistics as JSON",
+  "Exportar estatísticas em CSV": "Export statistics as CSV",
   "sem sinal": "no signal",
   "ao vivo": "live",
   "atrás": "ago",

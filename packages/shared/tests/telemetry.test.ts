@@ -4,6 +4,8 @@ import {
   createSessionStats,
   knobAveragePercent,
   pushTelemetry,
+  sessionStatsToCsv,
+  sessionStatsToJson,
   updateSessionStats
 } from "../src/runtime";
 import type { TelemetryPoint } from "../src/types";
@@ -144,5 +146,52 @@ describe("updateSessionStats", () => {
         lastPercent: 0
       })
     ).toBe(0);
+  });
+});
+
+describe("session stats exporters", () => {
+  function sampleStats() {
+    let stats = createSessionStats();
+    stats = updateSessionStats(stats, [kpoint(1, 0, 20), kpoint(1, 1, 80)]);
+    stats = updateSessionStats(stats, [kpoint(2, 0, 60), kpoint(2, 1, 40)]);
+    return stats;
+  }
+
+  it("serializes session stats to JSON with rounded knob rows", () => {
+    const json = JSON.parse(
+      sessionStatsToJson(sampleStats(), { 0: "Master", 1: "Mic" })
+    );
+    expect(json.sampleCount).toBe(4);
+    expect(json.tickSpan).toBe(2);
+    expect(json.knobs).toHaveLength(2);
+    expect(json.knobs[0]).toMatchObject({
+      knobId: 0,
+      name: "Master",
+      minPercent: 20,
+      avgPercent: 40,
+      maxPercent: 60,
+      lastPercent: 60
+    });
+  });
+
+  it("serializes session stats to CSV with a header and one row per knob", () => {
+    const csv = sessionStatsToCsv(sampleStats(), { 0: "Master", 1: "Mic" });
+    const lines = csv.split("\n");
+    expect(lines[0]).toBe(
+      "knobId,name,samples,minPercent,avgPercent,maxPercent,lastPercent"
+    );
+    expect(lines[1]).toBe("0,Master,2,20,40,60,60");
+    expect(lines[2]).toBe("1,Mic,2,40,60,80,40");
+  });
+
+  it("escapes CSV names containing commas", () => {
+    const csv = sessionStatsToCsv(sampleStats(), { 0: "Master, main", 1: "Mic" });
+    expect(csv.split("\n")[1]).toBe('0,"Master, main",2,20,40,60,60');
+  });
+
+  it("emits only a header for empty stats", () => {
+    expect(sessionStatsToCsv(createSessionStats())).toBe(
+      "knobId,name,samples,minPercent,avgPercent,maxPercent,lastPercent"
+    );
   });
 });

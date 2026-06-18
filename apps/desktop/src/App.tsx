@@ -53,6 +53,7 @@ import { useSerialRuntime } from "@/hooks/use-serial-runtime";
 import { useThemeSync } from "@/hooks/use-theme-sync";
 import { useWatchBridge } from "@/hooks/use-watch-bridge";
 import {
+  exportSessionStats,
   exportWatchLog,
   listAudioInventory,
   setLaunchOnLoginEnabled
@@ -63,7 +64,12 @@ import {
   serializeProfileDraft
 } from "@/lib/profile-config";
 import { useIorubaStore } from "@/store/ioruba-store";
-import { resolveActiveProfile, type ThemeMode } from "@ioruba/shared";
+import {
+  resolveActiveProfile,
+  sessionStatsToCsv,
+  sessionStatsToJson,
+  type ThemeMode
+} from "@ioruba/shared";
 
 function toneForStatus(status: string): "neutral" | "positive" | "warning" | "critical" {
   switch (status) {
@@ -287,6 +293,44 @@ export default function App() {
         detail: error instanceof Error ? error.message : String(error)
       });
       throw error;
+    }
+  }
+
+  async function handleSessionStatsExport(format: "json" | "csv") {
+    const knobNames = Object.fromEntries(
+      snapshot.knobs.map((knob) => [knob.id, knob.name])
+    );
+    const payload =
+      format === "json"
+        ? sessionStatsToJson(sessionStats, knobNames)
+        : sessionStatsToCsv(sessionStats, knobNames);
+    const fileName = `ioruba-session-stats.${format}`;
+
+    appendWatchLog({
+      scope: "app",
+      level: "info",
+      message: "Exportacao de estatisticas solicitada",
+      detail: format.toUpperCase()
+    });
+
+    try {
+      const path = await exportSessionStats(fileName, payload);
+
+      appendWatchLog({
+        scope: path ? "backend" : "app",
+        level: path ? "info" : "warning",
+        message: path
+          ? "Estatisticas da sessao exportadas"
+          : "Exportacao de estatisticas cancelada",
+        detail: path ?? undefined
+      });
+    } catch (error) {
+      appendWatchLog({
+        scope: "backend",
+        level: "error",
+        message: "Falha ao exportar estatisticas",
+        detail: error instanceof Error ? error.message : String(error)
+      });
     }
   }
 
@@ -729,6 +773,8 @@ export default function App() {
               <SessionStatsPanel
                 knobs={snapshot.knobs}
                 language={language}
+                onExportCsv={() => handleSessionStatsExport("csv")}
+                onExportJson={() => handleSessionStatsExport("json")}
                 onReset={resetSessionStats}
                 stats={sessionStats}
               />

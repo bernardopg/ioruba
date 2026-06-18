@@ -84,7 +84,8 @@ Hoje Windows/macOS só controlam `master`. Linux tem cobertura completa.
 
 ## Scrum 16 — Telemetria e dados
 
-- [ ] Export dos `sessionStats` para arquivo (JSON/CSV) via dialog, reusando o padrão do export de perfil/watch log `(frontend/backend/telemetry)` - `fácil`
+- [x] Export dos `sessionStats` para arquivo (JSON/CSV) via dialog, reusando o padrão do export de perfil/watch log `(frontend/backend/telemetry)` - `fácil`
+  - Formatters puros `sessionStatsToJson`/`sessionStatsToCsv` no shared (+testes), comando Tauri `export_session_stats` (filtros JSON/CSV), botões JSON/CSV no `SessionStatsPanel`.
 - [ ] Histórico de telemetria persistente em disco (opt-in) para análise pós-sessão `(backend/telemetry/persistence)` - `médio`
 - [ ] Visualização comparativa entre sessões (picos, médias, duração) `(frontend/telemetry)` - `médio`
 

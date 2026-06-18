@@ -1,4 +1,4 @@
-import { Activity, RotateCcw } from "lucide-react";
+import { Activity, Download, RotateCcw } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { translateText } from "@/lib/i18n";
@@ -22,12 +22,16 @@ export function SessionStatsPanel({
   stats,
   knobs,
   language,
-  onReset
+  onReset,
+  onExportJson,
+  onExportCsv
 }: {
   stats: SessionTelemetryStats;
   knobs: KnobLabel[];
   language: UiLanguage;
   onReset: () => void;
+  onExportJson?: () => void;
+  onExportCsv?: () => void;
 }) {
   const lt = (text: string) => translateText(language, text);
   const tickSpan =
@@ -54,17 +58,45 @@ export function SessionStatsPanel({
             </p>
           </div>
         </div>
-        <Button
-          aria-label={lt("Resetar estatísticas da sessão")}
-          className="gap-2"
-          disabled={stats.sampleCount === 0}
-          onClick={onReset}
-          size="small"
-          variant="ghost"
-        >
-          <RotateCcw className="h-4 w-4" />
-          {lt("Resetar")}
-        </Button>
+        <div className="flex flex-wrap items-center gap-2">
+          {onExportJson ? (
+            <Button
+              aria-label={lt("Exportar estatísticas em JSON")}
+              className="gap-2"
+              disabled={stats.sampleCount === 0}
+              onClick={onExportJson}
+              size="small"
+              variant="ghost"
+            >
+              <Download className="h-4 w-4" />
+              JSON
+            </Button>
+          ) : null}
+          {onExportCsv ? (
+            <Button
+              aria-label={lt("Exportar estatísticas em CSV")}
+              className="gap-2"
+              disabled={stats.sampleCount === 0}
+              onClick={onExportCsv}
+              size="small"
+              variant="ghost"
+            >
+              <Download className="h-4 w-4" />
+              CSV
+            </Button>
+          ) : null}
+          <Button
+            aria-label={lt("Resetar estatísticas da sessão")}
+            className="gap-2"
+            disabled={stats.sampleCount === 0}
+            onClick={onReset}
+            size="small"
+            variant="ghost"
+          >
+            <RotateCcw className="h-4 w-4" />
+            {lt("Resetar")}
+          </Button>
+        </div>
       </div>
 
       {stats.sampleCount === 0 ? (

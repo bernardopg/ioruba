@@ -231,6 +231,112 @@ export function knobAveragePercent(stats: KnobSessionStats): number {
   return stats.sampleCount === 0 ? 0 : stats.sumPercent / stats.sampleCount;
 }
 
+/** Span de ticks coberto pela sessão (inclusivo); 0 quando não há amostras. */
+function sessionTickSpan(stats: SessionTelemetryStats): number {
+  return stats.firstTick !== null && stats.lastTick !== null
+    ? stats.lastTick - stats.firstTick + 1
+    : 0;
+}
+
+interface SessionStatsKnobRow {
+  knobId: number;
+  name: string;
+  sampleCount: number;
+  minPercent: number;
+  avgPercent: number;
+  maxPercent: number;
+  lastPercent: number;
+}
+
+/**
+ * Lineariza os agregados de sessão em linhas por knob (porcentagens
+ * arredondadas), base comum dos exports JSON/CSV. As linhas seguem a ordem de
+ * `knobNames` quando fornecido; caso contrário, a ordem dos ids em `perKnob`.
+ */
+export function sessionStatsRows(
+  stats: SessionTelemetryStats,
+  knobNames: Record<number, string> = {}
+): SessionStatsKnobRow[] {
+  const ids =
+    Object.keys(knobNames).length > 0
+      ? Object.keys(knobNames).map((id) => Number(id))
+      : Object.keys(stats.perKnob).map((id) => Number(id));
+
+  return ids
+    .map((knobId) => {
+      const knobStats = stats.perKnob[knobId];
+      if (!knobStats) {
+        return null;
+      }
+
+      return {
+        knobId,
+        name: knobNames[knobId] ?? `Knob ${knobId}`,
+        sampleCount: knobStats.sampleCount,
+        minPercent: Math.round(knobStats.minPercent),
+        avgPercent: Math.round(knobAveragePercent(knobStats)),
+        maxPercent: Math.round(knobStats.maxPercent),
+        lastPercent: Math.round(knobStats.lastPercent)
+      };
+    })
+    .filter((row): row is SessionStatsKnobRow => row !== null);
+}
+
+/** Serializa os agregados de sessão como JSON legível (indentado). */
+export function sessionStatsToJson(
+  stats: SessionTelemetryStats,
+  knobNames: Record<number, string> = {}
+): string {
+  return JSON.stringify(
+    {
+      sampleCount: stats.sampleCount,
+      firstTick: stats.firstTick,
+      lastTick: stats.lastTick,
+      tickSpan: sessionTickSpan(stats),
+      knobs: sessionStatsRows(stats, knobNames)
+    },
+    null,
+    2
+  );
+}
+
+/** Escapa um campo CSV (aspas duplas quando contém vírgula, aspas ou quebra). */
+function csvField(value: string | number): string {
+  const text = String(value);
+  return /[",\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
+}
+
+/** Serializa os agregados de sessão como CSV (uma linha por knob + cabeçalho). */
+export function sessionStatsToCsv(
+  stats: SessionTelemetryStats,
+  knobNames: Record<number, string> = {}
+): string {
+  const header = [
+    "knobId",
+    "name",
+    "samples",
+    "minPercent",
+    "avgPercent",
+    "maxPercent",
+    "lastPercent"
+  ];
+  const rows = sessionStatsRows(stats, knobNames).map((row) =>
+    [
+      row.knobId,
+      row.name,
+      row.sampleCount,
+      row.minPercent,
+      row.avgPercent,
+      row.maxPercent,
+      row.lastPercent
+    ]
+      .map(csvField)
+      .join(",")
+  );
+
+  return [header.join(","), ...rows].join("\n");
+}
+
 export function describeTarget(
   target: MixerProfile["sliders"][number]["targets"][number]
 ): string {

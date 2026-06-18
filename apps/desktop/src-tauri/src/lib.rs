@@ -241,6 +241,44 @@ async fn export_profile(
 }
 
 #[tauri::command]
+async fn export_session_stats(
+    app: tauri::AppHandle,
+    file_name: String,
+    payload: String,
+) -> Result<Option<String>, String> {
+    let Some(file_path) = app
+        .dialog()
+        .file()
+        .add_filter("JSON", &["json"])
+        .add_filter("CSV", &["csv"])
+        .set_file_name(&file_name)
+        .set_title("Exportar estatisticas da sessao")
+        .blocking_save_file()
+    else {
+        watch::emit(
+            &app,
+            watch::WatchScope::App,
+            watch::WatchLevel::Warning,
+            "Exportacao de estatisticas cancelada",
+            None,
+        );
+        return Ok(None);
+    };
+
+    let path = file_path.into_path().map_err(|error| error.to_string())?;
+    atomic_write(&path, &payload)?;
+    watch::emit(
+        &app,
+        watch::WatchScope::Backend,
+        watch::WatchLevel::Info,
+        "Estatisticas da sessao exportadas",
+        Some(path.display().to_string()),
+    );
+
+    Ok(Some(path.display().to_string()))
+}
+
+#[tauri::command]
 async fn import_profile(app: tauri::AppHandle) -> Result<Option<String>, String> {
     let Some(file_path) = app
         .dialog()
@@ -640,6 +678,7 @@ pub fn run() {
             clear_watch_log_entries,
             export_watch_log,
             export_profile,
+            export_session_stats,
             import_profile,
             get_launch_on_login_enabled,
             set_launch_on_login_enabled

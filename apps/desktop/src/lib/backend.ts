@@ -107,6 +107,17 @@ export async function exportProfile(
   return invoke<string | null>("export_profile", { fileName, payload });
 }
 
+export async function exportSessionStats(
+  fileName: string,
+  payload: string,
+): Promise<string | null> {
+  if (!isTauri()) {
+    return null;
+  }
+
+  return invoke<string | null>("export_session_stats", { fileName, payload });
+}
+
 export async function importProfile(): Promise<string | null> {
   if (!isTauri()) {
     return null;
