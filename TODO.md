@@ -101,7 +101,8 @@ Hoje Windows/macOS só controlam `master`. Linux tem cobertura completa.
 - [ ] Ampliar i18n além de en/pt-BR (estrutura de `i18n.ts` já suporta) `(frontend/i18n)` - `médio`
 - [x] Exibir board/MCU/`adcBits`/protocolo detectados num painel de diagnóstico claro `(frontend/hardware/ux)` - `fácil`
   - `HardwarePanel` (seção Hardware): placa, MCU, resolução do ADC, protocolo (compat.), knobs e calibração por knob, com estado vazio. Integrado à navegação agrupada nova.
-- [ ] Indicador visual de latência e saúde da conexão sempre visível (alinhado ao `.impeccable.md`) `(frontend/ux/observability)` - `fácil`
+- [x] Indicador visual de latência e saúde da conexão sempre visível (alinhado ao `.impeccable.md`) `(frontend/ux/observability)` - `fácil`
+  - `ConnectionHealthIndicator` no topo do sidebar (sempre visível): dot colorido por estado + label + frescura do sinal (tempo desde o último frame, tick 1s) como proxy de latência. Store ganhou `lastFrameAt`. +4 testes.
 
 ## Não-objetivos
 

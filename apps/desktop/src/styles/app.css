@@ -254,6 +254,87 @@ body {
   }
 }
 
+.connection-health {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.7rem 0.85rem;
+  border-radius: 18px;
+  border: 1px solid color-mix(in oklab, var(--health) 45%, var(--color-border));
+  background: color-mix(in oklab, var(--health) 12%, var(--color-panel));
+  --health: var(--color-muted);
+}
+
+.connection-health[data-health="online"] {
+  --health: oklch(0.72 0.16 155);
+}
+
+.connection-health[data-health="demo"] {
+  --health: var(--accent-teal, oklch(0.72 0.12 200));
+}
+
+.connection-health[data-health="linking"] {
+  --health: oklch(0.78 0.15 75);
+}
+
+.connection-health[data-health="error"] {
+  --health: oklch(0.65 0.2 25);
+}
+
+.connection-health[data-health="offline"],
+.connection-health[data-health="boot"] {
+  --health: var(--color-muted);
+}
+
+.connection-health-dot {
+  flex-shrink: 0;
+  width: 0.7rem;
+  height: 0.7rem;
+  border-radius: 999px;
+  background: var(--health);
+  box-shadow: 0 0 0 0 color-mix(in oklab, var(--health) 70%, transparent);
+}
+
+.connection-health-dot[data-live="true"] {
+  animation: connection-health-pulse 1.8s ease-out infinite;
+}
+
+@keyframes connection-health-pulse {
+  0% {
+    box-shadow: 0 0 0 0 color-mix(in oklab, var(--health) 60%, transparent);
+  }
+  70% {
+    box-shadow: 0 0 0 0.5rem color-mix(in oklab, var(--health) 0%, transparent);
+  }
+  100% {
+    box-shadow: 0 0 0 0 color-mix(in oklab, var(--health) 0%, transparent);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .connection-health-dot[data-live="true"] {
+    animation: none;
+  }
+}
+
+.connection-health-status {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--color-ink);
+  line-height: 1.2;
+}
+
+.connection-health-signal {
+  margin-top: 0.1rem;
+  font-size: 0.7rem;
+  letter-spacing: 0.04em;
+  color: var(--color-muted);
+}
+
+.connection-health-signal[data-stale="true"] {
+  color: color-mix(in oklab, oklch(0.78 0.15 75) 80%, var(--color-muted));
+}
+
 .sidebar-nav {
   display: grid;
   gap: 1.15rem;

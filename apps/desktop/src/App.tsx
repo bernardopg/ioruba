@@ -32,6 +32,7 @@ import {
 } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { AudioBackendBanner } from "@/components/dashboard/audio-backend-banner";
+import { ConnectionHealthIndicator } from "@/components/dashboard/connection-health";
 import { HardwarePanel } from "@/components/dashboard/hardware-panel";
 import { KnobPanel } from "@/components/dashboard/knob-panel";
 import { OnboardingChecklist } from "@/components/dashboard/onboarding-checklist";
@@ -113,6 +114,7 @@ export default function App() {
 
   const persisted = useIorubaStore((state) => state.persisted);
   const snapshot = useIorubaStore((state) => state.snapshot);
+  const lastFrameAt = useIorubaStore((state) => state.lastFrameAt);
   const sessionStats = useIorubaStore((state) => state.sessionStats);
   const resetSessionStats = useIorubaStore((state) => state.resetSessionStats);
   const watchLog = useIorubaStore((state) => state.watchLog);
@@ -312,6 +314,15 @@ export default function App() {
               <p className="mt-2 text-xs leading-5 text-(--color-muted)">
                 {lt("Painel instrumental com telemetria viva e perfis locais.")}
               </p>
+            </div>
+
+            <div className="mt-5">
+              <ConnectionHealthIndicator
+                language={language}
+                lastFrameAt={lastFrameAt}
+                status={snapshot.status}
+                statusText={snapshot.statusText}
+              />
             </div>
 
             <nav className="mt-5">

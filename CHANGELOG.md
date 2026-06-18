@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Features
 
+- Always-visible connection-health indicator in the sidebar (Scrum 18): a colour-coded status dot + label and a live signal-freshness readout (time since the last serial/demo frame, refreshed every second) as a latency proxy, aligned with `.impeccable.md` ("connection state must be impossible to miss"). Backed by a new `lastFrameAt` field in the store
 - Redesigned navigation: the sidebar is now organized into labelled groups (Operation / Monitoring / Adjustments) with finer-grained sections. Channels (live knobs) split out of the control panel, and a dedicated Hardware section was added
 - Settings split into three focused sidebar entries — Profiles, Editor and Advanced — each a full-width view instead of one dense two-column page (the `ProfileWorkbench` now takes a `view` prop)
 - New `HardwarePanel` surfaces the firmware handshake end to end — board, MCU, ADC resolution (10/12-bit), protocol compatibility, knob count and per-knob calibration — with a clear empty state when no controller is connected (Scrum 18: hardware diagnostics panel)

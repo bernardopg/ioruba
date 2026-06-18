@@ -67,6 +67,12 @@ interface IorubaState {
   outcomes: OutcomeMap;
   availablePorts: string[];
   lastSerialLine: string | null;
+  /**
+   * Epoch (ms) do último frame de knobs recebido (serial ou demo). `null` quando
+   * nenhum frame chegou na sessão atual. O indicador de saúde da conexão deriva
+   * a "frescura"/latência a partir deste valor; é zerado ao desconectar.
+   */
+  lastFrameAt: number | null;
   telemetry: TelemetryPoint[];
   sessionStats: SessionTelemetryStats;
   watchLog: WatchLogEntry[];
@@ -291,6 +297,7 @@ export const useIorubaStore = create<IorubaState>((rawSet, get) => {
     outcomes: {},
     availablePorts: [],
     lastSerialLine: null,
+    lastFrameAt: null,
     telemetry: [],
     sessionStats: createSessionStats(),
     watchLog: [],
@@ -458,6 +465,7 @@ export const useIorubaStore = create<IorubaState>((rawSet, get) => {
       set({
         connectionMode: "idle",
         firmwareInfo: null,
+        lastFrameAt: null,
         snapshot: createSnapshot({
           ...state,
           firmwareInfo: null,
@@ -1031,6 +1039,7 @@ export const useIorubaStore = create<IorubaState>((rawSet, get) => {
         sessionStats,
         tick: state.tick + 1,
         lastSerialLine: rawLine,
+        lastFrameAt: Date.now(),
         snapshot: createSnapshot({
           ...state,
           currentValues: nextCurrentValues,
@@ -1153,6 +1162,7 @@ export const useIorubaStore = create<IorubaState>((rawSet, get) => {
         outcomes,
         telemetry,
         lastSerialLine: `demo:${tick}`,
+        lastFrameAt: Date.now(),
         snapshot: createSnapshot({
           ...state,
           currentValues,
