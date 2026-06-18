@@ -18,6 +18,13 @@ function normalizeIncomingData(data: string | Uint8Array): string {
   return new TextDecoder().decode(data);
 }
 
+/**
+ * Acima deste tempo (ms) a aplicação de um lote knob→áudio é considerada lenta
+ * e registrada no watch log. Aplicar a cada frame logaria demais; só o que passa
+ * do orçamento vira evento, dando visibilidade da latência sem inundar o log.
+ */
+const AUDIO_APPLY_SLOW_MS = 80;
+
 export function useSerialRuntime() {
   const hydrated = useIorubaStore((state) => state.hydrated);
   const persisted = useIorubaStore((state) => state.persisted);
@@ -100,8 +107,19 @@ export function useSerialRuntime() {
       }
 
       try {
+        const startedAt = performance.now();
         const outcomes = await applySliderTargetsBatch(profile, updates);
+        const latencyMs = Math.round(performance.now() - startedAt);
         commitAppliedResults(updates, outcomes);
+
+        if (latencyMs > AUDIO_APPLY_SLOW_MS) {
+          appendWatchLog({
+            scope: "serial",
+            level: "warning",
+            message: "Latência alta ao aplicar áudio",
+            detail: `${latencyMs}ms · ${updates.length} alvo(s)`,
+          });
+        }
       } catch (error) {
         appendWatchLog({
           scope: "serial",

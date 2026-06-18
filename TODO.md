@@ -60,7 +60,8 @@ Hoje Windows/macOS só controlam `master`. Linux tem cobertura completa.
 - [ ] Reusar handle de device (COM apartment / `IMMDevice` / `AudioObjectID`) entre chamadas respeitando thread-affinity `(backend/audio/performance)` - `difícil`
 - [ ] Coalescing/debounce de writes de volume sob movimento rápido de knob, por target `(backend/runtime/performance)` - `médio`
 - [ ] Reduzir o bundle do chart (`charts` ~353KB gzip 104KB) — lib mais leve ou code-split por aba `(frontend/bundle/performance)` - `médio`
-- [ ] Instrumentar e logar latência knob→áudio no watch log (já há timings de boot/connect/refresh) `(observability/performance)` - `fácil`
+- [x] Instrumentar e logar latência knob→áudio no watch log (já há timings de boot/connect/refresh) `(observability/performance)` - `fácil`
+  - `use-serial-runtime` cronometra `applySliderTargetsBatch` com `performance.now()`; emite `warning` no watch log quando passa de `AUDIO_APPLY_SLOW_MS` (80ms), com tempo + nº de alvos (sem flood).
 - [ ] Perfilar consumo em sessão longa (telemetria + watch log) e validar ausência de leaks `(performance/observability)` - `médio`
 
 ## Scrum 14 — Organização e qualidade de código

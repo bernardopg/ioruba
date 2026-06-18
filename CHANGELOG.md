@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Features
 
+- knob→audio apply latency is now instrumented: each batch apply is timed and a `warning` is logged to the watch log when it exceeds the budget (80 ms), with the elapsed time and target count — surfacing slow `pactl`/backend calls without flooding the log (Scrum 13)
 - Export session telemetry statistics to a file as JSON or CSV (Scrum 16): new buttons on the session-stats panel save a per-knob summary (samples, min/avg/max/last percent) via a save dialog, reusing the existing export flow. Pure `sessionStatsToJson` / `sessionStatsToCsv` formatters in `@ioruba/shared` and an `export_session_stats` Tauri command
 - Always-visible connection-health indicator in the sidebar (Scrum 18): a colour-coded status dot + label and a live signal-freshness readout (time since the last serial/demo frame, refreshed every second) as a latency proxy, aligned with `.impeccable.md` ("connection state must be impossible to miss"). Backed by a new `lastFrameAt` field in the store
 - Redesigned navigation: the sidebar is now organized into labelled groups (Operation / Monitoring / Adjustments) with finer-grained sections. Channels (live knobs) split out of the control panel, and a dedicated Hardware section was added

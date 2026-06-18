@@ -9,6 +9,12 @@ e este projeto segue [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Adicionado
 
+- A latencia de aplicacao knob->audio agora e instrumentada: cada lote aplicado e cronometrado e um `warning` vai ao watch log quando passa do orcamento (80 ms), com o tempo decorrido e a contagem de alvos — expondo chamadas lentas de `pactl`/backend sem inundar o log (Scrum 13)
+- Exportacao das estatisticas de telemetria da sessao para arquivo em JSON ou CSV (Scrum 16): botoes no painel de estatisticas salvam um resumo por knob (amostras, min/media/max/ultima %) via dialog, reusando o fluxo de export existente. Formatters puros `sessionStatsToJson`/`sessionStatsToCsv` no `@ioruba/shared` e comando Tauri `export_session_stats`
+- Indicador de saude da conexao sempre visivel no sidebar (Scrum 18): dot colorido + label e leitura de frescura do sinal (tempo desde o ultimo frame, atualizada a cada segundo) como proxy de latencia, alinhado ao `.impeccable.md`
+- Configuracoes divididas em tres entradas de sidebar — Perfis, Editor e Avancado — cada uma em tela cheia
+- Navegacao redesenhada: sidebar organizado em grupos rotulados (Operacao / Monitoramento / Ajustes) com secoes mais granulares; Canais (knobs ao vivo) separado do painel de controle e nova secao Hardware
+- Novo `HardwarePanel` mostra o handshake do firmware ponta a ponta (placa, MCU, resolucao do ADC, protocolo, knobs e calibracao por knob)
 - Os toolchains de ESP32 e RP2040/Pico agora sao compilados no CI (Scrum 11): um job dedicado `firmware-arch` instala cada core de 12-bit e compila o firmware, validando o caminho `adcBits=12` ponta a ponta em toolchains reais
 - Tabelas de pinos analogicos por placa (Scrum 11): o firmware nao fixa mais `{A0, A1, A2}`. Os pinos sao escolhidos em compile-time por placa (Nano A0..A7, Uno A0..A5, Mega2560 A0..A15, Leonardo/Micro A0..A11, ESP32 ADC1, RP2040/Pico A0..A2) e os primeiros `IORUBA_NUM_KNOBS` sao usados. Habilita **>6 knobs no Mega** (ate 16); um `static_assert` rejeita uma contagem de knobs acima dos canais analogicos da placa
 - O CI compila o firmware numa matriz de FQBN (Nano, Uno, Mega2560, Leonardo, Micro); um job de host dedicado roda os testes do parser CONFIG nas configuracoes padrao (3 knobs / 10-bit) e ampla (8 knobs / 12-bit). `npm run firmware:compile:matrix` e `npm run firmware:test:wide` reproduzem isso localmente
