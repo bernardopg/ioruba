@@ -82,7 +82,19 @@ arduino-cli compile --fqbn arduino:avr:mega \
 
 `npm run firmware:compile:matrix` compila o firmware para todas as placas AVR acima de uma vez (a mesma matriz que o CI roda).
 
-> ESP32/RP2040 precisam do core proprio do `arduino-cli` instalado (`esp32:esp32` ou `rp2040:rp2040`); ainda nao fazem parte da matriz AVR do CI.
+ESP32 e RP2040 precisam dos seus proprios cores do `arduino-cli`. O CI compila ambos num job dedicado `firmware-arch`; instale localmente com:
+
+```bash
+# ESP32
+arduino-cli core install esp32:esp32 \
+  --additional-urls https://espressif.github.io/arduino-esp32/package_esp32_index.json
+arduino-cli compile --fqbn esp32:esp32:esp32 firmware/arduino/ioruba-controller
+
+# RP2040 / Pico (core earlephilhower)
+arduino-cli core install rp2040:rp2040 \
+  --additional-urls https://github.com/earlephilhower/arduino-pico/releases/download/global/package_rp2040_index.json
+arduino-cli compile --fqbn rp2040:rp2040:rpipico firmware/arduino/ioruba-controller
+```
 
 ## Depois de ligar o hardware
 

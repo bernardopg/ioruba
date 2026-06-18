@@ -63,7 +63,9 @@ static_assert(IORUBA_NUM_KNOBS <= ANALOG_PIN_COUNT,
               "IORUBA_NUM_KNOBS excede os canais analogicos da placa selecionada");
 
 const long BAUD_RATE = 9600;
-const char BOARD_NAME[] = "Ioruba Nano";
+// Prefixo IORUBA_ evita colisao com a macro BOARD_NAME definida por alguns cores
+// (ex.: arduino-pico para RP2040).
+const char IORUBA_BOARD_NAME[] = "Ioruba Nano";
 
 // Nome do MCU deduzido em compile-time a partir das macros de arquitetura. O
 // host exibe isto como diagnostico de hardware; nao afeta o frame de knobs.
@@ -225,7 +227,7 @@ void sendFrame() {
 
 void sendHandshake() {
   Serial.print("HELLO board=");
-  Serial.print(BOARD_NAME);
+  Serial.print(IORUBA_BOARD_NAME);
   Serial.print("; fw=");
   Serial.print(FIRMWARE_VERSION);
   Serial.print("; protocol=");

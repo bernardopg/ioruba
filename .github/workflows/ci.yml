@@ -166,6 +166,53 @@ jobs:
       - name: Compile firmware (${{ matrix.fqbn }})
         run: arduino-cli compile --fqbn ${{ matrix.fqbn }} firmware/arduino/ioruba-controller
 
+  firmware-arch:
+    name: Firmware Arch (${{ matrix.target.key }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    # 12-bit boards live behind their own arduino-cli cores (heavier than AVR),
+    # so they get a dedicated matrix with separate caches. This validates the
+    # adcBits=12 path end to end on real ESP32/RP2040 toolchains.
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          - key: esp32
+            core: esp32:esp32
+            fqbn: esp32:esp32:esp32
+            url: https://espressif.github.io/arduino-esp32/package_esp32_index.json
+          - key: rp2040
+            core: rp2040:rp2040
+            fqbn: rp2040:rp2040:rpipico
+            url: https://github.com/earlephilhower/arduino-pico/releases/download/global/package_rp2040_index.json
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          persist-credentials: false
+
+      - name: Setup Arduino CLI
+        uses: arduino/setup-arduino-cli@81d310742121c928ea9c8bbd407b4217b432ae02 # v2.0.0
+
+      - name: Cache Arduino toolchain
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+        with:
+          path: ~/.arduino15
+          key: arduino-${{ matrix.target.key }}-core-v1-${{ runner.os }}
+          restore-keys: |
+            arduino-${{ matrix.target.key }}-core-v1-
+
+      - name: Install ${{ matrix.target.core }} core
+        run: |
+          arduino-cli config init --overwrite
+          arduino-cli core update-index --additional-urls ${{ matrix.target.url }}
+          arduino-cli core install ${{ matrix.target.core }} --additional-urls ${{ matrix.target.url }}
+
+      - name: Compile firmware (${{ matrix.target.fqbn }})
+        run: arduino-cli compile --fqbn ${{ matrix.target.fqbn }} firmware/arduino/ioruba-controller
+
   native-audio-smoke:
     name: Native Audio Smoke (${{ matrix.os }})
     runs-on: ${{ matrix.os }}

@@ -9,12 +9,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Features
 
+- ESP32 and RP2040/Pico toolchains are now built in CI (Scrum 11): a dedicated `firmware-arch` job installs each 12-bit core and compiles the firmware, validating the `adcBits=12` path end to end on real toolchains
 - Per-board analog-pin tables (Scrum 11): the firmware no longer hard-codes `{A0, A1, A2}`. Pins are selected at compile time per board (Nano A0..A7, Uno A0..A5, Mega2560 A0..A15, Leonardo/Micro A0..A11, ESP32 ADC1, RP2040/Pico A0..A2) and the first `IORUBA_NUM_KNOBS` are used. This enables **>6 knobs on the Mega** (up to 16); a `static_assert` rejects a knob count that exceeds the board's analog channels
 - CI compiles the firmware across an FQBN matrix (Nano, Uno, Mega2560, Leonardo, Micro); a dedicated host job runs the config-parser tests in both the default (3 knobs / 10-bit) and wide (8 knobs / 12-bit) configurations. `npm run firmware:compile:matrix` and `npm run firmware:test:wide` reproduce these locally
 - Supported-boards matrix (MCU, ADC bits, channels, max knobs, pin order) documented in `docs/guides/hardware-setup.md`
 - ADC resolution is now generic across boards (Scrum 11 keystone). The firmware handshake reports `mcu=` and `adcBits=` (additive protocol v2 fields; older hosts ignore them), and `@ioruba/shared` normalizes raw readings against the active `adcBits` instead of the hard-coded 10-bit `1023`. 12-bit boards (ESP32, RP2040/Pico → `0..4095`) now map to the correct percent
 - Firmware derives `ADC_MAX` from `IORUBA_ADC_BITS` (auto-set to 12 on ESP32/RP2040, 10 on AVR; overridable by define) and reports the detected MCU name (`ATmega328P`/`ATmega2560`/`ATmega32U4`/`RP2040`/`ESP32`)
 - Desktop overview panel shows a Hardware tile with the detected board, MCU, ADC bit depth and protocol version
+
+### Fixed
+
+- Firmware `BOARD_NAME` constant renamed to `IORUBA_BOARD_NAME` to avoid a collision with the `BOARD_NAME` macro defined by the arduino-pico (RP2040) core, which broke RP2040 builds
 
 ### Changed
 

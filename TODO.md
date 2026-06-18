@@ -32,7 +32,8 @@ Foco principal pedido. Hoje só Nano AVR com 3 pinos fixos.
   - Mega compila com 12 knobs (verificado local + host wide 8 knobs). Frame/EEPROM/struct já dimensionados por NUM_KNOBS.
 - [x] Suporte a placas de 12-bit (ESP32, RP2040/Pico): reportar `adcBits` no handshake e **normalizar a resolução no shared** (hoje `SLIDER_MAX=1023` fixo quebra 4095) `(firmware/shared/protocol)` - `difícil`
   - Firmware deriva `ADC_MAX` de `IORUBA_ADC_BITS` (auto 12 em ESP32/RP2040, 10 em AVR). Shared remove o lock 1023: funções de mixer/runtime recebem `adcMax` opcional e o parser de frame aceita até 16-bit; normalização usa `firmwareInfo.adcBits`. Ainda pendente: toolchain real ESP32/RP2040 e teste em hardware.
-- [ ] Toolchain para ESP32/RP2040 (core `arduino-cli` adicional ou avaliação de PlatformIO) `(firmware/build/hardware)` - `difícil`
+- [x] Toolchain para ESP32/RP2040 (core `arduino-cli` adicional ou avaliação de PlatformIO) `(firmware/build/hardware)` - `difícil`
+  - Optou-se por cores `arduino-cli` (não PlatformIO): job CI `firmware-arch` matriza `esp32:esp32` + `rp2040:rp2040` (earlephilhower) com caches próprios. Ambos compilam (verificado local). Corrigida colisão `BOARD_NAME` com macro do core arduino-pico.
 - [x] Handshake estendido: reportar `board`, `mcu` e `adcBits`; bump `PROTOCOL_VERSION` se incompatível, com fallback para v2 `(firmware/protocol)` - `médio`
   - `mcu`/`adcBits` adicionados como campos aditivos do handshake; protocolo mantido em v2 (campos opcionais, hosts antigos ignoram, novos assumem 10-bit quando ausentes) — sem quebra de compatibilidade.
 - [x] Detecção automática e exibição do board/MCU no desktop a partir do `board=` do handshake `(frontend/hardware/ux)` - `fácil`
