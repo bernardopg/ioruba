@@ -1,9 +1,12 @@
 import { create } from "zustand";
 import {
+  adcMaxForBits,
   buildDemoFrame,
   buildRuntimeSnapshot,
+  clampSliderValue,
   createSessionStats,
   createWaitingOutcome,
+  DEFAULT_ADC_BITS,
   defaultPersistedState,
   emptyAudioInventory,
   findPreset,
@@ -962,16 +965,21 @@ export const useIorubaStore = create<IorubaState>((rawSet, get) => {
         return [];
       }
 
+      // Resolução do ADC reportada pela placa (handshake `adcBits`); 10-bit por
+      // padrão quando o firmware não informa. Determina clamp e normalização.
+      const adcMax = adcMaxForBits(state.firmwareInfo?.adcBits ?? DEFAULT_ADC_BITS);
+
       const nextCurrentValues =
         packet.kind === "state"
           ? mergeSliderPacket(
               state.currentValues,
               packet.values,
               activeProfile.sliders.length,
+              adcMax,
             )
           : {
               ...state.currentValues,
-              [packet.sliderId]: packet.value,
+              [packet.sliderId]: clampSliderValue(packet.value, adcMax),
             };
 
       const updates = resolveFilteredUpdates(
@@ -992,8 +1000,8 @@ export const useIorubaStore = create<IorubaState>((rawSet, get) => {
           rawValue,
           appliedValue: update.rawValue,
           percent: slider
-            ? sliderToAppliedPercent(slider, rawValue)
-            : sliderValueToPercent(rawValue),
+            ? sliderToAppliedPercent(slider, rawValue, adcMax)
+            : sliderValueToPercent(rawValue, adcMax),
         };
       });
 

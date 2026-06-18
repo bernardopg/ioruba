@@ -1,3 +1,4 @@
+import { MAX_SUPPORTED_ADC_VALUE } from "./mixer";
 import type {
   FirmwareCalibration,
   FirmwareControllerConfig,
@@ -167,7 +168,11 @@ export function firmwareConfigMatchesProfile(
 }
 
 function assertSliderValue(value: number, label: string): void {
-  if (!Number.isInteger(value) || value < 0 || value > 1023) {
+  // O frame serial é stateless: não conhece o `adcBits` da placa no momento da
+  // análise. Aceita qualquer valor bruto dentro do teto suportado (16-bit); a
+  // normalização para porcentagem usa o `adcMax` real no runtime. Isso permite
+  // placas de 12-bit (ESP32/RP2040 → 0..4095) sem travar em 1023.
+  if (!Number.isInteger(value) || value < 0 || value > MAX_SUPPORTED_ADC_VALUE) {
     throw new Error(`Invalid slider value: ${label}`);
   }
 }
@@ -235,6 +240,19 @@ function parseHandshakePacket(payload: string): FirmwareInfo | null {
     knobCount = parsedKnobCount;
   }
 
+  const mcu = fields.mcu ?? null;
+
+  const adcBitsValue = fields.adcbits;
+  let adcBits: number | null = null;
+  if (adcBitsValue !== undefined) {
+    const parsedAdcBits = Number.parseInt(adcBitsValue, 10);
+    if (!Number.isInteger(parsedAdcBits) || parsedAdcBits < 1 || parsedAdcBits > 16) {
+      throw new Error(`Invalid handshake adc bits: ${adcBitsValue}`);
+    }
+
+    adcBits = parsedAdcBits;
+  }
+
   const controllerConfig = parseControllerConfig(fields);
 
   return {
@@ -243,6 +261,8 @@ function parseHandshakePacket(payload: string): FirmwareInfo | null {
     protocolVersion,
     protocolSupported: protocolVersion === SUPPORTED_PROTOCOL_VERSION,
     knobCount,
+    mcu,
+    adcBits,
     controllerConfig
   };
 }

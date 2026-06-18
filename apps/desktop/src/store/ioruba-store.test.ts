@@ -156,6 +156,8 @@ describe("ioruba store", () => {
       protocolVersion: 2,
       protocolSupported: true,
       knobCount: 3,
+      mcu: null,
+      adcBits: null,
       controllerConfig: {
         changeThreshold: 4,
         edgeDeadzone: 7,
@@ -177,6 +179,8 @@ describe("ioruba store", () => {
       protocolVersion: 2,
       protocolSupported: true,
       knobCount: 3,
+      mcu: null,
+      adcBits: null,
       controllerConfig: {
         changeThreshold: 4,
         edgeDeadzone: 7,

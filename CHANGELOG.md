@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Features
+
+- ADC resolution is now generic across boards (Scrum 11 keystone). The firmware handshake reports `mcu=` and `adcBits=` (additive protocol v2 fields; older hosts ignore them), and `@ioruba/shared` normalizes raw readings against the active `adcBits` instead of the hard-coded 10-bit `1023`. 12-bit boards (ESP32, RP2040/Pico → `0..4095`) now map to the correct percent
+- Firmware derives `ADC_MAX` from `IORUBA_ADC_BITS` (auto-set to 12 on ESP32/RP2040, 10 on AVR; overridable by define) and reports the detected MCU name (`ATmega328P`/`ATmega2560`/`ATmega32U4`/`RP2040`/`ESP32`)
+- Desktop overview panel shows a Hardware tile with the detected board, MCU, ADC bit depth and protocol version
+
+### Changed
+
+- `@ioruba/shared` mixer/runtime functions take an optional `adcMax` argument (defaults to 10-bit for backward compatibility); the serial frame parser accepts raw values up to 16-bit, leaving per-board normalization to the runtime via `adcBits`
+
 ## [1.2.0](https://github.com/bernardopg/ioruba/compare/v1.1.0...v1.2.0) (2026-06-17)
 
 ### Features

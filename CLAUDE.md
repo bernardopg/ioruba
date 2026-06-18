@@ -40,7 +40,7 @@ Single Rust test: `cargo test --manifest-path apps/desktop/src-tauri/Cargo.toml 
 
 Data flow: firmware → serial → shared protocol parsing → Zustand store → Rust commands → pactl.
 
-- **`firmware/arduino/ioruba-controller/`** — single `.ino`. Emits a `HELLO board=...; fw=...; protocol=...; knobs=...` handshake, then frames like `512|768|1023` (three 10-bit values). Legacy format `P1:512` is still supported by the parser.
+- **`firmware/arduino/ioruba-controller/`** — single `.ino`. Emits a `HELLO board=...; fw=...; protocol=...; knobs=...; mcu=...; adcBits=...` handshake, then frames like `512|768|1023`. `adcBits` (additive protocol-v2 field) carries the ADC resolution: AVR reports `10` (`0..1023`), ESP32/RP2040 report `12` (`0..4095`); the shared layer normalizes against it (no hard-coded 1023). Legacy format `P1:512` is still supported by the parser.
 - **`packages/shared/`** — TypeScript domain layer consumed as raw source (`main: ./src/index.ts`, no build step): `protocol.ts` (packet/handshake parsing), `runtime.ts` (knob→value math), `types.ts`, `validation.ts`, `defaults.ts`, `mixer.ts`. Protocol or runtime-math changes belong here, not in the app.
 - **`apps/desktop/src/`** — React UI. Key pieces:
   - `store/ioruba-store.ts` — Zustand store, central runtime state.

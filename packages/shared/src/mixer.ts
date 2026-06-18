@@ -6,37 +6,63 @@ import type {
   SliderUpdate
 } from "./types";
 
-const SLIDER_MAX = 1023;
 const EDGE_SNAP_THRESHOLD = 7;
 
-export function clampSliderValue(value: number): number {
+/** Resolução padrão do ADC, em bits — AVR (Nano/Uno/Mega/Leonardo) lê 10-bit. */
+export const DEFAULT_ADC_BITS = 10;
+
+/** Valor bruto máximo da resolução padrão (10-bit → 1023). */
+export const DEFAULT_ADC_MAX = adcMaxForBits(DEFAULT_ADC_BITS);
+
+/**
+ * Teto absoluto de valor bruto aceito do firmware. Cobre até 16-bit, dando
+ * folga acima de 12-bit (ESP32/RP2040) sem travar a leitura num único ADC. A
+ * normalização para porcentagem usa o `adcMax` ativo da placa, não este teto.
+ */
+export const MAX_SUPPORTED_ADC_VALUE = 0xffff;
+
+/** Valor bruto máximo para uma resolução de ADC em bits (ex.: 12 → 4095). */
+export function adcMaxForBits(bits: number): number {
+  return (1 << bits) - 1;
+}
+
+export function clampSliderValue(
+  value: number,
+  adcMax: number = DEFAULT_ADC_MAX
+): number {
   if (!Number.isFinite(value)) {
     return 0;
   }
 
-  return Math.max(0, Math.min(SLIDER_MAX, Math.round(value)));
+  return Math.max(0, Math.min(adcMax, Math.round(value)));
 }
 
-function snapSliderEdge(value: number): number {
-  const clamped = clampSliderValue(value);
+function snapSliderEdge(value: number, adcMax: number = DEFAULT_ADC_MAX): number {
+  const clamped = clampSliderValue(value, adcMax);
 
   if (clamped <= EDGE_SNAP_THRESHOLD) {
     return 0;
   }
 
-  if (clamped >= SLIDER_MAX - EDGE_SNAP_THRESHOLD) {
-    return SLIDER_MAX;
+  if (clamped >= adcMax - EDGE_SNAP_THRESHOLD) {
+    return adcMax;
   }
 
   return clamped;
 }
 
-export function sliderValueToNormalized(value: number): number {
-  return snapSliderEdge(value) / SLIDER_MAX;
+export function sliderValueToNormalized(
+  value: number,
+  adcMax: number = DEFAULT_ADC_MAX
+): number {
+  return snapSliderEdge(value, adcMax) / adcMax;
 }
 
-export function sliderValueToPercent(value: number): number {
-  return Math.round(sliderValueToNormalized(value) * 100);
+export function sliderValueToPercent(
+  value: number,
+  adcMax: number = DEFAULT_ADC_MAX
+): number {
+  return Math.round(sliderValueToNormalized(value, adcMax) * 100);
 }
 
 export function applyNoiseReduction(
@@ -57,29 +83,32 @@ export function applyNoiseReduction(
 
 export function sliderToAppliedNormalized(
   slider: SliderConfig,
-  rawValue: number
+  rawValue: number,
+  adcMax: number = DEFAULT_ADC_MAX
 ): number {
-  const normalized = sliderValueToNormalized(rawValue);
+  const normalized = sliderValueToNormalized(rawValue, adcMax);
   return slider.inverted ? 1 - normalized : normalized;
 }
 
 export function sliderToAppliedPercent(
   slider: SliderConfig,
-  rawValue: number
+  rawValue: number,
+  adcMax: number = DEFAULT_ADC_MAX
 ): number {
-  return sliderValueToPercent(sliderToAppliedNormalized(slider, rawValue) * SLIDER_MAX);
+  return Math.round(sliderToAppliedNormalized(slider, rawValue, adcMax) * 100);
 }
 
 export function mergeSliderPacket(
   previousState: SliderStateMap,
   values: number[],
-  sliderCount: number
+  sliderCount: number,
+  adcMax: number = DEFAULT_ADC_MAX
 ): SliderStateMap {
   const nextState: SliderStateMap = { ...previousState };
 
   for (let index = 0; index < sliderCount; index += 1) {
     if (typeof values[index] === "number") {
-      nextState[index] = clampSliderValue(values[index]);
+      nextState[index] = clampSliderValue(values[index], adcMax);
     }
   }
 

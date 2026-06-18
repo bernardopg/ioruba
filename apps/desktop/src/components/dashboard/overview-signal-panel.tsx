@@ -2,6 +2,7 @@ import {
   AudioLines,
   Binary,
   CircleDotDashed,
+  Cpu,
   Gauge,
   PlugZap
 } from "lucide-react";
@@ -57,6 +58,15 @@ export function OverviewSignalPanel({
     (total, knob) => total + knob.targets.length,
     0
   );
+  const firmware = snapshot.diagnostics.firmware;
+  const hardwareValue = firmware
+    ? firmware.mcu
+      ? `${firmware.boardName} · ${firmware.mcu}`
+      : firmware.boardName
+    : lt("Aguardando handshake");
+  const hardwareHint = firmware
+    ? `${firmware.adcBits ?? 10}-bit · ${lt("protocolo")} ${firmware.protocolVersion}${firmware.protocolSupported ? "" : ` (${lt("incompatível")})`}`
+    : lt("Ligue o controlador");
 
   return (
     <Card className="overflow-hidden">
@@ -97,6 +107,12 @@ export function OverviewSignalPanel({
             label={lt("Buffer")}
             value={`${snapshot.telemetry.length} ${lt("amostra(s)")}`}
             hint={snapshot.diagnostics.audioSummary}
+          />
+          <SignalStat
+            icon={Cpu}
+            label={lt("Hardware")}
+            value={hardwareValue}
+            hint={hardwareHint}
           />
         </div>
 

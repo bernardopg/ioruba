@@ -51,11 +51,13 @@ Arduino Nano
 O firmware atual le as tres entradas analogicas, persiste ajuste e calibracao em EEPROM e emite linhas como:
 
 ```text
-HELLO board=Ioruba Nano; fw=0.5.0; protocol=2; knobs=3; threshold=4; deadzone=7; smooth=75; mins=0,0,0; maxs=1023,1023,1023
+HELLO board=Ioruba Nano; fw=0.5.0; protocol=2; knobs=3; mcu=ATmega328P; adcBits=10; threshold=4; deadzone=7; smooth=75; mins=0,0,0; maxs=1023,1023,1023
 512|768|1023
 ```
 
 Isso mapeia diretamente para o runtime desktop ativo. O runtime tambem aceita o formato legado antigo, mas o alvo atual de build e o formato full-frame acima junto dos metadados de handshake usados para sincronizar o ajuste do controlador.
+
+Os campos `mcu` e `adcBits` sao metadados aditivos do protocolo v2: firmwares antigos que os omitem continuam funcionando (o desktop assume 10-bit). O `adcBits` permite ao desktop normalizar as leituras para placas com resolucao de ADC diferente — placas AVR reportam `10` (`0..1023`), enquanto ESP32 e RP2040/Pico reportam `12` (`0..4095`). O firmware detecta a profundidade de bits automaticamente a partir da arquitetura alvo; sobrescreva em compile-time com `-DIORUBA_ADC_BITS=<n>` se preciso.
 
 ## Depois de ligar o hardware
 

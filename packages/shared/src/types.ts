@@ -110,6 +110,18 @@ export interface FirmwareInfo {
    */
   protocolSupported: boolean;
   knobCount: number | null;
+  /**
+   * Nome do microcontrolador reportado pelo handshake (`mcu=`), p.ex.
+   * `"ATmega328P"`, `"ESP32"`. `null` quando o firmware não informa (campo
+   * aditivo do protocolo v2; firmwares antigos o omitem).
+   */
+  mcu: string | null;
+  /**
+   * Resolução do ADC em bits (`adcBits=`): 10 para AVR (0..1023), 12 para
+   * ESP32/RP2040 (0..4095). `null` quando ausente — o runtime assume 10-bit
+   * por compatibilidade. Determina como o valor bruto vira porcentagem.
+   */
+  adcBits: number | null;
   controllerConfig: FirmwareControllerConfig | null;
 }
 

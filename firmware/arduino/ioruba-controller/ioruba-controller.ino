@@ -14,12 +14,14 @@
 //
 // Serial contract:
 // - 9600 baud
-// - handshake command: "HELLO?" -> "HELLO board=...; fw=...; protocol=...; knobs=..."
+// - handshake command: "HELLO?" -> "HELLO board=...; fw=...; protocol=...; knobs=...; mcu=...; adcBits=..."
+//   (mcu/adcBits sao campos aditivos do protocolo v2: hosts antigos ignoram;
+//    novos usam adcBits para normalizar a resolucao, suportando 10-bit e 12-bit)
 // - config command:
 //   "CONFIG threshold=4; deadzone=7; smooth=75; mins=0,0,0; maxs=1023,1023,1023"
 // - full frames such as "512|768|1023"
 // - smoothed readings
-// - snaps near the calibrated ADC edges so full travel can still reach 0 / 1023
+// - snaps near the calibrated ADC edges so full travel can still reach 0 / ADC_MAX
 // - sends updates roughly every 40 ms when values move
 // - emits a heartbeat frame while idle to keep the desktop runtime alive
 // - persists controller tuning and knob calibration in EEPROM
@@ -31,6 +33,22 @@ const int NUM_KNOBS = IORUBA_NUM_KNOBS;
 const int ANALOG_PINS[NUM_KNOBS] = {A0, A1, A2};
 const long BAUD_RATE = 9600;
 const char BOARD_NAME[] = "Ioruba Nano";
+
+// Nome do MCU deduzido em compile-time a partir das macros de arquitetura. O
+// host exibe isto como diagnostico de hardware; nao afeta o frame de knobs.
+#if defined(__AVR_ATmega2560__)
+const char MCU_NAME[] = "ATmega2560";
+#elif defined(__AVR_ATmega32U4__)
+const char MCU_NAME[] = "ATmega32U4";
+#elif defined(__AVR_ATmega328P__) || defined(__AVR_ATmega328__)
+const char MCU_NAME[] = "ATmega328P";
+#elif defined(ARDUINO_ARCH_RP2040)
+const char MCU_NAME[] = "RP2040";
+#elif defined(ESP32) || defined(ARDUINO_ARCH_ESP32)
+const char MCU_NAME[] = "ESP32";
+#else
+const char MCU_NAME[] = "unknown";
+#endif
 // O firmware versiona de forma independente do app desktop: FIRMWARE_VERSION
 // rastreia mudancas no sketch, enquanto PROTOCOL_VERSION rastreia o contrato
 // serial. O desktop valida apenas PROTOCOL_VERSION (ver SUPPORTED_PROTOCOL_VERSION
@@ -183,6 +201,10 @@ void sendHandshake() {
   Serial.print(PROTOCOL_VERSION);
   Serial.print("; knobs=");
   Serial.print(NUM_KNOBS);
+  Serial.print("; mcu=");
+  Serial.print(MCU_NAME);
+  Serial.print("; adcBits=");
+  Serial.print(IORUBA_ADC_BITS_VALUE);
   Serial.print("; threshold=");
   Serial.print(controllerConfig.changeThreshold);
   Serial.print("; deadzone=");

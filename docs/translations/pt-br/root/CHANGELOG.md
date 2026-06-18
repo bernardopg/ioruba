@@ -7,6 +7,16 @@ e este projeto segue [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Nao publicado]
 
+### Adicionado
+
+- Resolucao de ADC generica entre placas (pilar do Scrum 11). O handshake do firmware reporta `mcu=` e `adcBits=` (campos aditivos do protocolo v2; hosts antigos ignoram) e o `@ioruba/shared` normaliza as leituras brutas pelo `adcBits` ativo em vez do `1023` fixo de 10-bit. Placas de 12-bit (ESP32, RP2040/Pico -> `0..4095`) agora mapeiam para a porcentagem correta
+- O firmware deriva `ADC_MAX` de `IORUBA_ADC_BITS` (auto 12 em ESP32/RP2040, 10 em AVR; sobrescrevivel por define) e reporta o nome do MCU detectado
+- O painel de visao geral do desktop mostra um bloco de Hardware com placa, MCU, profundidade de bits do ADC e versao do protocolo
+
+### Alterado
+
+- Funcoes de mixer/runtime do `@ioruba/shared` recebem um argumento `adcMax` opcional (10-bit por padrao, compativel com o anterior); o parser de frame serial aceita valores brutos ate 16-bit, deixando a normalizacao por placa para o runtime via `adcBits`
+
 ## [0.6.1](https://github.com/bernardopg/ioruba/compare/v0.6.0...v0.6.1) (2026-04-20)
 
 ### Alterado

@@ -14,9 +14,22 @@
 #define IORUBA_NUM_KNOBS 3
 #endif
 
+// Resolucao do ADC em bits. AVR (Nano/Uno/Mega/Leonardo) le 10-bit (0..1023);
+// ESP32 e RP2040 leem 12-bit (0..4095). O valor pode ser sobrescrito por define
+// em compile-time; quando ausente, deduz a partir da arquitetura. ADC_MAX (e,
+// por consequencia, o range de calibracao valido) deriva direto deste numero.
+#ifndef IORUBA_ADC_BITS
+#if defined(ESP32) || defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_RP2040)
+#define IORUBA_ADC_BITS 12
+#else
+#define IORUBA_ADC_BITS 10
+#endif
+#endif
+
 static const int IORUBA_NUM_KNOBS_VALUE = IORUBA_NUM_KNOBS;
+static const int IORUBA_ADC_BITS_VALUE = IORUBA_ADC_BITS;
 static const int IORUBA_ADC_MIN = 0;
-static const int IORUBA_ADC_MAX = 1023;
+static const int IORUBA_ADC_MAX = (1 << IORUBA_ADC_BITS) - 1;
 
 static const int IORUBA_DEFAULT_CHANGE_THRESHOLD = 4;
 static const int IORUBA_DEFAULT_EDGE_DEADZONE = 7;

@@ -3,6 +3,8 @@ import {
   emptyAudioInventory
 } from "./defaults";
 import {
+  adcMaxForBits,
+  DEFAULT_ADC_BITS,
   sliderToAppliedPercent,
 } from "./mixer";
 import type {
@@ -63,6 +65,8 @@ export function buildRuntimeSnapshot(args: {
     firmwareInfo = null
   } = args;
 
+  const adcMax = adcMaxForBits(firmwareInfo?.adcBits ?? DEFAULT_ADC_BITS);
+
   return {
     status,
     statusText,
@@ -75,7 +79,7 @@ export function buildRuntimeSnapshot(args: {
       return {
         id: slider.id,
         name: slider.name,
-        percent: sliderToAppliedPercent(slider, rawValue),
+        percent: sliderToAppliedPercent(slider, rawValue, adcMax),
         rawValue,
         appliedRawValue,
         targets: slider.targets.map(describeTarget),

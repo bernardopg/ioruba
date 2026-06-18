@@ -143,6 +143,11 @@ const TEXT_MAP: Record<string, string> = {
   inicial: "initial",
   Buffer: "Buffer",
   "amostra(s)": "sample(s)",
+  Hardware: "Hardware",
+  "Aguardando handshake": "Awaiting handshake",
+  "Ligue o controlador": "Power on the controller",
+  protocolo: "protocol",
+  "incompatível": "incompatible",
   "Leitura atual": "Current reading",
   "Todos os canais espelhados como instrumentos vivos.":
     "All channels mirrored as living instruments.",

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  adcMaxForBits,
   applyNoiseReduction,
   buildRuntimeSnapshot,
   buildFirmwareControllerConfig,
@@ -16,6 +17,17 @@ import {
   sliderValueToPercent,
   sliderValueToNormalized,
 } from "../src/index";
+
+const firmware12Bit = {
+  boardName: "Ioruba Pico",
+  firmwareVersion: "0.5.0",
+  protocolVersion: 2,
+  protocolSupported: true,
+  knobCount: 3,
+  mcu: "RP2040",
+  adcBits: 12,
+  controllerConfig: null,
+};
 
 describe("serial protocol parity", () => {
   it("parses newline-terminated payloads", () => {
@@ -40,9 +52,15 @@ describe("serial protocol parity", () => {
     });
   });
 
-  it("rejects out of range values", () => {
-    expect(() => parseSliderPacket("512|2048|0")).toThrow(
-      "Invalid slider value: 2048",
+  it("rejects values above the supported ADC ceiling (16-bit)", () => {
+    expect(() => parseSliderPacket("512|65536|0")).toThrow(
+      "Invalid slider value: 65536",
+    );
+  });
+
+  it("rejects negative values", () => {
+    expect(() => parseSliderPacket("512|-1|0")).toThrow(
+      "Invalid slider value",
     );
   });
 
@@ -63,6 +81,8 @@ describe("serial protocol parity", () => {
         protocolVersion: 2,
         protocolSupported: true,
         knobCount: 3,
+        mcu: null,
+        adcBits: null,
         controllerConfig: {
           changeThreshold: 4,
           edgeDeadzone: 7,
@@ -74,6 +94,34 @@ describe("serial protocol parity", () => {
           ],
         },
       },
+    });
+  });
+
+  it("parses extended handshake with mcu and adcBits for 12-bit boards", () => {
+    const packet = parseSerialPacket(
+      "HELLO board=Ioruba Pico; fw=0.5.0; protocol=2; knobs=3; mcu=RP2040; adcBits=12; threshold=4; deadzone=7; smooth=75; mins=0,0,0; maxs=4095,4095,4095",
+    );
+
+    expect(packet.kind).toBe("handshake");
+    if (packet.kind === "handshake") {
+      expect(packet.info.mcu).toBe("RP2040");
+      expect(packet.info.adcBits).toBe(12);
+      expect(packet.info.controllerConfig?.calibrations[0]?.maxRaw).toBe(4095);
+    }
+  });
+
+  it("rejects handshake adcBits outside the supported range", () => {
+    expect(() =>
+      parseSerialPacket(
+        "HELLO board=Ioruba Nano; fw=0.5.0; protocol=2; knobs=3; adcBits=99",
+      ),
+    ).toThrow("Invalid handshake adc bits: 99");
+  });
+
+  it("accepts 12-bit raw slider frames (up to 4095)", () => {
+    expect(parseSliderPacket("4095|0|2048\n")).toEqual({
+      kind: "state",
+      values: [4095, 0, 2048],
     });
   });
 
@@ -110,6 +158,8 @@ describe("serial protocol parity", () => {
       protocolVersion: 2,
       protocolSupported: true,
       knobCount: 3,
+      mcu: null,
+      adcBits: null,
       controllerConfig: buildFirmwareControllerConfig(defaultProfile),
     };
 
@@ -172,5 +222,47 @@ describe("mixer math parity", () => {
     expect(snapshot.knobs[0]?.rawValue).toBe(1016);
     expect(snapshot.knobs[0]?.appliedRawValue).toBe(1008);
     expect(snapshot.knobs[0]?.percent).toBe(100);
+  });
+});
+
+describe("12-bit ADC normalization", () => {
+  it("derives the raw max from the bit depth", () => {
+    expect(adcMaxForBits(10)).toBe(1023);
+    expect(adcMaxForBits(12)).toBe(4095);
+  });
+
+  it("normalizes percent against the active adcMax", () => {
+    const adcMax = adcMaxForBits(12);
+    expect(sliderValueToPercent(4095, adcMax)).toBe(100);
+    expect(sliderValueToPercent(2048, adcMax)).toBe(50);
+    // Sem o adcMax, 4095 estouraria o range 10-bit e saturaria erroneamente.
+    expect(sliderValueToPercent(4095)).toBe(100);
+    expect(sliderValueToPercent(2048)).toBe(100);
+  });
+
+  it("keeps 12-bit raw values intact through mergeSliderPacket", () => {
+    const merged = mergeSliderPacket({}, [4095, 0, 2048], 3, adcMaxForBits(12));
+    expect(merged).toEqual({ 0: 4095, 1: 0, 2: 2048 });
+  });
+
+  it("uses handshake adcBits to drive runtime snapshot percent", () => {
+    const snapshot = buildRuntimeSnapshot({
+      profile: defaultProfile,
+      status: "connected",
+      statusText: "ok",
+      availablePorts: ["/dev/ttyACM0"],
+      connectionPort: "/dev/ttyACM0",
+      lastSerialLine: "2048|0|4095",
+      demoMode: false,
+      currentValues: { 0: 2048, 1: 0, 2: 4095 },
+      appliedValues: { 0: 2048, 1: 0, 2: 4095 },
+      outcomes: {},
+      telemetry: [],
+      audioInventory: emptyAudioInventory,
+      firmwareInfo: firmware12Bit,
+    });
+
+    expect(snapshot.knobs[0]?.percent).toBe(50);
+    expect(snapshot.knobs[2]?.percent).toBe(100);
   });
 });

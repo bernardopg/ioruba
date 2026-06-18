@@ -27,10 +27,13 @@ Foco principal pedido. Hoje só Nano AVR com 3 pinos fixos.
 - [ ] Parametrizar `ANALOG_PINS` por placa em vez de `{A0,A1,A2}` fixo — tabela de pinos por MCU/board selecionada em compile-time, dimensionada por `NUM_KNOBS` `(firmware/hardware)` - `médio`
 - [ ] Matriz de compilação de firmware no CI por FQBN (Nano, Uno, Mega2560, Leonardo, Micro) via `arduino-cli`, espelhando o gate atual `(firmware/ci/hardware)` - `médio`
 - [ ] Suporte a Arduino Mega (A0..A15) habilitando **>6 knobs** no mesmo board — validar limites de ADC e frame `(firmware/hardware/expansão)` - `médio`
-- [ ] Suporte a placas de 12-bit (ESP32, RP2040/Pico): reportar `adcBits` no handshake e **normalizar a resolução no shared** (hoje `SLIDER_MAX=1023` fixo quebra 4095) `(firmware/shared/protocol)` - `difícil`
+- [x] Suporte a placas de 12-bit (ESP32, RP2040/Pico): reportar `adcBits` no handshake e **normalizar a resolução no shared** (hoje `SLIDER_MAX=1023` fixo quebra 4095) `(firmware/shared/protocol)` - `difícil`
+  - Firmware deriva `ADC_MAX` de `IORUBA_ADC_BITS` (auto 12 em ESP32/RP2040, 10 em AVR). Shared remove o lock 1023: funções de mixer/runtime recebem `adcMax` opcional e o parser de frame aceita até 16-bit; normalização usa `firmwareInfo.adcBits`. Ainda pendente: toolchain real ESP32/RP2040 e teste em hardware.
 - [ ] Toolchain para ESP32/RP2040 (core `arduino-cli` adicional ou avaliação de PlatformIO) `(firmware/build/hardware)` - `difícil`
-- [ ] Handshake estendido: reportar `board`, `mcu` e `adcBits`; bump `PROTOCOL_VERSION` se incompatível, com fallback para v2 `(firmware/protocol)` - `médio`
-- [ ] Detecção automática e exibição do board/MCU no desktop a partir do `board=` do handshake `(frontend/hardware/ux)` - `fácil`
+- [x] Handshake estendido: reportar `board`, `mcu` e `adcBits`; bump `PROTOCOL_VERSION` se incompatível, com fallback para v2 `(firmware/protocol)` - `médio`
+  - `mcu`/`adcBits` adicionados como campos aditivos do handshake; protocolo mantido em v2 (campos opcionais, hosts antigos ignoram, novos assumem 10-bit quando ausentes) — sem quebra de compatibilidade.
+- [x] Detecção automática e exibição do board/MCU no desktop a partir do `board=` do handshake `(frontend/hardware/ux)` - `fácil`
+  - Tile "Hardware" no `OverviewSignalPanel` mostra board · MCU + `adcBits`-bit · protocolo (com aviso de incompatibilidade).
 - [ ] Suporte a botões/encoders além de potenciômetros (mute/next/prev) — novo tipo de input no protocolo e perfil `(firmware/shared/expansão)` - `difícil`
 - [ ] Documentar pinagem e matriz de placas suportadas em `docs/guides/hardware-setup.md` `(docs/hardware)` - `fácil`
 
