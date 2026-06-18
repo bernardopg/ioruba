@@ -99,7 +99,8 @@ Hoje Windows/macOS só controlam `master`. Linux tem cobertura completa.
 - [ ] Wizard de calibração de knobs na UI (ler/escrever `minRaw`/`maxRaw`/deadzone via comando `CONFIG`, que já existe no protocolo) `(frontend/firmware/ux)` - `médio`
 - [ ] Auditoria de acessibilidade (a11y) do dashboard, foco/teclado/aria `(frontend/a11y/ux)` - `médio`
 - [ ] Ampliar i18n além de en/pt-BR (estrutura de `i18n.ts` já suporta) `(frontend/i18n)` - `médio`
-- [ ] Exibir board/MCU/`adcBits`/protocolo detectados num painel de diagnóstico claro `(frontend/hardware/ux)` - `fácil`
+- [x] Exibir board/MCU/`adcBits`/protocolo detectados num painel de diagnóstico claro `(frontend/hardware/ux)` - `fácil`
+  - `HardwarePanel` (seção Hardware): placa, MCU, resolução do ADC, protocolo (compat.), knobs e calibração por knob, com estado vazio. Integrado à navegação agrupada nova.
 - [ ] Indicador visual de latência e saúde da conexão sempre visível (alinhado ao `.impeccable.md`) `(frontend/ux/observability)` - `fácil`
 
 ## Não-objetivos

@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Features
 
+- Redesigned navigation: the sidebar is now organized into labelled groups (Operation / Monitoring / Adjustments) with finer-grained sections. Channels (live knobs) split out of the control panel, and a dedicated Hardware section was added
+- New `HardwarePanel` surfaces the firmware handshake end to end — board, MCU, ADC resolution (10/12-bit), protocol compatibility, knob count and per-knob calibration — with a clear empty state when no controller is connected (Scrum 18: hardware diagnostics panel)
 - ESP32 and RP2040/Pico toolchains are now built in CI (Scrum 11): a dedicated `firmware-arch` job installs each 12-bit core and compiles the firmware, validating the `adcBits=12` path end to end on real toolchains
 - Per-board analog-pin tables (Scrum 11): the firmware no longer hard-codes `{A0, A1, A2}`. Pins are selected at compile time per board (Nano A0..A7, Uno A0..A5, Mega2560 A0..A15, Leonardo/Micro A0..A11, ESP32 ADC1, RP2040/Pico A0..A2) and the first `IORUBA_NUM_KNOBS` are used. This enables **>6 knobs on the Mega** (up to 16); a `static_assert` rejects a knob count that exceeds the board's analog channels
 - CI compiles the firmware across an FQBN matrix (Nano, Uno, Mega2560, Leonardo, Micro); a dedicated host job runs the config-parser tests in both the default (3 knobs / 10-bit) and wide (8 knobs / 12-bit) configurations. `npm run firmware:compile:matrix` and `npm run firmware:test:wide` reproduce these locally

@@ -4,6 +4,7 @@ import {
   Activity,
   AudioLines,
   Cog,
+  Cpu,
   Gauge,
   HeartPulse,
   Home,
@@ -13,6 +14,7 @@ import {
   PlugZap,
   Radar,
   RefreshCcw,
+  SlidersHorizontal,
   Waves
 } from "lucide-react";
 
@@ -28,6 +30,7 @@ import {
 } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { AudioBackendBanner } from "@/components/dashboard/audio-backend-banner";
+import { HardwarePanel } from "@/components/dashboard/hardware-panel";
 import { KnobPanel } from "@/components/dashboard/knob-panel";
 import { OnboardingChecklist } from "@/components/dashboard/onboarding-checklist";
 import { OverviewSignalPanel } from "@/components/dashboard/overview-signal-panel";
@@ -75,7 +78,27 @@ function toneForStatus(status: string): "neutral" | "positive" | "warning" | "cr
   }
 }
 
-type AppSection = "home" | "control" | "telemetry" | "diagnostics" | "settings";
+type AppSection =
+  | "home"
+  | "control"
+  | "channels"
+  | "telemetry"
+  | "hardware"
+  | "diagnostics"
+  | "settings";
+
+interface NavItem {
+  id: AppSection;
+  label: string;
+  description: string;
+  icon: typeof Home;
+}
+
+interface NavGroup {
+  id: string;
+  label: string;
+  items: NavItem[];
+}
 
 export default function App() {
   useBackgroundTray();
@@ -145,40 +168,74 @@ export default function App() {
   const launchOnLoginDescriptionId = "launch-on-login-description";
   const statusCardDescriptionId = "session-status-description";
   const liveStatusMessage = `${lt("Sessão")} ${snapshot.status}: ${lt(snapshot.statusText)}. ${lt(snapshot.diagnostics.hint)} ${lt("Perfil")}: ${draftStatusLabel}. ${draftStatusHint}`;
-  const navigationItems = useMemo(
+  const navigationGroups = useMemo<NavGroup[]>(
     () => [
       {
-        id: "home" as const,
-        label: lt("Home"),
-        description: lt("Visão geral da bancada e status operacional."),
-        icon: Home
+        id: "operation",
+        label: lt("Operação"),
+        items: [
+          {
+            id: "home" as const,
+            label: lt("Home"),
+            description: lt("Visão geral da bancada e status operacional."),
+            icon: Home
+          },
+          {
+            id: "control" as const,
+            label: lt("Painel de controle"),
+            description: lt("Conexão, sessão e preferências de runtime."),
+            icon: PanelsTopLeft
+          },
+          {
+            id: "channels" as const,
+            label: lt("Canais"),
+            description: lt("Knobs ao vivo e seus destinos de áudio."),
+            icon: SlidersHorizontal
+          }
+        ]
       },
       {
-        id: "control" as const,
-        label: lt("Painel de controle"),
-        description: lt("Ações rápidas de sessão, conexão e canais ativos."),
-        icon: PanelsTopLeft
+        id: "monitoring" as const,
+        label: lt("Monitoramento"),
+        items: [
+          {
+            id: "telemetry" as const,
+            label: lt("Telemetria"),
+            description: lt("Leituras ao vivo, resposta dos knobs e timeline."),
+            icon: Activity
+          },
+          {
+            id: "hardware" as const,
+            label: lt("Hardware"),
+            description: lt("Controlador, MCU, ADC e backend de áudio."),
+            icon: Cpu
+          },
+          {
+            id: "diagnostics" as const,
+            label: lt("Diagnósticos"),
+            description: lt("Logs e checklist técnico da integração."),
+            icon: HeartPulse
+          }
+        ]
       },
       {
-        id: "telemetry" as const,
-        label: lt("Telemetria"),
-        description: lt("Leituras ao vivo, resposta dos knobs e timeline."),
-        icon: Activity
-      },
-      {
-        id: "diagnostics" as const,
-        label: lt("Diagnósticos"),
-        description: lt("Logs, inventário de áudio e checklist técnico."),
-        icon: HeartPulse
-      },
-      {
-        id: "settings" as const,
-        label: lt("Configurações"),
-        description: lt("Perfis, preferências e edição avançada do runtime."),
-        icon: Cog
+        id: "settings-group" as const,
+        label: lt("Ajustes"),
+        items: [
+          {
+            id: "settings" as const,
+            label: lt("Configurações"),
+            description: lt("Perfis, preferências e edição avançada do runtime."),
+            icon: Cog
+          }
+        ]
       }
     ],
     [lt]
+  );
+  const navigationItems = useMemo(
+    () => navigationGroups.flatMap((group) => group.items),
+    [navigationGroups]
   );
   const currentSection =
     navigationItems.find((item) => item.id === activeSection) ?? navigationItems[0];
@@ -244,38 +301,49 @@ export default function App() {
             <nav className="mt-5">
               <div
                 aria-label={lt("Navegação principal do Ioruba")}
-                className="sidebar-nav-list"
+                className="sidebar-nav"
                 id="app-content"
                 role="tablist"
                 tabIndex={-1}
               >
-                {navigationItems.map((item) => {
-                  const Icon = item.icon;
-                  const isActive = item.id === activeSection;
+                {navigationGroups.map((group) => (
+                  <div className="sidebar-nav-group" key={group.id} role="presentation">
+                    <p className="sidebar-nav-group-label" role="presentation">
+                      {group.label}
+                    </p>
+                    <div className="sidebar-nav-list" role="presentation">
+                      {group.items.map((item) => {
+                        const Icon = item.icon;
+                        const isActive = item.id === activeSection;
 
-                  return (
-                    <button
-                      aria-controls="main-tabpanel"
-                      aria-selected={isActive}
-                      className="sidebar-nav-item"
-                      data-active={isActive}
-                      id={`tab-${item.id}`}
-                      key={item.id}
-                      onClick={() => setActiveSection(item.id)}
-                      role="tab"
-                      tabIndex={isActive ? 0 : -1}
-                      type="button"
-                    >
-                      <span className="sidebar-nav-icon">
-                        <Icon className="h-4 w-4" />
-                      </span>
-                      <span className="min-w-0 text-left">
-                        <span className="sidebar-nav-title">{item.label}</span>
-                        <span className="sidebar-nav-description">{item.description}</span>
-                      </span>
-                    </button>
-                  );
-                })}
+                        return (
+                          <button
+                            aria-controls="main-tabpanel"
+                            aria-selected={isActive}
+                            className="sidebar-nav-item"
+                            data-active={isActive}
+                            id={`tab-${item.id}`}
+                            key={item.id}
+                            onClick={() => setActiveSection(item.id)}
+                            role="tab"
+                            tabIndex={isActive ? 0 : -1}
+                            type="button"
+                          >
+                            <span className="sidebar-nav-icon">
+                              <Icon className="h-4 w-4" />
+                            </span>
+                            <span className="min-w-0 text-left">
+                              <span className="sidebar-nav-title">{item.label}</span>
+                              <span className="sidebar-nav-description">
+                                {item.description}
+                              </span>
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ))}
               </div>
             </nav>
 
@@ -402,7 +470,7 @@ export default function App() {
                 </Card>
               </section>
 
-              <section className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
+              <section className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
                 <QuickJumpCard
                   description={lt("Acione conexão, demo mode e preferências de sessão.")}
                   icon={PanelsTopLeft}
@@ -410,10 +478,22 @@ export default function App() {
                   title={lt("Abrir painel de controle")}
                 />
                 <QuickJumpCard
+                  description={lt("Ajuste os knobs ao vivo e seus destinos de áudio.")}
+                  icon={SlidersHorizontal}
+                  onOpen={() => setActiveSection("channels")}
+                  title={lt("Abrir canais")}
+                />
+                <QuickJumpCard
                   description={lt("Monitore a timeline dos canais e o comportamento dos knobs.")}
                   icon={Activity}
                   onOpen={() => setActiveSection("telemetry")}
                   title={lt("Abrir telemetria")}
+                />
+                <QuickJumpCard
+                  description={lt("Veja placa, MCU, resolução do ADC e o backend de áudio.")}
+                  icon={Cpu}
+                  onOpen={() => setActiveSection("hardware")}
+                  title={lt("Abrir hardware")}
                 />
                 <QuickJumpCard
                   description={lt("Revise logs, inventário do backend e saúde da integração.")}
@@ -432,7 +512,7 @@ export default function App() {
           ) : null}
 
           {activeSection === "control" ? (
-            <section className="grid gap-5 xl:grid-cols-[minmax(320px,0.95fr)_minmax(0,1.05fr)]">
+            <section className="grid gap-5">
               <Card className="overflow-hidden">
                 <CardHeader className="border-b border-(--color-border) pb-5">
                   <div>
@@ -580,17 +660,19 @@ export default function App() {
                   </div>
                 </CardContent>
               </Card>
+            </section>
+          ) : null}
 
-              <section className="grid gap-5">
-                {snapshot.knobs.map((knob) => (
-                  <KnobPanel
-                    key={knob.id}
-                    knob={knob}
-                    language={language}
-                    transitionDurationMs={snapshot.transitionDurationMs}
-                  />
-                ))}
-              </section>
+          {activeSection === "channels" ? (
+            <section className="grid gap-5 md:grid-cols-2 2xl:grid-cols-3">
+              {snapshot.knobs.map((knob) => (
+                <KnobPanel
+                  key={knob.id}
+                  knob={knob}
+                  language={language}
+                  transitionDurationMs={snapshot.transitionDurationMs}
+                />
+              ))}
             </section>
           ) : null}
 
@@ -637,13 +719,61 @@ export default function App() {
             </>
           ) : null}
 
-          {activeSection === "diagnostics" ? (
+          {activeSection === "hardware" ? (
             <>
+              <section className="grid gap-5 xl:grid-cols-[minmax(0,1.25fr)_minmax(320px,0.75fr)]">
+                <HardwarePanel
+                  firmware={snapshot.diagnostics.firmware}
+                  language={language}
+                />
+                <OverviewSignalPanel
+                  activeProfileName={activeProfile.name}
+                  language={language}
+                  snapshot={snapshot}
+                />
+              </section>
+
               <AudioBackendBanner
                 backend={audioInventory.backend}
                 diagnostics={audioInventory.diagnostics}
                 language={language}
               />
+
+              <Card>
+                <CardHeader>
+                  <div>
+                    <CardTitle>{lt("Inventário de áudio")}</CardTitle>
+                    <CardDescription>
+                      {lt("Descoberta dinâmica do backend atual com aplicações, sinks e sources.")}
+                    </CardDescription>
+                  </div>
+                </CardHeader>
+                <CardContent className="grid gap-4 md:grid-cols-3">
+                  <InventoryBlock
+                    icon={LaptopMinimal}
+                    title={lt("Aplicações")}
+                    noItemsLabel={lt("nenhum item detectado")}
+                    values={snapshot.diagnostics.activeApplications}
+                  />
+                  <InventoryBlock
+                    icon={Waves}
+                    title={lt("Saídas")}
+                    noItemsLabel={lt("nenhum item detectado")}
+                    values={audioInventory.sinks.map((sink) => sink.description)}
+                  />
+                  <InventoryBlock
+                    icon={Mic2}
+                    title={lt("Entradas")}
+                    noItemsLabel={lt("nenhum item detectado")}
+                    values={audioInventory.sources.map((source) => source.description)}
+                  />
+                </CardContent>
+              </Card>
+            </>
+          ) : null}
+
+          {activeSection === "diagnostics" ? (
+            <>
               <section>
                 <WatchLogPanel
                   activeProfileName={activeProfile.name}
@@ -655,58 +785,23 @@ export default function App() {
                 />
               </section>
 
-              <section className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
-                <Card>
-                  <CardHeader>
-                    <div>
-                      <CardTitle>{lt("Inventário de áudio")}</CardTitle>
-                      <CardDescription>
-                        {lt("Descoberta dinâmica do backend atual com aplicações, sinks e sources.")}
-                      </CardDescription>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="grid gap-4">
-                    <InventoryBlock
-                      icon={LaptopMinimal}
-                      title={lt("Aplicações")}
-                      noItemsLabel={lt("nenhum item detectado")}
-                      values={snapshot.diagnostics.activeApplications}
-                    />
-                    <InventoryBlock
-                      icon={Waves}
-                      title={lt("Saídas")}
-                      noItemsLabel={lt("nenhum item detectado")}
-                      values={audioInventory.sinks.map((sink) => sink.description)}
-                    />
-                    <InventoryBlock
-                      icon={Mic2}
-                      title={lt("Entradas")}
-                      noItemsLabel={lt("nenhum item detectado")}
-                      values={audioInventory.sources.map(
-                        (source) => source.description
-                      )}
-                    />
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader>
-                    <div>
-                      <CardTitle>{lt("Checklist da migração")}</CardTitle>
-                      <CardDescription>
-                        {lt("Itens essenciais já cobertos pelo novo stack.")}
-                      </CardDescription>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    <ChecklistItem label={lt("Protocolo serial legado e frame completo")} />
-                    <ChecklistItem label={lt("Redução de ruído e aplicação incremental")} />
-                    <ChecklistItem label={lt("Persistência local em JSON")} />
-                    <ChecklistItem label={lt("Telemetria com Recharts")} />
-                    <ChecklistItem label={lt("Backend de áudio em Rust para Linux")} />
-                  </CardContent>
-                </Card>
-              </section>
+              <Card>
+                <CardHeader>
+                  <div>
+                    <CardTitle>{lt("Checklist da migração")}</CardTitle>
+                    <CardDescription>
+                      {lt("Itens essenciais já cobertos pelo novo stack.")}
+                    </CardDescription>
+                  </div>
+                </CardHeader>
+                <CardContent className="grid gap-3 md:grid-cols-2">
+                  <ChecklistItem label={lt("Protocolo serial legado e frame completo")} />
+                  <ChecklistItem label={lt("Redução de ruído e aplicação incremental")} />
+                  <ChecklistItem label={lt("Persistência local em JSON")} />
+                  <ChecklistItem label={lt("Telemetria com Recharts")} />
+                  <ChecklistItem label={lt("Backend de áudio em Rust para Linux")} />
+                </CardContent>
+              </Card>
             </>
           ) : null}
 

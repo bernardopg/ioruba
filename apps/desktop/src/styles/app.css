@@ -254,9 +254,28 @@ body {
   }
 }
 
+.sidebar-nav {
+  display: grid;
+  gap: 1.15rem;
+}
+
+.sidebar-nav-group {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.sidebar-nav-group-label {
+  padding-left: 0.35rem;
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: color-mix(in oklab, var(--color-muted) 88%, transparent);
+}
+
 .sidebar-nav-list {
   display: grid;
-  gap: 0.7rem;
+  gap: 0.5rem;
 }
 
 .sidebar-nav-item {

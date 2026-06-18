@@ -148,6 +148,49 @@ const TEXT_MAP: Record<string, string> = {
   "Ligue o controlador": "Power on the controller",
   protocolo: "protocol",
   "incompatível": "incompatible",
+  "Operação": "Operation",
+  Monitoramento: "Monitoring",
+  Ajustes: "Adjustments",
+  "Conexão, sessão e preferências de runtime.":
+    "Connection, session and runtime preferences.",
+  "Knobs ao vivo e seus destinos de áudio.":
+    "Live knobs and their audio targets.",
+  "Controlador, MCU, ADC e backend de áudio.":
+    "Controller, MCU, ADC and audio backend.",
+  "Logs e checklist técnico da integração.":
+    "Logs and technical integration checklist.",
+  "Abrir canais": "Open channels",
+  "Abrir hardware": "Open hardware",
+  "Ajuste os knobs ao vivo e seus destinos de áudio.":
+    "Tune the live knobs and their audio targets.",
+  "Veja placa, MCU, resolução do ADC e o backend de áudio.":
+    "See board, MCU, ADC resolution and the audio backend.",
+  Controlador: "Controller",
+  "Identidade do hardware reportada pelo handshake do firmware.":
+    "Hardware identity reported by the firmware handshake.",
+  "sem handshake": "no handshake",
+  "Nenhum controlador conectado": "No controller connected",
+  "Ligue o controlador e aguarde o handshake para ver placa, MCU e resolução do ADC.":
+    "Power on the controller and wait for the handshake to see board, MCU and ADC resolution.",
+  "protocolo compatível": "compatible protocol",
+  "protocolo incompatível": "incompatible protocol",
+  Placa: "Board",
+  firmware: "firmware",
+  "não reportado": "not reported",
+  microcontrolador: "microcontroller",
+  "Resolução do ADC": "ADC resolution",
+  Protocolo: "Protocol",
+  "compatível com o desktop": "compatible with the desktop",
+  "verifique a versão do firmware": "check the firmware version",
+  Knobs: "Knobs",
+  desconhecido: "unknown",
+  "canais ativos": "active channels",
+  "Ajuste do controlador": "Controller tuning",
+  Threshold: "Threshold",
+  Deadzone: "Deadzone",
+  "Suavização": "Smoothing",
+  "Mín. bruto": "Min. raw",
+  "Máx. bruto": "Max. raw",
   "Leitura atual": "Current reading",
   "Todos os canais espelhados como instrumentos vivos.":
     "All channels mirrored as living instruments.",
