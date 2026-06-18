@@ -141,15 +141,14 @@ export function WatchLogPanel({
       setExportMessage(
         result
           ? ltpl("Watch log exportado: {count} evento(s) em {path}", {
-              count: String(result.entries),
-              path: result.path
-            })
+            count: String(result.entries),
+            path: result.path
+          })
           : lt("Exportacao cancelada")
       );
     } catch (error) {
       setExportMessage(
-        `${lt("Falha ao exportar watch log")}: ${
-          error instanceof Error ? error.message : String(error)
+        `${lt("Falha ao exportar watch log")}: ${error instanceof Error ? error.message : String(error)
         }`
       );
     } finally {

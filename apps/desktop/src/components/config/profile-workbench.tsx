@@ -355,7 +355,7 @@ export function ProfileWorkbench({
                   type="button"
                   disabled={structuredEditorLocked}
                   onClick={() => handleApplyPreset(preset.key)}
-                  className="flex flex-col gap-1 rounded-[16px] border border-(--color-border) bg-(--color-panel) px-3 py-3 text-left transition-colors hover:border-[color-mix(in_oklab,var(--accent-teal)_55%,var(--color-border))] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--accent-teal) disabled:cursor-not-allowed disabled:opacity-50"
+                  className="flex flex-col gap-1 rounded-2xl border border-(--color-border) bg-(--color-panel) px-3 py-3 text-left transition-colors hover:border-[color-mix(in_oklab,var(--accent-teal)_55%,var(--color-border))] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--accent-teal) disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   <span className="text-sm font-semibold text-(--color-ink)">
                     {lt(preset.name)}

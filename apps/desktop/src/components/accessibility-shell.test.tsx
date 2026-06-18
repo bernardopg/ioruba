@@ -92,8 +92,8 @@ describe("desktop accessibility shell", () => {
     vi.stubGlobal(
       "IntersectionObserver",
       class {
-        observe() {}
-        disconnect() {}
+        observe() { }
+        disconnect() { }
       }
     );
     HTMLElement.prototype.scrollIntoView = vi.fn();

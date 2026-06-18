@@ -38,7 +38,7 @@ export function SessionStatsPanel({
   return (
     <section
       aria-label={lt("Estatísticas da sessão")}
-      className="rounded-[var(--radius-card)] border border-(--color-border) bg-(--color-panel) p-5"
+      className="rounded-(--radius-card) border border-(--color-border) bg-(--color-panel) p-5"
     >
       <div className="flex items-start justify-between gap-4">
         <div className="flex items-center gap-3">

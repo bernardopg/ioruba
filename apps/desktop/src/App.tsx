@@ -600,7 +600,7 @@ export default function App() {
                 <Suspense
                   fallback={
                     <div
-                      className="flex h-[320px] w-full items-center justify-center rounded-[var(--radius-card)] border border-(--color-border) bg-(--color-panel) text-sm text-(--color-muted) sm:h-[380px]"
+                      className="flex h-80 w-full items-center justify-center rounded-(--radius-card) border border-(--color-border) bg-(--color-panel) text-sm text-(--color-muted) sm:h-95"
                       role="status"
                       aria-live="polite"
                     >

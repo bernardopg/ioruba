@@ -6,7 +6,7 @@ import {
   listAudioInventory,
   loadPersistedState,
   loadWatchLogEntries,
-  saveWatchLogEntries
+  saveWatchLogEntries,
 } from "@/lib/backend";
 import { normalizeSerialPorts, shouldAutoConnect } from "@/lib/serial";
 import { useIorubaStore } from "@/store/ioruba-store";
@@ -15,7 +15,7 @@ export function useRuntimeBoot() {
   const hydrate = useIorubaStore((state) => state.hydrate);
   const hydrateWatchLog = useIorubaStore((state) => state.hydrateWatchLog);
   const setWatchLogPersistenceReady = useIorubaStore(
-    (state) => state.setWatchLogPersistenceReady
+    (state) => state.setWatchLogPersistenceReady,
   );
   const refreshInventory = useIorubaStore((state) => state.refreshInventory);
   const setAvailablePorts = useIorubaStore((state) => state.setAvailablePorts);
@@ -32,12 +32,13 @@ export function useRuntimeBoot() {
     async function boot() {
       const bootStartedAt = performance.now();
       try {
-        const [persisted, inventory, watchLog, launchOnLogin] = await Promise.all([
-          loadPersistedState(),
-          listAudioInventory(),
-          loadWatchLogEntries(),
-          getLaunchOnLoginEnabled()
-        ]);
+        const [persisted, inventory, watchLog, launchOnLogin] =
+          await Promise.all([
+            loadPersistedState(),
+            listAudioInventory(),
+            loadWatchLogEntries(),
+            getLaunchOnLoginEnabled(),
+          ]);
 
         if (cancelled) {
           return;
@@ -47,7 +48,7 @@ export function useRuntimeBoot() {
 
         const nextPersisted = {
           ...persisted,
-          launchOnLogin
+          launchOnLogin,
         };
 
         hydrate(nextPersisted, inventory);
@@ -70,28 +71,28 @@ export function useRuntimeBoot() {
         appendWatchLog({
           scope: "app",
           level: "info",
-          message: "Boot do runtime iniciado"
+          message: "Boot do runtime iniciado",
         });
 
         appendWatchLog({
           scope: "backend",
           level: "info",
           message: "Runtime hidratado",
-          detail: `${nextPersisted.profiles.length} perfil(is) | inventario ${inventory.summary} | autostart ${launchOnLogin ? "on" : "off"} | carga backend ${backendLoadMs}ms`
+          detail: `${nextPersisted.profiles.length} perfil(is) | inventario ${inventory.summary} | autostart ${launchOnLogin ? "on" : "off"} | carga backend ${backendLoadMs}ms`,
         });
 
         if (nextPersisted.demoMode) {
           appendWatchLog({
             scope: "app",
             level: "warning",
-            message: "Persistencia restaurou modo demo"
+            message: "Persistencia restaurou modo demo",
           });
           setDemoMode(true);
         } else if (shouldAutoConnect(nextPersisted)) {
           appendWatchLog({
             scope: "app",
             level: "info",
-            message: "Auto-connect habilitado pelo perfil ativo"
+            message: "Auto-connect habilitado pelo perfil ativo",
           });
           requestConnect();
         }
@@ -101,7 +102,7 @@ export function useRuntimeBoot() {
             scope: "backend",
             level: "error",
             message: "Falha ao persistir watch log",
-            detail: watchLogPersistenceError
+            detail: watchLogPersistenceError,
           });
         }
 
@@ -109,14 +110,14 @@ export function useRuntimeBoot() {
           scope: "app",
           level: "info",
           message: "Boot do runtime concluido",
-          detail: `${Math.round(performance.now() - bootStartedAt)}ms ate runtime pronto`
+          detail: `${Math.round(performance.now() - bootStartedAt)}ms ate runtime pronto`,
         });
       } catch (error) {
         appendWatchLog({
           scope: "backend",
           level: "error",
           message: "Falha no boot do runtime",
-          detail: error instanceof Error ? error.message : String(error)
+          detail: error instanceof Error ? error.message : String(error),
         });
       }
     }
@@ -142,9 +143,13 @@ export function useRuntimeBoot() {
         const shouldQueryPorts =
           connectionMode !== "serial" ||
           useIorubaStore.getState().availablePorts.length === 0;
-        const portsPromise =
-          shouldQueryPorts ? SerialPort.available_ports() : Promise.resolve(null);
-        const [ports, inventory] = await Promise.all([portsPromise, inventoryPromise]);
+        const portsPromise = shouldQueryPorts
+          ? SerialPort.available_ports()
+          : Promise.resolve(null);
+        const [ports, inventory] = await Promise.all([
+          portsPromise,
+          inventoryPromise,
+        ]);
 
         if (cancelled) {
           return;
@@ -164,7 +169,7 @@ export function useRuntimeBoot() {
             scope: "backend",
             level: "warning",
             message: "Refresh de inventario/portas lento",
-            detail: `${elapsedMs}ms${ports !== null ? " (com enumeracao de portas)" : ""}`
+            detail: `${elapsedMs}ms${ports !== null ? " (com enumeracao de portas)" : ""}`,
           });
         }
       } catch (_error) {
@@ -175,7 +180,7 @@ export function useRuntimeBoot() {
           appendWatchLog({
             scope: "serial",
             level: "error",
-            message: "Falha ao consultar portas seriais"
+            message: "Falha ao consultar portas seriais",
           });
         }
       }
@@ -194,5 +199,11 @@ export function useRuntimeBoot() {
       cancelled = true;
       window.clearInterval(portTimer);
     };
-  }, [appendWatchLog, connectionMode, hydrated, refreshInventory, setAvailablePorts]);
+  }, [
+    appendWatchLog,
+    connectionMode,
+    hydrated,
+    refreshInventory,
+    setAvailablePorts,
+  ]);
 }

@@ -8,7 +8,7 @@ import {
   type MixerProfile,
   type PersistedState,
   type SliderOutcome,
-  type SliderUpdate
+  type SliderUpdate,
 } from "@ioruba/shared";
 
 import { type WatchLogEntry } from "@/lib/watch";
@@ -42,7 +42,7 @@ export async function loadPersistedState(): Promise<PersistedState> {
 
 export async function savePersistedState(state: PersistedState): Promise<void> {
   await invoke("save_persisted_state", {
-    payload: JSON.stringify(state, null, 2)
+    payload: JSON.stringify(state, null, 2),
   });
 }
 
@@ -55,26 +55,24 @@ export async function loadWatchLogEntries(): Promise<WatchLogEntry[]> {
 }
 
 export async function saveWatchLogEntries(
-  entries: WatchLogEntry[]
+  entries: WatchLogEntry[],
 ): Promise<void> {
   if (!isTauri()) {
     return;
   }
 
   await invoke("save_watch_log_entries", {
-    entries
+    entries,
   });
 }
 
-export async function appendWatchLogEntry(
-  entry: WatchLogEntry
-): Promise<void> {
+export async function appendWatchLogEntry(entry: WatchLogEntry): Promise<void> {
   if (!isTauri()) {
     return;
   }
 
   await invoke("append_watch_log_entry", {
-    entry
+    entry,
   });
 }
 
@@ -87,20 +85,20 @@ export async function clearWatchLogEntries(): Promise<void> {
 }
 
 export async function exportWatchLog(
-  entries: WatchLogEntry[]
+  entries: WatchLogEntry[],
 ): Promise<WatchLogExportResult | null> {
   if (!isTauri()) {
     return null;
   }
 
   return invoke<WatchLogExportResult | null>("export_watch_log", {
-    entries
+    entries,
   });
 }
 
 export async function exportProfile(
   fileName: string,
-  payload: string
+  payload: string,
 ): Promise<string | null> {
   if (!isTauri()) {
     return null;
@@ -126,14 +124,14 @@ export async function getLaunchOnLoginEnabled(): Promise<boolean> {
 }
 
 export async function setLaunchOnLoginEnabled(
-  enabled: boolean
+  enabled: boolean,
 ): Promise<boolean> {
   if (!isTauri()) {
     return enabled;
   }
 
   return invoke<boolean>("set_launch_on_login_enabled", {
-    enabled
+    enabled,
   });
 }
 
@@ -143,7 +141,7 @@ export async function listAudioInventory(): Promise<AudioInventory> {
 
 export async function applySliderTargetsBatch(
   profile: MixerProfile,
-  updates: SliderUpdate[]
+  updates: SliderUpdate[],
 ): Promise<Record<number, SliderOutcome>> {
   if (updates.length === 0) {
     return {};
@@ -153,7 +151,7 @@ export async function applySliderTargetsBatch(
     sliders: updates
       .map((update) => {
         const slider = profile.sliders.find(
-          (candidate) => candidate.id === update.sliderId
+          (candidate) => candidate.id === update.sliderId,
         );
         if (!slider) {
           return null;
@@ -163,17 +161,21 @@ export async function applySliderTargetsBatch(
           sliderId: slider.id,
           sliderName: slider.name,
           normalizedValue: sliderToAppliedNormalized(slider, update.rawValue),
-          targets: slider.targets
+          targets: slider.targets,
         };
       })
       .filter(
-        (value): value is SliderBatchRequest["sliders"][number] => value !== null
-      )
+        (value): value is SliderBatchRequest["sliders"][number] =>
+          value !== null,
+      ),
   };
 
-  const response = await invoke<SliderBatchResponse>("apply_slider_targets_batch", {
-    request: payload
-  });
+  const response = await invoke<SliderBatchResponse>(
+    "apply_slider_targets_batch",
+    {
+      request: payload,
+    },
+  );
 
   return response.outcomes;
 }

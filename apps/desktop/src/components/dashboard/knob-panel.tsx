@@ -107,11 +107,11 @@ export function KnobPanel({
               className="h-2.5 w-2.5 shrink-0 rounded-full"
               style={{ backgroundColor: accent }}
             />
-            <CardTitle className="min-w-0 break-words text-[clamp(1rem,0.6vw+0.9rem,1.35rem)] leading-tight">
+            <CardTitle className="min-w-0 wrap-break-word text-[clamp(1rem,0.6vw+0.9rem,1.35rem)] leading-tight">
               {knob.name}
             </CardTitle>
           </div>
-          <CardDescription className="break-words">
+          <CardDescription className="wrap-break-word">
             {lt("Leitura bruta")} {knob.rawValue} | {lt("aplicada")} {knob.appliedRawValue}
           </CardDescription>
         </div>
@@ -202,7 +202,7 @@ export function KnobPanel({
                 {knob.outcome.severity}
               </Badge>
             </div>
-            <p className="mt-3 break-words text-sm leading-6 text-(--color-copy)">
+            <p className="mt-3 wrap-break-wordword text-sm leading-6 text-(--color-copy)">
               {knob.outcome.summary}
             </p>
 
@@ -221,7 +221,7 @@ export function KnobPanel({
                         {labelForTargetStatus(targetOutcome.status, lt)}
                       </Badge>
                     </div>
-                    <p className="mt-2 break-words text-sm leading-6 text-(--color-copy)">
+                    <p className="mt-2 wrap-break-word text-sm leading-6 text-(--color-copy)">
                       {targetOutcome.detail}
                     </p>
 

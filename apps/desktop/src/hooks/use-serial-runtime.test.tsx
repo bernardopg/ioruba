@@ -27,10 +27,10 @@ const { mockApplySliderTargetsBatch, serialPortInstances, MockSerialPort } = vi.
         serialPortInstances.push(this);
       }
 
-      async open() {}
-      async startListening() {}
-      async cancelListen() {}
-      async close() {}
+      async open() { }
+      async startListening() { }
+      async cancelListen() { }
+      async close() { }
 
       async write(payload: string) {
         this.writes.push(payload);

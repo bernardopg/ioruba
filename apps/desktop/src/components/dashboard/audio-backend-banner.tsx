@@ -58,11 +58,11 @@ export function AudioBackendBanner({
         <p className="mt-1 text-sm leading-5 text-(--color-copy)">
           {reason === "platform-unsupported"
             ? lt(
-                "Esta plataforma ainda não tem backend de áudio nativo. O Ioruba mantém perfis, conexão serial, telemetria e modo demo, mas não altera volumes reais."
-              )
+              "Esta plataforma ainda não tem backend de áudio nativo. O Ioruba mantém perfis, conexão serial, telemetria e modo demo, mas não altera volumes reais."
+            )
             : lt(
-                "O Ioruba não encontrou o pactl no PATH. O controle de volume está desativado até que o backend seja instalado."
-              )}
+              "O Ioruba não encontrou o pactl no PATH. O controle de volume está desativado até que o backend seja instalado."
+            )}
         </p>
 
         {reason === "platform-unsupported" ? (

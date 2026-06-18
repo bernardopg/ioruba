@@ -64,3 +64,7 @@ apps/desktop/src-tauri/gen/
 
 # Obsidian vault config (local editor cruft)
 .obsidian/
+
+.serena/
+/cache
+/project.local.yml

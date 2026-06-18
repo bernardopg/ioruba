@@ -18,26 +18,28 @@ export function useWatchBridge() {
 
     void listen<WatchLogInput>("ioruba:watch-log", ({ payload }) => {
       appendWatchLog(payload);
-    }).then((cleanup) => {
-      if (disposed) {
-        cleanup();
-        return;
-      }
+    })
+      .then((cleanup) => {
+        if (disposed) {
+          cleanup();
+          return;
+        }
 
-      unlisten = cleanup;
-      appendWatchLog({
-        scope: "app",
-        level: "info",
-        message: "Watch bridge ativo"
+        unlisten = cleanup;
+        appendWatchLog({
+          scope: "app",
+          level: "info",
+          message: "Watch bridge ativo",
+        });
+      })
+      .catch((error: unknown) => {
+        appendWatchLog({
+          scope: "backend",
+          level: "error",
+          message: "Watch bridge indisponivel",
+          detail: error instanceof Error ? error.message : String(error),
+        });
       });
-    }).catch((error: unknown) => {
-      appendWatchLog({
-        scope: "backend",
-        level: "error",
-        message: "Watch bridge indisponivel",
-        detail: error instanceof Error ? error.message : String(error)
-      });
-    });
 
     return () => {
       disposed = true;

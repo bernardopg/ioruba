@@ -32,7 +32,8 @@ export function useBackgroundTray() {
         appendWatchLog({
           scope: "app",
           level: "info",
-          message: "Solicitacao de fechamento recebida; redirecionando para o tray"
+          message:
+            "Solicitacao de fechamento recebida; redirecionando para o tray",
         });
       });
 

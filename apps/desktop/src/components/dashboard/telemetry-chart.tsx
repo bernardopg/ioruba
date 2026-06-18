@@ -110,9 +110,9 @@ function TelemetryChartImpl({ snapshot, language = "pt-BR" }: TelemetryChartProp
         </div>
       </CardHeader>
       <CardContent className="pt-6">
-        <div className="h-[320px] w-full sm:h-[380px]">
+        <div className="h-80 w-full sm:h-95">
           {data.length === 0 ? (
-            <div className="flex h-full w-full flex-col items-center justify-center gap-2 rounded-[var(--radius-card)] border border-dashed border-(--color-border) bg-[color-mix(in_oklab,var(--color-panel)_92%,var(--color-shell)_8%)] px-6 text-center">
+            <div className="flex h-full w-full flex-col items-center justify-center gap-2 rounded-(--radius-card) border border-dashed border-(--color-border) bg-[color-mix(in_oklab,var(--color-panel)_92%,var(--color-shell)_8%)] px-6 text-center">
               <Activity className="h-6 w-6 text-(--color-muted)" />
               <p className="text-sm font-semibold text-(--color-ink)">
                 {lt("Sem dados de telemetria ainda")}
@@ -122,65 +122,65 @@ function TelemetryChartImpl({ snapshot, language = "pt-BR" }: TelemetryChartProp
               </p>
             </div>
           ) : (
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={data}>
-              <CartesianGrid
-                stroke="color-mix(in oklab, var(--color-border) 75%, transparent)"
-                strokeDasharray="4 6"
-                vertical={false}
-              />
-              <XAxis
-                axisLine={false}
-                dataKey="tick"
-                minTickGap={28}
-                stroke="var(--color-muted)"
-                tickLine={false}
-                tickMargin={10}
-              />
-              <YAxis
-                axisLine={false}
-                width={34}
-                stroke="var(--color-muted)"
-                tickLine={false}
-                tickMargin={10}
-                domain={[0, 100]}
-              />
-              <Tooltip
-                contentStyle={{
-                  border: "1px solid var(--color-border)",
-                  borderRadius: "18px",
-                  background: "color-mix(in oklab, var(--color-panel) 94%, var(--color-shell) 6%)",
-                  boxShadow: "var(--shadow-float)"
-                }}
-                cursor={{
-                  stroke: "color-mix(in oklab, var(--accent-teal) 45%, var(--color-border))",
-                  strokeDasharray: "3 5"
-                }}
-                labelStyle={{
-                  color: "var(--color-ink)",
-                  fontWeight: 700
-                }}
-                wrapperStyle={{
-                  outline: "none"
-                }}
-              />
-              {snapshot.knobs.map((knob, index) => (
-                <Line
-                  activeDot={{ r: 4 }}
-                  connectNulls
-                  dot={false}
-                  isAnimationActive={false}
-                  key={knob.id}
-                  name={knob.name}
-                  stroke={accentColor(knob.accent)}
-                  strokeLinecap="round"
-                  strokeWidth={index === 0 ? 3.2 : 2.6}
-                  type="monotoneX"
-                  dataKey={`knob-${knob.id}`}
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={data}>
+                <CartesianGrid
+                  stroke="color-mix(in oklab, var(--color-border) 75%, transparent)"
+                  strokeDasharray="4 6"
+                  vertical={false}
                 />
-              ))}
-            </LineChart>
-          </ResponsiveContainer>
+                <XAxis
+                  axisLine={false}
+                  dataKey="tick"
+                  minTickGap={28}
+                  stroke="var(--color-muted)"
+                  tickLine={false}
+                  tickMargin={10}
+                />
+                <YAxis
+                  axisLine={false}
+                  width={34}
+                  stroke="var(--color-muted)"
+                  tickLine={false}
+                  tickMargin={10}
+                  domain={[0, 100]}
+                />
+                <Tooltip
+                  contentStyle={{
+                    border: "1px solid var(--color-border)",
+                    borderRadius: "18px",
+                    background: "color-mix(in oklab, var(--color-panel) 94%, var(--color-shell) 6%)",
+                    boxShadow: "var(--shadow-float)"
+                  }}
+                  cursor={{
+                    stroke: "color-mix(in oklab, var(--accent-teal) 45%, var(--color-border))",
+                    strokeDasharray: "3 5"
+                  }}
+                  labelStyle={{
+                    color: "var(--color-ink)",
+                    fontWeight: 700
+                  }}
+                  wrapperStyle={{
+                    outline: "none"
+                  }}
+                />
+                {snapshot.knobs.map((knob, index) => (
+                  <Line
+                    activeDot={{ r: 4 }}
+                    connectNulls
+                    dot={false}
+                    isAnimationActive={false}
+                    key={knob.id}
+                    name={knob.name}
+                    stroke={accentColor(knob.accent)}
+                    strokeLinecap="round"
+                    strokeWidth={index === 0 ? 3.2 : 2.6}
+                    type="monotoneX"
+                    dataKey={`knob-${knob.id}`}
+                  />
+                ))}
+              </LineChart>
+            </ResponsiveContainer>
           )}
         </div>
       </CardContent>

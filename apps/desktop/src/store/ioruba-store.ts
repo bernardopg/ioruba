@@ -26,7 +26,7 @@ import {
   type SliderOutcome,
   type SliderStateMap,
   type SliderUpdate,
-  type TelemetryPoint
+  type TelemetryPoint,
 } from "@ioruba/shared";
 
 import {
@@ -39,13 +39,13 @@ import {
   removeProfileById,
   replaceActiveProfile,
   selectProfileById,
-  serializeProfileDraft
+  serializeProfileDraft,
 } from "@/lib/profile-config";
 import {
   appendWatchLogEntry,
   clearWatchLogEntries,
   exportProfile,
-  importProfile
+  importProfile,
 } from "@/lib/backend";
 import { sameSerialPorts } from "@/lib/serial";
 import { type WatchLogEntry, type WatchLogInput } from "@/lib/watch";
@@ -85,7 +85,7 @@ interface IorubaState {
   setStatus: (
     status: RuntimeStatus,
     statusText: string,
-    connectionPort?: string | null
+    connectionPort?: string | null,
   ) => void;
   requestConnect: () => void;
   disconnect: (reason?: string) => void;
@@ -106,30 +106,29 @@ interface IorubaState {
   applyConfigDraft: () => void;
   resetProfile: () => void;
   processSerialLine: (rawLine: string) => SliderUpdate[];
-  commitAppliedResults: (
-    updates: SliderUpdate[],
-    outcomes: OutcomeMap
-  ) => void;
+  commitAppliedResults: (updates: SliderUpdate[], outcomes: OutcomeMap) => void;
   runDemoStep: () => void;
 }
 
-function createSnapshot(state: Pick<
-  IorubaState,
-  | "persisted"
-  | "audioInventory"
-  | "firmwareInfo"
-  | "availablePorts"
-  | "currentValues"
-  | "appliedValues"
-  | "outcomes"
-  | "lastSerialLine"
-  | "telemetry"
-> & {
-  connectionMode: ConnectionMode;
-  status: RuntimeStatus;
-  statusText: string;
-  connectionPort: string | null;
-}) {
+function createSnapshot(
+  state: Pick<
+    IorubaState,
+    | "persisted"
+    | "audioInventory"
+    | "firmwareInfo"
+    | "availablePorts"
+    | "currentValues"
+    | "appliedValues"
+    | "outcomes"
+    | "lastSerialLine"
+    | "telemetry"
+  > & {
+    connectionMode: ConnectionMode;
+    status: RuntimeStatus;
+    statusText: string;
+    connectionPort: string | null;
+  },
+) {
   return buildRuntimeSnapshot({
     profile: resolveActiveProfile(state.persisted),
     status: state.status,
@@ -143,7 +142,7 @@ function createSnapshot(state: Pick<
     outcomes: state.outcomes,
     telemetry: state.telemetry,
     audioInventory: state.audioInventory,
-    firmwareInfo: state.firmwareInfo
+    firmwareInfo: state.firmwareInfo,
   });
 }
 
@@ -154,12 +153,22 @@ function serializeActiveProfile(persisted: PersistedState) {
 function createPersistedSnapshotUpdate(
   state: IorubaState,
   persisted: PersistedState,
-  overrides?: Partial<Pick<IorubaState, "currentValues" | "appliedValues" | "outcomes" | "telemetry" | "lastSerialLine" | "firmwareInfo">>
+  overrides?: Partial<
+    Pick<
+      IorubaState,
+      | "currentValues"
+      | "appliedValues"
+      | "outcomes"
+      | "telemetry"
+      | "lastSerialLine"
+      | "firmwareInfo"
+    >
+  >,
 ) {
   const nextState = {
     ...state,
     ...overrides,
-    persisted
+    persisted,
   };
 
   return {
@@ -171,13 +180,16 @@ function createPersistedSnapshotUpdate(
       connectionMode: state.connectionMode,
       status: state.snapshot.status,
       statusText: state.snapshot.statusText,
-      connectionPort: state.snapshot.connectionPort
-    })
+      connectionPort: state.snapshot.connectionPort,
+    }),
   };
 }
 
 function sliderNameForId(profile: MixerProfile, sliderId: number): string {
-  return profile.sliders.find((candidate) => candidate.id === sliderId)?.name ?? `slider ${sliderId}`;
+  return (
+    profile.sliders.find((candidate) => candidate.id === sliderId)?.name ??
+    `slider ${sliderId}`
+  );
 }
 
 function formatFirmwareLabel(firmwareInfo: FirmwareInfo): string {
@@ -188,7 +200,7 @@ function formatFirmwareLabel(firmwareInfo: FirmwareInfo): string {
 function normalizeWatchEntries(entries: WatchLogEntry[]): WatchLogEntry[] {
   return entries.map((entry, index) => ({
     ...entry,
-    seq: index + 1
+    seq: index + 1,
   }));
 }
 
@@ -196,7 +208,7 @@ function createFallbackOutcome(summary = "target updated"): SliderOutcome {
   return {
     summary,
     severity: "success",
-    targets: []
+    targets: [],
   };
 }
 
@@ -206,7 +218,7 @@ function outcomeSummary(outcome: SliderOutcome | undefined): string {
 
 function appendWatchEntry(
   state: IorubaState,
-  entry: WatchLogInput
+  entry: WatchLogInput,
 ): {
   nextEntry: WatchLogEntry;
   watchLog: WatchLogEntry[];
@@ -219,13 +231,13 @@ function appendWatchEntry(
     scope: entry.scope,
     level: entry.level,
     message: entry.message,
-    detail: entry.detail
+    detail: entry.detail,
   };
 
   return {
     watchSeq: seq,
     nextEntry,
-    watchLog: [...state.watchLog, nextEntry].slice(-WATCH_LOG_LIMIT)
+    watchLog: [...state.watchLog, nextEntry].slice(-WATCH_LOG_LIMIT),
   };
 }
 
@@ -263,7 +275,7 @@ export const useIorubaStore = create<IorubaState>((rawSet, get) => {
     outcomes: {},
     telemetry: [],
     audioInventory: emptyAudioInventory,
-    firmwareInfo: null
+    firmwareInfo: null,
   });
 
   return {
@@ -291,7 +303,7 @@ export const useIorubaStore = create<IorubaState>((rawSet, get) => {
       const nextWatchEntry = appendWatchEntry(state, entry);
       set({
         watchLog: nextWatchEntry.watchLog,
-        watchSeq: nextWatchEntry.watchSeq
+        watchSeq: nextWatchEntry.watchSeq,
       });
 
       if (state.watchLogPersistenceReady) {
@@ -302,7 +314,7 @@ export const useIorubaStore = create<IorubaState>((rawSet, get) => {
       const state = get();
       set({
         watchLog: [],
-        watchSeq: 0
+        watchSeq: 0,
       });
 
       if (state.watchLogPersistenceReady) {
@@ -314,14 +326,13 @@ export const useIorubaStore = create<IorubaState>((rawSet, get) => {
     },
     hydrateWatchLog: (watchLog) => {
       const state = get();
-      const mergedWatchLog = normalizeWatchEntries([
-        ...watchLog,
-        ...state.watchLog
-      ].slice(-WATCH_LOG_LIMIT));
+      const mergedWatchLog = normalizeWatchEntries(
+        [...watchLog, ...state.watchLog].slice(-WATCH_LOG_LIMIT),
+      );
 
       set({
         watchLog: mergedWatchLog,
-        watchSeq: mergedWatchLog.at(-1)?.seq ?? 0
+        watchSeq: mergedWatchLog.at(-1)?.seq ?? 0,
       });
     },
     setWatchLogPersistenceReady: (ready) => {
@@ -351,8 +362,8 @@ export const useIorubaStore = create<IorubaState>((rawSet, get) => {
           outcomes: {},
           telemetry: [],
           audioInventory,
-          firmwareInfo: null
-        })
+          firmwareInfo: null,
+        }),
       });
     },
     refreshInventory: (audioInventory) => {
@@ -365,8 +376,8 @@ export const useIorubaStore = create<IorubaState>((rawSet, get) => {
           connectionMode: state.connectionMode,
           status: state.snapshot.status,
           statusText: state.snapshot.statusText,
-          connectionPort: state.snapshot.connectionPort
-        })
+          connectionPort: state.snapshot.connectionPort,
+        }),
       });
     },
     setAvailablePorts: (ports) => {
@@ -383,15 +394,15 @@ export const useIorubaStore = create<IorubaState>((rawSet, get) => {
           connectionMode: state.connectionMode,
           status: state.snapshot.status,
           statusText: state.snapshot.statusText,
-          connectionPort: state.snapshot.connectionPort
-        })
+          connectionPort: state.snapshot.connectionPort,
+        }),
       });
 
       get().appendWatchLog({
         scope: "serial",
         level: "info",
         message: "Portas seriais atualizadas",
-        detail: ports.length > 0 ? ports.join(", ") : "nenhuma porta detectada"
+        detail: ports.length > 0 ? ports.join(", ") : "nenhuma porta detectada",
       });
     },
     setStatus: (status, statusText, connectionPort) => {
@@ -405,8 +416,8 @@ export const useIorubaStore = create<IorubaState>((rawSet, get) => {
             connectionPort === undefined
               ? state.snapshot.connectionPort
               : connectionPort,
-          connectionMode: state.connectionMode
-        })
+          connectionMode: state.connectionMode,
+        }),
       });
     },
     requestConnect: () => {
@@ -414,14 +425,14 @@ export const useIorubaStore = create<IorubaState>((rawSet, get) => {
       get().appendWatchLog({
         scope: "app",
         level: "info",
-        message: "Conexao serial solicitada"
+        message: "Conexao serial solicitada",
       });
       set({
         connectionMode: "serial",
         firmwareInfo: null,
         persisted: {
           ...state.persisted,
-          demoMode: false
+          demoMode: false,
         },
         snapshot: createSnapshot({
           ...state,
@@ -429,8 +440,8 @@ export const useIorubaStore = create<IorubaState>((rawSet, get) => {
           connectionMode: "serial",
           status: "searching",
           statusText: "Procurando uma porta serial do Arduino",
-          connectionPort: null
-        })
+          connectionPort: null,
+        }),
       });
     },
     disconnect: (reason = "Monitor serial desligado") => {
@@ -439,7 +450,7 @@ export const useIorubaStore = create<IorubaState>((rawSet, get) => {
         scope: "app",
         level: "warning",
         message: "Monitor serial desligado",
-        detail: reason
+        detail: reason,
       });
       set({
         connectionMode: "idle",
@@ -450,20 +461,20 @@ export const useIorubaStore = create<IorubaState>((rawSet, get) => {
           connectionMode: "idle",
           status: "ready",
           statusText: reason,
-          connectionPort: null
-        })
+          connectionPort: null,
+        }),
       });
     },
     setDemoMode: (enabled) => {
       const state = get();
       const persisted = {
         ...state.persisted,
-        demoMode: enabled
+        demoMode: enabled,
       };
       get().appendWatchLog({
         scope: "app",
         level: enabled ? "warning" : "info",
-        message: enabled ? "Modo demo ativado" : "Modo demo desativado"
+        message: enabled ? "Modo demo ativado" : "Modo demo desativado",
       });
       set({
         persisted,
@@ -484,8 +495,8 @@ export const useIorubaStore = create<IorubaState>((rawSet, get) => {
           telemetry: enabled ? state.telemetry : [],
           status: enabled ? "demo" : "ready",
           statusText: enabled ? "Modo demo ativo" : "Modo demo desativado",
-          connectionPort: enabled ? null : state.snapshot.connectionPort
-        })
+          connectionPort: enabled ? null : state.snapshot.connectionPort,
+        }),
       });
     },
     setLaunchOnLogin: (enabled) => {
@@ -493,15 +504,15 @@ export const useIorubaStore = create<IorubaState>((rawSet, get) => {
       set({
         persisted: {
           ...state.persisted,
-          launchOnLogin: enabled
-        }
+          launchOnLogin: enabled,
+        },
       });
       get().appendWatchLog({
         scope: "app",
         level: enabled ? "info" : "warning",
         message: enabled
           ? "Inicializacao com a sessao ativada"
-          : "Inicializacao com a sessao desativada"
+          : "Inicializacao com a sessao desativada",
       });
     },
     dismissOnboarding: () => {
@@ -512,13 +523,13 @@ export const useIorubaStore = create<IorubaState>((rawSet, get) => {
       set({
         persisted: {
           ...state.persisted,
-          onboardingDismissed: true
-        }
+          onboardingDismissed: true,
+        },
       });
       get().appendWatchLog({
         scope: "app",
         level: "info",
-        message: "Onboarding inicial dispensado"
+        message: "Onboarding inicial dispensado",
       });
     },
     selectProfile: (profileId) => {
@@ -535,14 +546,14 @@ export const useIorubaStore = create<IorubaState>((rawSet, get) => {
           appliedValues: {},
           outcomes: {},
           telemetry: [],
-          firmwareInfo: null
-        })
+          firmwareInfo: null,
+        }),
       );
       get().appendWatchLog({
         scope: "app",
         level: "info",
         message: "Perfil ativo selecionado",
-        detail: resolveActiveProfile(persisted).name
+        detail: resolveActiveProfile(persisted).name,
       });
     },
     createProfile: () => {
@@ -551,7 +562,7 @@ export const useIorubaStore = create<IorubaState>((rawSet, get) => {
       const persisted = {
         ...state.persisted,
         selectedProfileId: nextProfile.id,
-        profiles: [...state.persisted.profiles, nextProfile]
+        profiles: [...state.persisted.profiles, nextProfile],
       };
 
       set(
@@ -561,14 +572,14 @@ export const useIorubaStore = create<IorubaState>((rawSet, get) => {
           outcomes: {},
           telemetry: [],
           lastSerialLine: null,
-          firmwareInfo: null
-        })
+          firmwareInfo: null,
+        }),
       );
       get().appendWatchLog({
         scope: "app",
         level: "info",
         message: "Novo perfil criado",
-        detail: nextProfile.name
+        detail: nextProfile.name,
       });
     },
     applyPreset: (presetKey) => {
@@ -578,17 +589,20 @@ export const useIorubaStore = create<IorubaState>((rawSet, get) => {
           scope: "app",
           level: "warning",
           message: "Preset desconhecido ignorado",
-          detail: presetKey
+          detail: presetKey,
         });
         return;
       }
 
       const state = get();
-      const nextProfile = createProfileFromPreset(preset, state.persisted.profiles);
+      const nextProfile = createProfileFromPreset(
+        preset,
+        state.persisted.profiles,
+      );
       const persisted = {
         ...state.persisted,
         selectedProfileId: nextProfile.id,
-        profiles: [...state.persisted.profiles, nextProfile]
+        profiles: [...state.persisted.profiles, nextProfile],
       };
 
       set(
@@ -598,14 +612,14 @@ export const useIorubaStore = create<IorubaState>((rawSet, get) => {
           outcomes: {},
           telemetry: [],
           lastSerialLine: null,
-          firmwareInfo: null
-        })
+          firmwareInfo: null,
+        }),
       );
       get().appendWatchLog({
         scope: "app",
         level: "info",
         message: "Perfil criado a partir de preset",
-        detail: `${preset.name} (${nextProfile.name})`
+        detail: `${preset.name} (${nextProfile.name})`,
       });
     },
     exportActiveProfile: async () => {
@@ -618,19 +632,22 @@ export const useIorubaStore = create<IorubaState>((rawSet, get) => {
       const fileName = `ioruba-perfil-${safeName || "perfil"}.json`;
 
       try {
-        const path = await exportProfile(fileName, serializeProfileDraft(profile));
+        const path = await exportProfile(
+          fileName,
+          serializeProfileDraft(profile),
+        );
         get().appendWatchLog({
           scope: "app",
           level: path ? "info" : "warning",
           message: path ? "Perfil exportado" : "Exportacao de perfil cancelada",
-          detail: path ?? undefined
+          detail: path ?? undefined,
         });
       } catch (error) {
         get().appendWatchLog({
           scope: "backend",
           level: "error",
           message: "Falha ao exportar perfil",
-          detail: error instanceof Error ? error.message : String(error)
+          detail: error instanceof Error ? error.message : String(error),
         });
       }
     },
@@ -643,7 +660,7 @@ export const useIorubaStore = create<IorubaState>((rawSet, get) => {
           scope: "backend",
           level: "error",
           message: "Falha ao importar perfil",
-          detail: error instanceof Error ? error.message : String(error)
+          detail: error instanceof Error ? error.message : String(error),
         });
         return;
       }
@@ -658,17 +675,20 @@ export const useIorubaStore = create<IorubaState>((rawSet, get) => {
           scope: "app",
           level: "error",
           message: "Perfil importado invalido",
-          detail: parsed.error
+          detail: parsed.error,
         });
         return;
       }
 
       const state = get();
-      const nextProfile = prepareImportedProfile(parsed.value, state.persisted.profiles);
+      const nextProfile = prepareImportedProfile(
+        parsed.value,
+        state.persisted.profiles,
+      );
       const persisted = {
         ...state.persisted,
         selectedProfileId: nextProfile.id,
-        profiles: [...state.persisted.profiles, nextProfile]
+        profiles: [...state.persisted.profiles, nextProfile],
       };
 
       set(
@@ -678,26 +698,26 @@ export const useIorubaStore = create<IorubaState>((rawSet, get) => {
           outcomes: {},
           telemetry: [],
           lastSerialLine: null,
-          firmwareInfo: null
-        })
+          firmwareInfo: null,
+        }),
       );
       get().appendWatchLog({
         scope: "app",
         level: "info",
         message: "Perfil importado",
-        detail: nextProfile.name
+        detail: nextProfile.name,
       });
     },
     duplicateActiveProfile: () => {
       const state = get();
       const nextProfile = duplicateProfileConfig(
         resolveActiveProfile(state.persisted),
-        state.persisted.profiles
+        state.persisted.profiles,
       );
       const persisted = {
         ...state.persisted,
         selectedProfileId: nextProfile.id,
-        profiles: [...state.persisted.profiles, nextProfile]
+        profiles: [...state.persisted.profiles, nextProfile],
       };
 
       set(
@@ -707,14 +727,14 @@ export const useIorubaStore = create<IorubaState>((rawSet, get) => {
           outcomes: {},
           telemetry: [],
           lastSerialLine: null,
-          firmwareInfo: null
-        })
+          firmwareInfo: null,
+        }),
       );
       get().appendWatchLog({
         scope: "app",
         level: "info",
         message: "Perfil duplicado",
-        detail: nextProfile.name
+        detail: nextProfile.name,
       });
     },
     removeActiveProfile: () => {
@@ -727,7 +747,7 @@ export const useIorubaStore = create<IorubaState>((rawSet, get) => {
           scope: "app",
           level: "warning",
           message: "Remocao ignorada",
-          detail: "O ultimo perfil nao pode ser removido"
+          detail: "O ultimo perfil nao pode ser removido",
         });
         return;
       }
@@ -739,14 +759,14 @@ export const useIorubaStore = create<IorubaState>((rawSet, get) => {
           outcomes: {},
           telemetry: [],
           lastSerialLine: null,
-          firmwareInfo: null
-        })
+          firmwareInfo: null,
+        }),
       );
       get().appendWatchLog({
         scope: "app",
         level: "warning",
         message: "Perfil removido",
-        detail: activeProfile.name
+        detail: activeProfile.name,
       });
     },
     updateActiveProfileConfig: (profile) => {
@@ -760,21 +780,21 @@ export const useIorubaStore = create<IorubaState>((rawSet, get) => {
         ...resolveActiveProfile(state.persisted),
         serial: {
           ...resolveActiveProfile(state.persisted).serial,
-          preferredPort: port
-        }
+          preferredPort: port,
+        },
       });
       set({
         persisted: {
           ...persisted,
-          lastPort: port
+          lastPort: port,
         },
-        configDraft: serializeActiveProfile(persisted)
+        configDraft: serializeActiveProfile(persisted),
       });
       get().appendWatchLog({
         scope: "app",
         level: "info",
         message: "Porta preferida atualizada",
-        detail: port ?? "detectar automaticamente"
+        detail: port ?? "detectar automaticamente",
       });
     },
     setThemeMode: (theme) => {
@@ -783,20 +803,20 @@ export const useIorubaStore = create<IorubaState>((rawSet, get) => {
         ...resolveActiveProfile(state.persisted),
         ui: {
           ...resolveActiveProfile(state.persisted).ui,
-          theme
-        }
+          theme,
+        },
       });
 
       set({
         persisted,
-        configDraft: serializeActiveProfile(persisted)
+        configDraft: serializeActiveProfile(persisted),
       });
 
       get().appendWatchLog({
         scope: "app",
         level: "info",
         message: "Tema da interface atualizado",
-        detail: theme
+        detail: theme,
       });
     },
     setConfigDraft: (draft) => set({ configDraft: draft }),
@@ -809,7 +829,7 @@ export const useIorubaStore = create<IorubaState>((rawSet, get) => {
           scope: "app",
           level: "error",
           message: "Falha ao salvar perfil",
-          detail: validation.error
+          detail: validation.error,
         });
         throw new Error(validation.error);
       }
@@ -824,14 +844,14 @@ export const useIorubaStore = create<IorubaState>((rawSet, get) => {
           status: state.snapshot.status,
           statusText: "Perfil atualizado",
           connectionMode: state.connectionMode,
-          connectionPort: state.snapshot.connectionPort
-        })
+          connectionPort: state.snapshot.connectionPort,
+        }),
       });
       get().appendWatchLog({
         scope: "app",
         level: "info",
         message: "Perfil ativo atualizado",
-        detail: validation.value.name
+        detail: validation.value.name,
       });
     },
     resetProfile: () => {
@@ -840,7 +860,7 @@ export const useIorubaStore = create<IorubaState>((rawSet, get) => {
       const restoredProfile = {
         ...cloneProfile(defaultPersistedState.profiles[0]),
         id: activeProfile.id,
-        name: activeProfile.name
+        name: activeProfile.name,
       };
       const persisted = replaceActiveProfile(state.persisted, restoredProfile);
 
@@ -850,7 +870,7 @@ export const useIorubaStore = create<IorubaState>((rawSet, get) => {
           appliedValues: {},
           outcomes: {},
           telemetry: [],
-          lastSerialLine: null
+          lastSerialLine: null,
         }),
         currentValues: {},
         appliedValues: {},
@@ -869,14 +889,14 @@ export const useIorubaStore = create<IorubaState>((rawSet, get) => {
           outcomes: {},
           telemetry: [],
           audioInventory: state.audioInventory,
-          firmwareInfo: state.firmwareInfo
-        })
+          firmwareInfo: state.firmwareInfo,
+        }),
       });
       get().appendWatchLog({
         scope: "app",
         level: "warning",
         message: "Perfil restaurado para o padrao",
-        detail: activeProfile.name
+        detail: activeProfile.name,
       });
     },
     processSerialLine: (rawLine) => {
@@ -892,7 +912,7 @@ export const useIorubaStore = create<IorubaState>((rawSet, get) => {
           scope: "serial",
           level: "info",
           message: "Handshake do firmware recebido",
-          detail: formatFirmwareLabel(firmwareInfo)
+          detail: formatFirmwareLabel(firmwareInfo),
         });
 
         if (!firmwareInfo.protocolSupported) {
@@ -900,7 +920,7 @@ export const useIorubaStore = create<IorubaState>((rawSet, get) => {
             scope: "serial",
             level: "warning",
             message: "Protocolo do firmware incompativel com o esperado",
-            detail: `firmware protocolo ${firmwareInfo.protocolVersion} | esperado ${SUPPORTED_PROTOCOL_VERSION}`
+            detail: `firmware protocolo ${firmwareInfo.protocolVersion} | esperado ${SUPPORTED_PROTOCOL_VERSION}`,
           });
         }
 
@@ -912,7 +932,7 @@ export const useIorubaStore = create<IorubaState>((rawSet, get) => {
             scope: "serial",
             level: "warning",
             message: "Quantidade de knobs do firmware difere do perfil ativo",
-            detail: `firmware ${firmwareInfo.knobCount} | perfil ${activeProfile.sliders.length}`
+            detail: `firmware ${firmwareInfo.knobCount} | perfil ${activeProfile.sliders.length}`,
           });
         }
 
@@ -926,8 +946,8 @@ export const useIorubaStore = create<IorubaState>((rawSet, get) => {
             status: "connected",
             statusText: `Handshake OK | ${formatFirmwareLabel(firmwareInfo)}`,
             connectionPort: state.snapshot.connectionPort,
-            connectionMode: state.connectionMode
-          })
+            connectionMode: state.connectionMode,
+          }),
         });
 
         if (trimmedLine) {
@@ -935,7 +955,7 @@ export const useIorubaStore = create<IorubaState>((rawSet, get) => {
             scope: "serial",
             level: "info",
             message: "Payload bruto do handshake",
-            detail: trimmedLine
+            detail: trimmedLine,
           });
         }
 
@@ -947,22 +967,22 @@ export const useIorubaStore = create<IorubaState>((rawSet, get) => {
           ? mergeSliderPacket(
               state.currentValues,
               packet.values,
-              activeProfile.sliders.length
+              activeProfile.sliders.length,
             )
           : {
               ...state.currentValues,
-              [packet.sliderId]: packet.value
+              [packet.sliderId]: packet.value,
             };
 
       const updates = resolveFilteredUpdates(
         activeProfile,
         nextCurrentValues,
-        state.appliedValues
+        state.appliedValues,
       );
 
       const telemetryPoints = updates.map((update) => {
         const slider = activeProfile.sliders.find(
-          (candidate) => candidate.id === update.sliderId
+          (candidate) => candidate.id === update.sliderId,
         );
         const rawValue = nextCurrentValues[update.sliderId] ?? 0;
 
@@ -973,25 +993,28 @@ export const useIorubaStore = create<IorubaState>((rawSet, get) => {
           appliedValue: update.rawValue,
           percent: slider
             ? sliderToAppliedPercent(slider, rawValue)
-            : sliderValueToPercent(rawValue)
+            : sliderValueToPercent(rawValue),
         };
       });
 
       const telemetry = pushTelemetry(
         state.telemetry,
         telemetryPoints,
-        activeProfile.ui.telemetryWindow
+        activeProfile.ui.telemetryWindow,
       );
       // Session aggregates track every point, independent of the display
       // window (so they hold even when telemetryWindow is 0).
-      const sessionStats = updateSessionStats(state.sessionStats, telemetryPoints);
+      const sessionStats = updateSessionStats(
+        state.sessionStats,
+        telemetryPoints,
+      );
       const trimmedLine = rawLine.trim();
 
       get().appendWatchLog({
         scope: "serial",
         level: "info",
         message: "Frame serial recebido",
-        detail: trimmedLine || rawLine
+        detail: trimmedLine || rawLine,
       });
 
       set({
@@ -1008,8 +1031,8 @@ export const useIorubaStore = create<IorubaState>((rawSet, get) => {
           status: "connected",
           statusText: `Recebendo dados | ${rawLine.trim()}`,
           connectionPort: state.snapshot.connectionPort,
-          connectionMode: state.connectionMode
-        })
+          connectionMode: state.connectionMode,
+        }),
       });
 
       if (updates.length > 0) {
@@ -1020,9 +1043,9 @@ export const useIorubaStore = create<IorubaState>((rawSet, get) => {
           detail: updates
             .map(
               (update) =>
-                `${sliderNameForId(activeProfile, update.sliderId)}:${update.rawValue}`
+                `${sliderNameForId(activeProfile, update.sliderId)}:${update.rawValue}`,
             )
-            .join(" | ")
+            .join(" | "),
         });
       }
 
@@ -1048,9 +1071,9 @@ export const useIorubaStore = create<IorubaState>((rawSet, get) => {
           detail: updates
             .map(
               (update) =>
-                `${sliderNameForId(activeProfile, update.sliderId)} -> ${outcomeSummary(outcomes[update.sliderId])}`
+                `${sliderNameForId(activeProfile, update.sliderId)} -> ${outcomeSummary(outcomes[update.sliderId])}`,
             )
-            .join(" | ")
+            .join(" | "),
         });
       }
 
@@ -1064,8 +1087,8 @@ export const useIorubaStore = create<IorubaState>((rawSet, get) => {
           status: state.snapshot.status,
           statusText: state.snapshot.statusText,
           connectionPort: state.snapshot.connectionPort,
-          connectionMode: state.connectionMode
-        })
+          connectionMode: state.connectionMode,
+        }),
       });
     },
     runDemoStep: () => {
@@ -1080,40 +1103,39 @@ export const useIorubaStore = create<IorubaState>((rawSet, get) => {
           knobId: slider.id,
           rawValue,
           appliedValue: rawValue,
-          percent: sliderToAppliedPercent(slider, rawValue)
+          percent: sliderToAppliedPercent(slider, rawValue),
         };
       });
       const telemetry = pushTelemetry(
         state.telemetry,
         telemetryPoints,
-        activeProfile.ui.telemetryWindow
+        activeProfile.ui.telemetryWindow,
       );
       const appliedValues = { ...currentValues };
-      const outcomes = activeProfile.sliders.reduce<Record<number, SliderOutcome>>(
-        (accumulator, slider) => {
-          accumulator[slider.id] = {
-            summary: `demo -> ${slider.name}`,
-            severity: "success",
-            targets: slider.targets.map((target) => ({
-              target:
-                target.kind === "master"
-                  ? "master"
-                  : `${target.kind}:${target.name}`,
-              status: "updated",
-              detail: "Simulado localmente sem backend de áudio real.",
-              matched: []
-            }))
-          };
-          return accumulator;
-        },
-        {}
-      );
+      const outcomes = activeProfile.sliders.reduce<
+        Record<number, SliderOutcome>
+      >((accumulator, slider) => {
+        accumulator[slider.id] = {
+          summary: `demo -> ${slider.name}`,
+          severity: "success",
+          targets: slider.targets.map((target) => ({
+            target:
+              target.kind === "master"
+                ? "master"
+                : `${target.kind}:${target.name}`,
+            status: "updated",
+            detail: "Simulado localmente sem backend de áudio real.",
+            matched: [],
+          })),
+        };
+        return accumulator;
+      }, {});
 
       get().appendWatchLog({
         scope: "serial",
         level: "info",
         message: "Passo de demo gerado",
-        detail: `tick ${tick}`
+        detail: `tick ${tick}`,
       });
 
       set({
@@ -1133,9 +1155,9 @@ export const useIorubaStore = create<IorubaState>((rawSet, get) => {
           status: "demo",
           statusText: "Fluxo sintético em execução",
           connectionPort: null,
-          connectionMode: "demo"
-        })
+          connectionMode: "demo",
+        }),
       });
-    }
+    },
   };
 });

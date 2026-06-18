@@ -59,7 +59,7 @@ export function OnboardingChecklist({
   return (
     <section
       aria-label={lt("Primeiros passos")}
-      className="rounded-[var(--radius-card)] border border-(--color-border) bg-[linear-gradient(150deg,color-mix(in_oklab,var(--accent-teal)_10%,var(--color-panel))_0%,var(--color-panel)_60%)] p-5"
+      className="rounded-(--radius-card) border border-(--color-border) bg-[linear-gradient(150deg,color-mix(in_oklab,var(--accent-teal)_10%,var(--color-panel))_0%,var(--color-panel)_60%)] p-5"
     >
       <div className="flex items-start justify-between gap-4">
         <div className="flex items-center gap-3">
@@ -90,7 +90,7 @@ export function OnboardingChecklist({
         {items.map((item) => (
           <li
             key={item.title}
-            className="flex items-start gap-3 rounded-[16px] border border-(--color-border) bg-(--color-panel) px-4 py-3"
+            className="flex items-start gap-3 rounded-2xl border border-(--color-border) bg-(--color-panel) px-4 py-3"
           >
             {item.done ? (
               <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-(--accent-teal)" />

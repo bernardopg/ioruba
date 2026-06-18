@@ -8,7 +8,7 @@ import {
   encodeFirmwareConfigCommand,
   firmwareConfigMatchesProfile,
   resolveActiveProfile,
-  type SliderUpdate
+  type SliderUpdate,
 } from "@ioruba/shared";
 
 function normalizeIncomingData(data: string | Uint8Array): string {
@@ -28,7 +28,7 @@ export function useSerialRuntime() {
   const appendWatchLog = useIorubaStore((state) => state.appendWatchLog);
   const processSerialLine = useIorubaStore((state) => state.processSerialLine);
   const commitAppliedResults = useIorubaStore(
-    (state) => state.commitAppliedResults
+    (state) => state.commitAppliedResults,
   );
   const runDemoStep = useIorubaStore((state) => state.runDemoStep);
 
@@ -70,7 +70,9 @@ export function useSerialRuntime() {
       let changed = false;
 
       for (const update of updates) {
-        if (inFlightUpdatesRef.current.get(update.sliderId) === update.rawValue) {
+        if (
+          inFlightUpdatesRef.current.get(update.sliderId) === update.rawValue
+        ) {
           continue;
         }
 
@@ -105,19 +107,21 @@ export function useSerialRuntime() {
           scope: "serial",
           level: "error",
           message: "Falha ao aplicar lote de áudio",
-          detail: error instanceof Error ? error.message : String(error)
+          detail: error instanceof Error ? error.message : String(error),
         });
 
         if (!cancelled) {
           setStatus(
             "error",
             error instanceof Error ? error.message : String(error),
-            portPath
+            portPath,
           );
         }
       } finally {
         for (const update of updates) {
-          if (inFlightUpdatesRef.current.get(update.sliderId) === update.rawValue) {
+          if (
+            inFlightUpdatesRef.current.get(update.sliderId) === update.rawValue
+          ) {
             inFlightUpdatesRef.current.delete(update.sliderId);
           }
         }
@@ -157,7 +161,7 @@ export function useSerialRuntime() {
 
     const requestFirmwareHandshake = async (
       port: SerialPort,
-      reason: string
+      reason: string,
     ) => {
       try {
         await port.write("HELLO?\n");
@@ -165,14 +169,14 @@ export function useSerialRuntime() {
           scope: "serial",
           level: "info",
           message: "Handshake do firmware solicitado",
-          detail: `${port.options.path} | ${reason}`
+          detail: `${port.options.path} | ${reason}`,
         });
       } catch (error) {
         appendWatchLog({
           scope: "serial",
           level: "warning",
           message: "Falha ao solicitar handshake do firmware",
-          detail: error instanceof Error ? error.message : String(error)
+          detail: error instanceof Error ? error.message : String(error),
         });
       }
     };
@@ -197,7 +201,7 @@ export function useSerialRuntime() {
             scope: "serial",
             level: "warning",
             message: "Falha ao cancelar leitura serial",
-            detail: error instanceof Error ? error.message : String(error)
+            detail: error instanceof Error ? error.message : String(error),
           });
         }
         try {
@@ -207,14 +211,14 @@ export function useSerialRuntime() {
             scope: "serial",
             level: "warning",
             message: "Falha ao fechar porta serial",
-            detail: error instanceof Error ? error.message : String(error)
+            detail: error instanceof Error ? error.message : String(error),
           });
         }
         appendWatchLog({
           scope: "serial",
           level: "warning",
           message: "Porta serial encerrada",
-          detail: portPath
+          detail: portPath,
         });
         portRef.current = null;
       }
@@ -245,7 +249,7 @@ export function useSerialRuntime() {
       appendWatchLog({
         scope: "serial",
         level: "warning",
-        message: "Nenhuma porta serial detectada"
+        message: "Nenhuma porta serial detectada",
       });
       setStatus("searching", "Nenhuma porta serial detectada", null);
       return;
@@ -261,7 +265,7 @@ export function useSerialRuntime() {
         scope: "serial",
         level: "info",
         message: "Iniciando conexao serial",
-        detail: portPath
+        detail: portPath,
       });
       await stopSerial();
       setStatus("connecting", `Abrindo ${portPath}...`, portPath);
@@ -270,7 +274,7 @@ export function useSerialRuntime() {
       try {
         const port = new SerialPort({
           path: portPath,
-          baudRate: profile.serial.baudRate
+          baudRate: profile.serial.baudRate,
         });
 
         await port.open();
@@ -278,7 +282,7 @@ export function useSerialRuntime() {
           scope: "serial",
           level: "info",
           message: "Porta serial aberta",
-          detail: portPath
+          detail: portPath,
         });
         await port.startListening();
         await port.enableAutoReconnect({
@@ -291,19 +295,19 @@ export function useSerialRuntime() {
               message: success
                 ? "Reconexao serial concluida"
                 : "Tentativa de reconexao serial",
-              detail: `${portPath} | tentativa ${attempt}`
+              detail: `${portPath} | tentativa ${attempt}`,
             });
 
             if (success) {
               void requestFirmwareHandshake(port, `reconnect-${attempt}`);
             }
-          }
+          },
         });
         appendWatchLog({
           scope: "serial",
           level: "info",
           message: "Escuta serial ativa",
-          detail: `${portPath} | conexao em ${Math.round(performance.now() - connectStartedAt)}ms`
+          detail: `${portPath} | conexao em ${Math.round(performance.now() - connectStartedAt)}ms`,
         });
 
         const unsubscribe = await port.listen((data) => {
@@ -341,12 +345,12 @@ export function useSerialRuntime() {
                 scope: "serial",
                 level: "error",
                 message: "Falha ao processar frame serial",
-                detail: error instanceof Error ? error.message : String(error)
+                detail: error instanceof Error ? error.message : String(error),
               });
               setStatus(
                 "error",
                 error instanceof Error ? error.message : String(error),
-                portPath
+                portPath,
               );
             });
         });
@@ -365,7 +369,7 @@ export function useSerialRuntime() {
           scope: "serial",
           level: "info",
           message: "Conexao serial estabelecida",
-          detail: portPath
+          detail: portPath,
         });
       } catch (error) {
         const classified = classifySerialOpenError(error, portPath);
@@ -373,7 +377,7 @@ export function useSerialRuntime() {
           scope: "serial",
           level: "error",
           message: classified.message,
-          detail: classified.detail
+          detail: classified.detail,
         });
         setStatus("disconnected", classified.message, null);
       }
@@ -390,13 +394,13 @@ export function useSerialRuntime() {
           scope: "serial",
           level: "warning",
           message: "Sem leituras seriais recentes",
-          detail: portPath
+          detail: portPath,
         });
         if (!cancelled) {
           setStatus(
             "connected",
             "Porta aberta, aguardando nova leitura do firmware",
-            portPath
+            portPath,
           );
         }
       }
@@ -419,7 +423,7 @@ export function useSerialRuntime() {
     persisted,
     processSerialLine,
     runDemoStep,
-    setStatus
+    setStatus,
   ]);
 
   useEffect(() => {
@@ -446,7 +450,7 @@ export function useSerialRuntime() {
           scope: "serial",
           level: "info",
           message: "Configuracao do firmware enviada",
-          detail: nextCommand
+          detail: nextCommand,
         });
       })
       .catch((error) => {
@@ -455,7 +459,7 @@ export function useSerialRuntime() {
           scope: "serial",
           level: "error",
           message: "Falha ao enviar configuracao do firmware",
-          detail: error instanceof Error ? error.message : String(error)
+          detail: error instanceof Error ? error.message : String(error),
         });
       });
   }, [appendWatchLog, connectionMode, firmwareInfo, persisted]);

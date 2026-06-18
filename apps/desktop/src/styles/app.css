@@ -5,22 +5,32 @@
   --color-shell: oklch(0.965 0.015 82);
   --color-panel: oklch(0.985 0.007 80);
   --color-border: oklch(0.85 0.015 78);
-  --color-ink: oklch(0.23 0.028 65);   /* ≈16:1 on shell — WCAG AAA */
-  --color-copy: oklch(0.38 0.022 62);  /* ≈9:1 on shell — WCAG AA */
-  --color-muted: oklch(0.53 0.015 67); /* ≈4.8:1 on shell, ≈5.1:1 on panel — WCAG AA */
-  --accent-copper: oklch(0.69 0.155 55); /* icon-only, text label always present — exempt from 1.4.11 */
+  --color-ink: oklch(0.23 0.028 65); /* ≈16:1 on shell — WCAG AAA */
+  --color-copy: oklch(0.38 0.022 62); /* ≈9:1 on shell — WCAG AA */
+  --color-muted: oklch(
+    0.53 0.015 67
+  ); /* ≈4.8:1 on shell, ≈5.1:1 on panel — WCAG AA */
+  --accent-copper: oklch(
+    0.69 0.155 55
+  ); /* icon-only, text label always present — exempt from 1.4.11 */
   --accent-copper-strong: oklch(0.62 0.16 54);
-  --accent-teal: oklch(0.67 0.12 194);   /* icon-only, text label always present — exempt from 1.4.11 */
+  --accent-teal: oklch(
+    0.67 0.12 194
+  ); /* icon-only, text label always present — exempt from 1.4.11 */
   --accent-teal-strong: oklch(0.56 0.12 194);
   --accent-rose: oklch(0.63 0.16 22);
   --accent-lime: oklch(0.76 0.18 137);
   --accent-sky: oklch(0.71 0.12 234);
   --color-glow: oklch(0.992 0.012 88);
   --shadow-ink: oklch(0.33 0.02 60);
-  --shadow-panel: 0 20px 50px color-mix(in oklab, var(--shadow-ink) 12%, transparent);
-  --shadow-float: 0 18px 40px color-mix(in oklab, var(--shadow-ink) 16%, transparent);
-  --shadow-hero: 0 24px 80px color-mix(in oklab, var(--shadow-ink) 18%, transparent);
-  --shadow-button: 0 16px 40px color-mix(in oklab, var(--accent-copper) 24%, transparent);
+  --shadow-panel: 0 20px 50px
+    color-mix(in oklab, var(--shadow-ink) 12%, transparent);
+  --shadow-float: 0 18px 40px
+    color-mix(in oklab, var(--shadow-ink) 16%, transparent);
+  --shadow-hero: 0 24px 80px
+    color-mix(in oklab, var(--shadow-ink) 18%, transparent);
+  --shadow-button: 0 16px 40px
+    color-mix(in oklab, var(--accent-copper) 24%, transparent);
   --edge-highlight: color-mix(in oklab, var(--color-glow) 72%, transparent);
   --ambient-copper: color-mix(in oklab, var(--accent-copper) 18%, transparent);
   --ambient-teal: color-mix(in oklab, var(--accent-teal) 16%, transparent);
@@ -31,9 +41,11 @@
   --color-shell: oklch(0.2 0.018 75);
   --color-panel: oklch(0.255 0.018 75);
   --color-border: oklch(0.37 0.018 75);
-  --color-ink: oklch(0.94 0.012 84);   /* ≈14:1 on shell — WCAG AAA */
-  --color-copy: oklch(0.81 0.014 82);  /* ≈7:1 on shell — WCAG AA */
-  --color-muted: oklch(0.66 0.015 80); /* ≈5.1:1 on shell, ≈5.8:1 on panel — WCAG AA */
+  --color-ink: oklch(0.94 0.012 84); /* ≈14:1 on shell — WCAG AAA */
+  --color-copy: oklch(0.81 0.014 82); /* ≈7:1 on shell — WCAG AA */
+  --color-muted: oklch(
+    0.66 0.015 80
+  ); /* ≈5.1:1 on shell, ≈5.8:1 on panel — WCAG AA */
   --accent-copper: oklch(0.72 0.13 56);
   --accent-copper-strong: oklch(0.8 0.11 60);
   --accent-teal: oklch(0.76 0.096 194);
@@ -43,10 +55,14 @@
   --accent-sky: oklch(0.78 0.095 234);
   --color-glow: oklch(0.9 0.015 88);
   --shadow-ink: oklch(0.04 0.01 70);
-  --shadow-panel: 0 26px 60px color-mix(in oklab, var(--shadow-ink) 68%, transparent);
-  --shadow-float: 0 18px 48px color-mix(in oklab, var(--shadow-ink) 76%, transparent);
-  --shadow-hero: 0 28px 90px color-mix(in oklab, var(--shadow-ink) 82%, transparent);
-  --shadow-button: 0 18px 44px color-mix(in oklab, var(--accent-copper) 22%, transparent);
+  --shadow-panel: 0 26px 60px
+    color-mix(in oklab, var(--shadow-ink) 68%, transparent);
+  --shadow-float: 0 18px 48px
+    color-mix(in oklab, var(--shadow-ink) 76%, transparent);
+  --shadow-hero: 0 28px 90px
+    color-mix(in oklab, var(--shadow-ink) 82%, transparent);
+  --shadow-button: 0 18px 44px
+    color-mix(in oklab, var(--accent-copper) 22%, transparent);
   --edge-highlight: color-mix(in oklab, var(--color-glow) 20%, transparent);
   --ambient-copper: color-mix(in oklab, var(--accent-copper) 14%, transparent);
   --ambient-teal: color-mix(in oklab, var(--accent-teal) 12%, transparent);
@@ -58,9 +74,11 @@
     --color-shell: oklch(0.2 0.018 75);
     --color-panel: oklch(0.255 0.018 75);
     --color-border: oklch(0.37 0.018 75);
-    --color-ink: oklch(0.94 0.012 84);   /* ≈14:1 on shell — WCAG AAA */
-    --color-copy: oklch(0.81 0.014 82);  /* ≈7:1 on shell — WCAG AA */
-    --color-muted: oklch(0.66 0.015 80); /* ≈5.1:1 on shell, ≈5.8:1 on panel — WCAG AA */
+    --color-ink: oklch(0.94 0.012 84); /* ≈14:1 on shell — WCAG AAA */
+    --color-copy: oklch(0.81 0.014 82); /* ≈7:1 on shell — WCAG AA */
+    --color-muted: oklch(
+      0.66 0.015 80
+    ); /* ≈5.1:1 on shell, ≈5.8:1 on panel — WCAG AA */
     --accent-copper: oklch(0.72 0.13 56);
     --accent-copper-strong: oklch(0.8 0.11 60);
     --accent-teal: oklch(0.76 0.096 194);
@@ -70,12 +88,20 @@
     --accent-sky: oklch(0.78 0.095 234);
     --color-glow: oklch(0.9 0.015 88);
     --shadow-ink: oklch(0.04 0.01 70);
-    --shadow-panel: 0 26px 60px color-mix(in oklab, var(--shadow-ink) 68%, transparent);
-    --shadow-float: 0 18px 48px color-mix(in oklab, var(--shadow-ink) 76%, transparent);
-    --shadow-hero: 0 28px 90px color-mix(in oklab, var(--shadow-ink) 82%, transparent);
-    --shadow-button: 0 18px 44px color-mix(in oklab, var(--accent-copper) 22%, transparent);
+    --shadow-panel: 0 26px 60px
+      color-mix(in oklab, var(--shadow-ink) 68%, transparent);
+    --shadow-float: 0 18px 48px
+      color-mix(in oklab, var(--shadow-ink) 76%, transparent);
+    --shadow-hero: 0 28px 90px
+      color-mix(in oklab, var(--shadow-ink) 82%, transparent);
+    --shadow-button: 0 18px 44px
+      color-mix(in oklab, var(--accent-copper) 22%, transparent);
     --edge-highlight: color-mix(in oklab, var(--color-glow) 20%, transparent);
-    --ambient-copper: color-mix(in oklab, var(--accent-copper) 14%, transparent);
+    --ambient-copper: color-mix(
+      in oklab,
+      var(--accent-copper) 14%,
+      transparent
+    );
     --ambient-teal: color-mix(in oklab, var(--accent-teal) 12%, transparent);
   }
 }
@@ -113,8 +139,15 @@ body {
 
 .ambient-grid {
   background-image:
-    linear-gradient(color-mix(in oklab, var(--color-border) 55%, transparent) 1px, transparent 1px),
-    linear-gradient(90deg, color-mix(in oklab, var(--color-border) 55%, transparent) 1px, transparent 1px);
+    linear-gradient(
+      color-mix(in oklab, var(--color-border) 55%, transparent) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      90deg,
+      color-mix(in oklab, var(--color-border) 55%, transparent) 1px,
+      transparent 1px
+    );
   background-size: 72px 72px;
   mask-image: radial-gradient(circle at center, black, transparent 88%);
 }
@@ -160,7 +193,8 @@ body {
   min-height: 2.75rem;
   padding: 0.75rem 1rem;
   border-radius: 999px;
-  border: 1px solid color-mix(in oklab, var(--accent-teal) 42%, var(--color-border));
+  border: 1px solid
+    color-mix(in oklab, var(--accent-teal) 42%, var(--color-border));
   background: color-mix(in oklab, var(--color-panel) 94%, transparent);
   color: var(--color-ink);
   font-size: 0.85rem;
@@ -203,7 +237,11 @@ body {
   border-radius: 1.5rem;
   padding: 1.1rem;
   background:
-    linear-gradient(180deg, color-mix(in oklab, var(--color-panel) 92%, transparent), color-mix(in oklab, var(--color-shell) 88%, transparent)),
+    linear-gradient(
+      180deg,
+      color-mix(in oklab, var(--color-panel) 92%, transparent),
+      color-mix(in oklab, var(--color-shell) 88%, transparent)
+    ),
     var(--color-panel);
   box-shadow: var(--shadow-panel);
   overflow-y: auto;
@@ -243,7 +281,11 @@ body {
 
 .sidebar-nav-item:hover {
   transform: translateX(2px);
-  border-color: color-mix(in oklab, var(--accent-teal) 28%, var(--color-border));
+  border-color: color-mix(
+    in oklab,
+    var(--accent-teal) 28%,
+    var(--color-border)
+  );
 }
 
 .sidebar-nav-item:focus-visible {
@@ -253,7 +295,11 @@ body {
 }
 
 .sidebar-nav-item[data-active="true"] {
-  border-color: color-mix(in oklab, var(--accent-copper) 38%, var(--color-border));
+  border-color: color-mix(
+    in oklab,
+    var(--accent-copper) 38%,
+    var(--color-border)
+  );
   background: linear-gradient(
     135deg,
     color-mix(in oklab, var(--accent-copper) 12%, var(--color-panel)),
@@ -301,11 +347,19 @@ body {
 }
 
 .mini-status[data-tone="teal"] {
-  border-color: color-mix(in oklab, var(--accent-teal) 26%, var(--color-border));
+  border-color: color-mix(
+    in oklab,
+    var(--accent-teal) 26%,
+    var(--color-border)
+  );
 }
 
 .mini-status[data-tone="copper"] {
-  border-color: color-mix(in oklab, var(--accent-copper) 26%, var(--color-border));
+  border-color: color-mix(
+    in oklab,
+    var(--accent-copper) 26%,
+    var(--color-border)
+  );
 }
 
 .mini-status-label {
@@ -332,7 +386,11 @@ body {
   border-radius: 2rem;
   padding: clamp(1.25rem, 2vw, 2rem);
   background:
-    linear-gradient(135deg, color-mix(in oklab, var(--color-shell) 78%, var(--accent-copper) 7%), color-mix(in oklab, var(--color-shell) 78%, var(--accent-teal) 9%)),
+    linear-gradient(
+      135deg,
+      color-mix(in oklab, var(--color-shell) 78%, var(--accent-copper) 7%),
+      color-mix(in oklab, var(--color-shell) 78%, var(--accent-teal) 9%)
+    ),
     var(--color-panel);
   box-shadow: var(--shadow-panel);
 }
@@ -362,7 +420,11 @@ body {
 
 .quick-jump-card:hover {
   transform: translateY(-2px);
-  border-color: color-mix(in oklab, var(--accent-copper) 28%, var(--color-border));
+  border-color: color-mix(
+    in oklab,
+    var(--accent-copper) 28%,
+    var(--color-border)
+  );
   box-shadow: var(--shadow-float);
 }
 
@@ -378,7 +440,8 @@ body {
   width: 3rem;
   height: 3rem;
   border-radius: 1rem;
-  border: 1px solid color-mix(in oklab, var(--accent-copper) 26%, var(--color-border));
+  border: 1px solid
+    color-mix(in oklab, var(--accent-copper) 26%, var(--color-border));
   background: color-mix(in oklab, var(--accent-copper) 10%, var(--color-panel));
   color: var(--accent-copper-strong);
 }

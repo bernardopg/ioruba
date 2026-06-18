@@ -51,7 +51,9 @@ function readPortPath(candidate: unknown, fallbackPath: string): string {
   );
 }
 
-function readPortMetadata(candidate: unknown): Omit<SerialPortDetails, "path" | "sourceIndex"> {
+function readPortMetadata(
+  candidate: unknown,
+): Omit<SerialPortDetails, "path" | "sourceIndex"> {
   if (!isRecord(candidate)) {
     return {
       manufacturer: null,
@@ -59,7 +61,7 @@ function readPortMetadata(candidate: unknown): Omit<SerialPortDetails, "path" | 
       serialNumber: null,
       type: null,
       pid: null,
-      vid: null
+      vid: null,
     };
   }
 
@@ -69,7 +71,7 @@ function readPortMetadata(candidate: unknown): Omit<SerialPortDetails, "path" | 
     serialNumber: readText(candidate.serial_number),
     type: readText(candidate.type),
     pid: readText(candidate.pid),
-    vid: readText(candidate.vid)
+    vid: readText(candidate.vid),
   };
 }
 
@@ -85,8 +87,8 @@ function readSerialPortCandidates(candidate: unknown): SerialPortDetails[] {
         {
           path,
           sourceIndex: index,
-          ...readPortMetadata(entry)
-        }
+          ...readPortMetadata(entry),
+        },
       ];
     });
   }
@@ -105,8 +107,8 @@ function readSerialPortCandidates(candidate: unknown): SerialPortDetails[] {
       {
         path,
         sourceIndex: index,
-        ...readPortMetadata(entry)
-      }
+        ...readPortMetadata(entry),
+      },
     ];
   });
 }
@@ -122,9 +124,13 @@ function hasUsbHints(candidate: SerialPortDetails): boolean {
     hasKnownText(candidate.pid) ||
     hasKnownText(candidate.vid) ||
     (candidate.manufacturer !== null &&
-      /arduino|ftdi|ch340|ch341|cp210|usb serial|usbserial/i.test(candidate.manufacturer)) ||
+      /arduino|ftdi|ch340|ch341|cp210|usb serial|usbserial/i.test(
+        candidate.manufacturer,
+      )) ||
     (candidate.product !== null &&
-      /arduino|ftdi|ch340|ch341|cp210|usb serial|usbserial|usbmodem/i.test(candidate.product))
+      /arduino|ftdi|ch340|ch341|cp210|usb serial|usbserial|usbmodem/i.test(
+        candidate.product,
+      ))
   );
 }
 
@@ -236,14 +242,18 @@ function scoreSerialPort(candidate: SerialPortDetails): number {
 
   if (
     candidate.manufacturer &&
-    /arduino|ftdi|ch340|ch341|cp210|usb serial|usbserial/i.test(candidate.manufacturer)
+    /arduino|ftdi|ch340|ch341|cp210|usb serial|usbserial/i.test(
+      candidate.manufacturer,
+    )
   ) {
     score += 50;
   }
 
   if (
     candidate.product &&
-    /arduino|ftdi|ch340|ch341|cp210|usb serial|usbserial|usbmodem/i.test(candidate.product)
+    /arduino|ftdi|ch340|ch341|cp210|usb serial|usbserial|usbmodem/i.test(
+      candidate.product,
+    )
   ) {
     score += 50;
   }
@@ -254,22 +264,25 @@ function scoreSerialPort(candidate: SerialPortDetails): number {
 function rankSerialPorts(candidate: unknown): string[] {
   const candidates = readSerialPortCandidates(candidate);
   const relevantCandidates = candidates.filter(isLikelyRelevantSerialPort);
-  const rankedCandidates = (relevantCandidates.length > 0
-    ? relevantCandidates
-    : candidates.filter((entry) => !isNoisySerialPath(entry.path.toLowerCase()))
+  const rankedCandidates = (
+    relevantCandidates.length > 0
+      ? relevantCandidates
+      : candidates.filter(
+          (entry) => !isNoisySerialPath(entry.path.toLowerCase()),
+        )
   ).sort((left, right) => {
-      const scoreDiff = scoreSerialPort(right) - scoreSerialPort(left);
-      if (scoreDiff !== 0) {
-        return scoreDiff;
-      }
+    const scoreDiff = scoreSerialPort(right) - scoreSerialPort(left);
+    if (scoreDiff !== 0) {
+      return scoreDiff;
+    }
 
-      const indexDiff = left.sourceIndex - right.sourceIndex;
-      if (indexDiff !== 0) {
-        return indexDiff;
-      }
+    const indexDiff = left.sourceIndex - right.sourceIndex;
+    if (indexDiff !== 0) {
+      return indexDiff;
+    }
 
-      return left.path.localeCompare(right.path);
-    });
+    return left.path.localeCompare(right.path);
+  });
 
   return [...new Set(rankedCandidates.map((entry) => entry.path))];
 }
@@ -284,7 +297,7 @@ export function shouldAutoConnect(persisted: PersistedState): boolean {
 
 export function resolveSerialPort(
   persisted: PersistedState,
-  availablePorts: string[]
+  availablePorts: string[],
 ): string | null {
   const activeProfile = resolveActiveProfile(persisted);
   const candidates = [activeProfile.serial.preferredPort, persisted.lastPort];
@@ -309,7 +322,11 @@ export function sameSerialPorts(left: string[], right: string[]): boolean {
   return normalizedLeft.every((port, index) => port === normalizedRight[index]);
 }
 
-export type SerialOpenErrorKind = "busy" | "permission" | "not_found" | "unknown";
+export type SerialOpenErrorKind =
+  | "busy"
+  | "permission"
+  | "not_found"
+  | "unknown";
 
 export interface SerialOpenError {
   kind: SerialOpenErrorKind;
@@ -327,37 +344,53 @@ export interface SerialOpenError {
  * produced by the serialport crate on Linux (EBUSY → "device or resource busy",
  * EACCES → "permission denied", ENOENT → "no such file").
  */
-export function classifySerialOpenError(rawError: unknown, portPath: string): SerialOpenError {
-  const detail = rawError instanceof Error ? rawError.message : String(rawError);
+export function classifySerialOpenError(
+  rawError: unknown,
+  portPath: string,
+): SerialOpenError {
+  const detail =
+    rawError instanceof Error ? rawError.message : String(rawError);
   const lower = detail.toLowerCase();
 
-  if (lower.includes("busy") || lower.includes("no device") || lower.includes("nodevice")) {
+  if (
+    lower.includes("busy") ||
+    lower.includes("no device") ||
+    lower.includes("nodevice")
+  ) {
     return {
       kind: "busy",
       message: `Porta ${portPath} está em uso por outro processo. Feche o monitor serial ou outro app que esteja com a porta aberta.`,
-      detail
+      detail,
     };
   }
 
-  if (lower.includes("permission denied") || lower.includes("access denied") || lower.includes("eacces")) {
+  if (
+    lower.includes("permission denied") ||
+    lower.includes("access denied") ||
+    lower.includes("eacces")
+  ) {
     return {
       kind: "permission",
       message: `Sem permissão para abrir ${portPath}. Adicione seu usuário ao grupo dialout: sudo usermod -aG dialout $USER`,
-      detail
+      detail,
     };
   }
 
-  if (lower.includes("no such file") || lower.includes("not found") || lower.includes("enoent")) {
+  if (
+    lower.includes("no such file") ||
+    lower.includes("not found") ||
+    lower.includes("enoent")
+  ) {
     return {
       kind: "not_found",
       message: `Porta ${portPath} não encontrada. O dispositivo pode ter sido desconectado.`,
-      detail
+      detail,
     };
   }
 
   return {
     kind: "unknown",
     message: `Falha ao abrir porta serial ${portPath}.`,
-    detail
+    detail,
   };
 }

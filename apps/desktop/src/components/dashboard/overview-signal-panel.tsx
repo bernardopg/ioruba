@@ -116,11 +116,11 @@ export function OverviewSignalPanel({
           <div className="mt-4 grid gap-3">
             {snapshot.knobs.map((knob) => (
               <KnobLiveRow
-            key={knob.id}
-            knob={knob}
-            language={language}
-            transitionDurationMs={snapshot.transitionDurationMs}
-          />
+                key={knob.id}
+                knob={knob}
+                language={language}
+                transitionDurationMs={snapshot.transitionDurationMs}
+              />
             ))}
           </div>
         </div>

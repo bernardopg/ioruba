@@ -45,7 +45,7 @@ function renderChecklist(backend: AudioInventory["backend"]) {
       snapshot={snapshot()}
       audioInventory={inventory(backend)}
       language="pt-BR"
-      onDismiss={() => {}}
+      onDismiss={() => { }}
     />
   );
 }
