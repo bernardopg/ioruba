@@ -3,8 +3,10 @@ import { lazy, Suspense, useMemo, useState } from "react";
 import {
   Activity,
   AudioLines,
+  Braces,
   Cog,
   Cpu,
+  FolderCog,
   Gauge,
   HeartPulse,
   Home,
@@ -85,7 +87,9 @@ type AppSection =
   | "telemetry"
   | "hardware"
   | "diagnostics"
-  | "settings";
+  | "settings"
+  | "settings-editor"
+  | "settings-advanced";
 
 interface NavItem {
   id: AppSection;
@@ -224,9 +228,21 @@ export default function App() {
         items: [
           {
             id: "settings" as const,
-            label: lt("Configurações"),
-            description: lt("Perfis, preferências e edição avançada do runtime."),
+            label: lt("Perfis"),
+            description: lt("Crie, importe, exporte e selecione perfis salvos."),
+            icon: FolderCog
+          },
+          {
+            id: "settings-editor" as const,
+            label: lt("Editor"),
+            description: lt("Conexão, áudio, firmware, knobs e destinos."),
             icon: Cog
+          },
+          {
+            id: "settings-advanced" as const,
+            label: lt("Avançado"),
+            description: lt("JSON do perfil e inventário para targets."),
+            icon: Braces
           }
         ]
       }
@@ -805,8 +821,17 @@ export default function App() {
             </>
           ) : null}
 
-          {activeSection === "settings" ? (
+          {activeSection === "settings" ||
+          activeSection === "settings-editor" ||
+          activeSection === "settings-advanced" ? (
             <ProfileWorkbench
+              view={
+                activeSection === "settings-editor"
+                  ? "editor"
+                  : activeSection === "settings-advanced"
+                    ? "advanced"
+                    : "profiles"
+              }
               activeProfile={activeProfile}
               appendWatchLog={appendWatchLog}
               applyConfigDraft={applyConfigDraft}

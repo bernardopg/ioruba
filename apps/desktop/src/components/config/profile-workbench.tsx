@@ -30,7 +30,15 @@ import {
 
 type DraftStatusTone = "neutral" | "positive" | "warning" | "critical";
 
+/**
+ * Sub-visão ativa do workbench de configurações. A navegação do app divide
+ * "Configurações" em três entradas de sidebar; cada uma renderiza este mesmo
+ * componente filtrando os cartões pela `view`. Default `"profiles"`.
+ */
+export type SettingsView = "profiles" | "editor" | "advanced";
+
 interface ProfileWorkbenchProps {
+  view?: SettingsView;
   persisted: PersistedState;
   activeProfile: MixerProfile;
   availablePorts: string[];
@@ -56,6 +64,7 @@ interface ProfileWorkbenchProps {
 }
 
 export function ProfileWorkbench({
+  view = "profiles",
   persisted,
   activeProfile,
   availablePorts,
@@ -290,8 +299,13 @@ export function ProfileWorkbench({
     });
   }
 
+  const showProfiles = view === "profiles";
+  const showEditor = view === "editor";
+  const showAdvanced = view === "advanced";
+
   return (
     <div className="space-y-6">
+      {showProfiles ? (
       <Card>
         <CardHeader>
           <div>
@@ -416,8 +430,9 @@ export function ProfileWorkbench({
           </div>
         </CardContent>
       </Card>
+      ) : null}
 
-      <div className="grid gap-6 xl:grid-cols-[1.12fr_0.88fr]">
+      {showEditor ? (
         <div className="space-y-6">
           <Card>
             <CardHeader>
@@ -1012,7 +1027,9 @@ export function ProfileWorkbench({
             </CardContent>
           </Card>
         </div>
+      ) : null}
 
+      {showAdvanced ? (
         <div className="space-y-6">
           <Card>
             <CardHeader>
@@ -1093,7 +1110,7 @@ export function ProfileWorkbench({
             </CardContent>
           </Card>
         </div>
-      </div>
+      ) : null}
     </div>
   );
 }

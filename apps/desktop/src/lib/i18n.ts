@@ -151,6 +151,15 @@ const TEXT_MAP: Record<string, string> = {
   "Operação": "Operation",
   Monitoramento: "Monitoring",
   Ajustes: "Adjustments",
+  Perfis: "Profiles",
+  Editor: "Editor",
+  "Avançado": "Advanced",
+  "Crie, importe, exporte e selecione perfis salvos.":
+    "Create, import, export and select saved profiles.",
+  "Conexão, áudio, firmware, knobs e destinos.":
+    "Connection, audio, firmware, knobs and targets.",
+  "JSON do perfil e inventário para targets.":
+    "Profile JSON and inventory for targets.",
   "Conexão, sessão e preferências de runtime.":
     "Connection, session and runtime preferences.",
   "Knobs ao vivo e seus destinos de áudio.":
