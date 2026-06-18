@@ -105,10 +105,40 @@ jobs:
       - name: Prepare docs site source
         run: npm run docs:prepare-site
 
+  firmware-host:
+    name: Firmware Host Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          persist-credentials: false
+
+      # Host tests of the pure config parser — no Arduino toolchain needed (g++).
+      # The default run pins 3 knobs / 10-bit; the wide run exercises 8 knobs /
+      # 12-bit, mirroring the Mega (>6 knobs) and ESP32/RP2040 (12-bit) targets.
+      - name: Test firmware config parser (host, default)
+        run: npm run firmware:test
+
+      - name: Test firmware config parser (host, wide — 8 knobs / 12-bit)
+        run: npm run firmware:test:wide
+
   firmware:
-    name: Firmware
+    name: Firmware (${{ matrix.fqbn }})
     runs-on: ubuntu-latest
     timeout-minutes: 15
+
+    strategy:
+      fail-fast: false
+      matrix:
+        fqbn:
+          - arduino:avr:nano
+          - arduino:avr:uno
+          - arduino:avr:mega
+          - arduino:avr:leonardo
+          - arduino:avr:micro
 
     steps:
       - name: Checkout
@@ -133,11 +163,8 @@ jobs:
           arduino-cli core update-index
           arduino-cli core install arduino:avr
 
-      - name: Test firmware config parser (host)
-        run: npm run firmware:test
-
-      - name: Compile firmware
-        run: npm run firmware:compile
+      - name: Compile firmware (${{ matrix.fqbn }})
+        run: arduino-cli compile --fqbn ${{ matrix.fqbn }} firmware/arduino/ioruba-controller
 
   native-audio-smoke:
     name: Native Audio Smoke (${{ matrix.os }})

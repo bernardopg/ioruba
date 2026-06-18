@@ -20,7 +20,9 @@
     "rust:test": "cargo test --manifest-path apps/desktop/src-tauri/Cargo.toml",
     "rust:audit": "cargo audit --file apps/desktop/src-tauri/Cargo.lock",
     "firmware:compile": "arduino-cli compile --fqbn arduino:avr:nano firmware/arduino/ioruba-controller",
+    "firmware:compile:matrix": "for fqbn in arduino:avr:nano arduino:avr:uno arduino:avr:mega arduino:avr:leonardo arduino:avr:micro; do echo \"== $fqbn ==\"; arduino-cli compile --fqbn $fqbn firmware/arduino/ioruba-controller || exit 1; done",
     "firmware:test": "g++ -std=c++17 -Wall -Wextra -Werror firmware/arduino/ioruba-controller/tests/config_parser_test.cpp -o /tmp/ioruba-config-parser-test && /tmp/ioruba-config-parser-test",
+    "firmware:test:wide": "g++ -std=c++17 -Wall -Wextra -Werror -DIORUBA_NUM_KNOBS=8 -DIORUBA_ADC_BITS=12 firmware/arduino/ioruba-controller/tests/config_parser_wide_test.cpp -o /tmp/ioruba-config-parser-wide-test && /tmp/ioruba-config-parser-wide-test",
     "verify": "npm run shared:typecheck && npm run desktop:typecheck && npm run shared:test && npm run desktop:test && npm run rust:test && npm run desktop:build",
     "ci": "npm run verify && npm run firmware:compile"
   }

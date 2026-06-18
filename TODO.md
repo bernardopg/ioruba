@@ -24,9 +24,12 @@ Prioridade declarada: **integração hardware↔SO, mais placas, eficiência, or
 
 Foco principal pedido. Hoje só Nano AVR com 3 pinos fixos.
 
-- [ ] Parametrizar `ANALOG_PINS` por placa em vez de `{A0,A1,A2}` fixo — tabela de pinos por MCU/board selecionada em compile-time, dimensionada por `NUM_KNOBS` `(firmware/hardware)` - `médio`
-- [ ] Matriz de compilação de firmware no CI por FQBN (Nano, Uno, Mega2560, Leonardo, Micro) via `arduino-cli`, espelhando o gate atual `(firmware/ci/hardware)` - `médio`
-- [ ] Suporte a Arduino Mega (A0..A15) habilitando **>6 knobs** no mesmo board — validar limites de ADC e frame `(firmware/hardware/expansão)` - `médio`
+- [x] Parametrizar `ANALOG_PINS` por placa em vez de `{A0,A1,A2}` fixo — tabela de pinos por MCU/board selecionada em compile-time, dimensionada por `NUM_KNOBS` `(firmware/hardware)` - `médio`
+  - Tabela `ANALOG_PINS` por placa (ARDUINO_AVR_*/ESP32/RP2040), `static_assert(NUM_KNOBS <= ANALOG_PIN_COUNT)`. Usa os primeiros NUM_KNOBS canais.
+- [x] Matriz de compilação de firmware no CI por FQBN (Nano, Uno, Mega2560, Leonardo, Micro) via `arduino-cli`, espelhando o gate atual `(firmware/ci/hardware)` - `médio`
+  - Job `firmware` matrizado por FQBN + job `firmware-host` (parser default + wide 8k/12-bit). Scripts `firmware:compile:matrix`/`firmware:test:wide`.
+- [x] Suporte a Arduino Mega (A0..A15) habilitando **>6 knobs** no mesmo board — validar limites de ADC e frame `(firmware/hardware/expansão)` - `médio`
+  - Mega compila com 12 knobs (verificado local + host wide 8 knobs). Frame/EEPROM/struct já dimensionados por NUM_KNOBS.
 - [x] Suporte a placas de 12-bit (ESP32, RP2040/Pico): reportar `adcBits` no handshake e **normalizar a resolução no shared** (hoje `SLIDER_MAX=1023` fixo quebra 4095) `(firmware/shared/protocol)` - `difícil`
   - Firmware deriva `ADC_MAX` de `IORUBA_ADC_BITS` (auto 12 em ESP32/RP2040, 10 em AVR). Shared remove o lock 1023: funções de mixer/runtime recebem `adcMax` opcional e o parser de frame aceita até 16-bit; normalização usa `firmwareInfo.adcBits`. Ainda pendente: toolchain real ESP32/RP2040 e teste em hardware.
 - [ ] Toolchain para ESP32/RP2040 (core `arduino-cli` adicional ou avaliação de PlatformIO) `(firmware/build/hardware)` - `difícil`
@@ -35,7 +38,8 @@ Foco principal pedido. Hoje só Nano AVR com 3 pinos fixos.
 - [x] Detecção automática e exibição do board/MCU no desktop a partir do `board=` do handshake `(frontend/hardware/ux)` - `fácil`
   - Tile "Hardware" no `OverviewSignalPanel` mostra board · MCU + `adcBits`-bit · protocolo (com aviso de incompatibilidade).
 - [ ] Suporte a botões/encoders além de potenciômetros (mute/next/prev) — novo tipo de input no protocolo e perfil `(firmware/shared/expansão)` - `difícil`
-- [ ] Documentar pinagem e matriz de placas suportadas em `docs/guides/hardware-setup.md` `(docs/hardware)` - `fácil`
+- [x] Documentar pinagem e matriz de placas suportadas em `docs/guides/hardware-setup.md` `(docs/hardware)` - `fácil`
+  - Seção "Supported boards" (tabela MCU/bits/canais/max-knobs/ordem de pinos) + mirror PT-BR.
 
 ## Scrum 12 — Integração SO↔áudio mais profunda
 

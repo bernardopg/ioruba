@@ -59,6 +59,31 @@ That maps directly to the active desktop runtime. The runtime also accepts the o
 
 The `mcu` and `adcBits` fields are additive protocol-v2 metadata: older firmware that omits them still works (the desktop assumes 10-bit). `adcBits` lets the desktop normalize readings for boards with a different ADC resolution — AVR boards report `10` (`0..1023`), while ESP32 and RP2040/Pico report `12` (`0..4095`). The firmware auto-detects the bit depth from the target architecture; override it at compile time with `-DIORUBA_ADC_BITS=<n>` if needed.
 
+## Supported boards
+
+The reference build is the Nano with 3 knobs, but the firmware is parametric. The number of knobs is set with `-DIORUBA_NUM_KNOBS=<n>` at compile time, and the analog pins are chosen from a per-board table (the first `n` channels). A `static_assert` fails the build if `n` exceeds the board's analog channels.
+
+| Board            | MCU          | ADC bits | Analog channels | Max knobs | Pin order (first knobs use these in order)        |
+| ---------------- | ------------ | -------- | --------------- | --------- | -------------------------------------------------- |
+| Arduino Nano     | ATmega328P   | 10       | 8               | 8         | `A0 A1 A2 A3 A4 A5 A6 A7`                           |
+| Arduino Uno      | ATmega328P   | 10       | 6               | 6         | `A0 A1 A2 A3 A4 A5`                                 |
+| Arduino Mega2560 | ATmega2560   | 10       | 16              | 16        | `A0 A1 … A15`                                       |
+| Leonardo / Micro | ATmega32U4   | 10       | 12              | 12        | `A0 A1 … A11`                                       |
+| ESP32            | ESP32        | 12       | 6 (ADC1 only)   | 6         | `A0 A3 A4 A5 A6 A7` (ADC2 is reserved for Wi-Fi)   |
+| RP2040 / Pico    | RP2040       | 12       | 3               | 3         | `A0 A1 A2`                                          |
+
+Compile for a specific board with `arduino-cli`, e.g. a Mega with 8 knobs:
+
+```bash
+arduino-cli compile --fqbn arduino:avr:mega \
+  --build-property "compiler.cpp.extra_flags=-DIORUBA_NUM_KNOBS=8" \
+  firmware/arduino/ioruba-controller
+```
+
+`npm run firmware:compile:matrix` compiles the firmware for every AVR board above in one shot (the same matrix the CI runs).
+
+> ESP32/RP2040 need their own `arduino-cli` core installed (`esp32:esp32` or `rp2040:rp2040`); they are not part of the AVR CI matrix yet.
+
 ## After the hardware is wired
 
 Next steps:

@@ -5,12 +5,13 @@
 
 #include "config_parser.h"
 
-// Active Ioruba controller firmware for Arduino Nano-compatible boards.
+// Active Ioruba controller firmware for Arduino/ESP32-compatible boards.
 //
 // Hardware:
-// - 3x linear 10k potentiometers
-// - center pins wired to A0, A1, A2
-// - outer pins wired to 5V and GND
+// - NUM_KNOBS linear 10k potentiometers (3 by default)
+// - center pins wired to the first NUM_KNOBS analog channels of the board
+//   (ANALOG_PINS table below, selected per board at compile time)
+// - outer pins wired to 5V/3V3 and GND
 //
 // Serial contract:
 // - 9600 baud
@@ -30,7 +31,37 @@
 // (lógica pura, testável em host). Aqui só ficam os apelidos e as constantes
 // específicas do runtime Arduino.
 const int NUM_KNOBS = IORUBA_NUM_KNOBS;
-const int ANALOG_PINS[NUM_KNOBS] = {A0, A1, A2};
+
+// Tabela de pinos analogicos por placa, selecionada em compile-time. Os knobs
+// usam os primeiros NUM_KNOBS canais desta lista. O teto de knobs por placa e a
+// quantidade de canais aqui (Mega habilita >6; ESP32 usa apenas pinos do ADC1,
+// pois o ADC2 conflita com o Wi-Fi). Os pinos AVR sao contiguos a partir de A0;
+// no ESP32 nao sao, por isso a lista explicita.
+#if defined(ARDUINO_AVR_MEGA2560)
+const uint8_t ANALOG_PINS[] = {A0, A1, A2,  A3,  A4,  A5,  A6,  A7,
+                               A8, A9, A10, A11, A12, A13, A14, A15};
+#elif defined(ARDUINO_AVR_LEONARDO) || defined(ARDUINO_AVR_MICRO)
+const uint8_t ANALOG_PINS[] = {A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11};
+#elif defined(ARDUINO_AVR_NANO)
+const uint8_t ANALOG_PINS[] = {A0, A1, A2, A3, A4, A5, A6, A7};
+#elif defined(ESP32) || defined(ARDUINO_ARCH_ESP32)
+// ESP32: somente entradas do ADC1 (GPIO32..39), livres durante o uso do Wi-Fi.
+const uint8_t ANALOG_PINS[] = {A0, A3, A4, A5, A6, A7};
+#elif defined(ARDUINO_ARCH_RP2040)
+// RP2040/Pico: ADC0..ADC2 (GPIO26..28); ADC3 e usado para sensar VSYS.
+const uint8_t ANALOG_PINS[] = {A0, A1, A2};
+#else
+// Uno e fallback generico: A0..A5 (universalmente expostos).
+const uint8_t ANALOG_PINS[] = {A0, A1, A2, A3, A4, A5};
+#endif
+
+constexpr int ANALOG_PIN_COUNT =
+  static_cast<int>(sizeof(ANALOG_PINS) / sizeof(ANALOG_PINS[0]));
+static_assert(IORUBA_NUM_KNOBS >= 1,
+              "IORUBA_NUM_KNOBS deve ser >= 1");
+static_assert(IORUBA_NUM_KNOBS <= ANALOG_PIN_COUNT,
+              "IORUBA_NUM_KNOBS excede os canais analogicos da placa selecionada");
+
 const long BAUD_RATE = 9600;
 const char BOARD_NAME[] = "Ioruba Nano";
 

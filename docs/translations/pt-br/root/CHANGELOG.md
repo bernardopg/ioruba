@@ -9,6 +9,9 @@ e este projeto segue [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Adicionado
 
+- Tabelas de pinos analogicos por placa (Scrum 11): o firmware nao fixa mais `{A0, A1, A2}`. Os pinos sao escolhidos em compile-time por placa (Nano A0..A7, Uno A0..A5, Mega2560 A0..A15, Leonardo/Micro A0..A11, ESP32 ADC1, RP2040/Pico A0..A2) e os primeiros `IORUBA_NUM_KNOBS` sao usados. Habilita **>6 knobs no Mega** (ate 16); um `static_assert` rejeita uma contagem de knobs acima dos canais analogicos da placa
+- O CI compila o firmware numa matriz de FQBN (Nano, Uno, Mega2560, Leonardo, Micro); um job de host dedicado roda os testes do parser CONFIG nas configuracoes padrao (3 knobs / 10-bit) e ampla (8 knobs / 12-bit). `npm run firmware:compile:matrix` e `npm run firmware:test:wide` reproduzem isso localmente
+- Matriz de placas suportadas (MCU, bits do ADC, canais, max knobs, ordem de pinos) documentada em `docs/guides/hardware-setup.md`
 - Resolucao de ADC generica entre placas (pilar do Scrum 11). O handshake do firmware reporta `mcu=` e `adcBits=` (campos aditivos do protocolo v2; hosts antigos ignoram) e o `@ioruba/shared` normaliza as leituras brutas pelo `adcBits` ativo em vez do `1023` fixo de 10-bit. Placas de 12-bit (ESP32, RP2040/Pico -> `0..4095`) agora mapeiam para a porcentagem correta
 - O firmware deriva `ADC_MAX` de `IORUBA_ADC_BITS` (auto 12 em ESP32/RP2040, 10 em AVR; sobrescrevivel por define) e reporta o nome do MCU detectado
 - O painel de visao geral do desktop mostra um bloco de Hardware com placa, MCU, profundidade de bits do ADC e versao do protocolo
