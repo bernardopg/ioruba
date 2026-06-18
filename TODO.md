@@ -69,8 +69,10 @@ Hoje Windows/macOS só controlam `master`. Linux tem cobertura completa.
 - [ ] Testes host-independentes para `summarize_slider_outcome`/`describe_target` (hoje sem testes em `windows.rs`/`macos.rs`) `(test/backend/coverage)` - `fácil`
 - [ ] Cobertura de testes do store Zustand (`ioruba-store.ts`), incl. reset de `sessionStats` via wrapper do `set` `(test/frontend/coverage)` - `médio`
 - [ ] Documentar o contrato Rust↔TS dos backends e o dispatch por `cfg` em `audio/mod.rs` `(docs/backend/organização)` - `fácil`
-- [ ] Gate de `shellcheck` no CI para `scripts/install.sh` e demais scripts `sh` `(ci/quality)` - `fácil`
-- [ ] Lint de PowerShell (`PSScriptAnalyzer`) para `scripts/install.ps1` `(ci/quality)` - `fácil`
+- [x] Gate de `shellcheck` no CI para `scripts/install.sh` e demais scripts `sh` `(ci/quality)` - `fácil`
+  - Job `scripts-lint` no CI roda `shellcheck` em install.sh/run-appimage-compat.sh/validate-appimage.sh (passam limpo). Script local `npm run lint:scripts`.
+- [x] Lint de PowerShell (`PSScriptAnalyzer`) para `scripts/install.ps1` `(ci/quality)` - `fácil`
+  - Mesmo job `scripts-lint`: PSScriptAnalyzer via pwsh, reporta Warning+Error, falha só em Error.
 
 ## Scrum 15 — Distribuição e updates
 

@@ -213,6 +213,36 @@ jobs:
       - name: Compile firmware (${{ matrix.target.fqbn }})
         run: arduino-cli compile --fqbn ${{ matrix.target.fqbn }} firmware/arduino/ioruba-controller
 
+  scripts-lint:
+    name: Installer Scripts Lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          persist-credentials: false
+
+      # shellcheck ships on ubuntu-latest runners; lint the POSIX/bash installers.
+      - name: ShellCheck installer and AppImage scripts
+        run: shellcheck scripts/install.sh scripts/run-appimage-compat.sh scripts/validate-appimage.sh
+
+      # pwsh ships on ubuntu-latest runners. Report warnings for visibility but
+      # only fail the gate on PSScriptAnalyzer errors.
+      - name: PSScriptAnalyzer (install.ps1)
+        shell: pwsh
+        run: |
+          Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
+          Install-Module PSScriptAnalyzer -Force -Scope CurrentUser
+          $results = Invoke-ScriptAnalyzer -Path scripts/install.ps1 -Severity Warning,Error
+          if ($results) { $results | Format-Table -AutoSize }
+          $errors = @($results | Where-Object { $_.Severity -eq 'Error' })
+          if ($errors.Count -gt 0) {
+            Write-Error "PSScriptAnalyzer found $($errors.Count) error(s)"
+            exit 1
+          }
+
   native-audio-smoke:
     name: Native Audio Smoke (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
