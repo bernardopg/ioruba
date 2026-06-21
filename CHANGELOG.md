@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.1](https://github.com/bernardopg/ioruba/compare/v1.2.0...v1.2.1) (2026-06-21)
+
 ### Features
 
 - knob→audio apply latency is now instrumented: each batch apply is timed and a `warning` is logged to the watch log when it exceeds the budget (80 ms), with the elapsed time and target count — surfacing slow `pactl`/backend calls without flooding the log (Scrum 13)
@@ -26,6 +28,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Firmware `BOARD_NAME` constant renamed to `IORUBA_BOARD_NAME` to avoid a collision with the `BOARD_NAME` macro defined by the arduino-pico (RP2040) core, which broke RP2040 builds
+
+### Security
+
+- Updated transitive development dependency `undici` from `7.25.0` to `7.28.0`, resolving CVE-2026-9697 and CVE-2026-9678 reported by Dependabot
 
 ### Changed
 
@@ -357,7 +363,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial tagged baseline before the current Haskell-first productization pass
 
-[Unreleased]: https://github.com/bernardopg/ioruba/compare/v1.1.0...HEAD
+[Unreleased]: https://github.com/bernardopg/ioruba/compare/v1.2.1...HEAD
+[1.2.1]: https://github.com/bernardopg/ioruba/compare/v1.2.0...v1.2.1
+[1.2.0]: https://github.com/bernardopg/ioruba/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/bernardopg/ioruba/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/bernardopg/ioruba/compare/v0.6.12...v1.0.0
 [0.6.12]: https://github.com/bernardopg/ioruba/compare/v0.6.11...v0.6.12
