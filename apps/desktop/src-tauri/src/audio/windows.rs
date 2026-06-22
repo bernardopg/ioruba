@@ -8,7 +8,7 @@ use super::{
 use windows::{
     core::GUID,
     Win32::{
-        Foundation::{BOOL, RPC_E_CHANGED_MODE},
+        Foundation::RPC_E_CHANGED_MODE,
         Media::Audio::Endpoints::IAudioEndpointVolume,
         Media::Audio::{eConsole, eRender, IMMDeviceEnumerator, MMDeviceEnumerator},
         System::Com::{
@@ -214,7 +214,7 @@ impl DefaultEndpointVolume {
             .map_err(|error| AudioError::CommandFailed(error.to_string()))?;
         let next = current.as_bool();
         let next = !next;
-        unsafe { self.volume.SetMute(BOOL::from(next), ptr::null::<GUID>()) }
+        unsafe { self.volume.SetMute(next, ptr::null::<GUID>()) }
             .map_err(|error| AudioError::CommandFailed(error.to_string()))?;
         Ok(next)
     }
