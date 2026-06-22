@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.2](https://github.com/bernardopg/ioruba/compare/v1.2.1...v1.2.2) (2026-06-21)
+
+### Features
+
+- Completed Scrum 11 button/encoder support: profiles now accept `controls` bindings for `mute`, `next` and `prev`, and the shared serial parser understands prefixed `EV` button/encoder packets without changing existing slider frames
+- Firmware `0.5.1` can be compiled with `IORUBA_NUM_BUTTONS` / `IORUBA_NUM_ENCODERS`, reads digital controls with `INPUT_PULLUP`, debounce and encoder quadrature, and emits control events only after the desktop opts in with `EVENTS ON`
+- Desktop runtime resolves control events from the active profile and dispatches actions through Tauri: Linux supports mute via `pactl` and media next/previous via `playerctl`; Windows supports default-output mute; unsupported actions are reported in the watch log instead of breaking serial processing
+
+### Changed
+
+- Hardware setup documentation now covers optional button/encoder wiring, compile flags, control-event packets and profile `controls` examples in English and Portuguese
+
 ## [1.2.1](https://github.com/bernardopg/ioruba/compare/v1.2.0...v1.2.1) (2026-06-21)
 
 ### Features
@@ -363,7 +375,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial tagged baseline before the current Haskell-first productization pass
 
-[Unreleased]: https://github.com/bernardopg/ioruba/compare/v1.2.1...HEAD
+[Unreleased]: https://github.com/bernardopg/ioruba/compare/v1.2.2...HEAD
+[1.2.2]: https://github.com/bernardopg/ioruba/compare/v1.2.1...v1.2.2
 [1.2.1]: https://github.com/bernardopg/ioruba/compare/v1.2.0...v1.2.1
 [1.2.0]: https://github.com/bernardopg/ioruba/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/bernardopg/ioruba/compare/v1.0.0...v1.1.0
