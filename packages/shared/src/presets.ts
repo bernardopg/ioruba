@@ -105,6 +105,7 @@ export function buildPresetProfile(
     audio: { ...base.audio },
     firmware: { ...base.firmware },
     ui: { ...base.ui },
+    controls: (base.controls ?? []).map((control) => ({ ...control })),
     sliders: preset.sliders.map((slider, index) => ({
       id: index,
       name: slider.name,

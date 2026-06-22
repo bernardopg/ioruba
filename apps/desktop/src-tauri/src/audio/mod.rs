@@ -79,6 +79,22 @@ pub struct ApplySliderTargetsResponse {
     pub outcomes: HashMap<u32, SliderOutcome>,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum ControlAction {
+    Mute,
+    Next,
+    Prev,
+}
+
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ControlActionOutcome {
+    pub action: ControlAction,
+    pub supported: bool,
+    pub detail: String,
+}
+
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct AudioEndpoint {
@@ -156,4 +172,24 @@ pub fn apply_slider_targets_batch(
     request: ApplySliderTargetsRequest,
 ) -> Result<ApplySliderTargetsResponse, AudioError> {
     unsupported::apply_slider_targets_batch(request)
+}
+
+#[cfg(target_os = "linux")]
+pub fn dispatch_control_action(action: ControlAction) -> Result<ControlActionOutcome, AudioError> {
+    linux::dispatch_control_action(action)
+}
+
+#[cfg(target_os = "windows")]
+pub fn dispatch_control_action(action: ControlAction) -> Result<ControlActionOutcome, AudioError> {
+    windows::dispatch_control_action(action)
+}
+
+#[cfg(target_os = "macos")]
+pub fn dispatch_control_action(action: ControlAction) -> Result<ControlActionOutcome, AudioError> {
+    macos::dispatch_control_action(action)
+}
+
+#[cfg(not(any(target_os = "linux", target_os = "windows", target_os = "macos")))]
+pub fn dispatch_control_action(action: ControlAction) -> Result<ControlActionOutcome, AudioError> {
+    unsupported::dispatch_control_action(action)
 }

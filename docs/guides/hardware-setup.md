@@ -10,6 +10,7 @@ The active repository is designed around a practical `Arduino Nano + 3 potentiom
 
 - `1x Arduino Nano ATmega328P`
 - `3x 10k` linear potentiometers
+- optional: momentary push buttons or rotary encoders for `mute` / `next` / `prev`
 - `1x USB data cable`
 - jumper wires
 - breadboard, perfboard, or enclosure
@@ -51,13 +52,51 @@ Arduino Nano
 The current firmware reads the three analog inputs, persists tuning and calibration in EEPROM, and emits lines such as:
 
 ```text
-HELLO board=Ioruba Nano; fw=0.5.0; protocol=2; knobs=3; mcu=ATmega328P; adcBits=10; threshold=4; deadzone=7; smooth=75; mins=0,0,0; maxs=1023,1023,1023
+HELLO board=Ioruba Nano; fw=0.5.1; protocol=2; knobs=3; mcu=ATmega328P; adcBits=10; threshold=4; deadzone=7; smooth=75; mins=0,0,0; maxs=1023,1023,1023
 512|768|1023
 ```
 
 That maps directly to the active desktop runtime. The runtime also accepts the older legacy packet style, but the current build target is the full-frame format above plus the handshake metadata used to sync controller tuning.
 
 The `mcu` and `adcBits` fields are additive protocol-v2 metadata: older firmware that omits them still works (the desktop assumes 10-bit). `adcBits` lets the desktop normalize readings for boards with a different ADC resolution — AVR boards report `10` (`0..1023`), while ESP32 and RP2040/Pico report `12` (`0..4095`). The firmware auto-detects the bit depth from the target architecture; override it at compile time with `-DIORUBA_ADC_BITS=<n>` if needed.
+
+## Optional buttons and encoders
+
+Digital controls are disabled by default. Enable them at compile time:
+
+```bash
+arduino-cli compile --fqbn arduino:avr:nano \
+  --build-property "compiler.cpp.extra_flags=-DIORUBA_NUM_BUTTONS=1 -DIORUBA_NUM_ENCODERS=1" \
+  firmware/arduino/ioruba-controller
+```
+
+Default digital pin order:
+
+| Input | Pins | Wiring |
+| ----- | ---- | ------ |
+| Buttons | `D2 D3 D4 D5 D6 D7 D8 D9` | one side to the pin, the other to `GND`; firmware uses `INPUT_PULLUP` |
+| Encoders | `D6/D7`, `D8/D9`, `D10/D11`, `D12/D13` | channel A/B to the pair, common to `GND`; firmware uses `INPUT_PULLUP` |
+
+Avoid overlapping pins when you enable both buttons and encoders. For example, `-DIORUBA_NUM_BUTTONS=2 -DIORUBA_NUM_ENCODERS=1` uses buttons on `D2/D3` and encoder 0 on `D6/D7`.
+
+The desktop opts in by sending `EVENTS ON` after connecting. Until that command is received, the firmware only emits knob frames, which keeps older desktop builds compatible. Once enabled, event frames look like:
+
+```text
+EV type=button; id=0; event=press
+EV type=encoder; id=0; delta=1
+```
+
+Add bindings to a profile with the `controls` array:
+
+```json
+"controls": [
+  { "input": "button", "id": 0, "name": "Mute", "event": "press", "action": "mute" },
+  { "input": "encoder", "id": 0, "name": "Next track", "direction": "clockwise", "action": "next" },
+  { "input": "encoder", "id": 0, "name": "Previous track", "direction": "counterclockwise", "action": "prev" }
+]
+```
+
+On Linux, `mute` uses `pactl set-sink-mute @DEFAULT_SINK@ toggle`; `next` and `prev` use `playerctl` when installed. Windows currently supports `mute` for the default output. Unsupported actions are reported in the watch log instead of failing the serial runtime.
 
 ## Supported boards
 

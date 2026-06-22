@@ -63,7 +63,7 @@ This GitHub Pages hub is organized for the real path users take in the project:
 ### Serial protocol
 
 ```
-HELLO board=Ioruba Nano; fw=0.5.0; protocol=2; knobs=3; threshold=4; deadzone=7; smooth=75
+HELLO board=Ioruba Nano; fw=0.5.1; protocol=2; knobs=3; threshold=4; deadzone=7; smooth=75
 512|768|1023
 ```
 
@@ -88,5 +88,4 @@ npm run desktop:watch
 - Linux: `~/.config/io.ioruba.desktop/`
 - macOS: `~/Library/Application Support/io.ioruba.desktop/`
 - Windows: `%APPDATA%\\io.ioruba.desktop\\`
-
 

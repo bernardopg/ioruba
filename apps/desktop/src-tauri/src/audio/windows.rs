@@ -2,13 +2,13 @@ use std::{collections::HashMap, ptr};
 
 use super::{
     ApplySliderTargetsRequest, ApplySliderTargetsResponse, AudioEndpoint, AudioError,
-    AudioInventory, AudioTarget, OutcomeSeverity, RuntimeTargetOutcome, SliderOutcome,
-    TargetOutcomeStatus,
+    AudioInventory, AudioTarget, ControlAction, ControlActionOutcome, OutcomeSeverity,
+    RuntimeTargetOutcome, SliderOutcome, TargetOutcomeStatus,
 };
 use windows::{
     core::GUID,
     Win32::{
-        Foundation::RPC_E_CHANGED_MODE,
+        Foundation::{BOOL, RPC_E_CHANGED_MODE},
         Media::Audio::Endpoints::IAudioEndpointVolume,
         Media::Audio::{eConsole, eRender, IMMDeviceEnumerator, MMDeviceEnumerator},
         System::Com::{
@@ -165,6 +165,29 @@ pub fn apply_slider_targets_batch(
     Ok(ApplySliderTargetsResponse { outcomes })
 }
 
+pub fn dispatch_control_action(action: ControlAction) -> Result<ControlActionOutcome, AudioError> {
+    match action {
+        ControlAction::Mute => {
+            let endpoint = default_endpoint_volume()?;
+            let muted = endpoint.toggle_mute()?;
+            Ok(ControlActionOutcome {
+                action,
+                supported: true,
+                detail: if muted {
+                    "Muted Windows default output".to_string()
+                } else {
+                    "Unmuted Windows default output".to_string()
+                },
+            })
+        }
+        ControlAction::Next | ControlAction::Prev => Ok(ControlActionOutcome {
+            action,
+            supported: false,
+            detail: "Windows media next/prev actions are not implemented yet".to_string(),
+        }),
+    }
+}
+
 struct DefaultEndpointVolume {
     _apartment: ComApartment,
     volume: IAudioEndpointVolume,
@@ -184,6 +207,16 @@ impl DefaultEndpointVolume {
                 .SetMasterVolumeLevelScalar(scalar, ptr::null::<GUID>())
         }
         .map_err(|error| AudioError::CommandFailed(error.to_string()))
+    }
+
+    fn toggle_mute(&self) -> Result<bool, AudioError> {
+        let current = unsafe { self.volume.GetMute() }
+            .map_err(|error| AudioError::CommandFailed(error.to_string()))?;
+        let next = current.as_bool();
+        let next = !next;
+        unsafe { self.volume.SetMute(BOOL::from(next), ptr::null::<GUID>()) }
+            .map_err(|error| AudioError::CommandFailed(error.to_string()))?;
+        Ok(next)
     }
 }
 

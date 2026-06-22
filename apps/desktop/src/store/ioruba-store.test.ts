@@ -53,9 +53,10 @@ describe("ioruba store", () => {
       "Abrindo porta serial e aguardando firmware",
     );
 
-    const updates = useIorubaStore.getState().processSerialLine("512|768|1023");
+    const result = useIorubaStore.getState().processSerialLine("512|768|1023");
 
-    expect(updates).toHaveLength(3);
+    expect(result.sliderUpdates).toHaveLength(3);
+    expect(result.controlActions).toHaveLength(0);
     expect(useIorubaStore.getState().snapshot.status).toBe("connected");
     expect(useIorubaStore.getState().snapshot.connectionPort).toBe(portPath);
     expect(useIorubaStore.getState().snapshot.statusText).toBe(
@@ -82,10 +83,49 @@ describe("ioruba store", () => {
   it("processes full frame packets", () => {
     const store = useIorubaStore.getState();
     store.hydrate(store.persisted, store.audioInventory);
-    const updates = useIorubaStore.getState().processSerialLine("512|768|1023");
+    const result = useIorubaStore.getState().processSerialLine("512|768|1023");
 
-    expect(updates).toHaveLength(3);
+    expect(result.sliderUpdates).toHaveLength(3);
     expect(useIorubaStore.getState().snapshot.knobs[0]?.rawValue).toBe(512);
+  });
+
+  it("resolves button control events from the active profile", () => {
+    const store = useIorubaStore.getState();
+    store.hydrate(
+      {
+        ...store.persisted,
+        profiles: [
+          {
+            ...defaultProfile,
+            controls: [
+              {
+                input: "button",
+                id: 0,
+                name: "Mute button",
+                event: "press",
+                action: "mute",
+              },
+            ],
+          },
+        ],
+      },
+      store.audioInventory,
+    );
+
+    const result = useIorubaStore
+      .getState()
+      .processSerialLine("EV type=button; id=0; event=press");
+
+    expect(result.sliderUpdates).toEqual([]);
+    expect(result.controlActions).toEqual([
+      {
+        action: "mute",
+        controlId: 0,
+        controlName: "Mute button",
+        input: "button",
+        detail: "press -> mute",
+      },
+    ]);
   });
 
   it("enables demo mode and generates telemetry", () => {
@@ -108,9 +148,9 @@ describe("ioruba store", () => {
     const store = useIorubaStore.getState();
     store.hydrate(store.persisted, store.audioInventory);
 
-    const updates = useIorubaStore.getState().processSerialLine("512|768|1023");
+    const result = useIorubaStore.getState().processSerialLine("512|768|1023");
 
-    useIorubaStore.getState().commitAppliedResults(updates, {
+    useIorubaStore.getState().commitAppliedResults(result.sliderUpdates, {
       0: {
         summary: "Updated the default output to 50%",
         severity: "success",
@@ -143,13 +183,13 @@ describe("ioruba store", () => {
     const store = useIorubaStore.getState();
     store.hydrate(store.persisted, store.audioInventory);
 
-    const updates = useIorubaStore
+    const result = useIorubaStore
       .getState()
       .processSerialLine(
         "HELLO board=Ioruba Nano; fw=0.5.0; protocol=2; knobs=3; threshold=4; deadzone=7; smooth=75; mins=0,0,0; maxs=1023,1023,1023",
       );
 
-    expect(updates).toEqual([]);
+    expect(result).toEqual({ sliderUpdates: [], controlActions: [] });
     expect(useIorubaStore.getState().firmwareInfo).toEqual({
       boardName: "Ioruba Nano",
       firmwareVersion: "0.5.0",

@@ -20,6 +20,10 @@
 //    novos usam adcBits para normalizar a resolucao, suportando 10-bit e 12-bit)
 // - config command:
 //   "CONFIG threshold=4; deadzone=7; smooth=75; mins=0,0,0; maxs=1023,1023,1023"
+// - optional control event opt-in: "EVENTS ON" enables button/encoder frames
+//   such as "EV type=button; id=0; event=press" and
+//   "EV type=encoder; id=0; delta=1". Events are disabled by default so older
+//   desktop builds that only parse slider frames remain compatible.
 // - full frames such as "512|768|1023"
 // - smoothed readings
 // - snaps near the calibrated ADC edges so full travel can still reach 0 / ADC_MAX
@@ -31,6 +35,25 @@
 // (lógica pura, testável em host). Aqui só ficam os apelidos e as constantes
 // específicas do runtime Arduino.
 const int NUM_KNOBS = IORUBA_NUM_KNOBS;
+
+#ifndef IORUBA_NUM_BUTTONS
+#define IORUBA_NUM_BUTTONS 0
+#endif
+
+#ifndef IORUBA_NUM_ENCODERS
+#define IORUBA_NUM_ENCODERS 0
+#endif
+
+#ifndef IORUBA_CONTROL_DEBOUNCE_MS
+#define IORUBA_CONTROL_DEBOUNCE_MS 30
+#endif
+
+#ifndef IORUBA_ENCODER_STEPS_PER_EVENT
+#define IORUBA_ENCODER_STEPS_PER_EVENT 4
+#endif
+
+const int NUM_BUTTONS = IORUBA_NUM_BUTTONS;
+const int NUM_ENCODERS = IORUBA_NUM_ENCODERS;
 
 // Tabela de pinos analogicos por placa, selecionada em compile-time. Os knobs
 // usam os primeiros NUM_KNOBS canais desta lista. O teto de knobs por placa e a
@@ -59,8 +82,29 @@ constexpr int ANALOG_PIN_COUNT =
   static_cast<int>(sizeof(ANALOG_PINS) / sizeof(ANALOG_PINS[0]));
 static_assert(IORUBA_NUM_KNOBS >= 1,
               "IORUBA_NUM_KNOBS deve ser >= 1");
+static_assert(IORUBA_NUM_BUTTONS >= 0,
+              "IORUBA_NUM_BUTTONS deve ser >= 0");
+static_assert(IORUBA_NUM_ENCODERS >= 0,
+              "IORUBA_NUM_ENCODERS deve ser >= 0");
 static_assert(IORUBA_NUM_KNOBS <= ANALOG_PIN_COUNT,
               "IORUBA_NUM_KNOBS excede os canais analogicos da placa selecionada");
+
+#if IORUBA_NUM_BUTTONS > 0
+const uint8_t BUTTON_PINS[] = {2, 3, 4, 5, 6, 7, 8, 9};
+constexpr int BUTTON_PIN_COUNT =
+  static_cast<int>(sizeof(BUTTON_PINS) / sizeof(BUTTON_PINS[0]));
+static_assert(IORUBA_NUM_BUTTONS <= BUTTON_PIN_COUNT,
+              "IORUBA_NUM_BUTTONS excede os pinos digitais padrao");
+#endif
+
+#if IORUBA_NUM_ENCODERS > 0
+const uint8_t ENCODER_A_PINS[] = {6, 8, 10, 12};
+const uint8_t ENCODER_B_PINS[] = {7, 9, 11, 13};
+constexpr int ENCODER_PIN_COUNT =
+  static_cast<int>(sizeof(ENCODER_A_PINS) / sizeof(ENCODER_A_PINS[0]));
+static_assert(IORUBA_NUM_ENCODERS <= ENCODER_PIN_COUNT,
+              "IORUBA_NUM_ENCODERS excede os pares digitais padrao");
+#endif
 
 const long BAUD_RATE = 9600;
 // Prefixo IORUBA_ evita colisao com a macro BOARD_NAME definida por alguns cores
@@ -88,7 +132,7 @@ const char MCU_NAME[] = "unknown";
 // em packages/shared). Bump FIRMWARE_VERSION em qualquer mudanca de comportamento
 // do controlador; bump PROTOCOL_VERSION apenas em mudanca incompativel do frame
 // ou do handshake.
-const char FIRMWARE_VERSION[] = "0.5.0";
+const char FIRMWARE_VERSION[] = "0.5.1";
 const int PROTOCOL_VERSION = 2;
 const int ADC_MIN = IORUBA_ADC_MIN;
 const int ADC_MAX = IORUBA_ADC_MAX;
@@ -104,6 +148,18 @@ int knobValues[NUM_KNOBS];
 int lastSentValues[NUM_KNOBS];
 unsigned long lastSendTime = 0;
 unsigned long lastHeartbeatTime = 0;
+bool controlEventsEnabled = false;
+
+#if IORUBA_NUM_BUTTONS > 0
+bool buttonStates[NUM_BUTTONS];
+bool buttonReadings[NUM_BUTTONS];
+unsigned long buttonChangedAt[NUM_BUTTONS];
+#endif
+
+#if IORUBA_NUM_ENCODERS > 0
+uint8_t encoderStates[NUM_ENCODERS];
+int8_t encoderSteps[NUM_ENCODERS];
+#endif
 
 int clampAdcValue(int value) {
   return constrain(value, ADC_MIN, ADC_MAX);
@@ -225,6 +281,28 @@ void sendFrame() {
   Serial.println();
 }
 
+void sendButtonEvent(int buttonIndex, bool pressed) {
+  if (!controlEventsEnabled) {
+    return;
+  }
+
+  Serial.print("EV type=button; id=");
+  Serial.print(buttonIndex);
+  Serial.print("; event=");
+  Serial.println(pressed ? "press" : "release");
+}
+
+void sendEncoderEvent(int encoderIndex, int delta) {
+  if (!controlEventsEnabled || delta == 0) {
+    return;
+  }
+
+  Serial.print("EV type=encoder; id=");
+  Serial.print(encoderIndex);
+  Serial.print("; delta=");
+  Serial.println(delta);
+}
+
 void sendHandshake() {
   Serial.print("HELLO board=");
   Serial.print(IORUBA_BOARD_NAME);
@@ -234,6 +312,10 @@ void sendHandshake() {
   Serial.print(PROTOCOL_VERSION);
   Serial.print("; knobs=");
   Serial.print(NUM_KNOBS);
+  Serial.print("; buttons=");
+  Serial.print(NUM_BUTTONS);
+  Serial.print("; encoders=");
+  Serial.print(NUM_ENCODERS);
   Serial.print("; mcu=");
   Serial.print(MCU_NAME);
   Serial.print("; adcBits=");
@@ -259,6 +341,78 @@ void sendHandshake() {
     }
   }
   Serial.println();
+}
+
+void setupControls() {
+#if IORUBA_NUM_BUTTONS > 0
+  for (int index = 0; index < NUM_BUTTONS; index++) {
+    pinMode(BUTTON_PINS[index], INPUT_PULLUP);
+    const bool pressed = digitalRead(BUTTON_PINS[index]) == LOW;
+    buttonStates[index] = pressed;
+    buttonReadings[index] = pressed;
+    buttonChangedAt[index] = millis();
+  }
+#endif
+
+#if IORUBA_NUM_ENCODERS > 0
+  for (int index = 0; index < NUM_ENCODERS; index++) {
+    pinMode(ENCODER_A_PINS[index], INPUT_PULLUP);
+    pinMode(ENCODER_B_PINS[index], INPUT_PULLUP);
+    encoderStates[index] =
+      (digitalRead(ENCODER_A_PINS[index]) == HIGH ? 2 : 0) |
+      (digitalRead(ENCODER_B_PINS[index]) == HIGH ? 1 : 0);
+    encoderSteps[index] = 0;
+  }
+#endif
+}
+
+void readControls(unsigned long now) {
+#if IORUBA_NUM_BUTTONS > 0
+  for (int index = 0; index < NUM_BUTTONS; index++) {
+    const bool pressed = digitalRead(BUTTON_PINS[index]) == LOW;
+    if (pressed != buttonReadings[index]) {
+      buttonReadings[index] = pressed;
+      buttonChangedAt[index] = now;
+    }
+
+    if (pressed != buttonStates[index] &&
+        now - buttonChangedAt[index] >= IORUBA_CONTROL_DEBOUNCE_MS) {
+      buttonStates[index] = pressed;
+      sendButtonEvent(index, pressed);
+    }
+  }
+#endif
+
+#if IORUBA_NUM_ENCODERS > 0
+  const int8_t transitionTable[16] = {
+    0, -1, 1, 0,
+    1, 0, 0, -1,
+    -1, 0, 0, 1,
+    0, 1, -1, 0
+  };
+
+  for (int index = 0; index < NUM_ENCODERS; index++) {
+    const uint8_t nextState =
+      (digitalRead(ENCODER_A_PINS[index]) == HIGH ? 2 : 0) |
+      (digitalRead(ENCODER_B_PINS[index]) == HIGH ? 1 : 0);
+    const uint8_t transition = (encoderStates[index] << 2) | nextState;
+    const int8_t step = transitionTable[transition & 0x0F];
+    encoderStates[index] = nextState;
+
+    if (step == 0) {
+      continue;
+    }
+
+    encoderSteps[index] += step;
+    if (encoderSteps[index] >= IORUBA_ENCODER_STEPS_PER_EVENT) {
+      encoderSteps[index] = 0;
+      sendEncoderEvent(index, 1);
+    } else if (encoderSteps[index] <= -IORUBA_ENCODER_STEPS_PER_EVENT) {
+      encoderSteps[index] = 0;
+      sendEncoderEvent(index, -1);
+    }
+  }
+#endif
 }
 
 void refreshKnobBuffers() {
@@ -324,6 +478,10 @@ void processIncomingSerial() {
       if (commandLength > 0) {
         if (strcmp(commandBuffer, "HELLO?") == 0) {
           sendHandshake();
+        } else if (strcmp(commandBuffer, "EVENTS ON") == 0) {
+          controlEventsEnabled = true;
+        } else if (strcmp(commandBuffer, "EVENTS OFF") == 0) {
+          controlEventsEnabled = false;
         } else if (strncmp(commandBuffer, "CONFIG ", 7) == 0) {
           char payloadBuffer[192];
           strncpy(payloadBuffer, commandBuffer + 7, sizeof(payloadBuffer) - 1);
@@ -355,6 +513,7 @@ void setup() {
   delay(STARTUP_SERIAL_DELAY_MS);
 
   loadControllerConfig();
+  setupControls();
   refreshKnobBuffers();
   sendHandshake();
   sendFrame();
@@ -364,6 +523,7 @@ void loop() {
   const unsigned long now = millis();
 
   processIncomingSerial();
+  readControls(now);
 
   for (int index = 0; index < NUM_KNOBS; index++) {
     const int rawValue = readKnobValue(index);

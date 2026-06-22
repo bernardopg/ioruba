@@ -38,7 +38,8 @@ Foco principal pedido. Hoje só Nano AVR com 3 pinos fixos.
   - `mcu`/`adcBits` adicionados como campos aditivos do handshake; protocolo mantido em v2 (campos opcionais, hosts antigos ignoram, novos assumem 10-bit quando ausentes) — sem quebra de compatibilidade.
 - [x] Detecção automática e exibição do board/MCU no desktop a partir do `board=` do handshake `(frontend/hardware/ux)` - `fácil`
   - Tile "Hardware" no `OverviewSignalPanel` mostra board · MCU + `adcBits`-bit · protocolo (com aviso de incompatibilidade).
-- [ ] Suporte a botões/encoders além de potenciômetros (mute/next/prev) — novo tipo de input no protocolo e perfil `(firmware/shared/expansão)` - `difícil`
+- [x] Suporte a botões/encoders além de potenciômetros (mute/next/prev) — novo tipo de input no protocolo e perfil `(firmware/shared/expansão)` - `difícil`
+  - Firmware aceita `IORUBA_NUM_BUTTONS`/`IORUBA_NUM_ENCODERS`, usa `INPUT_PULLUP`, debounce e quadratura, e só emite `EV type=...` após opt-in `EVENTS ON` para preservar desktops antigos. Shared parseia `EV` button/encoder; perfil ganhou `controls` com bindings `mute`/`next`/`prev`; desktop resolve eventos, executa ações via Tauri (`pactl`/`playerctl` no Linux, mute no Windows) e registra suporte/erros no watch log.
 - [x] Documentar pinagem e matriz de placas suportadas em `docs/guides/hardware-setup.md` `(docs/hardware)` - `fácil`
   - Seção "Supported boards" (tabela MCU/bits/canais/max-knobs/ordem de pinos) + mirror PT-BR.
 

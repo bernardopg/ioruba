@@ -5,6 +5,7 @@ import {
   sliderToAppliedNormalized,
   type AudioInventory,
   type AudioTarget,
+  type ControlAction,
   type MixerProfile,
   type PersistedState,
   type SliderOutcome,
@@ -24,6 +25,12 @@ interface SliderBatchRequest {
 
 interface SliderBatchResponse {
   outcomes: Record<number, SliderOutcome>;
+}
+
+export interface ControlActionOutcome {
+  action: ControlAction;
+  supported: boolean;
+  detail: string;
 }
 
 export interface WatchLogExportResult {
@@ -189,4 +196,10 @@ export async function applySliderTargetsBatch(
   );
 
   return response.outcomes;
+}
+
+export async function dispatchControlAction(
+  action: ControlAction,
+): Promise<ControlActionOutcome> {
+  return invoke<ControlActionOutcome>("dispatch_control_action", { action });
 }

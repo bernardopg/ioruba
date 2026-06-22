@@ -17,6 +17,27 @@ export type AudioTarget =
   | { kind: "source"; name: string }
   | { kind: "sink"; name: string };
 
+export type ControlAction = "mute" | "next" | "prev";
+export type ControlInputKind = "button" | "encoder";
+export type ButtonEventKind = "press" | "release";
+export type EncoderDirection = "clockwise" | "counterclockwise";
+
+export type ControlConfig =
+  | {
+      input: "button";
+      id: number;
+      name: string;
+      event: ButtonEventKind;
+      action: ControlAction;
+    }
+  | {
+      input: "encoder";
+      id: number;
+      name: string;
+      direction: EncoderDirection;
+      action: ControlAction;
+    };
+
 export interface FirmwareCalibration {
   minRaw: number;
   maxRaw: number;
@@ -61,6 +82,7 @@ export interface MixerProfile {
   name: string;
   serial: SerialSettings;
   sliders: SliderConfig[];
+  controls: ControlConfig[];
   audio: AudioSettings;
   firmware: FirmwareSettings;
   ui: UiSettings;
@@ -220,8 +242,31 @@ export type SliderPacket =
   | { kind: "state"; values: number[] }
   | { kind: "delta"; sliderId: number; value: number };
 
+export type ControlEventPacket =
+  | {
+      kind: "control";
+      input: "button";
+      controlId: number;
+      event: ButtonEventKind;
+    }
+  | {
+      kind: "control";
+      input: "encoder";
+      controlId: number;
+      delta: number;
+    };
+
+export interface ControlActionDispatch {
+  action: ControlAction;
+  controlId: number;
+  controlName: string;
+  input: ControlInputKind;
+  detail: string;
+}
+
 export type SerialPacket =
   | SliderPacket
+  | ControlEventPacket
   | { kind: "handshake"; info: FirmwareInfo };
 
 export interface SliderUpdate {

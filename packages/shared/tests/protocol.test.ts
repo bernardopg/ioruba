@@ -125,6 +125,30 @@ describe("serial protocol parity", () => {
     });
   });
 
+  it("parses button control event packets", () => {
+    expect(parseSerialPacket("EV type=button; id=0; event=press")).toEqual({
+      kind: "control",
+      input: "button",
+      controlId: 0,
+      event: "press",
+    });
+  });
+
+  it("parses encoder control event packets", () => {
+    expect(parseSerialPacket("EV type=encoder; id=1; delta=-1")).toEqual({
+      kind: "control",
+      input: "encoder",
+      controlId: 1,
+      delta: -1,
+    });
+  });
+
+  it("rejects control events when parsed as slider frames", () => {
+    expect(() =>
+      parseSliderPacket("EV type=button; id=0; event=press"),
+    ).toThrow("Expected slider packet, received control event data");
+  });
+
   it("flags handshake protocols that diverge from the supported version", () => {
     const packet = parseSerialPacket(
       "HELLO board=Ioruba Nano; fw=9.9.9; protocol=99; knobs=3",

@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import { SerialPort } from "tauri-plugin-serialplugin-api";
 
-import { applySliderTargetsBatch } from "@/lib/backend";
+import { applySliderTargetsBatch, dispatchControlAction } from "@/lib/backend";
 import { classifySerialOpenError, resolveSerialPort } from "@/lib/serial";
 import { useIorubaStore } from "@/store/ioruba-store";
 import {
@@ -170,6 +170,31 @@ export function useSerialRuntime() {
       }, applyDebounceMs);
     };
 
+    const dispatchControlActions = async (
+      actions: ReturnType<typeof processSerialLine>["controlActions"],
+    ) => {
+      for (const action of actions) {
+        try {
+          const outcome = await dispatchControlAction(action.action);
+          appendWatchLog({
+            scope: "serial",
+            level: outcome.supported ? "info" : "warning",
+            message: outcome.supported
+              ? "Acao de controle aplicada"
+              : "Acao de controle indisponivel",
+            detail: `${action.controlName} (${action.detail}) | ${outcome.detail}`,
+          });
+        } catch (error) {
+          appendWatchLog({
+            scope: "serial",
+            level: "error",
+            message: "Falha ao aplicar acao de controle",
+            detail: error instanceof Error ? error.message : String(error),
+          });
+        }
+      }
+    };
+
     const stopDemo = () => {
       if (demoTimerRef.current !== null) {
         window.clearInterval(demoTimerRef.current);
@@ -194,6 +219,25 @@ export function useSerialRuntime() {
           scope: "serial",
           level: "warning",
           message: "Falha ao solicitar handshake do firmware",
+          detail: error instanceof Error ? error.message : String(error),
+        });
+      }
+    };
+
+    const enableControlEvents = async (port: SerialPort, reason: string) => {
+      try {
+        await port.write("EVENTS ON\n");
+        appendWatchLog({
+          scope: "serial",
+          level: "info",
+          message: "Eventos de controle habilitados",
+          detail: `${port.options.path} | ${reason}`,
+        });
+      } catch (error) {
+        appendWatchLog({
+          scope: "serial",
+          level: "warning",
+          message: "Falha ao habilitar eventos de controle",
           detail: error instanceof Error ? error.message : String(error),
         });
       }
@@ -318,6 +362,7 @@ export function useSerialRuntime() {
 
             if (success) {
               void requestFirmwareHandshake(port, `reconnect-${attempt}`);
+              void enableControlEvents(port, `reconnect-${attempt}`);
             }
           },
         });
@@ -347,15 +392,24 @@ export function useSerialRuntime() {
           queueRef.current = queueRef.current
             .then(async () => {
               let hasPendingAudioChanges = false;
+              const controlActions: ReturnType<
+                typeof processSerialLine
+              >["controlActions"] = [];
 
               for (const rawLine of completeLines) {
-                const updates = processSerialLine(rawLine);
+                const result = processSerialLine(rawLine);
                 hasPendingAudioChanges =
-                  stageAudioUpdates(updates) || hasPendingAudioChanges;
+                  stageAudioUpdates(result.sliderUpdates) || hasPendingAudioChanges;
+                if (result.controlActions.length > 0) {
+                  controlActions.push(...result.controlActions);
+                }
               }
 
               if (hasPendingAudioChanges) {
                 scheduleAudioFlush();
+              }
+              if (controlActions.length > 0) {
+                void dispatchControlActions(controlActions);
               }
             })
             .catch((error: unknown) => {
@@ -382,6 +436,7 @@ export function useSerialRuntime() {
         portRef.current = port;
         unsubscribeRef.current = unsubscribe;
         await requestFirmwareHandshake(port, "connect");
+        await enableControlEvents(port, "connect");
         setStatus("connected", "Aguardando handshake do firmware", portPath);
         appendWatchLog({
           scope: "serial",

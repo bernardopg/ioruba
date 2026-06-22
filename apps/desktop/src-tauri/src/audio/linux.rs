@@ -9,8 +9,8 @@ use serde_json::Value;
 
 use super::{
     ApplySliderTargetsRequest, ApplySliderTargetsResponse, AudioEndpoint, AudioError,
-    AudioInventory, AudioTarget, OutcomeSeverity, RuntimeTargetOutcome, SliderOutcome,
-    SliderTargetChange, TargetOutcomeStatus,
+    AudioInventory, AudioTarget, ControlAction, ControlActionOutcome, OutcomeSeverity,
+    RuntimeTargetOutcome, SliderOutcome, SliderTargetChange, TargetOutcomeStatus,
 };
 
 /// Janela durante a qual um snapshot do `pactl` é reusado entre chamadas. Movimentos
@@ -212,6 +212,33 @@ pub fn apply_slider_targets_batch(
     invalidate_snapshot_cache();
 
     Ok(ApplySliderTargetsResponse { outcomes })
+}
+
+pub fn dispatch_control_action(action: ControlAction) -> Result<ControlActionOutcome, AudioError> {
+    match action {
+        ControlAction::Mute => {
+            if !has_pactl() {
+                return Ok(ControlActionOutcome {
+                    action,
+                    supported: false,
+                    detail: "pactl was not found on PATH; cannot toggle default output mute"
+                        .to_string(),
+                });
+            }
+
+            run_command(&["set-sink-mute", "@DEFAULT_SINK@", "toggle"])?;
+            invalidate_snapshot_cache();
+            Ok(ControlActionOutcome {
+                action,
+                supported: true,
+                detail: "Toggled mute on the default output".to_string(),
+            })
+        }
+        ControlAction::Next => run_playerctl_action(action, "next", "Skipped to next media item"),
+        ControlAction::Prev => {
+            run_playerctl_action(action, "previous", "Skipped to previous media item")
+        }
+    }
 }
 
 fn apply_targets(
@@ -516,11 +543,51 @@ fn apply_targets(
 }
 
 fn has_pactl() -> bool {
-    Command::new("pactl")
-        .arg("--version")
+    command_succeeds("pactl", &["--version"])
+}
+
+fn has_playerctl() -> bool {
+    command_succeeds("playerctl", &["--version"])
+}
+
+fn command_succeeds(program: &str, args: &[&str]) -> bool {
+    Command::new(program)
+        .args(args)
         .output()
         .map(|output| output.status.success())
         .unwrap_or(false)
+}
+
+fn run_playerctl_action(
+    action: ControlAction,
+    command: &str,
+    success_detail: &str,
+) -> Result<ControlActionOutcome, AudioError> {
+    if !has_playerctl() {
+        return Ok(ControlActionOutcome {
+            action,
+            supported: false,
+            detail: "playerctl was not found on PATH; install it for media next/prev actions"
+                .to_string(),
+        });
+    }
+
+    let output = Command::new("playerctl")
+        .arg(command)
+        .output()
+        .map_err(|error| AudioError::CommandFailed(error.to_string()))?;
+
+    if output.status.success() {
+        Ok(ControlActionOutcome {
+            action,
+            supported: true,
+            detail: success_detail.to_string(),
+        })
+    } else {
+        Err(AudioError::CommandFailed(
+            String::from_utf8_lossy(&output.stderr).trim().to_string(),
+        ))
+    }
 }
 
 fn run_command(args: &[&str]) -> Result<(), AudioError> {

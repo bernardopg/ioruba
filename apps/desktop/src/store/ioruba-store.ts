@@ -20,6 +20,8 @@ import {
   SUPPORTED_PROTOCOL_VERSION,
   updateSessionStats,
   type AudioInventory,
+  type ControlActionDispatch,
+  type ControlEventPacket,
   type FirmwareInfo,
   type OutcomeMap,
   type PersistedState,
@@ -56,6 +58,11 @@ import { type WatchLogEntry, type WatchLogInput } from "@/lib/watch";
 type ConnectionMode = "idle" | "serial" | "demo";
 
 const WATCH_LOG_LIMIT = 300;
+
+interface SerialProcessingResult {
+  sliderUpdates: SliderUpdate[];
+  controlActions: ControlActionDispatch[];
+}
 
 interface IorubaState {
   hydrated: boolean;
@@ -114,7 +121,7 @@ interface IorubaState {
   setConfigDraft: (draft: string) => void;
   applyConfigDraft: () => void;
   resetProfile: () => void;
-  processSerialLine: (rawLine: string) => SliderUpdate[];
+  processSerialLine: (rawLine: string) => SerialProcessingResult;
   commitAppliedResults: (updates: SliderUpdate[], outcomes: OutcomeMap) => void;
   runDemoStep: () => void;
 }
@@ -223,6 +230,39 @@ function createFallbackOutcome(summary = "target updated"): SliderOutcome {
 
 function outcomeSummary(outcome: SliderOutcome | undefined): string {
   return outcome?.summary ?? "target updated";
+}
+
+function resolveControlActions(
+  profile: MixerProfile,
+  packet: ControlEventPacket,
+): ControlActionDispatch[] {
+  return (profile.controls ?? [])
+    .filter((control) => {
+      if (control.input !== packet.input || control.id !== packet.controlId) {
+        return false;
+      }
+
+      if (control.input === "button" && packet.input === "button") {
+        return control.event === packet.event;
+      }
+
+      if (control.input === "encoder" && packet.input === "encoder") {
+        const direction = packet.delta > 0 ? "clockwise" : "counterclockwise";
+        return control.direction === direction;
+      }
+
+      return false;
+    })
+    .map((control) => ({
+      action: control.action,
+      controlId: control.id,
+      controlName: control.name,
+      input: control.input,
+      detail:
+        control.input === "button"
+          ? `${control.event} -> ${control.action}`
+          : `${control.direction} -> ${control.action}`,
+    }));
 }
 
 function appendWatchEntry(
@@ -970,7 +1010,40 @@ export const useIorubaStore = create<IorubaState>((rawSet, get) => {
           });
         }
 
-        return [];
+        return { sliderUpdates: [], controlActions: [] };
+      }
+
+      if (packet.kind === "control") {
+        const controlActions = resolveControlActions(activeProfile, packet);
+        const detail =
+          packet.input === "button"
+            ? `button:${packet.controlId} ${packet.event}`
+            : `encoder:${packet.controlId} delta=${packet.delta}`;
+
+        get().appendWatchLog({
+          scope: "serial",
+          level: controlActions.length > 0 ? "info" : "warning",
+          message:
+            controlActions.length > 0
+              ? "Evento de controle recebido"
+              : "Evento de controle sem binding no perfil",
+          detail,
+        });
+
+        set({
+          lastSerialLine: rawLine,
+          lastFrameAt: Date.now(),
+          snapshot: createSnapshot({
+            ...state,
+            lastSerialLine: rawLine,
+            status: "connected",
+            statusText: `Controle recebido | ${detail}`,
+            connectionPort: state.snapshot.connectionPort,
+            connectionMode: state.connectionMode,
+          }),
+        });
+
+        return { sliderUpdates: [], controlActions };
       }
 
       // Resolução do ADC reportada pela placa (handshake `adcBits`); 10-bit por
@@ -1066,7 +1139,7 @@ export const useIorubaStore = create<IorubaState>((rawSet, get) => {
         });
       }
 
-      return updates;
+      return { sliderUpdates: updates, controlActions: [] };
     },
     commitAppliedResults: (updates, nextOutcomes) => {
       const state = get();

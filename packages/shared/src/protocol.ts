@@ -1,5 +1,6 @@
 import { MAX_SUPPORTED_ADC_VALUE } from "./mixer";
 import type {
+  ControlEventPacket,
   FirmwareCalibration,
   FirmwareControllerConfig,
   FirmwareInfo,
@@ -9,6 +10,7 @@ import type {
 } from "./types";
 
 const handshakePrefix = "HELLO";
+const controlEventPrefix = "EV";
 
 /**
  * Versão de protocolo serial que este desktop entende plenamente. O firmware
@@ -57,6 +59,10 @@ export function parseSliderPacket(payload: string | Uint8Array): SliderPacket {
     throw new Error("Expected slider packet, received handshake data");
   }
 
+  if (packet.kind === "control") {
+    throw new Error("Expected slider packet, received control event data");
+  }
+
   return packet;
 }
 
@@ -73,6 +79,11 @@ export function parseSerialPacket(payload: string | Uint8Array): SerialPacket {
       kind: "handshake",
       info: handshake
     };
+  }
+
+  const controlEvent = parseControlEventPacket(clean);
+  if (controlEvent) {
+    return controlEvent;
   }
 
   const legacyMatch = parseLegacySliderPacket(clean);
@@ -267,6 +278,85 @@ function parseHandshakePacket(payload: string): FirmwareInfo | null {
   };
 }
 
+function parseControlEventPacket(payload: string): ControlEventPacket | null {
+  const normalized = payload.trimStart();
+  if (!normalized.toUpperCase().startsWith(`${controlEventPrefix} `)) {
+    return null;
+  }
+
+  const eventPayload = normalized.slice(controlEventPrefix.length).trimStart();
+  if (!eventPayload) {
+    throw new Error("Missing control event payload");
+  }
+
+  const fields = parseKeyValueFields(eventPayload, "control event");
+  const input = fields.input ?? fields.type;
+  const idValue = fields.id;
+
+  if (input !== "button" && input !== "encoder") {
+    throw new Error(`Invalid control event input: ${input ?? "missing"}`);
+  }
+
+  if (idValue === undefined) {
+    throw new Error("Missing control event id");
+  }
+
+  const controlId = parseNonNegativeInteger(idValue, "control event id");
+
+  if (input === "button") {
+    const event = fields.event;
+    if (event !== "press" && event !== "release") {
+      throw new Error(`Invalid button event: ${event ?? "missing"}`);
+    }
+
+    return {
+      kind: "control",
+      input,
+      controlId,
+      event
+    };
+  }
+
+  const deltaValue = fields.delta;
+  if (deltaValue === undefined) {
+    throw new Error("Missing encoder delta");
+  }
+
+  const delta = parseSignedInteger(deltaValue, "encoder delta");
+  if (delta === 0) {
+    throw new Error("Invalid encoder delta: 0");
+  }
+
+  return {
+    kind: "control",
+    input,
+    controlId,
+    delta
+  };
+}
+
+function parseKeyValueFields(payload: string, label: string): Record<string, string> {
+  return payload
+    .split(";")
+    .map((entry) => entry.trim())
+    .filter(Boolean)
+    .reduce<Record<string, string>>((accumulator, entry) => {
+      const separatorIndex = entry.indexOf("=");
+      if (separatorIndex <= 0) {
+        throw new Error(`Invalid ${label} field: ${entry}`);
+      }
+
+      const key = entry.slice(0, separatorIndex).trim().toLowerCase();
+      const value = entry.slice(separatorIndex + 1).trim().toLowerCase();
+      if (!value) {
+        throw new Error(`Missing ${label} value for ${key}`);
+      }
+
+      accumulator[key] = value;
+      return accumulator;
+    }, {});
+}
+
 function parseControllerConfig(
   fields: Record<string, string>
 ): FirmwareControllerConfig | null {
@@ -335,6 +425,19 @@ function parseCalibrationList(value: string | undefined, label: string): number[
 function parseNonNegativeInteger(value: string, label: string): number {
   const parsed = Number.parseInt(value, 10);
   if (!Number.isInteger(parsed) || parsed < 0) {
+    throw new Error(`Invalid ${label}: ${value}`);
+  }
+
+  return parsed;
+}
+
+function parseSignedInteger(value: string, label: string): number {
+  if (!/^-?[0-9]+$/.test(value)) {
+    throw new Error(`Invalid ${label}: ${value}`);
+  }
+
+  const parsed = Number.parseInt(value, 10);
+  if (!Number.isInteger(parsed)) {
     throw new Error(`Invalid ${label}: ${value}`);
   }
 

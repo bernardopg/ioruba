@@ -4,6 +4,7 @@ import {
 } from "./defaults";
 import type {
   AudioTarget,
+  ControlConfig,
   MixerProfile,
   PersistedState,
   SliderConfig
@@ -75,6 +76,12 @@ function normalizeProfile(candidate: Partial<MixerProfile>): MixerProfile | null
     return null;
   }
 
+  const controls = Array.isArray(candidate.controls)
+    ? candidate.controls
+        .map(normalizeControl)
+        .filter((control): control is ControlConfig => control !== null)
+    : [];
+
   return {
     id: candidate.id,
     name: candidate.name,
@@ -124,7 +131,8 @@ function normalizeProfile(candidate: Partial<MixerProfile>): MixerProfile | null
           ? candidate.ui.telemetryWindow
           : 120
     },
-    sliders
+    sliders,
+    controls
   };
 }
 
@@ -185,6 +193,51 @@ function normalizeTarget(candidate: Partial<AudioTarget>): AudioTarget | null {
   }
 }
 
+function normalizeControl(candidate: Partial<ControlConfig>): ControlConfig | null {
+  if (
+    typeof candidate.id !== "number" ||
+    typeof candidate.name !== "string" ||
+    (candidate.action !== "mute" &&
+      candidate.action !== "next" &&
+      candidate.action !== "prev")
+  ) {
+    return null;
+  }
+
+  if (candidate.input === "button") {
+    if (candidate.event !== "press" && candidate.event !== "release") {
+      return null;
+    }
+
+    return {
+      input: "button",
+      id: candidate.id,
+      name: candidate.name,
+      event: candidate.event,
+      action: candidate.action
+    };
+  }
+
+  if (candidate.input === "encoder") {
+    if (
+      candidate.direction !== "clockwise" &&
+      candidate.direction !== "counterclockwise"
+    ) {
+      return null;
+    }
+
+    return {
+      input: "encoder",
+      id: candidate.id,
+      name: candidate.name,
+      direction: candidate.direction,
+      action: candidate.action
+    };
+  }
+
+  return null;
+}
+
 function clonePersistedState(state: PersistedState): PersistedState {
   return {
     ...state,
@@ -219,6 +272,7 @@ function cloneProfile(profile: MixerProfile): MixerProfile {
           }
         : undefined,
       targets: slider.targets.map((target) => ({ ...target }))
-    }))
+    })),
+    controls: (profile.controls ?? []).map((control) => ({ ...control }))
   };
 }

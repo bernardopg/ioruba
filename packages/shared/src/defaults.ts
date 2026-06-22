@@ -45,6 +45,7 @@ export const defaultProfile: MixerProfile = {
       }
     }
   ],
+  controls: [],
   audio: {
     noiseReduction: "default",
     smoothTransitions: true,

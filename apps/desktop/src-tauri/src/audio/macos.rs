@@ -4,8 +4,8 @@ use std::{mem, ptr};
 
 use super::{
     ApplySliderTargetsRequest, ApplySliderTargetsResponse, AudioEndpoint, AudioError,
-    AudioInventory, AudioTarget, OutcomeSeverity, RuntimeTargetOutcome, SliderOutcome,
-    TargetOutcomeStatus,
+    AudioInventory, AudioTarget, ControlAction, ControlActionOutcome, OutcomeSeverity,
+    RuntimeTargetOutcome, SliderOutcome, TargetOutcomeStatus,
 };
 
 // CoreAudio is a thin, stable C API, so we bind the small surface we need by
@@ -183,6 +183,14 @@ pub fn apply_slider_targets_batch(
         .collect::<HashMap<_, _>>();
 
     Ok(ApplySliderTargetsResponse { outcomes })
+}
+
+pub fn dispatch_control_action(action: ControlAction) -> Result<ControlActionOutcome, AudioError> {
+    Ok(ControlActionOutcome {
+        action,
+        supported: false,
+        detail: "macOS control actions are not implemented yet".to_string(),
+    })
 }
 
 fn default_output_device() -> Result<AudioObjectId, AudioError> {

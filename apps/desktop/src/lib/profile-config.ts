@@ -3,6 +3,8 @@ import {
   defaultProfile,
   resolveActiveProfile,
   type AudioTarget,
+  type ControlAction,
+  type ControlConfig,
   type FirmwareCalibration,
   type FirmwareSettings,
   type MixerPresetDefinition,
@@ -78,6 +80,11 @@ export function parseProfileDraft(draft: string): DraftValidationResult {
     return sliders;
   }
 
+  const controls = parseControls(parsed.controls);
+  if (!controls.ok) {
+    return controls;
+  }
+
   return {
     ok: true,
     value: {
@@ -88,6 +95,7 @@ export function parseProfileDraft(draft: string): DraftValidationResult {
       firmware: firmware.value,
       ui: ui.value,
       sliders: sliders.value,
+      controls: controls.value,
     },
   };
 }
@@ -120,6 +128,7 @@ export function cloneProfile(profile: MixerProfile): MixerProfile {
         : undefined,
       targets: slider.targets.map((target) => ({ ...target })),
     })),
+    controls: (profile.controls ?? []).map((control) => ({ ...control })),
   };
 }
 
@@ -527,6 +536,119 @@ function parseSlider(
     targets: targets.value,
     inverted,
     calibration: calibration.value,
+  });
+}
+
+function parseControls(
+  candidate: unknown,
+): ValidationSuccess<ControlConfig[]> | ValidationFailure {
+  if (candidate === undefined) {
+    return success([]);
+  }
+
+  if (!Array.isArray(candidate)) {
+    return failure("controls precisa ser uma lista");
+  }
+
+  const controls: ControlConfig[] = [];
+  const seenKeys = new Set<string>();
+
+  for (let index = 0; index < candidate.length; index += 1) {
+    const controlResult = parseControl(candidate[index], `controls[${index}]`);
+    if (!controlResult.ok) {
+      return controlResult;
+    }
+
+    const key = `${controlResult.value.input}:${controlResult.value.id}:${
+      controlResult.value.input === "button"
+        ? controlResult.value.event
+        : controlResult.value.direction
+    }`;
+    if (seenKeys.has(key)) {
+      return failure(`controls[${index}] duplica o binding ${key}`);
+    }
+
+    seenKeys.add(key);
+    controls.push(controlResult.value);
+  }
+
+  return success(controls);
+}
+
+function parseControl(
+  candidate: unknown,
+  path: string,
+): ValidationSuccess<ControlConfig> | ValidationFailure {
+  if (!isRecord(candidate)) {
+    return failure(`${path} precisa ser um objeto`);
+  }
+
+  const input = readEnum(
+    candidate.input,
+    `${path}.input`,
+    ["button", "encoder"] as const,
+    "button",
+  );
+  if (!input.ok) {
+    return input;
+  }
+
+  const id = readNonNegativeInteger(candidate.id, `${path}.id`);
+  if (!id.ok) {
+    return id;
+  }
+
+  const name = readString(candidate.name, `${path}.name`);
+  if (!name.ok) {
+    return name;
+  }
+
+  const action = readEnum(
+    candidate.action,
+    `${path}.action`,
+    ["mute", "next", "prev"] as const,
+    "mute",
+  );
+  if (!action.ok) {
+    return action;
+  }
+
+  if (input.value === "button") {
+    const event = readEnum(
+      candidate.event,
+      `${path}.event`,
+      ["press", "release"] as const,
+      "press",
+    );
+    if (!event.ok) {
+      return event;
+    }
+
+    return success({
+      input: "button",
+      id: id.value,
+      name: name.value,
+      event: event.value,
+      action: action.value as ControlAction,
+    });
+  }
+
+  const direction = readEnum(
+    candidate.direction,
+    `${path}.direction`,
+    ["clockwise", "counterclockwise"] as const,
+    "clockwise",
+  );
+  if (!direction.ok) {
+    return direction;
+  }
+
+  return success({
+    input: "encoder",
+    id: id.value,
+    name: name.value,
+    direction: direction.value,
+    action: action.value as ControlAction,
   });
 }
 

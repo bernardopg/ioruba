@@ -56,6 +56,54 @@ describe("profile config", () => {
     }
   });
 
+  it("parses button and encoder control bindings", () => {
+    const draft = JSON.stringify(
+      {
+        ...defaultProfile,
+        controls: [
+          {
+            input: "button",
+            id: 0,
+            name: "Mute",
+            event: "press",
+            action: "mute",
+          },
+          {
+            input: "encoder",
+            id: 0,
+            name: "Track encoder",
+            direction: "clockwise",
+            action: "next",
+          },
+        ],
+      },
+      null,
+      2,
+    );
+
+    const result = parseProfileDraft(draft);
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value.controls).toEqual([
+        {
+          input: "button",
+          id: 0,
+          name: "Mute",
+          event: "press",
+          action: "mute",
+        },
+        {
+          input: "encoder",
+          id: 0,
+          name: "Track encoder",
+          direction: "clockwise",
+          action: "next",
+        },
+      ]);
+    }
+  });
+
   it("reports line and column for malformed JSON drafts", () => {
     const result = parseProfileDraft('{\n  "id": "broken",\n  "name": \n}');
 

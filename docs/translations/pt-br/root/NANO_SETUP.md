@@ -35,7 +35,7 @@ Use o sketch ativo:
 
 O que ele envia:
 
-- handshake de inicializacao e sob demanda como HELLO board=Ioruba Nano; fw=0.5.0; protocol=2; knobs=3; threshold=4; deadzone=7; smooth=75; mins=0,0,0; maxs=1023,1023,1023
+- handshake de inicializacao e sob demanda como HELLO board=Ioruba Nano; fw=0.5.1; protocol=2; knobs=3; threshold=4; deadzone=7; smooth=75; mins=0,0,0; maxs=1023,1023,1023
 - leituras analogicas suavizadas
 - frames aproximadamente a cada 40 ms quando os valores mudam
 - linhas separadas por pipe como 512|768|1023
@@ -94,7 +94,7 @@ arduino-cli upload -p /dev/ttyUSB0 --fqbn arduino:avr:nano:cpu=atmega328old firm
 Depois do flash, a placa deve emitir linhas como:
 
 ```text
-HELLO board=Ioruba Nano; fw=0.5.0; protocol=2; knobs=3; threshold=4; deadzone=7; smooth=75; mins=0,0,0; maxs=1023,1023,1023
+HELLO board=Ioruba Nano; fw=0.5.1; protocol=2; knobs=3; threshold=4; deadzone=7; smooth=75; mins=0,0,0; maxs=1023,1023,1023
 512|768|1023
 ```
 

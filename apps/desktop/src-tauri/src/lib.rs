@@ -102,6 +102,16 @@ fn list_audio_inventory() -> Result<audio::AudioInventory, String> {
 }
 
 #[tauri::command]
+async fn dispatch_control_action(
+    action: audio::ControlAction,
+) -> Result<audio::ControlActionOutcome, String> {
+    tauri::async_runtime::spawn_blocking(move || audio::dispatch_control_action(action))
+        .await
+        .map_err(|error| error.to_string())?
+        .map_err(|error| error.to_string())
+}
+
+#[tauri::command]
 fn load_watch_log_entries(app: tauri::AppHandle) -> Result<Vec<watch::WatchLogEntry>, String> {
     let _guard = watch::watch_log_lock()
         .lock()
@@ -679,6 +689,7 @@ pub fn run() {
             export_watch_log,
             export_profile,
             export_session_stats,
+            dispatch_control_action,
             import_profile,
             get_launch_on_login_enabled,
             set_launch_on_login_enabled

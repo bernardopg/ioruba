@@ -2,8 +2,8 @@ use std::collections::HashMap;
 
 use super::{
     ApplySliderTargetsRequest, ApplySliderTargetsResponse, AudioEndpoint, AudioError,
-    AudioInventory, AudioTarget, OutcomeSeverity, RuntimeTargetOutcome, SliderOutcome,
-    TargetOutcomeStatus,
+    AudioInventory, AudioTarget, ControlAction, ControlActionOutcome, OutcomeSeverity,
+    RuntimeTargetOutcome, SliderOutcome, TargetOutcomeStatus,
 };
 
 pub fn list_audio_inventory() -> AudioInventory {
@@ -48,6 +48,14 @@ pub fn apply_slider_targets_batch(
         .collect::<HashMap<_, _>>();
 
     Ok(ApplySliderTargetsResponse { outcomes })
+}
+
+pub fn dispatch_control_action(action: ControlAction) -> Result<ControlActionOutcome, AudioError> {
+    Ok(ControlActionOutcome {
+        action,
+        supported: false,
+        detail: "No native control-action backend is implemented for this platform".to_string(),
+    })
 }
 
 fn describe_target(target: &AudioTarget) -> String {

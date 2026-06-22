@@ -71,7 +71,7 @@ Formato atual esperado:
 O firmware atual le as tres entradas analogicas, persiste ajuste e calibracao em EEPROM e emite linhas como:
 
 ```text
-HELLO board=Ioruba Nano; fw=0.5.0; protocol=2; knobs=3; threshold=4; deadzone=7; smooth=75; mins=0,0,0; maxs=1023,1023,1023
+HELLO board=Ioruba Nano; fw=0.5.1; protocol=2; knobs=3; threshold=4; deadzone=7; smooth=75; mins=0,0,0; maxs=1023,1023,1023
 512|768|1023
 ```
 
