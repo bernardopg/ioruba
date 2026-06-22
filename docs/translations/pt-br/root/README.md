@@ -71,7 +71,6 @@ O projeto preserva a sensação prática de um mixer pequeno enquanto moderniza 
 - **Backend Linux** – implementação em Rust usando `pactl`
 - **Persistência** – perfis JSON no diretório de configuração do app
 - **CI** – valida TypeScript, Rust e compilação do firmware
-- **Legado** – protótipo Python/GTK arquivado em `legacy/`
 
 ## ✅ O que você recebe hoje
 
@@ -268,8 +267,6 @@ O app desktop persiste dois arquivos no diretório de configuração da platafor
 | `packages/shared`                    | Tipos de domínio, defaults, matemática de runtime e parsing de protocolo. |
 | `firmware/arduino/ioruba-controller` | Firmware Arduino para placas compatíveis com Nano. |
 | `docs/guides`                        | Guias práticos (hardware, Nano, perfis, traduções). |
-| `docs/migration`                     | Planejamento de migração e auditoria de paridade. |
-| `legacy`                             | Protótipo Python/GTK arquivado e histórico. |
 | `docs/debug/support.md`              | Playbook de suporte para serial, áudio e perfis. |
 | `TESTING.md`                         | Checks automatizados, smoke tests e matriz de validação de release. |
 
@@ -285,21 +282,9 @@ O app desktop persiste dois arquivos no diretório de configuração da platafor
 | [docs/translations/pt-br/README.md](../README.md)| Índice de tradução em português para docs e manuais da raiz. |
 | [docs/debug/support.md](../debug/support.md)                    | Troubleshooting serial, áudio e perfil. |
 | [TESTING.md](./TESTING.md)                                          | Checks automatizados, smoke tests e validação de release. |
-| [docs/migration/logic-audit.md](../migration/logic-audit.md)    | Cobertura de paridade com implementação Python/GTK arquivada. |
 | [CONTRIBUTING.md](./CONTRIBUTING.md)                                | Diretrizes de contribuição (código, docs, tradução etc.). |
 | [FUNDING.md](./FUNDING.md)                                          | Como apoiar o projeto (GitHub Sponsors, Buy Me a Coffee etc.). |
 | [TODO.md](./TODO.md)                                                | Roadmap e próximas features. |
-
-## 🗃️ Arquivo legado
-
-O repositório mantém uma implementação arquivada para referência histórica:
-
-- `legacy/arduino-audio-controller`
-
-Contexto de migração detalhado fica em `docs/migration`. A superfície **ativa** do produto está em:
-- `apps/desktop`
-- `packages/shared`
-- `firmware/arduino/ioruba-controller`
 
 ## 📜 Licença
 

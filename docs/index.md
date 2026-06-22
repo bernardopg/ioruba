@@ -31,12 +31,6 @@ This GitHub Pages hub is organized for the real path users take in the project:
 - [Roadmap](../TODO.md)
 - [Changelog](../CHANGELOG.md)
 
-## Migration notes
-
-- [Complete migration plan](migration/complete-plan.md)
-- [GitHub migration plan](migration/github-plan.md)
-- [Logic parity audit](migration/logic-audit.md)
-
 ## Portuguese docs
 
 - [PT-BR index](translations/pt-br/README.md)

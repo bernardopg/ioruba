@@ -9,8 +9,6 @@ O caminho atual do produto vive em:
 - packages/shared para logica de protocolo e runtime compartilhada pela UI
 - firmware/arduino/ioruba-controller para o firmware Arduino
 
-Tudo que esta em legacy/ e material de referencia arquivado e so deve ser alterado quando voce estiver documentando ou comparando comportamento antigo.
-
 ## Setup local
 
 Instale as dependencias:
@@ -45,11 +43,11 @@ arduino-cli compile --fqbn arduino:avr:nano firmware/arduino/ioruba-controller
 
 ## Workflow
 
-1. Mantenha as mudancas focadas na stack ativa, a menos que a tarefa mire explicitamente legacy/.
+1. Mantenha as mudancas focadas na stack ativa.
 2. Atualize docs quando caminhos, comandos ou comportamento de runtime mudarem.
 3. Prefira adicionar testes junto de packages/shared, apps/desktop ou apps/desktop/src-tauri quando houver mudanca de comportamento.
 4. Regenere assets gerados, incluindo icones desktop, sempre que os arquivos-fonte mudarem.
-5. Nao reintroduza arquivos Haskell na raiz nem tooling antigo de release fora de legacy/.
+5. Nao reintroduza arquivos Haskell na raiz nem tooling antigo de release.
 
 ## Pull requests
 

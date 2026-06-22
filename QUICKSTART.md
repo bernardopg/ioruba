@@ -394,4 +394,3 @@ Any desktop that implements the StatusNotifierItem/AppIndicator protocol should 
 - [docs/guides/profile-examples.md](docs/guides/profile-examples.md) for JSON profile samples
 - [docs/debug/support.md](docs/debug/support.md) for troubleshooting playbooks
 - [TESTING.md](TESTING.md) for the validation matrix
-- [docs/migration/logic-audit.md](docs/migration/logic-audit.md) for migration parity coverage

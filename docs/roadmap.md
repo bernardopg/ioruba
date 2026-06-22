@@ -1,7 +1,7 @@
 # Roadmap de produto
 
 Documento vivo de metas de produto além da paridade com o protótipo legado
-(Python/GTK em `legacy/`). Atualizado em 2026-06-13.
+(Python/GTK, aposentado). Atualizado em 2026-06-13.
 
 ## Onde estamos
 
@@ -69,6 +69,5 @@ estão majoritariamente fechados (ver `TODO.md`).
 
 ## Não-objetivos
 
-- Reescrever ou estender o protótipo `legacy/` (apenas referência histórica).
 - Suporte completo a áudio em plataformas sem backend real implementado — nessas, o
   app roda em modo UI/demo ou suporte parcial com banners explícitos.

@@ -38,12 +38,6 @@ This GitHub Pages hub is organized for the real path users take in the project:
 - [Roadmap](root/TODO.html) — upcoming features
 - [Changelog](root/CHANGELOG.html) — release history
 
-## 🔄 Migration notes
-
-- [Complete Migration Plan](migration/complete-plan.html)
-- [GitHub Migration Plan](migration/github-plan.html)
-- [Logic Parity Audit](migration/logic-audit.html)
-
 ## 🌐 Portuguese docs
 
 - [PT-BR Index](translations/pt-br/README.html)

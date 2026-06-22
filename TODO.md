@@ -111,6 +111,5 @@ Hoje Windows/macOS só controlam `master`. Linux tem cobertura completa.
 
 ## Não-objetivos
 
-- Reescrever ou estender o protótipo `legacy/` (apenas referência histórica).
-- Reintroduzir tooling de build na raiz fora de `legacy/`.
+- Reintroduzir tooling de build na raiz fora de `apps/`/`packages/`/`firmware/`.
 - Cobertura completa de áudio em plataformas sem backend nativo — nesses casos, modo UI/demo ou suporte parcial com banners explícitos.

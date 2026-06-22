@@ -297,11 +297,8 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Validate migration docs
+      - name: Validate core files
         run: |
-          test -f docs/migration/complete-plan.md
-          test -f docs/migration/github-plan.md
-          test -f docs/migration/logic-audit.md
           test -f firmware/arduino/ioruba-controller/ioruba-controller.ino
           test -f apps/desktop/src-tauri/tauri.conf.json
 
@@ -311,14 +308,12 @@ jobs:
           test -f .github/workflows/release.yml
           test -f .github/workflows/pages.yml
           test -f CONTRIBUTING.md
-          test -f legacy/README.md
-          test -f legacy/arduino-audio-controller/README.md
           test -f docs/guides/profile-examples.md
           test -f docs/debug/support.md
           test -f docs-site/_config.yml
           test -f scripts/build-pages.mjs
-          test ! -d legacy/haskell-runtime
-          test ! -d legacy/github-automation
+          test ! -d legacy
+          test ! -d docs/migration
           test ! -f .github/workflows/release-please.yml
           test ! -f .github/workflows/sync-metadata.yml
           test ! -d app

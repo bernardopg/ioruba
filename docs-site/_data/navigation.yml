@@ -35,14 +35,6 @@ en:
         url: /root/TODO.html
       - title: Funding
         url: /root/FUNDING.html
-  - section: Migration
-    items:
-      - title: Complete plan
-        url: /migration/complete-plan.html
-      - title: GitHub plan
-        url: /migration/github-plan.html
-      - title: Logic audit
-        url: /migration/logic-audit.html
   - section: Languages
     items:
       - title: PT-BR index

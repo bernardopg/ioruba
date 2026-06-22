@@ -22,9 +22,3 @@ Este diretorio contem a traducao da documentacao que fica em docs/.
 ## Depuracao e suporte
 
 - [Support Playbook](../../debug/support.md) -> [Playbook de Suporte](./debug/support.md)
-
-## Migracao
-
-- [Complete Migration Plan](../../migration/complete-plan.md) -> [Plano Completo de Migracao](./migration/complete-plan.md)
-- [GitHub Repository Migration Plan](../../migration/github-plan.md) -> [Plano de Migracao do Repositorio GitHub](./migration/github-plan.md)
-- [Legacy Logic Audit](../../migration/logic-audit.md) -> [Auditoria da Logica Legada](./migration/logic-audit.md)

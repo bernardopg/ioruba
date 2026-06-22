@@ -262,4 +262,3 @@ O macOS tem suporte parcial de audio: alvos `master` controlam o volume da saida
 - [docs/guides/profile-examples.md](../../guides/profile-examples.md) para amostras de JSON de perfil
 - [docs/debug/support.md](../../debug/support.md) para playbook de troubleshooting
 - [TESTING.md](./TESTING.md) para matriz de validacao
-- [docs/migration/logic-audit.md](../../migration/logic-audit.md) para cobertura de paridade da migracao

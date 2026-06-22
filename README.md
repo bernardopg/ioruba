@@ -336,8 +336,6 @@ The desktop app persists two files in the platform-specific config directory:
 | `packages/shared`                    | Shared domain types, defaults, runtime math, protocol parsing.           |
 | `firmware/arduino/ioruba-controller` | Arduino firmware for Nano-compatible boards.                             |
 | `docs/guides`                        | Practical setup guides (hardware, Nano, profiles, translations).         |
-| `docs/migration`                     | Migration planning and parity audit material.                            |
-| `legacy`                             | Archived Python/GTK prototype and historical leftovers (reference only). |
 | `docs/debug/support.md`              | Support playbook for serial, audio, and profile-debug issues.            |
 | `TESTING.md`                         | Automated checks, smoke tests, release validation matrix.                |
 
@@ -355,7 +353,6 @@ The desktop app persists two files in the platform-specific config directory:
 | [docs/translations/pt-br/README.md](docs/translations/pt-br/README.md) | Portuguese translation index for docs and root manuals.                |
 | [docs/debug/support.md](docs/debug/support.md)                         | Troubleshooting serial, audio, and profile-related issues.             |
 | [TESTING.md](TESTING.md)                                               | Automated checks, smoke tests, and release validation.                 |
-| [docs/migration/logic-audit.md](docs/migration/logic-audit.md)         | Parity coverage against the archived Python/GTK implementation.        |
 | [TODO.md](TODO.md)                                                     | Roadmap of upcoming features.                                          |
 
 ---
@@ -370,8 +367,6 @@ If Ioruba is useful to you, consider supporting development:
 [![Buy Me a Coffee](https://img.shields.io/badge/Buy%20Me%20a%20Coffee-FFDD00?logo=buy-me-a-coffee&logoColor=black)](https://www.buymeacoffee.com/WctwoM9eMU)
 
 See [FUNDING.md](FUNDING.md) for details.
-
-> **Legacy archive:** `legacy/arduino-audio-controller` retains the original Python/GTK prototype for historical reference. The **active** product surface is `apps/desktop`, `packages/shared`, and `firmware/arduino/ioruba-controller` — never extend the legacy tree. Deeper migration context lives in `docs/migration`.
 
 ---
 

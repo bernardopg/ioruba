@@ -49,7 +49,6 @@ Data flow: firmware → serial → shared protocol parsing → Zustand store →
   - `lib/profile-config.ts` — JSON profile editing/validation.
   - `lib/i18n.ts` — translations (en/pt-BR).
 - **`apps/desktop/src-tauri/src/`** — Rust backend: `lib.rs` (Tauri commands, persistence of `ioruba-state.json`), `watch.rs` (structured watch log, auto-trimmed ~1 MiB), `audio/linux.rs` (pactl backend: master/application/source/sink targets), `audio/unsupported.rs` (mac/win stub).
-- **`legacy/`** — archived Python/GTK prototype. Reference only; never extend it, and don't reintroduce old root-level build tooling outside `legacy/`.
 
 App data lives in the platform config dir (Linux: `~/.config/io.ioruba.desktop/`): `ioruba-state.json` and `ioruba-watch.log`.
 

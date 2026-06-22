@@ -9,8 +9,6 @@ The current product path lives in:
 - `packages/shared` for protocol and runtime logic shared by the UI
 - `firmware/arduino/ioruba-controller` for the Arduino firmware
 
-Anything under `legacy/` is archived reference material and should only be touched when you are documenting or comparing past behavior.
-
 ## Local setup
 
 Install dependencies:
@@ -45,11 +43,11 @@ arduino-cli compile --fqbn arduino:avr:nano firmware/arduino/ioruba-controller
 
 ## Workflow
 
-1. Keep changes focused on the active stack unless the task explicitly targets `legacy/`.
+1. Keep changes focused on the active stack.
 2. Update docs when paths, commands, or runtime behavior change.
 3. Prefer adding tests alongside `packages/shared`, `apps/desktop`, or `apps/desktop/src-tauri` when behavior changes.
 4. Regenerate generated assets, including desktop icons, whenever their source files change.
-5. Do not reintroduce root-level Haskell build files or old release tooling outside `legacy/`.
+5. Do not reintroduce root-level Haskell build files or old release tooling.
 
 ## Pull requests
 

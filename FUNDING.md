@@ -26,7 +26,7 @@ Support goes toward:
 
 - hardening the Tauri desktop shell and Linux audio backend
 - improving firmware compatibility across Nano variants
-- maintaining CI, release automation, and migration documentation
+- maintaining CI, release automation, and documentation
 
 ## Contact
 
