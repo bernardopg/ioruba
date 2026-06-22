@@ -1,0 +1,39 @@
+name: Setup Arduino CLI
+description: >-
+  Install a pinned arduino-cli binary on a Linux x86_64 runner. Replaces
+  arduino/setup-arduino-cli (whose latest release still targets the deprecated
+  Node 20 runtime) with a direct download, removing the runner deprecation
+  warnings from every firmware job.
+
+inputs:
+  version:
+    description: arduino-cli release version (without the leading "v").
+    required: false
+    default: "1.5.1"
+
+runs:
+  using: composite
+  steps:
+    - name: Download and install arduino-cli ${{ inputs.version }}
+      shell: bash
+      run: |
+        set -euo pipefail
+        VERSION="${{ inputs.version }}"
+        INSTALL_DIR="$HOME/.arduino-cli-bin"
+        mkdir -p "$INSTALL_DIR"
+
+        # All firmware jobs run on ubuntu-latest (x86_64), so Linux_64bit is the
+        # only asset we need. Bump the input to move arduino-cli forward.
+        tmpdir="$(mktemp -d)"
+        curl -fsSL \
+          "https://github.com/arduino/arduino-cli/releases/download/v${VERSION}/arduino-cli_${VERSION}_Linux_64bit.tar.gz" \
+          -o "$tmpdir/arduino-cli.tar.gz"
+        tar -xzf "$tmpdir/arduino-cli.tar.gz" -C "$tmpdir" arduino-cli
+        install -m 0755 "$tmpdir/arduino-cli" "$INSTALL_DIR/arduino-cli"
+
+        # Prepends to PATH for every subsequent step in the calling job.
+        echo "$INSTALL_DIR" >> "$GITHUB_PATH"
+
+    - name: Verify arduino-cli install
+      shell: bash
+      run: arduino-cli version

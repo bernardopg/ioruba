@@ -151,7 +151,7 @@ jobs:
           persist-credentials: false
 
       - name: Setup Arduino CLI
-        uses: arduino/setup-arduino-cli@81d310742121c928ea9c8bbd407b4217b432ae02 # v2.0.0
+        uses: ./.github/actions/setup-arduino-cli
 
       - name: Cache Arduino toolchain
         uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
@@ -198,7 +198,7 @@ jobs:
           persist-credentials: false
 
       - name: Setup Arduino CLI
-        uses: arduino/setup-arduino-cli@81d310742121c928ea9c8bbd407b4217b432ae02 # v2.0.0
+        uses: ./.github/actions/setup-arduino-cli
 
       - name: Cache Arduino toolchain
         uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
