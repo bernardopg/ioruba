@@ -8,6 +8,10 @@ on:
     branches:
       - main
   workflow_dispatch:
+  # Permite que o release.yml reuse este workflow como gate antes de publicar,
+  # garantindo que os jobs por plataforma (incl. native-audio-smoke Windows/macOS)
+  # passem ANTES de qualquer tag virar release.
+  workflow_call:
 
 permissions:
   contents: read
