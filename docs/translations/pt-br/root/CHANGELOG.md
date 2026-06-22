@@ -7,6 +7,24 @@ e este projeto segue [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Nao publicado]
 
+## [1.3.0](https://github.com/bernardopg/ioruba/compare/v1.2.3...v1.3.0) (2026-06-22)
+
+### Corrigido
+
+- Os logs de frame serial no watch log agora sao limitados a no maximo um por segundo. O firmware emite frames continuamente e o buffer serial acumulado e drenado em rajada ao conectar, o que antes inundava o watch log com centenas de entradas identicas `Frame serial recebido` / `Slideres elegiveis para aplicacao` em poucos milissegundos. A aplicacao de audio nao e afetada — so o logging e amostrado.
+- O handshake do firmware agora e re-solicitado (ate 5 vezes, a cada 2 s) enquanto nenhum handshake for recebido. O `HELLO?` inicial podia se perder no auto-reset por DTR / ruido de boot do bootloader, deixando o app preso em "Aguardando handshake" mesmo com frames chegando normalmente.
+
+### Alterado
+
+- O workflow de release agora exige o workflow de CI completo (reusado via `workflow_call`) como pre-requisito de todo job de build e publicacao, incluindo o `native-audio-smoke` Windows/macOS. Isso impede que uma tag vire release com um build de plataforma quebrado — a causa do hotfix v1.2.2 -> v1.2.3, onde o erro de compilacao Windows so foi detectado pelo CI depois da tag
+- O corpo do GitHub Release agora e a secao correspondente do `CHANGELOG.md`, extraida de forma deterministica e publicada literalmente (com rodape de verificacao de download)
+- Removido o teste host duplicado do parser de firmware do pipeline de release; o job `firmware-host` do CI ja o roda via `ci-gate`, entao o job de release so constroi e publica o artefato
+
+### Removido
+
+- Removida a geracao automatica de changelog por IA do pipeline de release (job `prepare-release-notes`: GitHub Copilot CLI com fallback Codex que commitava e dava push de um `CHANGELOG.md` gerado de volta na `main` no meio do release). As notas de release agora sao escritas e revisadas a mao no `CHANGELOG.md` — sem conteudo gerado por maquina, sem escrita na `main` durante o release e sem `COPILOT_PAT` / `OPENAI_API_KEY` no caminho de release
+- Removido o prototipo Python/GTK arquivado em `legacy/` e o material de planejamento em `docs/migration/`, junto de toda referencia ao diretorio legacy nos docs da raiz, no espelho PT-BR e no docs-site. A compatibilidade com o formato de pacote legacy `P1:512` (uma feature viva do protocolo) nao e afetada.
+
 ### Adicionado
 
 - A latencia de aplicacao knob->audio agora e instrumentada: cada lote aplicado e cronometrado e um `warning` vai ao watch log quando passa do orcamento (80 ms), com o tempo decorrido e a contagem de alvos — expondo chamadas lentas de `pactl`/backend sem inundar o log (Scrum 13)

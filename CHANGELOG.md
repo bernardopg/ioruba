@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.3.0](https://github.com/bernardopg/ioruba/compare/v1.2.3...v1.3.0) (2026-06-22)
+
+### Fixed
+
+- Serial frame watch-log entries are now throttled to at most one per second. The firmware streams frames continuously and the buffered serial backlog is drained in a burst on connect, which previously flooded the watch log with hundreds of identical `Frame serial recebido` / `Slideres elegiveis para aplicacao` entries within a few milliseconds. Audio application is unaffected — only logging is sampled.
+- The firmware handshake is now retried (up to 5 times, every 2 s) while no handshake has been received. The initial `HELLO?` could be lost to the DTR auto-reset / bootloader boot noise, leaving the app stuck on "Aguardando handshake" even though frames were streaming normally.
+
+### Changed
+
+- The release workflow now gates every build and publish job on the full CI workflow (reused via `workflow_call`), including the Windows/macOS `native-audio-smoke` job. This stops a tag from becoming a release with a broken platform build — the cause of the v1.2.2 → v1.2.3 hotfix, where the Windows compile error was only detected by CI after the tag was pushed
+- The GitHub Release body is now the matching `CHANGELOG.md` section, extracted deterministically and published verbatim (with a download-verification footer)
+- Dropped the duplicated firmware host-parser test from the release pipeline; the `firmware-host` CI job already runs it via the `ci-gate`, so the release job only builds and uploads the artifact
+
+### Removed
+
+- Removed the AI-assisted changelog generation from the release pipeline (the `prepare-release-notes` job: GitHub Copilot CLI with a Codex fallback that committed and pushed a generated `CHANGELOG.md` back to `main` mid-release). Release notes are now hand-authored and reviewed in `CHANGELOG.md` — no machine-generated content, no release-time writes to `main`, and no `COPILOT_PAT` / `OPENAI_API_KEY` in the release path
+- Removed the archived `legacy/` Python/GTK prototype and the `docs/migration/` planning material, along with every reference to the legacy directory across root docs, the PT-BR mirror set, and the docs-site. The legacy `P1:512` packet-format compatibility (a live protocol feature) is unaffected.
+
 ## [1.2.3](https://github.com/bernardopg/ioruba/compare/v1.2.2...v1.2.3) (2026-06-21)
 
 ### Fixed
