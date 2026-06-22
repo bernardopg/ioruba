@@ -1,11 +1,15 @@
 import { defaultProfile, resolveActiveProfile } from "@ioruba/shared";
-import { beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { useIorubaStore } from "./ioruba-store";
 
 describe("ioruba store", () => {
   beforeEach(() => {
     useIorubaStore.setState(useIorubaStore.getInitialState());
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
   });
 
   it("covers boot and serial status transitions in the snapshot", () => {
@@ -87,6 +91,37 @@ describe("ioruba store", () => {
 
     expect(result.sliderUpdates).toHaveLength(3);
     expect(useIorubaStore.getState().snapshot.knobs[0]?.rawValue).toBe(512);
+  });
+
+  it("throttles repeated frame logs to avoid flooding the watch log", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(1_000_000);
+
+    const store = useIorubaStore.getState();
+    store.hydrate(store.persisted, store.audioInventory);
+
+    const countFrameLogs = () =>
+      useIorubaStore
+        .getState()
+        .watchLog.filter((entry) => entry.message === "Frame serial recebido")
+        .length;
+
+    // Drena uma rajada de frames idênticos no mesmo instante (como o buffer
+    // serial acumulado ao conectar): apenas o primeiro deve ser logado.
+    for (let i = 0; i < 50; i += 1) {
+      useIorubaStore.getState().processSerialLine("512|768|1023");
+    }
+    expect(countFrameLogs()).toBe(1);
+
+    // Dentro da janela de throttle: continua suprimido.
+    vi.setSystemTime(1_000_000 + 500);
+    useIorubaStore.getState().processSerialLine("512|768|1023");
+    expect(countFrameLogs()).toBe(1);
+
+    // Passada a janela: loga de novo (amostra).
+    vi.setSystemTime(1_000_000 + 1_100);
+    useIorubaStore.getState().processSerialLine("512|768|1023");
+    expect(countFrameLogs()).toBe(2);
   });
 
   it("resolves button control events from the active profile", () => {

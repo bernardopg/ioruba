@@ -59,6 +59,17 @@ type ConnectionMode = "idle" | "serial" | "demo";
 
 const WATCH_LOG_LIMIT = 300;
 
+/**
+ * Janela mínima (ms) entre dois logs de frame no watch log. O firmware emite
+ * frames continuamente (heartbeat + on-change a 9600 baud) e, ao abrir a porta,
+ * o buffer serial acumulado é drenado de uma vez — sem este gate, centenas de
+ * linhas idênticas inundam o log em poucos milissegundos. O throttle amostra
+ * "Frame serial recebido"/"Slideres elegiveis" no máximo uma vez por janela,
+ * preservando o valor diagnóstico sem flood. A aplicação de áudio em si não é
+ * afetada; só o logging é amostrado.
+ */
+const FRAME_LOG_THROTTLE_MS = 1000;
+
 interface SerialProcessingResult {
   sliderUpdates: SliderUpdate[];
   controlActions: ControlActionDispatch[];
@@ -80,6 +91,13 @@ interface IorubaState {
    * a "frescura"/latência a partir deste valor; é zerado ao desconectar.
    */
   lastFrameAt: number | null;
+  /**
+   * Epoch (ms) do último frame efetivamente registrado no watch log. Usado pelo
+   * throttle de logging (`FRAME_LOG_THROTTLE_MS`) para amostrar logs de frame e
+   * evitar flood; `0` significa que nenhum frame foi logado na sessão atual.
+   * Não entra no snapshot — é estado puramente de logging.
+   */
+  lastFrameLogAt: number;
   telemetry: TelemetryPoint[];
   sessionStats: SessionTelemetryStats;
   watchLog: WatchLogEntry[];
@@ -338,6 +356,7 @@ export const useIorubaStore = create<IorubaState>((rawSet, get) => {
     availablePorts: [],
     lastSerialLine: null,
     lastFrameAt: null,
+    lastFrameLogAt: 0,
     telemetry: [],
     sessionStats: createSessionStats(),
     watchLog: [],
@@ -506,6 +525,7 @@ export const useIorubaStore = create<IorubaState>((rawSet, get) => {
         connectionMode: "idle",
         firmwareInfo: null,
         lastFrameAt: null,
+        lastFrameLogAt: 0,
         snapshot: createSnapshot({
           ...state,
           firmwareInfo: null,
@@ -1098,13 +1118,22 @@ export const useIorubaStore = create<IorubaState>((rawSet, get) => {
         telemetryPoints,
       );
       const trimmedLine = rawLine.trim();
+      const now = Date.now();
+      // Amostra os logs de frame no máximo uma vez por janela: o stream serial
+      // é contínuo e o buffer acumulado é drenado em rajada ao conectar; sem
+      // este gate o watch log é inundado por frames idênticos.
+      const shouldLogFrame =
+        state.lastFrameLogAt === 0 ||
+        now - state.lastFrameLogAt >= FRAME_LOG_THROTTLE_MS;
 
-      get().appendWatchLog({
-        scope: "serial",
-        level: "info",
-        message: "Frame serial recebido",
-        detail: trimmedLine || rawLine,
-      });
+      if (shouldLogFrame) {
+        get().appendWatchLog({
+          scope: "serial",
+          level: "info",
+          message: "Frame serial recebido",
+          detail: trimmedLine || rawLine,
+        });
+      }
 
       set({
         currentValues: nextCurrentValues,
@@ -1112,7 +1141,8 @@ export const useIorubaStore = create<IorubaState>((rawSet, get) => {
         sessionStats,
         tick: state.tick + 1,
         lastSerialLine: rawLine,
-        lastFrameAt: Date.now(),
+        lastFrameAt: now,
+        lastFrameLogAt: shouldLogFrame ? now : state.lastFrameLogAt,
         snapshot: createSnapshot({
           ...state,
           currentValues: nextCurrentValues,
@@ -1125,7 +1155,7 @@ export const useIorubaStore = create<IorubaState>((rawSet, get) => {
         }),
       });
 
-      if (updates.length > 0) {
+      if (shouldLogFrame && updates.length > 0) {
         get().appendWatchLog({
           scope: "serial",
           level: "info",

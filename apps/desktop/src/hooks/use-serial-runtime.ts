@@ -25,6 +25,14 @@ function normalizeIncomingData(data: string | Uint8Array): string {
  */
 const AUDIO_APPLY_SLOW_MS = 80;
 
+/**
+ * Intervalo (ms) entre re-tentativas de handshake e teto de tentativas. Cobre o
+ * caso em que o `HELLO?` inicial se perde (reset DTR / ruído de boot) sem ficar
+ * re-solicitando para sempre — o stream de frames funciona mesmo sem handshake.
+ */
+const HANDSHAKE_RETRY_MS = 2000;
+const HANDSHAKE_MAX_RETRIES = 5;
+
 export function useSerialRuntime() {
   const hydrated = useIorubaStore((state) => state.hydrated);
   const persisted = useIorubaStore((state) => state.persisted);
@@ -479,11 +487,33 @@ export function useSerialRuntime() {
       }
     }, 1000);
 
+    // Re-solicita o handshake enquanto o firmware não tiver respondido. O
+    // `HELLO?` inicial pode se perder: ao abrir a porta o DTR reseta a placa e o
+    // ruído de boot do bootloader pode corromper a linha HELLO, deixando o app
+    // preso em "Aguardando handshake" mesmo recebendo frames normalmente.
+    // O retry é limitado — frames continuam funcionando sem o handshake.
+    let handshakeAttempts = 0;
+    const handshakeRetryTimer = window.setInterval(() => {
+      const port = portRef.current;
+      if (cancelled || !port) {
+        return;
+      }
+      if (useIorubaStore.getState().firmwareInfo !== null) {
+        return;
+      }
+      if (handshakeAttempts >= HANDSHAKE_MAX_RETRIES) {
+        return;
+      }
+      handshakeAttempts += 1;
+      void requestFirmwareHandshake(port, `retry-${handshakeAttempts}`);
+    }, HANDSHAKE_RETRY_MS);
+
     void connect();
 
     return () => {
       cancelled = true;
       window.clearInterval(heartbeatTimer);
+      window.clearInterval(handshakeRetryTimer);
       resetPendingAudioUpdates();
       void stopSerial();
     };
