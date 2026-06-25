@@ -127,7 +127,7 @@ export function HardwarePanel({
             </div>
 
             {config.calibrations.length > 0 ? (
-              <div className="mt-4 overflow-hidden rounded-[16px] border border-(--color-border)">
+              <div className="mt-4 overflow-hidden rounded-2xl border border-(--color-border)">
                 <table className="w-full border-collapse text-sm">
                   <thead>
                     <tr className="bg-(--color-shell) text-(--color-muted)">
@@ -199,7 +199,7 @@ function HardwareStat({
 
 function TuningChip({ label, value }: { label: string; value: string | number }) {
   return (
-    <div className="rounded-[16px] border border-(--color-border) bg-(--color-panel) px-3 py-2">
+    <div className="rounded-2xl border border-(--color-border) bg-(--color-panel) px-3 py-2">
       <p className="text-[0.68rem] uppercase tracking-[0.2em] text-(--color-muted)">{label}</p>
       <p className="mt-1 text-sm font-semibold text-(--color-ink)">{value}</p>
     </div>
