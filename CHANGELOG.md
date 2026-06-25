@@ -7,9 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.3.1](https://github.com/bernardopg/ioruba/compare/v1.3.0...v1.3.1) (2026-06-25)
+
 ### Fixed
 
 - The Home dashboard metric cards now lay out responsively and no longer compress their icons when the value text is long. Metric styling moved from inline Tailwind utilities into dedicated CSS classes (`.metric-card` / `.metric-body` / `.metric-icon` / `.metric-copy`), the metric grid uses `auto-fit` columns, and the hardware panel corners are aligned to `rounded-2xl`.
+
+### Changed
+
+- CI and release builds now pin the macOS runner to `macos-15` instead of the floating `macos-latest` label, which migrates to macOS 26 from 2026-06-15 (actions/runner-images#14167). Release builds stay reproducible, and the bundle/signing/notarization step conditionals were decoupled from the exact label (`startsWith(matrix.platform, 'macos')`) so the pinned version can be bumped without touching every gate.
 
 ## [1.3.0](https://github.com/bernardopg/ioruba/compare/v1.2.3...v1.3.0) (2026-06-22)
 
