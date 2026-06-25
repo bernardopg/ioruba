@@ -256,7 +256,11 @@ jobs:
       fail-fast: false
       matrix:
         os:
-          - macos-latest
+          # Pinned to macos-15 instead of macos-latest: the macos-latest label
+          # migrates to macOS 26 from 2026-06-15. Pin to the known-good GA image
+          # so the native-audio smoke is deterministic; bump deliberately once
+          # macOS 26 runners stabilize. See actions/runner-images#14167.
+          - macos-15
           - windows-latest
 
     steps:

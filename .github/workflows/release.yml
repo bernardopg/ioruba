@@ -58,11 +58,16 @@ jobs:
           # Tauri's generated bundle script invokes Finder/AppleScript
           # operations that are not always authorized in CI. Build the .app
           # bundle instead so the release can still publish the macOS binary.
+          # Pinned to macos-15 (not macos-latest): the macos-latest label migrates
+          # to macOS 26 from 2026-06-15 (actions/runner-images#14167). Release
+          # builds must be reproducible, so pin to the known-good GA image. Step
+          # conditionals below match on startsWith(matrix.platform, 'macos') so
+          # the pinned version can change without touching every `if:`.
           - label: macos-aarch64
-            platform: macos-latest
+            platform: macos-15
             args: "--bundles app --target aarch64-apple-darwin"
           - label: macos-x86_64
-            platform: macos-latest
+            platform: macos-15
             args: "--bundles app --target x86_64-apple-darwin"
     runs-on: ${{ matrix.platform }}
     # Secrets cannot be referenced in step-level `if:` expressions directly.
@@ -91,7 +96,7 @@ jobs:
         uses: dtolnay/rust-toolchain@3c5f7ea28cd621ae0bf5283f0e981fb97b8a7af9 # master
         with:
           toolchain: stable
-          targets: ${{ matrix.platform == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
+          targets: ${{ startsWith(matrix.platform, 'macos') && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
 
       - name: Cache Rust
         uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
@@ -136,7 +141,7 @@ jobs:
           Remove-Item -Path certificate/certificate.pfx
 
       - name: Import Apple Developer certificate
-        if: matrix.platform == 'macos-latest' && env.HAS_APPLE_CERT == '1'
+        if: startsWith(matrix.platform, 'macos') && env.HAS_APPLE_CERT == '1'
         env:
           APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
           APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
@@ -157,7 +162,7 @@ jobs:
           echo "APPLE_SIGNING_IDENTITY=$CERT_IDENTITY" >> "$GITHUB_ENV"
 
       - name: Build and upload installers (with signing)
-        if: env.HAS_APPLE_CERT == '1' || matrix.platform != 'macos-latest'
+        if: env.HAS_APPLE_CERT == '1' || !startsWith(matrix.platform, 'macos')
         uses: tauri-apps/tauri-action@84b9d35b5fc46c1e45415bdb6144030364f7ebc5 # v0.6.2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -207,7 +212,7 @@ jobs:
         # tauri-action passes APPLE_CERTIFICATE even when empty, triggering a
         # codesign attempt that fails on unsigned CI runners. Run without any
         # signing env vars when no Apple certificate secret is configured.
-        if: env.HAS_APPLE_CERT != '1' && matrix.platform == 'macos-latest'
+        if: env.HAS_APPLE_CERT != '1' && startsWith(matrix.platform, 'macos')
         uses: tauri-apps/tauri-action@84b9d35b5fc46c1e45415bdb6144030364f7ebc5 # v0.6.2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -228,7 +233,7 @@ jobs:
           args: ${{ matrix.args }}
 
       - name: Clean up keychain
-        if: matrix.platform == 'macos-latest' && always()
+        if: startsWith(matrix.platform, 'macos') && always()
         run: |
           security delete-keychain build.keychain 2>/dev/null || true
 
