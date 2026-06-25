@@ -929,18 +929,14 @@ function Metric({
   value: string;
 }) {
   return (
-    <div className="rounded-[26px] border border-(--color-border) bg-[color-mix(in_oklab,var(--color-panel)_88%,transparent)] px-4 py-4">
-      <div className="flex items-center gap-3">
-        <div className="grid h-11 w-11 place-items-center rounded-full border border-(--color-border) bg-(--color-shell)">
-          <Icon className="h-5 w-5 text-(--accent-teal)" />
+    <div className="metric-card">
+      <div className="metric-body">
+        <div className="metric-icon">
+          <Icon className="h-5 w-5" />
         </div>
-        <div>
-          <p className="text-xs uppercase tracking-[0.24em] text-(--color-muted)">
-            {label}
-          </p>
-          <p className="mt-1 text-sm font-semibold text-(--color-ink)">
-            {value}
-          </p>
+        <div className="metric-copy">
+          <p className="metric-label">{label}</p>
+          <p className="metric-value">{value}</p>
         </div>
       </div>
     </div>

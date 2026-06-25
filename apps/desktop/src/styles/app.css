@@ -497,7 +497,63 @@ body {
 
 .dashboard-ribbon-meta {
   display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr));
   gap: 0.85rem;
+}
+
+.metric-card {
+  min-width: 0;
+  height: 100%;
+  border: 1px solid var(--color-border);
+  border-radius: 1.6rem;
+  padding: 0.95rem 1rem;
+  background:
+    linear-gradient(
+      145deg,
+      color-mix(in oklab, var(--color-panel) 94%, var(--accent-copper) 4%),
+      color-mix(in oklab, var(--color-panel) 88%, transparent)
+    );
+}
+
+.metric-body {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 0.85rem;
+}
+
+.metric-icon {
+  display: grid;
+  flex: 0 0 auto;
+  width: 2.75rem;
+  height: 2.75rem;
+  place-items: center;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--color-shell) 86%, transparent);
+  color: var(--accent-teal);
+}
+
+.metric-copy {
+  min-width: 0;
+}
+
+.metric-label {
+  margin: 0;
+  font-size: 0.72rem;
+  line-height: 1.25;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
+
+.metric-value {
+  margin: 0.3rem 0 0;
+  font-size: 0.9rem;
+  font-weight: 700;
+  line-height: 1.25;
+  color: var(--color-ink);
+  overflow-wrap: anywhere;
 }
 
 .quick-jump-card {
@@ -568,10 +624,6 @@ body {
   .dashboard-ribbon {
     grid-template-columns: minmax(0, 1.4fr) minmax(260px, 0.9fr);
     align-items: end;
-  }
-
-  .dashboard-ribbon-meta {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 
