@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- The Home dashboard metric cards now lay out responsively and no longer compress their icons when the value text is long. Metric styling moved from inline Tailwind utilities into dedicated CSS classes (`.metric-card` / `.metric-body` / `.metric-icon` / `.metric-copy`), the metric grid uses `auto-fit` columns, and the hardware panel corners are aligned to `rounded-2xl`.
+
 ## [1.3.0](https://github.com/bernardopg/ioruba/compare/v1.2.3...v1.3.0) (2026-06-22)
 
 ### Fixed

@@ -7,6 +7,10 @@ e este projeto segue [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Nao publicado]
 
+### Corrigido
+
+- Os cartoes de metrica do painel Home agora se ajustam de forma responsiva e nao comprimem mais os icones quando o texto do valor e longo. O estilo das metricas saiu de utilitarios Tailwind inline para classes CSS dedicadas (`.metric-card` / `.metric-body` / `.metric-icon` / `.metric-copy`), a grade de metricas usa colunas `auto-fit` e os cantos do painel de hardware foram alinhados em `rounded-2xl`.
+
 ## [1.3.0](https://github.com/bernardopg/ioruba/compare/v1.2.3...v1.3.0) (2026-06-22)
 
 ### Corrigido
