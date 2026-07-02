@@ -163,7 +163,7 @@ jobs:
 
       - name: Build and upload installers (with signing)
         if: env.HAS_APPLE_CERT == '1' || !startsWith(matrix.platform, 'macos')
-        uses: tauri-apps/tauri-action@84b9d35b5fc46c1e45415bdb6144030364f7ebc5 # v0.6.2
+        uses: tauri-apps/tauri-action@1deb371b0cd8bd54025b384f1cd735e725c4060f # v1.0.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAURI_WINDOWS_CERTIFICATE_THUMBPRINT: ${{ env.WINDOWS_CERTIFICATE_THUMBPRINT }}
@@ -213,7 +213,7 @@ jobs:
         # codesign attempt that fails on unsigned CI runners. Run without any
         # signing env vars when no Apple certificate secret is configured.
         if: env.HAS_APPLE_CERT != '1' && startsWith(matrix.platform, 'macos')
-        uses: tauri-apps/tauri-action@84b9d35b5fc46c1e45415bdb6144030364f7ebc5 # v0.6.2
+        uses: tauri-apps/tauri-action@1deb371b0cd8bd54025b384f1cd735e725c4060f # v1.0.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
