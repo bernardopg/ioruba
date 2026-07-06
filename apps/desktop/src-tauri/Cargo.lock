@@ -3376,9 +3376,9 @@ dependencies = [
 
 [[package]]
 name = "tauri-plugin-serialplugin"
-version = "2.22.0"
+version = "2.23.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3f12b210ee10e56cfa3f724ee1bff7eeae21f3616ace6de27d54727493c96e92"
+checksum = "52c9394e9b0999069a9847655006a6d518ce646229f1d0c1c27552c6501594f9"
 dependencies = [
  "serde",
  "serde_json",
