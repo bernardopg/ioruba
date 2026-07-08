@@ -10,6 +10,12 @@ e este projeto segue [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ### Corrigido
 
 - Os writes de volume agora usam throttle (leading + trailing) em vez de debounce enquanto o knob se move. O debounce puro anterior reiniciava o timer a cada frame serial, entao com transicoes suaves habilitadas o backend de audio so era invocado quando o knob parava; movimento rapido agora aplica o primeiro lote imediatamente e coalesce a rajada em no maximo uma chamada de backend por janela de transicao do perfil (minimo 40 ms), sempre com o valor mais recente por slider.
+### Alterado
+
+- Os helpers duplicados dos backends de audio (`describe_target`, `summarize_slider_outcome`, `volume_percent`) e todo o loop de apply master-only compartilhado pelos backends Windows e macOS foram extraidos para `audio/common.rs`. Os backends de plataforma agora fornecem apenas uma closure `set_master_volume`, as strings de outcome sao parametrizadas pelo nome da plataforma e a logica compartilhada de batch/resumo ganhou testes unitarios independentes de host que rodam em toda plataforma do CI (antes `windows.rs`/`macos.rs` nao tinham teste nenhum). Sem mudanca de comportamento.
+### Funcionalidades
+
+- Novo wizard de calibracao de knobs na secao Hardware: fluxo guiado min -> max -> revisao por knob que rastreia o extremo observado nas leituras seriais ao vivo (mais robusto que captura instantanea), valida a faixa capturada e grava `minRaw`/`maxRaw` no perfil ativo. O runtime serial ja envia o comando `CONFIG` sempre que o perfil diverge do firmware, entao aplicar o resultado do wizard sincroniza o hardware sem passo extra.
 
 ## [1.3.1](https://github.com/bernardopg/ioruba/compare/v1.3.0...v1.3.1) (2026-06-25)
 

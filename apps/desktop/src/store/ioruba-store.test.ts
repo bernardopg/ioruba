@@ -179,6 +179,62 @@ describe("ioruba store", () => {
     ).toBeGreaterThan(0);
   });
 
+  it("accumulates session stats from serial frames beyond the telemetry window", () => {
+    const store = useIorubaStore.getState();
+    store.hydrate(store.persisted, store.audioInventory);
+
+    useIorubaStore.getState().processSerialLine("0|512|1023");
+    useIorubaStore.getState().processSerialLine("1023|512|0");
+
+    const stats = useIorubaStore.getState().sessionStats;
+    expect(stats.sampleCount).toBeGreaterThan(0);
+    expect(stats.firstTick).not.toBeNull();
+    expect(stats.lastTick).not.toBeNull();
+
+    const perKnob = Object.values(stats.perKnob);
+    expect(perKnob.length).toBeGreaterThan(0);
+    for (const knob of perKnob) {
+      expect(knob.sampleCount).toBeGreaterThan(0);
+      expect(knob.minPercent).toBeLessThanOrEqual(knob.maxPercent);
+      expect(knob.lastPercent).toBeGreaterThanOrEqual(0);
+      expect(knob.lastPercent).toBeLessThanOrEqual(100);
+    }
+
+    const firstKnob = perKnob[0];
+    expect(firstKnob?.minPercent).toBe(0);
+    expect(firstKnob?.maxPercent).toBe(100);
+  });
+
+  it("clears session stats via the explicit reset action", () => {
+    const store = useIorubaStore.getState();
+    store.hydrate(store.persisted, store.audioInventory);
+    useIorubaStore.getState().processSerialLine("512|512|512");
+    expect(useIorubaStore.getState().sessionStats.sampleCount).toBeGreaterThan(0);
+
+    useIorubaStore.getState().resetSessionStats();
+
+    const stats = useIorubaStore.getState().sessionStats;
+    expect(stats.sampleCount).toBe(0);
+    expect(stats.firstTick).toBeNull();
+    expect(Object.keys(stats.perKnob)).toHaveLength(0);
+  });
+
+  it("resets session stats automatically when an action clears telemetry", () => {
+    const store = useIorubaStore.getState();
+    store.hydrate(store.persisted, store.audioInventory);
+    useIorubaStore.getState().processSerialLine("0|512|1023");
+    expect(useIorubaStore.getState().sessionStats.sampleCount).toBeGreaterThan(0);
+
+    // setDemoMode(false) zera `telemetry` sem mencionar `sessionStats`; o
+    // wrapper do `set` no store deve resetar os agregados junto.
+    useIorubaStore.getState().setDemoMode(true);
+    useIorubaStore.getState().setDemoMode(false);
+
+    const stats = useIorubaStore.getState().sessionStats;
+    expect(stats.sampleCount).toBe(0);
+    expect(useIorubaStore.getState().telemetry).toHaveLength(0);
+  });
+
   it("stores structured target diagnostics after applying results", () => {
     const store = useIorubaStore.getState();
     store.hydrate(store.persisted, store.audioInventory);
