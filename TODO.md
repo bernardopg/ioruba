@@ -73,6 +73,12 @@ Hoje Windows/macOS só controlam `master`. Linux tem cobertura completa.
   - 7 testes em `common.rs` com setter fake: happy path, dedupe de master, erro do setter, targets não suportados, mix updated+unavailable, lista vazia, clamp/round de percent. Rodam no gate Linux e nos smokes nativos.
 - [ ] Cobertura de testes do store Zustand (`ioruba-store.ts`), incl. reset de `sessionStats` via wrapper do `set` `(test/frontend/coverage)` - `médio`
 - [ ] Documentar o contrato Rust↔TS dos backends e o dispatch por `cfg` em `audio/mod.rs` `(docs/backend/organização)` - `fácil`
+- [ ] Extrair lógica duplicada dos backends (`describe_target`, `summarize_slider_outcome` repetidos em `windows.rs`/`macos.rs`/`linux.rs`) para `audio/common.rs` `(backend/refactor/organização)` - `médio`
+- [ ] Testes host-independentes para `summarize_slider_outcome`/`describe_target` (hoje sem testes em `windows.rs`/`macos.rs`) `(test/backend/coverage)` - `fácil`
+- [x] Cobertura de testes do store Zustand (`ioruba-store.ts`), incl. reset de `sessionStats` via wrapper do `set` `(test/frontend/coverage)` - `médio`
+  - +3 testes: acumulação de `sessionStats` via `processSerialLine` (min/max/last percent por knob), reset explícito via `resetSessionStats`, e reset automático pelo wrapper do `set` quando uma action zera `telemetry` (via `setDemoMode(false)`).
+- [x] Documentar o contrato Rust↔TS dos backends e o dispatch por `cfg` em `audio/mod.rs` `(docs/backend/organização)` - `fácil`
+  - `docs/guides/audio-backend-contract.md` (+ mirror PT-BR): comandos Tauri, convenções serde (camelCase/lowercase/tag kind), matriz de capacidade por backend, dispatch cfg, modelo de outcome, papel do `common.rs` e dos smokes nativos.
 - [x] Gate de `shellcheck` no CI para `scripts/install.sh` e demais scripts `sh` `(ci/quality)` - `fácil`
   - Job `scripts-lint` no CI roda `shellcheck` em install.sh/run-appimage-compat.sh/validate-appimage.sh (passam limpo). Script local `npm run lint:scripts`.
 - [x] Lint de PowerShell (`PSScriptAnalyzer`) para `scripts/install.ps1` `(ci/quality)` - `fácil`
@@ -103,7 +109,8 @@ Hoje Windows/macOS só controlam `master`. Linux tem cobertura completa.
 
 ## Scrum 18 — Experiência completa
 
-- [ ] Wizard de calibração de knobs na UI (ler/escrever `minRaw`/`maxRaw`/deadzone via comando `CONFIG`, que já existe no protocolo) `(frontend/firmware/ux)` - `médio`
+- [x] Wizard de calibração de knobs na UI (ler/escrever `minRaw`/`maxRaw`/deadzone via comando `CONFIG`, que já existe no protocolo) `(frontend/firmware/ux)` - `médio`
+  - `CalibrationWizard` na seção Hardware: fluxo mín→máx→revisão por knob com leitura ao vivo e rastreio do extremo observado; valida faixa mínima (16 contagens) e grava `calibration` no slider do perfil ativo via `updateActiveProfileConfig` — o runtime serial já sincroniza o firmware via `CONFIG` quando o perfil diverge. +3 testes de componente.
 - [ ] Auditoria de acessibilidade (a11y) do dashboard, foco/teclado/aria `(frontend/a11y/ux)` - `médio`
 - [ ] Ampliar i18n além de en/pt-BR (estrutura de `i18n.ts` já suporta) `(frontend/i18n)` - `médio`
 - [x] Exibir board/MCU/`adcBits`/protocolo detectados num painel de diagnóstico claro `(frontend/hardware/ux)` - `fácil`

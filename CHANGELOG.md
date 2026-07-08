@@ -10,6 +10,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - The duplicated audio-backend helpers (`describe_target`, `summarize_slider_outcome`, `volume_percent`) and the whole master-only slider-apply loop shared by the Windows and macOS backends were extracted into `audio/common.rs`. The platform backends now only provide a `set_master_volume` closure, outcome strings are parameterized by platform name, and the shared batching/summary logic is covered by host-independent unit tests that run on every CI platform (previously `windows.rs`/`macos.rs` had no tests at all). No behavior change.
+### Features
+
+- New knob calibration wizard in the Hardware section: a guided min -> max -> review flow per knob that tracks the observed extreme from live serial readings (more robust than instant capture), validates the captured span and stores `minRaw`/`maxRaw` in the active profile. The serial runtime already pushes a `CONFIG` command whenever the profile diverges from the firmware, so applying the wizard result syncs the hardware with no extra step.
 
 ## [1.3.1](https://github.com/bernardopg/ioruba/compare/v1.3.0...v1.3.1) (2026-06-25)
 

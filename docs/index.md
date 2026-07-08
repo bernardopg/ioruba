@@ -19,6 +19,7 @@ This GitHub Pages hub is organized for the real path users take in the project:
 ## Practical guides
 
 - [Hardware setup](guides/hardware-setup.md)
+- [Audio backend contract (Rust <-> TS)](guides/audio-backend-contract.md)
 - [Profile examples](guides/profile-examples.md)
 - [Translation guide](guides/translation-guide.md)
 - [Support playbook](debug/support.md)
