@@ -103,7 +103,8 @@ Hoje Windows/macOS só controlam `master`. Linux tem cobertura completa.
 
 ## Scrum 18 — Experiência completa
 
-- [ ] Wizard de calibração de knobs na UI (ler/escrever `minRaw`/`maxRaw`/deadzone via comando `CONFIG`, que já existe no protocolo) `(frontend/firmware/ux)` - `médio`
+- [x] Wizard de calibração de knobs na UI (ler/escrever `minRaw`/`maxRaw`/deadzone via comando `CONFIG`, que já existe no protocolo) `(frontend/firmware/ux)` - `médio`
+  - `CalibrationWizard` na seção Hardware: fluxo mín→máx→revisão por knob com leitura ao vivo e rastreio do extremo observado; valida faixa mínima (16 contagens) e grava `calibration` no slider do perfil ativo via `updateActiveProfileConfig` — o runtime serial já sincroniza o firmware via `CONFIG` quando o perfil diverge. +3 testes de componente.
 - [ ] Auditoria de acessibilidade (a11y) do dashboard, foco/teclado/aria `(frontend/a11y/ux)` - `médio`
 - [ ] Ampliar i18n além de en/pt-BR (estrutura de `i18n.ts` já suporta) `(frontend/i18n)` - `médio`
 - [x] Exibir board/MCU/`adcBits`/protocolo detectados num painel de diagnóstico claro `(frontend/hardware/ux)` - `fácil`

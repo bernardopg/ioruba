@@ -484,6 +484,30 @@ const TEXT_MAP: Record<string, string> = {
   "Sem dados de telemetria ainda": "No telemetry data yet",
   "Mova um knob com o controlador conectado para começar a registrar a linha do tempo.":
     "Move a knob with the controller connected to start recording the timeline.",
+  "Calibração de knobs": "Knob calibration",
+  "Capture os limites físicos de cada knob ao vivo e grave no perfil ativo. O firmware é sincronizado automaticamente.":
+    "Capture each knob's physical limits live and store them in the active profile. The firmware is synced automatically.",
+  "sinal ao vivo": "live signal",
+  "calibrado: {min} – {max}": "calibrated: {min} – {max}",
+  "padrão: 0 – {max}": "default: 0 – {max}",
+  Calibrar: "Calibrate",
+  "Conecte o controlador para calibrar com leituras reais do hardware.":
+    "Connect the controller to calibrate with real hardware readings.",
+  "passo 1 de 2 — mínimo": "step 1 of 2 — minimum",
+  "passo 2 de 2 — máximo": "step 2 of 2 — maximum",
+  revisão: "review",
+  "Gire o knob até o limite mínimo físico e clique em Capturar.":
+    "Turn the knob to its physical minimum and click Capture.",
+  "Agora gire o knob até o limite máximo físico e clique em Capturar.":
+    "Now turn the knob to its physical maximum and click Capture.",
+  "leitura ao vivo": "live reading",
+  "mínimo observado": "observed minimum",
+  "máximo observado": "observed maximum",
+  "Faixa capturada muito curta (mínimo {span} contagens). Refaça movendo o knob de ponta a ponta.":
+    "Captured range too short (minimum {span} counts). Redo it moving the knob end to end.",
+  Capturar: "Capture",
+  "Aplicar ao perfil": "Apply to profile",
+  Cancelar: "Cancel",
 };
 
 export function translateText(language: UiLanguage, text: string): string {
