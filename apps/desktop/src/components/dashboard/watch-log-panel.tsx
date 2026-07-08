@@ -187,6 +187,7 @@ export function WatchLogPanel({
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <Button
+              aria-pressed={filter === "all"}
               onClick={() => setFilter("all")}
               size="small"
               variant={filter === "all" ? "secondary" : "ghost"}
@@ -194,6 +195,7 @@ export function WatchLogPanel({
               {lt("Todos")}
             </Button>
             <Button
+              aria-pressed={filter === "serial"}
               onClick={() => setFilter("serial")}
               size="small"
               variant={filter === "serial" ? "secondary" : "ghost"}
@@ -201,6 +203,7 @@ export function WatchLogPanel({
               {lt("Serial")}
             </Button>
             <Button
+              aria-pressed={filter === "backend"}
               onClick={() => setFilter("backend")}
               size="small"
               variant={filter === "backend" ? "secondary" : "ghost"}
@@ -208,6 +211,7 @@ export function WatchLogPanel({
               {lt("Backend")}
             </Button>
             <Button
+              aria-pressed={filter === "app"}
               onClick={() => setFilter("app")}
               size="small"
               variant={filter === "app" ? "secondary" : "ghost"}

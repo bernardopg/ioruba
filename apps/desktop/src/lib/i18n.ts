@@ -1,6 +1,9 @@
 import type { UiLanguage } from "@ioruba/shared";
 
-const TEXT_MAP: Record<string, string> = {
+// pt-BR é o idioma-fonte: as chaves são o texto exatamente como escrito nos
+// componentes. Para adicionar um idioma: estender `UiLanguage` no shared,
+// criar um mapa com as mesmas chaves e registrá-lo em LANGUAGE_TEXT_MAPS.
+const TEXT_MAP_EN: Record<string, string> = {
   "Pular para o conteúdo principal": "Skip to main content",
   "Alteracoes pendentes": "Pending changes",
   "Perfil salvo": "Profile saved",
@@ -398,6 +401,7 @@ const TEXT_MAP: Record<string, string> = {
   Ligado: "On",
   Desligado: "Off",
   English: "English",
+  "Español": "Spanish",
   Spotify: "Spotify",
   default_microphone: "default_microphone",
   default_output: "default_output",
@@ -510,12 +514,531 @@ const TEXT_MAP: Record<string, string> = {
   Cancelar: "Cancel",
 };
 
+const TEXT_MAP_ES: Record<string, string> = {
+  "Pular para o conteúdo principal": "Saltar al contenido principal",
+  "Alteracoes pendentes": "Cambios pendientes",
+  "Perfil salvo": "Perfil guardado",
+  "JSON invalido": "JSON inválido",
+  "Salve para persistir o perfil ativo.": "Guarda para persistir el perfil activo.",
+  "O editor esta sincronizado com o perfil salvo.":
+    "El editor está sincronizado con el perfil guardado.",
+  "Ioruba Control Deck": "Ioruba Control Deck",
+  "Melhor e mais barato mixer de audio do mundo": "El mejor y más barato mezclador de audio del mundo",
+  "A interface nova foi pensada como um painel instrumental: conexão serial, telemetria viva, perfis persistidos em JSON local e aplicação de volume desacoplada do frontend.":
+    "La nueva interfaz fue pensada como un panel instrumental: conexión serial, telemetría en vivo, perfiles persistidos en JSON local y aplicación de volumen desacoplada del frontend.",
+  "Porta ativa": "Puerto activo",
+  "Audio backend": "Backend de audio",
+  "Última serial": "Última serial",
+  nenhuma: "ninguno",
+  aguardando: "esperando",
+  "Conexão e sessão": "Conexión y sesión",
+  "Controle de portas, demo mode e persistência do perfil ativo.":
+    "Control de puertos, modo demo y persistencia del perfil activo.",
+  Home: "Inicio",
+  "Visão geral da bancada e status operacional.":
+    "Vista general del banco de trabajo y estado operativo.",
+  "Painel de controle": "Panel de control",
+  "Ações rápidas de sessão, conexão e canais ativos.":
+    "Acciones rápidas de sesión, conexión y canales activos.",
+  Telemetria: "Telemetría",
+  "Leituras ao vivo, resposta dos knobs e timeline.":
+    "Lecturas en vivo, respuesta de los knobs y línea de tiempo.",
+  "Diagnósticos": "Diagnósticos",
+  "Logs, inventário de áudio e checklist técnico.":
+    "Logs, inventario de audio y checklist técnico.",
+  "Configurações": "Configuración",
+  "Perfis, preferências e edição avançada do runtime.":
+    "Perfiles, preferencias y edición avanzada del runtime.",
+  "Distribuímos o runtime em áreas menores para manter foco operacional sem perder contexto da sessão.":
+    "Distribuimos el runtime en áreas menores para mantener el foco operativo sin perder el contexto de la sesión.",
+  "Painel segmentado": "Panel segmentado",
+  "Operação central com leitura clara de hardware, backend e perfil":
+    "Operación central con lectura clara de hardware, backend y perfil",
+  "Agora cada área do Ioruba vive em uma rota visual própria: a home resume o estado atual da bancada e aponta rapidamente para os próximos passos.":
+    "Ahora cada área de Ioruba vive en una ruta visual propia: el inicio resume el estado actual del banco y apunta rápidamente a los próximos pasos.",
+  "Targets ativos": "Targets activos",
+  "Resumo da sessão viva, pronto para orientar a operação antes de abrir uma área específica.":
+    "Resumen de la sesión en vivo, listo para orientar la operación antes de abrir un área específica.",
+  "Hint operacional": "Pista operativa",
+  "Acione conexão, demo mode e preferências de sessão.":
+    "Activa la conexión, el modo demo y las preferencias de sesión.",
+  "Abrir painel de controle": "Abrir panel de control",
+  "Monitore a timeline dos canais e o comportamento dos knobs.":
+    "Monitorea la línea de tiempo de los canales y el comportamiento de los knobs.",
+  "Abrir telemetria": "Abrir telemetría",
+  "Revise logs, inventário do backend e saúde da integração.":
+    "Revisa logs, inventario del backend y salud de la integración.",
+  "Abrir diagnósticos": "Abrir diagnósticos",
+  "Editar perfis, portas, targets e preferências persistidas.":
+    "Edita perfiles, puertos, targets y preferencias persistidas.",
+  "Abrir configurações": "Abrir configuración",
+  Conectar: "Conectar",
+  Desconectar: "Desconectar",
+  "Atualizar áudio": "Actualizar audio",
+  "Porta preferida": "Puerto preferido",
+  "Detectar automaticamente": "Detectar automáticamente",
+  "Tema da interface": "Tema de la interfaz",
+  "Seguir sistema": "Seguir al sistema",
+  "Claro de bancada": "Claro de banco",
+  "Escuro de estúdio": "Oscuro de estudio",
+  "Modo demo": "Modo demo",
+  "Simula leituras sem tocar no áudio do sistema.":
+    "Simula lecturas sin tocar el audio del sistema.",
+  "Iniciar com a sessão": "Iniciar con la sesión",
+  "Abre o Ioruba no login e mantém o app disponível no tray.":
+    "Abre Ioruba al iniciar sesión y mantiene la app disponible en la bandeja.",
+  "Status atual": "Estado actual",
+  Overview: "Resumen",
+  Watch: "Watch",
+  Config: "Config",
+  Diagnostics: "Diagnósticos",
+  "Pronto para conectar": "Listo para conectar",
+  "Modo demo preparado": "Modo demo preparado",
+  "Inicializando Ioruba Desktop": "Inicializando Ioruba Desktop",
+  "Inicializando serviços": "Inicializando servicios",
+  "Procurando uma porta serial do Arduino":
+    "Buscando un puerto serial del Arduino",
+  "Procurando um Arduino serial": "Buscando un Arduino serial",
+  "Abrindo porta serial e aguardando firmware":
+    "Abriendo puerto serial y esperando el firmware",
+  "Aguardando handshake do firmware": "Esperando el handshake del firmware",
+  "Porta aberta, aguardando nova leitura do firmware":
+    "Puerto abierto, esperando una nueva lectura del firmware",
+  "Nenhuma porta serial detectada": "Ningún puerto serial detectado",
+  "Falha ao processar frame serial": "Fallo al procesar el frame serial",
+  "Inventário de áudio": "Inventario de audio",
+  "Descoberta dinâmica do backend atual com aplicações, sinks e sources.":
+    "Descubrimiento dinámico del backend actual con aplicaciones, sinks y sources.",
+  Aplicações: "Aplicaciones",
+  Saídas: "Salidas",
+  Entradas: "Entradas",
+  "Checklist da migração": "Checklist de la migración",
+  "Itens essenciais já cobertos pelo novo stack.":
+    "Elementos esenciales ya cubiertos por el nuevo stack.",
+  "nenhum item detectado": "ningún elemento detectado",
+  "Watch ao vivo": "Watch en vivo",
+  "evento(s)": "evento(s)",
+  "Espelha os eventos emitidos pela serial, pelo frontend e pelo backend Rust. Quando você girar um knob, o fluxo aparece aqui e no terminal do `tauri dev`.":
+    "Refleja los eventos emitidos por la serial, el frontend y el backend Rust. Cuando gires un knob, el flujo aparece aquí y en la terminal de `tauri dev`.",
+  Todos: "Todos",
+  Limpar: "Limpiar",
+  Exportar: "Exportar",
+  Exportando: "Exportando",
+  "Exportando watch log...": "Exportando watch log...",
+  "Exportacao cancelada": "Exportación cancelada",
+  "Exportacao do watch log solicitada": "Exportación del watch log solicitada",
+  "Exportacao do watch log cancelada": "Exportación del watch log cancelada",
+  "Watch log exportado": "Watch log exportado",
+  "Watch log exportado: {count} evento(s) em {path}":
+    "Watch log exportado: {count} evento(s) en {path}",
+  "Falha ao exportar watch log": "Fallo al exportar el watch log",
+  "Backup do estado persistido criado": "Backup del estado persistido creado",
+  "Entradas malformadas ignoradas no watch log":
+    "Entradas malformadas ignoradas en el watch log",
+  "Seguir fim": "Seguir el final",
+  "Nenhum evento no filtro atual.": "Ningún evento en el filtro actual.",
+  "Última linha": "Última línea",
+  "Contexto ao vivo": "Contexto en vivo",
+  "Resumo da sessão atual e do estado observado pelo watch.":
+    "Resumen de la sesión actual y del estado observado por el watch.",
+  Status: "Estado",
+  "Backend áudio": "Backend de audio",
+  "Perfil ativo": "Perfil activo",
+  "O terminal do Tauri mostra os `println!` do backend. Este painel espelha os eventos estruturados emitidos pela app, pela serial e pelo Rust.":
+    "La terminal de Tauri muestra los `println!` del backend. Este panel refleja los eventos estructurados emitidos por la app, la serial y Rust.",
+  "Sessao viva": "Sesión en vivo",
+  "Estado atual do link serial, perfil carregado e resposta dos knobs.":
+    "Estado actual del enlace serial, perfil cargado y respuesta de los knobs.",
+  "Aguardando porta": "Esperando puerto",
+  Perfil: "Perfil",
+  "destino(s) mapeado(s)": "destino(s) mapeado(s)",
+  "Ultimo frame": "Último frame",
+  "Aguardando leitura": "Esperando lectura",
+  inicial: "inicial",
+  Buffer: "Búfer",
+  "amostra(s)": "muestra(s)",
+  Hardware: "Hardware",
+  "Aguardando handshake": "Esperando handshake",
+  "Ligue o controlador": "Enciende el controlador",
+  protocolo: "protocolo",
+  "incompatível": "incompatible",
+  "Operação": "Operación",
+  Monitoramento: "Monitoreo",
+  Ajustes: "Ajustes",
+  Iniciando: "Iniciando",
+  Pronto: "Listo",
+  Procurando: "Buscando",
+  Conectando: "Conectando",
+  Conectado: "Conectado",
+  Demo: "Demo",
+  Desconectado: "Desconectado",
+  Erro: "Error",
+  "Saúde da conexão": "Salud de la conexión",
+  Sinal: "Señal",
+  "Exportar estatísticas em JSON": "Exportar estadísticas en JSON",
+  "Exportar estatísticas em CSV": "Exportar estadísticas en CSV",
+  "sem sinal": "sin señal",
+  "ao vivo": "en vivo",
+  "atrás": "atrás",
+  Perfis: "Perfiles",
+  Editor: "Editor",
+  "Avançado": "Avanzado",
+  "Crie, importe, exporte e selecione perfis salvos.":
+    "Crea, importa, exporta y selecciona perfiles guardados.",
+  "Conexão, áudio, firmware, knobs e destinos.":
+    "Conexión, audio, firmware, knobs y destinos.",
+  "JSON do perfil e inventário para targets.":
+    "JSON del perfil e inventario para targets.",
+  "Conexão, sessão e preferências de runtime.":
+    "Conexión, sesión y preferencias del runtime.",
+  "Knobs ao vivo e seus destinos de áudio.":
+    "Knobs en vivo y sus destinos de audio.",
+  "Controlador, MCU, ADC e backend de áudio.":
+    "Controlador, MCU, ADC y backend de audio.",
+  "Logs e checklist técnico da integração.":
+    "Logs y checklist técnico de la integración.",
+  "Abrir canais": "Abrir canales",
+  "Abrir hardware": "Abrir hardware",
+  "Ajuste os knobs ao vivo e seus destinos de áudio.":
+    "Ajusta los knobs en vivo y sus destinos de audio.",
+  "Veja placa, MCU, resolução do ADC e o backend de áudio.":
+    "Mira la placa, el MCU, la resolución del ADC y el backend de audio.",
+  Controlador: "Controlador",
+  "Identidade do hardware reportada pelo handshake do firmware.":
+    "Identidad del hardware reportada por el handshake del firmware.",
+  "sem handshake": "sin handshake",
+  "Nenhum controlador conectado": "Ningún controlador conectado",
+  "Ligue o controlador e aguarde o handshake para ver placa, MCU e resolução do ADC.":
+    "Enciende el controlador y espera el handshake para ver placa, MCU y resolución del ADC.",
+  "protocolo compatível": "protocolo compatible",
+  "protocolo incompatível": "protocolo incompatible",
+  Placa: "Placa",
+  firmware: "firmware",
+  "não reportado": "no reportado",
+  microcontrolador: "microcontrolador",
+  "Resolução do ADC": "Resolución del ADC",
+  Protocolo: "Protocolo",
+  "compatível com o desktop": "compatible con el escritorio",
+  "verifique a versão do firmware": "verifica la versión del firmware",
+  Knobs: "Knobs",
+  desconhecido: "desconocido",
+  "canais ativos": "canales activos",
+  "Ajuste do controlador": "Ajuste del controlador",
+  Threshold: "Umbral",
+  Deadzone: "Zona muerta",
+  "Suavização": "Suavizado",
+  "Mín. bruto": "Mín. bruto",
+  "Máx. bruto": "Máx. bruto",
+  "Leitura atual": "Lectura actual",
+  "Todos os canais espelhados como instrumentos vivos.":
+    "Todos los canales reflejados como instrumentos vivos.",
+  aplicada: "aplicado",
+  "Telemetria dos knobs": "Telemetría de los knobs",
+  "Linha do tempo com persistencia visual do ultimo valor conhecido em cada canal.":
+    "Línea de tiempo con persistencia visual del último valor conocido en cada canal.",
+  Janela: "Ventana",
+  Tick: "Tick",
+  Canais: "Canales",
+  "Protocolo serial legado e frame completo":
+    "Protocolo serial legado y frame completo",
+  "Redução de ruído e aplicação incremental":
+    "Reducción de ruido y aplicación incremental",
+  "Persistência local em JSON": "Persistencia local en JSON",
+  "Telemetria com Recharts": "Telemetría con Recharts",
+  "Backend de áudio em Rust para Linux": "Backend de audio en Rust para Linux",
+  "Perfis salvos": "Perfiles guardados",
+  "Selecione rapidamente um preset, duplique uma base existente e mantenha múltiplos layouts sem tocar no JSON bruto.":
+    "Selecciona rápidamente un preset, duplica una base existente y mantén múltiples layouts sin tocar el JSON crudo.",
+  "Novo perfil": "Nuevo perfil",
+  "Duplicar ativo": "Duplicar activo",
+  "Remover ativo": "Eliminar activo",
+  "Rascunho pendente": "Borrador pendiente",
+  Ativo: "Activo",
+  "knob(s)": "knob(s)",
+  manual: "manual",
+  "Editor estruturado bloqueado": "Editor estructurado bloqueado",
+  "Corrija o JSON avançado antes de trocar, criar, duplicar ou remover perfis.":
+    "Corrige el JSON avanzado antes de cambiar, crear, duplicar o eliminar perfiles.",
+  "Corrija o JSON avançado antes de alterar a coleção de perfis":
+    "Corrige el JSON avanzado antes de alterar la colección de perfiles",
+  "Nao foi possivel salvar o rascunho antes da troca de perfil":
+    "No fue posible guardar el borrador antes del cambio de perfil",
+  "Corrija o JSON avançado antes de continuar":
+    "Corrige el JSON avanzado antes de continuar",
+  "Editor estruturado": "Editor estructurado",
+  "Ajuste nome, serial, áudio e preferências visuais do perfil com formulários seguros. As mudanças alimentam o mesmo rascunho do JSON avançado.":
+    "Ajusta nombre, serial, audio y preferencias visuales del perfil con formularios seguros. Los cambios alimentan el mismo borrador del JSON avanzado.",
+  "Nome do perfil": "Nombre del perfil",
+  "ID técnico": "ID técnico",
+  Tema: "Tema",
+  Idioma: "Idioma",
+  "Português (Brasil)": "Portugués (Brasil)",
+  "Redução de ruído": "Reducción de ruido",
+  "Baud rate": "Baud rate",
+  "Heartbeat (ms)": "Heartbeat (ms)",
+  "Janela da telemetria": "Ventana de la telemetría",
+  "Transição (ms)": "Transición (ms)",
+  "Threshold do firmware": "Umbral del firmware",
+  "Deadzone do firmware": "Zona muerta del firmware",
+  "Smoothing do firmware (%)": "Suavizado del firmware (%)",
+  Baixa: "Baja",
+  Padrão: "Predeterminado",
+  Alta: "Alta",
+  "Conecta a serial automaticamente no boot quando possível.":
+    "Conecta la serial automáticamente al arrancar cuando es posible.",
+  "Auto-connect": "Auto-conexión",
+  "auto-connect": "auto-conexión",
+  "Transições suaves": "Transiciones suaves",
+  "Mantém o backend com aplicação mais suave entre amostras.":
+    "Mantiene el backend con una aplicación más suave entre muestras.",
+  "Mostra gráficos e telemetria ao vivo na visão principal.":
+    "Muestra gráficos y telemetría en vivo en la vista principal.",
+  Visualizadores: "Visualizadores",
+  "Knobs e destinos": "Knobs y destinos",
+  "Reordene canais, renomeie knobs e monte múltiplos targets sem abrir o editor JSON.":
+    "Reordena canales, renombra knobs y arma múltiples targets sin abrir el editor JSON.",
+  "Adicionar knob": "Agregar knob",
+  "Corrija o JSON avançado para liberar o editor visual dos knobs.":
+    "Corrige el JSON avanzado para desbloquear el editor visual de los knobs.",
+  Knob: "Knob",
+  id: "id",
+  invertido: "invertido",
+  Subir: "Subir",
+  Descer: "Bajar",
+  Remover: "Eliminar",
+  "Nome do knob": "Nombre del knob",
+  "Direção invertida": "Dirección invertida",
+  "Inverte o sentido lógico do knob sem mudar a fiação física.":
+    "Invierte el sentido lógico del knob sin cambiar el cableado físico.",
+  "Calibração mínima": "Calibración mínima",
+  "Calibração máxima": "Calibración máxima",
+  "Destinos do knob": "Destinos del knob",
+  "Misture master, app, source e sink no mesmo canal.":
+    "Mezcla master, app, source y sink en el mismo canal.",
+  "Adicionar target": "Agregar target",
+  Tipo: "Tipo",
+  master: "master",
+  application: "application",
+  source: "source",
+  sink: "sink",
+  "Controla a saída principal atual do sistema.":
+    "Controla la salida principal actual del sistema.",
+  "Nome do target": "Nombre del target",
+  "Dica: as sugestões acima vêm do inventário de áudio carregado na sessão.":
+    "Consejo: las sugerencias de arriba vienen del inventario de audio cargado en la sesión.",
+  "JSON avançado": "JSON avanzado",
+  "Escape hatch para ajustes finos, revisão de schema e colagem direta de perfis completos.":
+    "Vía de escape para ajustes finos, revisión de schema y pegado directo de perfiles completos.",
+  "Salvar perfil": "Guardar perfil",
+  "Restaurar padrão": "Restaurar predeterminado",
+  "Inventário para targets": "Inventario para targets",
+  "Use estes nomes reais do runtime atual para preencher applications, sinks e sources com menos tentativa e erro.":
+    "Usa estos nombres reales del runtime actual para rellenar applications, sinks y sources con menos prueba y error.",
+  Applications: "Applications",
+  Sources: "Sources",
+  Sinks: "Sinks",
+  Sessão: "Sesión",
+  "Navegação principal do Ioruba": "Navegación principal de Ioruba",
+  "Tauri 2 + React + TS": "Tauri 2 + React + TS",
+  "Arduino C++": "Arduino C++",
+  Serial: "Serial",
+  Backend: "Backend",
+  App: "App",
+  Warning: "Advertencia",
+  Error: "Error",
+  Info: "Info",
+  "Conexão serial encerrada": "Conexión serial cerrada",
+  "Inventario de audio solicitado": "Inventario de audio solicitado",
+  "Falha ao atualizar inicializacao com a sessao":
+    "Fallo al actualizar el inicio con la sesión",
+  "Janela ocultada; runtime continua ativo no tray":
+    "Ventana oculta; el runtime sigue activo en la bandeja",
+  "Falha ao ocultar janela no fechamento": "Fallo al ocultar la ventana al cerrar",
+  "Watch bridge ativo": "Watch bridge activo",
+  "Watch bridge indisponivel": "Watch bridge no disponible",
+  "Falha ao aplicar lote de áudio": "Fallo al aplicar el lote de audio",
+  "Handshake do firmware solicitado": "Handshake del firmware solicitado",
+  "Falha ao solicitar handshake do firmware":
+    "Fallo al solicitar el handshake del firmware",
+  "Falha ao cancelar leitura serial": "Fallo al cancelar la lectura serial",
+  "Falha ao fechar porta serial": "Fallo al cerrar el puerto serial",
+  "Porta serial encerrada": "Puerto serial cerrado",
+  "Iniciando conexao serial": "Iniciando conexión serial",
+  "Porta serial aberta": "Puerto serial abierto",
+  "Escuta serial ativa": "Escucha serial activa",
+  "Conexao serial estabelecida": "Conexión serial establecida",
+  "Falha ao abrir porta serial": "Fallo al abrir el puerto serial",
+  "Sem leituras seriais recentes": "Sin lecturas seriales recientes",
+  "Configuracao do firmware enviada": "Configuración del firmware enviada",
+  "Falha ao enviar configuracao do firmware":
+    "Fallo al enviar la configuración del firmware",
+  "Boot do runtime iniciado": "Arranque del runtime iniciado",
+  "Runtime hidratado": "Runtime hidratado",
+  "Persistencia restaurou modo demo": "La persistencia restauró el modo demo",
+  "Auto-connect habilitado pelo perfil ativo":
+    "Auto-conexión habilitada por el perfil activo",
+  "Falha ao persistir watch log": "Fallo al persistir el watch log",
+  "Falha no boot do runtime": "Fallo en el arranque del runtime",
+  "Falha ao consultar portas seriais": "Fallo al consultar los puertos seriales",
+  "Portas seriais atualizadas": "Puertos seriales actualizados",
+  "Conexao serial solicitada": "Conexión serial solicitada",
+  "Monitor serial desligado": "Monitor serial apagado",
+  "Modo demo ativado": "Modo demo activado",
+  "Modo demo desativado": "Modo demo desactivado",
+  "Modo demo ativo": "Modo demo activo",
+  "Inicializacao com a sessao ativada": "Inicio con la sesión activado",
+  "Inicializacao com a sessao desativada": "Inicio con la sesión desactivado",
+  "Perfil ativo selecionado": "Perfil activo seleccionado",
+  "Novo perfil criado": "Nuevo perfil creado",
+  "Perfil duplicado": "Perfil duplicado",
+  "Remocao ignorada": "Eliminación ignorada",
+  "Perfil removido": "Perfil eliminado",
+  "Porta preferida atualizada": "Puerto preferido actualizado",
+  "Tema da interface atualizado": "Tema de la interfaz actualizado",
+  "Falha ao salvar perfil": "Fallo al guardar el perfil",
+  "Perfil atualizado": "Perfil actualizado",
+  "Perfil ativo atualizado": "Perfil activo actualizado",
+  "Perfil padrão restaurado": "Perfil predeterminado restaurado",
+  "Perfil restaurado para o padrao": "Perfil restaurado al predeterminado",
+  "Handshake do firmware recebido": "Handshake del firmware recibido",
+  "Quantidade de knobs do firmware difere do perfil ativo":
+    "La cantidad de knobs del firmware difiere del perfil activo",
+  "Payload bruto do handshake": "Payload crudo del handshake",
+  "Frame serial recebido": "Frame serial recibido",
+  "Slideres elegiveis para aplicacao": "Sliders elegibles para aplicación",
+  "Resultados aplicados no estado local": "Resultados aplicados en el estado local",
+  "Passo de demo gerado": "Paso de demo generado",
+  "Fluxo sintético em execução": "Flujo sintético en ejecución",
+  Ligado: "Encendido",
+  Desligado: "Apagado",
+  English: "Inglés",
+  "Español": "Español",
+  Spotify: "Spotify",
+  default_microphone: "default_microphone",
+  default_output: "default_output",
+  "Leitura bruta": "Lectura cruda",
+  atualizado: "actualizado",
+  ocioso: "inactivo",
+  indisponível: "no disponible",
+  ignorado: "omitido",
+  erro: "error",
+  "alvo(s)": "objetivo(s)",
+  nível: "nivel",
+  Entrada: "Entrada",
+  Saida: "Salida",
+  "Resposta do canal": "Respuesta del canal",
+  "Valor aplicado pronto para audio backend e telemetria.":
+    "Valor aplicado listo para el backend de audio y la telemetría.",
+  "Destinos ativos": "Destinos activos",
+  "Ultimo resultado": "Último resultado",
+  "Mixer de áudio para Linux": "Mezclador de audio para Linux",
+  "Painel instrumental com telemetria viva e perfis locais.":
+    "Panel instrumental con telemetría en vivo y perfiles locales.",
+  "Backend de áudio indisponível": "Backend de audio no disponible",
+  "O Ioruba não encontrou o pactl no PATH. O controle de volume está desativado até que o backend seja instalado.":
+    "Ioruba no encontró pactl en el PATH. El control de volumen está desactivado hasta que el backend sea instalado.",
+  "Como instalar": "Cómo instalar",
+  "Esta plataforma ainda não tem backend de áudio nativo. O Ioruba mantém perfis, conexão serial, telemetria e modo demo, mas não altera volumes reais.":
+    "Esta plataforma aún no tiene backend de audio nativo. Ioruba mantiene perfiles, conexión serial, telemetría y modo demo, pero no altera volúmenes reales.",
+  "Fallback disponível": "Alternativa disponible",
+  "Use o modo demo para validar perfis e telemetria.":
+    "Usa el modo demo para validar perfiles y telemetría.",
+  "Conecte o Arduino para testar a leitura serial sem aplicar áudio.":
+    "Conecta el Arduino para probar la lectura serial sin aplicar audio.",
+  "Use Linux com pactl para controle de volume real.":
+    "Usa Linux con pactl para control de volumen real.",
+  "em uso por outro processo. Feche o monitor serial ou outro app que esteja com a porta aberta.":
+    "en uso por otro proceso. Cierra el monitor serial u otra app que tenga el puerto abierto.",
+  "Sem permissão para abrir": "Sin permiso para abrir",
+  "Adicione seu usuário ao grupo dialout: sudo usermod -aG dialout $USER":
+    "Agrega tu usuario al grupo dialout: sudo usermod -aG dialout $USER",
+  "não encontrada. O dispositivo pode ter sido desconectado.":
+    "no encontrado. El dispositivo puede haber sido desconectado.",
+  "Carregando telemetria...": "Cargando telemetría...",
+  "Começar por um preset": "Comenzar con un preset",
+  "Cria um novo perfil com sliders prontos para o caso de uso. Você ainda pode ajustar tudo depois.":
+    "Crea un nuevo perfil con sliders listos para el caso de uso. Aún puedes ajustar todo después.",
+  Streaming: "Streaming",
+  "Balanceie áudio do sistema, o app de captura e o microfone durante uma transmissão ao vivo.":
+    "Balancea el audio del sistema, la app de captura y el micrófono durante una transmisión en vivo.",
+  Chamadas: "Llamadas",
+  "Controle volume geral, a sala de videoconferência no navegador e o microfone em reuniões.":
+    "Controla el volumen general, la sala de videoconferencia en el navegador y el micrófono en reuniones.",
+  Música: "Música",
+  "Ajuste o volume geral, o player de música e a saída padrão para audição ou produção.":
+    "Ajusta el volumen general, el reproductor de música y la salida predeterminada para escucha o producción.",
+  "Exportar perfil": "Exportar perfil",
+  "Importar perfil": "Importar perfil",
+  "Primeiros passos": "Primeros pasos",
+  concluídos: "completados",
+  "Dispensar primeiros passos": "Descartar primeros pasos",
+  "Conecte o controlador": "Conecta el controlador",
+  "Handshake do firmware recebido.": "Handshake del firmware recibido.",
+  "Ligue o Arduino e aguarde o handshake do firmware.":
+    "Enciende el Arduino y espera el handshake del firmware.",
+  "Encontre a porta serial": "Encuentra el puerto serial",
+  "Porta serial detectada.": "Puerto serial detectado.",
+  "Nenhuma porta serial disponível ainda. Verifique o cabo USB.":
+    "Ningún puerto serial disponible aún. Verifica el cable USB.",
+  "Verifique o áudio do sistema": "Verifica el audio del sistema",
+  "Backend de áudio disponível.": "Backend de audio disponible.",
+  "Controle de áudio do sistema indisponível. No Linux, instale pipewire-pulse ou pulseaudio-utils.":
+    "Control de audio del sistema no disponible. En Linux, instala pipewire-pulse o pulseaudio-utils.",
+  "Estatísticas da sessão": "Estadísticas de la sesión",
+  "Resetar estatísticas da sessão": "Restablecer estadísticas de la sesión",
+  "amostras": "muestras",
+  "ticks": "ticks",
+  "Resetar": "Restablecer",
+  "Nenhuma amostra ainda. Conecte o controlador ou inicie o modo demo.":
+    "Ninguna muestra aún. Conecta el controlador o inicia el modo demo.",
+  "Amostras": "Muestras",
+  "Mín": "Mín",
+  "Méd": "Prom",
+  "Máx": "Máx",
+  "Atual": "Actual",
+  "Sem dados de telemetria ainda": "Sin datos de telemetría aún",
+  "Mova um knob com o controlador conectado para começar a registrar a linha do tempo.":
+    "Mueve un knob con el controlador conectado para comenzar a registrar la línea de tiempo.",
+  "Calibração de knobs": "Calibración de knobs",
+  "Capture os limites físicos de cada knob ao vivo e grave no perfil ativo. O firmware é sincronizado automaticamente.":
+    "Captura los límites físicos de cada knob en vivo y guárdalos en el perfil activo. El firmware se sincroniza automáticamente.",
+  "sinal ao vivo": "señal en vivo",
+  "calibrado: {min} – {max}": "calibrado: {min} – {max}",
+  "padrão: 0 – {max}": "predeterminado: 0 – {max}",
+  Calibrar: "Calibrar",
+  "Conecte o controlador para calibrar com leituras reais do hardware.":
+    "Conecta el controlador para calibrar con lecturas reales del hardware.",
+  "passo 1 de 2 — mínimo": "paso 1 de 2 — mínimo",
+  "passo 2 de 2 — máximo": "paso 2 de 2 — máximo",
+  revisão: "revisión",
+  "Gire o knob até o limite mínimo físico e clique em Capturar.":
+    "Gira el knob hasta el límite mínimo físico y haz clic en Capturar.",
+  "Agora gire o knob até o limite máximo físico e clique em Capturar.":
+    "Ahora gira el knob hasta el límite máximo físico y haz clic en Capturar.",
+  "leitura ao vivo": "lectura en vivo",
+  "mínimo observado": "mínimo observado",
+  "máximo observado": "máximo observado",
+  "Faixa capturada muito curta (mínimo {span} contagens). Refaça movendo o knob de ponta a ponta.":
+    "Rango capturado demasiado corto (mínimo {span} cuentas). Rehazlo moviendo el knob de extremo a extremo.",
+  Capturar: "Capturar",
+  "Aplicar ao perfil": "Aplicar al perfil",
+  Cancelar: "Cancelar",
+};
+
+const LANGUAGE_TEXT_MAPS: Record<
+  Exclude<UiLanguage, "pt-BR">,
+  Record<string, string>
+> = {
+  en: TEXT_MAP_EN,
+  es: TEXT_MAP_ES
+};
+
 export function translateText(language: UiLanguage, text: string): string {
   if (language === "pt-BR") {
     return text;
   }
 
-  return TEXT_MAP[text] ?? text;
+  return LANGUAGE_TEXT_MAPS[language][text] ?? text;
 }
 
 export function translateTemplate(

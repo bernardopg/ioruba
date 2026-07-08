@@ -112,8 +112,10 @@ Hoje Windows/macOS só controlam `master`. Linux tem cobertura completa.
 
 - [x] Wizard de calibração de knobs na UI (ler/escrever `minRaw`/`maxRaw`/deadzone via comando `CONFIG`, que já existe no protocolo) `(frontend/firmware/ux)` - `médio`
   - `CalibrationWizard` na seção Hardware: fluxo mín→máx→revisão por knob com leitura ao vivo e rastreio do extremo observado; valida faixa mínima (16 contagens) e grava `calibration` no slider do perfil ativo via `updateActiveProfileConfig` — o runtime serial já sincroniza o firmware via `CONFIG` quando o perfil diverge. +3 testes de componente.
-- [ ] Auditoria de acessibilidade (a11y) do dashboard, foco/teclado/aria `(frontend/a11y/ux)` - `médio`
-- [ ] Ampliar i18n além de en/pt-BR (estrutura de `i18n.ts` já suporta) `(frontend/i18n)` - `médio`
+- [x] Auditoria de acessibilidade (a11y) do dashboard, foco/teclado/aria `(frontend/a11y/ux)` - `médio`
+  - Navegação por setas/Home/End no tablist do sidebar (padrão WAI-ARIA, tabindex itinerante já existia mas os tabs inativos eram inalcançáveis por teclado); foco gerenciado no wizard de calibração (entra na sessão, volta ao botão de origem) + `aria-live` no passo e `role="alert"` na faixa curta; `aria-pressed` nos filtros do watch log; `scope="col"` nas tabelas de hardware/estatísticas; `role="img"` nomeado no gráfico de telemetria; `aria-label` no textarea de JSON avançado. Cobertura axe estendida a todos os painéis (HardwarePanel, CalibrationWizard, SessionStatsPanel, WatchLogPanel, OverviewSignalPanel, ProfileWorkbench nas 3 views).
+- [x] Ampliar i18n além de en/pt-BR (estrutura de `i18n.ts` já suporta) `(frontend/i18n)` - `médio`
+  - Espanhol (`es`) completo: `TEXT_MAP_ES` cobre 100% das chaves, registro por idioma em `LANGUAGE_TEXT_MAPS`, união `UiLanguage` no shared + validação (`normalizePersistedState` e editor JSON caem para pt-BR em idioma desconhecido), opção no seletor de perfil. Guia de tradução atualizado (EN + espelho PT).
 - [x] Exibir board/MCU/`adcBits`/protocolo detectados num painel de diagnóstico claro `(frontend/hardware/ux)` - `fácil`
   - `HardwarePanel` (seção Hardware): placa, MCU, resolução do ADC, protocolo (compat.), knobs e calibração por knob, com estado vazio. Integrado à navegação agrupada nova.
 - [x] Indicador visual de latência e saúde da conexão sempre visível (alinhado ao `.impeccable.md`) `(frontend/ux/observability)` - `fácil`

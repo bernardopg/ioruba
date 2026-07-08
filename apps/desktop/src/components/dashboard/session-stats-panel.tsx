@@ -110,12 +110,12 @@ export function SessionStatsPanel({
           <table className="w-full border-collapse text-sm">
             <thead>
               <tr className="text-left text-xs uppercase tracking-wide text-(--color-muted)">
-                <th className="py-2 pr-4 font-medium">{lt("Knob")}</th>
-                <th className="py-2 pr-4 text-right font-medium">{lt("Amostras")}</th>
-                <th className="py-2 pr-4 text-right font-medium">{lt("Mín")}</th>
-                <th className="py-2 pr-4 text-right font-medium">{lt("Méd")}</th>
-                <th className="py-2 pr-4 text-right font-medium">{lt("Máx")}</th>
-                <th className="py-2 text-right font-medium">{lt("Atual")}</th>
+                <th className="py-2 pr-4 font-medium" scope="col">{lt("Knob")}</th>
+                <th className="py-2 pr-4 text-right font-medium" scope="col">{lt("Amostras")}</th>
+                <th className="py-2 pr-4 text-right font-medium" scope="col">{lt("Mín")}</th>
+                <th className="py-2 pr-4 text-right font-medium" scope="col">{lt("Méd")}</th>
+                <th className="py-2 pr-4 text-right font-medium" scope="col">{lt("Máx")}</th>
+                <th className="py-2 text-right font-medium" scope="col">{lt("Atual")}</th>
               </tr>
             </thead>
             <tbody>

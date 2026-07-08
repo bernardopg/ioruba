@@ -1,5 +1,5 @@
 import { Crosshair, RotateCcw, SlidersHorizontal } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -57,6 +57,23 @@ export function CalibrationWizard({
 }) {
   const lt = (text: string) => translateText(language, text);
   const [session, setSession] = useState<WizardSession | null>(null);
+  const sessionPanelRef = useRef<HTMLDivElement | null>(null);
+  const lastSliderIdRef = useRef<number | null>(null);
+  const sessionOpen = session !== null;
+
+  // Ao iniciar uma calibração o botão "Calibrar" clicado sai da árvore; sem
+  // mover o foco explicitamente ele cairia no body. Ao encerrar, devolve o
+  // foco ao botão do knob que originou a sessão.
+  useEffect(() => {
+    if (sessionOpen) {
+      sessionPanelRef.current?.focus();
+    } else if (lastSliderIdRef.current !== null) {
+      document
+        .getElementById(`calibrate-knob-${lastSliderIdRef.current}`)
+        ?.focus();
+      lastSliderIdRef.current = null;
+    }
+  }, [sessionOpen]);
 
   const activeKnob = session
     ? knobs.find((knob) => knob.id === session.sliderId) ?? null
@@ -84,6 +101,7 @@ export function CalibrationWizard({
 
   const startCalibration = (sliderId: number) => {
     const knob = knobs.find((candidate) => candidate.id === sliderId);
+    lastSliderIdRef.current = sliderId;
     setSession({
       sliderId,
       step: "min",
@@ -197,6 +215,7 @@ export function CalibrationWizard({
                     </span>
                     <Button
                       disabled={!live}
+                      id={`calibrate-knob-${slider.id}`}
                       onClick={() => startCalibration(slider.id)}
                       size="small"
                       variant="secondary"
@@ -216,9 +235,18 @@ export function CalibrationWizard({
             ) : null}
           </div>
         ) : (
-          <div className="grid gap-4">
+          <div
+            aria-label={`${lt("Calibração de knobs")} — ${activeKnob?.name ?? `#${session.sliderId}`}`}
+            className="grid gap-4 focus-visible:outline-none"
+            ref={sessionPanelRef}
+            tabIndex={-1}
+          >
             <div className="rounded-[22px] border border-(--color-border) bg-[color-mix(in_oklab,var(--color-panel)_92%,var(--color-shell)_8%)] px-5 py-5">
-              <p className="text-xs uppercase tracking-[0.24em] text-(--color-muted)">
+              <p
+                aria-atomic="true"
+                aria-live="polite"
+                className="text-xs uppercase tracking-[0.24em] text-(--color-muted)"
+              >
                 {activeKnob?.name ?? `#${session.sliderId}`}
                 {" · "}
                 {session.step === "min"
@@ -281,7 +309,7 @@ export function CalibrationWizard({
                     </div>
                   </div>
                   {spanTooSmall ? (
-                    <p className="mt-3 text-sm text-(--accent-rose)">
+                    <p className="mt-3 text-sm text-(--accent-rose)" role="alert">
                       {translateTemplate(
                         language,
                         "Faixa capturada muito curta (mínimo {span} contagens). Refaça movendo o knob de ponta a ponta.",

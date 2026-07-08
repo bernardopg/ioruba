@@ -1,4 +1,4 @@
-export type UiLanguage = "pt-BR" | "en";
+export type UiLanguage = "pt-BR" | "en" | "es";
 export type ThemeMode = "system" | "light" | "dark";
 export type NoiseReductionLevel = "low" | "default" | "high";
 export type RuntimeStatus =

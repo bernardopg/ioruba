@@ -8,7 +8,11 @@ expect.extend(toHaveNoViolations);
 
 import App from "@/App";
 import { ProfileWorkbench } from "@/components/config/profile-workbench";
+import { CalibrationWizard } from "@/components/dashboard/calibration-wizard";
+import { HardwarePanel } from "@/components/dashboard/hardware-panel";
 import { KnobPanel } from "@/components/dashboard/knob-panel";
+import { OverviewSignalPanel } from "@/components/dashboard/overview-signal-panel";
+import { SessionStatsPanel } from "@/components/dashboard/session-stats-panel";
 import { WatchLogPanel } from "@/components/dashboard/watch-log-panel";
 import { translateText } from "@/lib/i18n";
 import { parseProfileDraft, serializeProfileDraft } from "@/lib/profile-config";
@@ -17,8 +21,29 @@ import {
   defaultPersistedState,
   defaultProfile,
   emptyAudioInventory,
-  resolveActiveProfile
+  resolveActiveProfile,
+  type FirmwareInfo,
+  type RuntimeKnobSnapshot,
+  type SessionTelemetryStats,
+  type UiLanguage
 } from "@ioruba/shared";
+
+// axe não resolve custom properties de CSS no jsdom; o contraste é verificado
+// estaticamente no app.css (comentários WCAG).
+const AXE_OPTIONS = { rules: { "color-contrast": { enabled: false } } };
+
+function liveKnob(id: number, rawValue: number): RuntimeKnobSnapshot {
+  return {
+    id,
+    name: `Knob ${id}`,
+    percent: 0,
+    rawValue,
+    appliedRawValue: rawValue,
+    targets: [],
+    outcome: { summary: "", severity: "info", targets: [] },
+    accent: "teal"
+  };
+}
 
 vi.mock("@/hooks/use-background-tray", () => ({
   useBackgroundTray: () => undefined
@@ -61,7 +86,7 @@ vi.mock("@/components/dashboard/telemetry-chart", () => ({
   TelemetryChart: () => <div data-testid="telemetry-chart" />
 }));
 
-function buildPersistedState(language: "pt-BR" | "en" = "pt-BR") {
+function buildPersistedState(language: UiLanguage = "pt-BR") {
   const baseProfile = {
     ...structuredClone(defaultProfile),
     ui: {
@@ -293,6 +318,263 @@ describe("desktop accessibility shell", () => {
     if (!knob) throw new Error("expected default knob snapshot for axe test");
     const { container } = render(<KnobPanel knob={knob} />);
     expect(await axe(container, { rules: { "color-contrast": { enabled: false } } })).toHaveNoViolations();
+  });
+
+  it("moves tab selection and focus with arrow keys in the sidebar tablist", () => {
+    render(<App />);
+
+    const homeTab = screen.getByRole("tab", { name: /home/i });
+    homeTab.focus();
+
+    fireEvent.keyDown(homeTab, { key: "ArrowDown" });
+    const controlTab = screen.getByRole("tab", { name: /painel de controle/i });
+    expect(controlTab.getAttribute("aria-selected")).toBe("true");
+    expect(document.activeElement).toBe(controlTab);
+
+    fireEvent.keyDown(controlTab, { key: "End" });
+    const lastTab = screen.getByRole("tab", { name: /avançado/i });
+    expect(lastTab.getAttribute("aria-selected")).toBe("true");
+    expect(document.activeElement).toBe(lastTab);
+
+    // Navegação circular: avançar a partir do último volta ao primeiro.
+    fireEvent.keyDown(lastTab, { key: "ArrowRight" });
+    expect(
+      screen.getByRole("tab", { name: /home/i }).getAttribute("aria-selected")
+    ).toBe("true");
+  });
+
+  it("renders Spanish copy when the active profile language is es", () => {
+    const persisted = buildPersistedState("es");
+    const store = useIorubaStore.getState();
+    store.hydrate(persisted, store.audioInventory);
+
+    render(<App />);
+
+    expect(screen.getByText(/mezclador de audio para linux/i)).not.toBeNull();
+    expect(screen.getByRole("tab", { name: /panel de control/i })).not.toBeNull();
+    expect(
+      screen.getByRole("link", { name: /saltar al contenido principal/i })
+    ).not.toBeNull();
+  });
+
+  it("every Spanish entry mirrors an English entry for the same source string", () => {
+    // Chaves com tradução EN devem ter tradução ES: uma chave só em EN
+    // regrediria a UI espanhola para o texto-fonte em português.
+    const samples: Array<[string, string]> = [
+      ["Painel de controle", "Panel de control"],
+      ["Calibração de knobs", "Calibración de knobs"],
+      ["Estatísticas da sessão", "Estadísticas de la sesión"],
+      ["Saúde da conexão", "Salud de la conexión"],
+      ["Español", "Español"]
+    ];
+
+    for (const [ptBR, expectedES] of samples) {
+      expect(
+        translateText("es", ptBR),
+        `"${ptBR}" should translate to "${expectedES}" in Spanish`
+      ).toBe(expectedES);
+    }
+  });
+
+  it("moves focus into the calibration session and back to the trigger button", () => {
+    const profile = structuredClone(defaultProfile);
+    const knobs = profile.sliders.map((slider) => liveKnob(slider.id, 500));
+
+    render(
+      <CalibrationWizard
+        adcMax={1023}
+        knobs={knobs}
+        language="pt-BR"
+        live
+        onApply={vi.fn()}
+        profile={profile}
+      />
+    );
+
+    const trigger = screen.getAllByRole("button", { name: "Calibrar" })[0];
+    fireEvent.click(trigger);
+
+    const focused = document.activeElement as HTMLElement;
+    expect(focused.getAttribute("aria-label") ?? "").toContain(
+      "Calibração de knobs"
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Cancelar" }));
+    expect((document.activeElement as HTMLElement).id).toBe(
+      `calibrate-knob-${profile.sliders[0]?.id}`
+    );
+  });
+
+  it("marks the active watch log filter as pressed", () => {
+    const store = useIorubaStore.getState();
+
+    render(
+      <WatchLogPanel
+        activeProfileName="Linux Mixer"
+        language="pt-BR"
+        onClear={vi.fn()}
+        onExport={vi.fn(async () => null)}
+        snapshot={store.snapshot}
+        watchLog={[]}
+      />
+    );
+
+    const allFilter = screen.getByRole("button", { name: "Todos" });
+    const serialFilter = screen.getByRole("button", { name: "Serial" });
+    expect(allFilter.getAttribute("aria-pressed")).toBe("true");
+    expect(serialFilter.getAttribute("aria-pressed")).toBe("false");
+
+    fireEvent.click(serialFilter);
+    expect(allFilter.getAttribute("aria-pressed")).toBe("false");
+    expect(serialFilter.getAttribute("aria-pressed")).toBe("true");
+  });
+
+  it("HardwarePanel has no axe violations with a full handshake", async () => {
+    const firmware: FirmwareInfo = {
+      boardName: "Arduino Nano",
+      firmwareVersion: "0.5.1",
+      protocolVersion: 2,
+      protocolSupported: true,
+      knobCount: 3,
+      mcu: "ATmega328P",
+      adcBits: 10,
+      controllerConfig: {
+        changeThreshold: 4,
+        edgeDeadzone: 7,
+        smoothingStrength: 75,
+        calibrations: [{ minRaw: 0, maxRaw: 1023 }]
+      }
+    };
+
+    const { container } = render(
+      <HardwarePanel firmware={firmware} language="pt-BR" />
+    );
+    expect(await axe(container, AXE_OPTIONS)).toHaveNoViolations();
+  });
+
+  it("CalibrationWizard has no axe violations in list and session states", async () => {
+    const profile = structuredClone(defaultProfile);
+    const knobs = profile.sliders.map((slider) => liveKnob(slider.id, 500));
+
+    const { container } = render(
+      <CalibrationWizard
+        adcMax={1023}
+        knobs={knobs}
+        language="pt-BR"
+        live
+        onApply={vi.fn()}
+        profile={profile}
+      />
+    );
+    expect(await axe(container, AXE_OPTIONS)).toHaveNoViolations();
+
+    fireEvent.click(screen.getAllByRole("button", { name: "Calibrar" })[0]);
+    expect(await axe(container, AXE_OPTIONS)).toHaveNoViolations();
+  });
+
+  it("SessionStatsPanel has no axe violations with populated stats", async () => {
+    const stats: SessionTelemetryStats = {
+      sampleCount: 3,
+      firstTick: 1,
+      lastTick: 3,
+      perKnob: {
+        0: {
+          knobId: 0,
+          sampleCount: 3,
+          minPercent: 10,
+          maxPercent: 90,
+          sumPercent: 150,
+          lastPercent: 50
+        }
+      }
+    };
+
+    const { container } = render(
+      <SessionStatsPanel
+        knobs={[{ id: 0, name: "Master" }]}
+        language="pt-BR"
+        onExportCsv={vi.fn()}
+        onExportJson={vi.fn()}
+        onReset={vi.fn()}
+        stats={stats}
+      />
+    );
+    expect(await axe(container, AXE_OPTIONS)).toHaveNoViolations();
+  });
+
+  it("WatchLogPanel and OverviewSignalPanel have no axe violations", async () => {
+    const store = useIorubaStore.getState();
+
+    const { container } = render(
+      <div>
+        <WatchLogPanel
+          activeProfileName="Linux Mixer"
+          language="pt-BR"
+          onClear={vi.fn()}
+          onExport={vi.fn(async () => null)}
+          snapshot={store.snapshot}
+          watchLog={[
+            {
+              seq: 1,
+              timestampMs: 1,
+              scope: "app",
+              level: "info",
+              message: "Sessão iniciada"
+            }
+          ]}
+        />
+        <OverviewSignalPanel
+          activeProfileName="Linux Mixer"
+          language="pt-BR"
+          snapshot={store.snapshot}
+        />
+      </div>
+    );
+    expect(await axe(container, AXE_OPTIONS)).toHaveNoViolations();
+  });
+
+  it("ProfileWorkbench has no axe violations in any settings view", async () => {
+    const persisted = buildPersistedState();
+    const activeProfile = resolveActiveProfile(persisted);
+    const configDraft = serializeProfileDraft(activeProfile);
+    const draftValidation = parseProfileDraft(configDraft);
+
+    if (!draftValidation.ok) {
+      throw new Error("expected valid draft for axe test");
+    }
+
+    for (const view of ["profiles", "editor", "advanced"] as const) {
+      const { container, unmount } = render(
+        <ProfileWorkbench
+          view={view}
+          activeProfile={activeProfile}
+          appendWatchLog={vi.fn()}
+          applyConfigDraft={vi.fn()}
+          audioInventory={emptyAudioInventory}
+          availablePorts={[]}
+          configDraft={configDraft}
+          createProfile={vi.fn()}
+          applyPreset={vi.fn()}
+          exportActiveProfile={vi.fn()}
+          importProfileFromFile={vi.fn()}
+          draftIsDirty={false}
+          draftStatusHint="Perfil salvo"
+          draftStatusLabel="Perfil salvo"
+          draftStatusTone="positive"
+          draftValidation={draftValidation}
+          duplicateActiveProfile={vi.fn()}
+          language="pt-BR"
+          persisted={persisted}
+          removeActiveProfile={vi.fn()}
+          resetProfile={vi.fn()}
+          selectProfile={vi.fn()}
+          setConfigDraft={vi.fn()}
+        />
+      );
+
+      expect(await axe(container, AXE_OPTIONS)).toHaveNoViolations();
+      unmount();
+    }
   });
 
   it("keeps the watch log viewport keyboard-focusable for scrolling", () => {

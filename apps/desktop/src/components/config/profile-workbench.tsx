@@ -586,6 +586,7 @@ export function ProfileWorkbench({
                       >
                         <option value="pt-BR">{lt("Português (Brasil)")}</option>
                         <option value="en">{lt("English")}</option>
+                        <option value="es">{lt("Español")}</option>
                       </select>
                     </label>
 
@@ -1048,6 +1049,7 @@ export function ProfileWorkbench({
               <textarea
                 aria-describedby={!draftValidation.ok ? draftErrorId : undefined}
                 aria-invalid={!draftValidation.ok}
+                aria-label={lt("JSON avançado")}
                 className={cn(
                   "min-h-125 w-full rounded-[28px] border bg-(--color-panel) px-5 py-4 font-mono text-sm text-(--color-copy) outline-none transition",
                   draftValidation.ok
