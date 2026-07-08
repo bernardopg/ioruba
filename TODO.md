@@ -59,7 +59,8 @@ Hoje Windows/macOS só controlam `master`. Linux tem cobertura completa.
 
 - [ ] Estender o cache de inventário (TTL ~250ms, já existe no Linux) aos backends Windows/macOS — hoje re-inicializam COM/CoreAudio a cada chamada `(backend/audio/performance)` - `médio`
 - [ ] Reusar handle de device (COM apartment / `IMMDevice` / `AudioObjectID`) entre chamadas respeitando thread-affinity `(backend/audio/performance)` - `difícil`
-- [ ] Coalescing/debounce de writes de volume sob movimento rápido de knob, por target `(backend/runtime/performance)` - `médio`
+- [x] Coalescing/debounce de writes de volume sob movimento rápido de knob, por target `(backend/runtime/performance)` - `médio`
+  - `scheduleAudioFlush` virou throttle leading+trailing (`AUDIO_APPLY_MIN_INTERVAL_MS` 40ms; com `smoothTransitions` usa o `transitionDurationMs` do perfil): primeiro lote sai imediato, rajadas coalescem num flush trailing com o valor mais recente por slider. Corrige também o starvation do debounce puro anterior, que só aplicava áudio quando o knob parava. +2 testes com fake timers.
 - [ ] Reduzir o bundle do chart (`charts` ~353KB gzip 104KB) — lib mais leve ou code-split por aba `(frontend/bundle/performance)` - `médio`
 - [x] Instrumentar e logar latência knob→áudio no watch log (já há timings de boot/connect/refresh) `(observability/performance)` - `fácil`
   - `use-serial-runtime` cronometra `applySliderTargetsBatch` com `performance.now()`; emite `warning` no watch log quando passa de `AUDIO_APPLY_SLOW_MS` (80ms), com tempo + nº de alvos (sem flood).

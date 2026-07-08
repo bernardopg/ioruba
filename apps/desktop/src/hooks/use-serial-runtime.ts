@@ -26,6 +26,16 @@ function normalizeIncomingData(data: string | Uint8Array): string {
 const AUDIO_APPLY_SLOW_MS = 80;
 
 /**
+ * Intervalo mínimo (ms) entre lotes knob→áudio. Sob movimento rápido cada
+ * rajada de frames (~30-60 Hz) viraria um exec de `pactl`; o throttle aplica o
+ * primeiro lote imediatamente (sem lag perceptível) e coalesce os seguintes num
+ * flush trailing com o valor mais recente. Com `smoothTransitions` o intervalo
+ * efetivo é o `transitionDurationMs` do perfil (o antigo debounce puro
+ * segurava o áudio enquanto o knob estivesse em movimento contínuo).
+ */
+const AUDIO_APPLY_MIN_INTERVAL_MS = 40;
+
+/**
  * Intervalo (ms) entre re-tentativas de handshake e teto de tentativas. Cobre o
  * caso em que o `HELLO?` inicial se perde (reset DTR / ruído de boot) sem ficar
  * re-solicitando para sempre — o stream de frames funciona mesmo sem handshake.
@@ -51,6 +61,7 @@ export function useSerialRuntime() {
   const unsubscribeRef = useRef<(() => void) | null>(null);
   const demoTimerRef = useRef<number | null>(null);
   const applyTimerRef = useRef<number | null>(null);
+  const lastFlushEnqueuedAtRef = useRef(0);
   const pendingUpdatesRef = useRef<Map<number, SliderUpdate>>(new Map());
   const inFlightUpdatesRef = useRef<Map<number, number>>(new Map());
   const queueRef = useRef(Promise.resolve());
@@ -64,9 +75,9 @@ export function useSerialRuntime() {
     }
 
     const profile = resolveActiveProfile(persisted);
-    const applyDebounceMs = profile.audio.smoothTransitions
-      ? Math.max(0, profile.audio.transitionDurationMs)
-      : 0;
+    const applyIntervalMs = profile.audio.smoothTransitions
+      ? Math.max(AUDIO_APPLY_MIN_INTERVAL_MS, profile.audio.transitionDurationMs)
+      : AUDIO_APPLY_MIN_INTERVAL_MS;
 
     const clearApplyTimer = () => {
       if (applyTimerRef.current !== null) {
@@ -166,16 +177,25 @@ export function useSerialRuntime() {
         return;
       }
 
-      if (applyDebounceMs <= 0) {
+      // Throttle leading+trailing: um timer pendente já vai drenar o mapa de
+      // pendências com o valor mais recente — não reiniciar (reiniciar seria
+      // debounce, que segura o áudio enquanto o knob se move continuamente).
+      if (applyTimerRef.current !== null) {
+        return;
+      }
+
+      const elapsedMs = Date.now() - lastFlushEnqueuedAtRef.current;
+      if (elapsedMs >= applyIntervalMs) {
+        lastFlushEnqueuedAtRef.current = Date.now();
         enqueueAudioFlush();
         return;
       }
 
-      clearApplyTimer();
       applyTimerRef.current = window.setTimeout(() => {
         applyTimerRef.current = null;
+        lastFlushEnqueuedAtRef.current = Date.now();
         enqueueAudioFlush();
-      }, applyDebounceMs);
+      }, applyIntervalMs - elapsedMs);
     };
 
     const dispatchControlActions = async (

@@ -159,6 +159,71 @@ describe("useSerialRuntime", () => {
     ).toBe(true);
   });
 
+  it("coalesces rapid slider frames into a leading apply plus one trailing apply", async () => {
+    setupSerialRuntime();
+    await flushRuntime();
+
+    const port = serialPortInstances[0];
+
+    await act(async () => {
+      port?.emit("100|100|100\n");
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(mockApplySliderTargetsBatch).toHaveBeenCalledTimes(1);
+
+    // Rajada dentro da janela do throttle: nenhum apply extra imediato,
+    // um único flush trailing com o valor mais recente.
+    await act(async () => {
+      port?.emit("200|200|200\n");
+      await Promise.resolve();
+      port?.emit("300|300|300\n");
+      await Promise.resolve();
+      port?.emit("400|400|400\n");
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(mockApplySliderTargetsBatch).toHaveBeenCalledTimes(1);
+
+    await act(async () => {
+      vi.runOnlyPendingTimers();
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(mockApplySliderTargetsBatch).toHaveBeenCalledTimes(2);
+    const lastBatch = mockApplySliderTargetsBatch.mock.calls.at(-1) as unknown[];
+    const updates = lastBatch?.[1] as Array<{ rawValue: number }>;
+    expect(updates.every((update) => update.rawValue === 400)).toBe(true);
+  });
+
+  it("keeps applying audio while the knob moves continuously (throttle, not debounce)", async () => {
+    setupSerialRuntime();
+    await flushRuntime();
+
+    const port = serialPortInstances[0];
+    let raw = 100;
+
+    // 10 frames espaçados de 20ms (janela do perfil default = 50ms). Um
+    // debounce puro reiniciaria o timer a cada frame e aplicaria só no final;
+    // o throttle precisa continuar drenando durante o movimento.
+    for (let step = 0; step < 10; step += 1) {
+      await act(async () => {
+        raw += 50;
+        port?.emit(`${raw}|${raw}|${raw}\n`);
+        await Promise.resolve();
+        await Promise.resolve();
+        vi.advanceTimersByTime(20);
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+    }
+
+    expect(mockApplySliderTargetsBatch.mock.calls.length).toBeGreaterThanOrEqual(3);
+  });
+
   it("turns an invalid frame from the serial simulator into an error status", async () => {
     setupSerialRuntime();
     await flushRuntime();

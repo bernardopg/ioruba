@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Volume writes are now throttled (leading + trailing) instead of debounced while a knob is moving. The previous pure debounce restarted its timer on every serial frame, so with smooth transitions enabled the audio backend was only invoked after the knob stopped moving; rapid knob movement now applies the first batch immediately and coalesces the burst into at most one backend call per profile transition window (40 ms minimum), always carrying the latest value per slider.
 ### Changed
 
 - The duplicated audio-backend helpers (`describe_target`, `summarize_slider_outcome`, `volume_percent`) and the whole master-only slider-apply loop shared by the Windows and macOS backends were extracted into `audio/common.rs`. The platform backends now only provide a `set_master_volume` closure, outcome strings are parameterized by platform name, and the shared batching/summary logic is covered by host-independent unit tests that run on every CI platform (previously `windows.rs`/`macos.rs` had no tests at all). No behavior change.
