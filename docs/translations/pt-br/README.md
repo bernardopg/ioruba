@@ -16,6 +16,7 @@ Este diretorio contem a traducao da documentacao que fica em docs/.
 ## Guias
 
 - [Hardware Setup Guide](../../guides/hardware-setup.md) -> [Guia de Setup de Hardware](./guides/hardware-setup.md)
+- [Audio Backend Contract (Rust <-> TS)](../../guides/audio-backend-contract.md) -> [Contrato do Backend de Audio (Rust <-> TS)](./guides/audio-backend-contract.md)
 - [Profile Examples And Linux Target Matching](../../guides/profile-examples.md) -> [Exemplos de Perfil e Correspondencia de Alvos no Linux](./guides/profile-examples.md)
 - [Translation Guide (PT-BR and EN)](../../guides/translation-guide.md) -> [Guia de Traducoes (PT-BR e EN)](./guides/translation-guide.md)
 

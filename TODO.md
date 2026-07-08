@@ -69,8 +69,10 @@ Hoje Windows/macOS só controlam `master`. Linux tem cobertura completa.
 
 - [ ] Extrair lógica duplicada dos backends (`describe_target`, `summarize_slider_outcome` repetidos em `windows.rs`/`macos.rs`/`linux.rs`) para `audio/common.rs` `(backend/refactor/organização)` - `médio`
 - [ ] Testes host-independentes para `summarize_slider_outcome`/`describe_target` (hoje sem testes em `windows.rs`/`macos.rs`) `(test/backend/coverage)` - `fácil`
-- [ ] Cobertura de testes do store Zustand (`ioruba-store.ts`), incl. reset de `sessionStats` via wrapper do `set` `(test/frontend/coverage)` - `médio`
-- [ ] Documentar o contrato Rust↔TS dos backends e o dispatch por `cfg` em `audio/mod.rs` `(docs/backend/organização)` - `fácil`
+- [x] Cobertura de testes do store Zustand (`ioruba-store.ts`), incl. reset de `sessionStats` via wrapper do `set` `(test/frontend/coverage)` - `médio`
+  - +3 testes: acumulação de `sessionStats` via `processSerialLine` (min/max/last percent por knob), reset explícito via `resetSessionStats`, e reset automático pelo wrapper do `set` quando uma action zera `telemetry` (via `setDemoMode(false)`).
+- [x] Documentar o contrato Rust↔TS dos backends e o dispatch por `cfg` em `audio/mod.rs` `(docs/backend/organização)` - `fácil`
+  - `docs/guides/audio-backend-contract.md` (+ mirror PT-BR): comandos Tauri, convenções serde (camelCase/lowercase/tag kind), matriz de capacidade por backend, dispatch cfg, modelo de outcome, papel do `common.rs` e dos smokes nativos.
 - [x] Gate de `shellcheck` no CI para `scripts/install.sh` e demais scripts `sh` `(ci/quality)` - `fácil`
   - Job `scripts-lint` no CI roda `shellcheck` em install.sh/run-appimage-compat.sh/validate-appimage.sh (passam limpo). Script local `npm run lint:scripts`.
 - [x] Lint de PowerShell (`PSScriptAnalyzer`) para `scripts/install.ps1` `(ci/quality)` - `fácil`

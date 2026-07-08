@@ -7,6 +7,11 @@ e este projeto segue [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Nao publicado]
 
+### Adicionado
+
+- Novo guia `docs/guides/audio-backend-contract.md` (com mirror PT-BR) documentando o contrato Rust <-> TypeScript dos backends de audio: os tres comandos Tauri, convencoes de nomes do serde, o dispatch por `cfg` em `audio/mod.rs`, a matriz de capacidade de cada backend e o modelo de outcome dos sliders.
+- A suite de testes do store Zustand agora cobre os agregados de telemetria de sessao: acumulacao a partir de frames seriais, a action explicita `resetSessionStats` e o guard do wrapper do `set` que reseta os agregados sempre que uma action zera `telemetry`.
+
 ## [1.3.1](https://github.com/bernardopg/ioruba/compare/v1.3.0...v1.3.1) (2026-06-25)
 
 ### Corrigido

@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- New guide `docs/guides/audio-backend-contract.md` (with PT-BR mirror) documenting the Rust <-> TypeScript audio-backend contract: the three Tauri commands, serde naming conventions, the per-platform `cfg` dispatch in `audio/mod.rs`, each backend's capability matrix and the slider outcome model.
+- The Zustand store test suite now covers session-telemetry aggregates: accumulation from serial frames, the explicit `resetSessionStats` action, and the `set`-wrapper guard that resets the aggregates whenever an action clears `telemetry`.
+
 ## [1.3.1](https://github.com/bernardopg/ioruba/compare/v1.3.0...v1.3.1) (2026-06-25)
 
 ### Fixed
