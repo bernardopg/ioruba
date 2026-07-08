@@ -7,6 +7,10 @@ e este projeto segue [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Nao publicado]
 
+### Alterado
+
+- Os helpers duplicados dos backends de audio (`describe_target`, `summarize_slider_outcome`, `volume_percent`) e todo o loop de apply master-only compartilhado pelos backends Windows e macOS foram extraidos para `audio/common.rs`. Os backends de plataforma agora fornecem apenas uma closure `set_master_volume`, as strings de outcome sao parametrizadas pelo nome da plataforma e a logica compartilhada de batch/resumo ganhou testes unitarios independentes de host que rodam em toda plataforma do CI (antes `windows.rs`/`macos.rs` nao tinham teste nenhum). Sem mudanca de comportamento.
+
 ## [1.3.1](https://github.com/bernardopg/ioruba/compare/v1.3.0...v1.3.1) (2026-06-25)
 
 ### Corrigido

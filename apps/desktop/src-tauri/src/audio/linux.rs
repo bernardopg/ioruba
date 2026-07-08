@@ -7,6 +7,7 @@ use std::{
 
 use serde_json::Value;
 
+use super::common::{self, describe_target};
 use super::{
     ApplySliderTargetsRequest, ApplySliderTargetsResponse, AudioEndpoint, AudioError,
     AudioInventory, AudioTarget, ControlAction, ControlActionOutcome, OutcomeSeverity,
@@ -256,7 +257,7 @@ fn apply_targets(
     for target in &slider.targets {
         match target {
             AudioTarget::Master => {
-                let target_label = describe_audio_target(target);
+                let target_label = describe_target(target);
                 let command_key = "sink:@DEFAULT_SINK@".to_string();
                 if !applied_keys.insert(command_key) {
                     target_outcomes.push(RuntimeTargetOutcome {
@@ -293,7 +294,7 @@ fn apply_targets(
 
                 if matches.is_empty() {
                     target_outcomes.push(RuntimeTargetOutcome {
-                        target: describe_audio_target(target),
+                        target: describe_target(target),
                         status: TargetOutcomeStatus::Idle,
                         detail: format!(
                             "No active sink-input matched application '{name}'. Keep the app playing audio and refresh the inventory."
@@ -355,7 +356,7 @@ fn apply_targets(
                     };
 
                     target_outcomes.push(RuntimeTargetOutcome {
-                        target: describe_audio_target(target),
+                        target: describe_target(target),
                         status,
                         detail,
                         matched,
@@ -393,7 +394,7 @@ fn apply_targets(
 
                 if matches.is_empty() {
                     target_outcomes.push(RuntimeTargetOutcome {
-                        target: describe_audio_target(target),
+                        target: describe_target(target),
                         status: TargetOutcomeStatus::Unavailable,
                         detail: format!(
                             "No source matched '{name}' in the current Linux inventory"
@@ -446,7 +447,7 @@ fn apply_targets(
                     };
 
                     target_outcomes.push(RuntimeTargetOutcome {
-                        target: describe_audio_target(target),
+                        target: describe_target(target),
                         status,
                         detail,
                         matched,
@@ -478,7 +479,7 @@ fn apply_targets(
 
                 if matches.is_empty() {
                     target_outcomes.push(RuntimeTargetOutcome {
-                        target: describe_audio_target(target),
+                        target: describe_target(target),
                         status: TargetOutcomeStatus::Unavailable,
                         detail: format!("No sink matched '{name}' in the current Linux inventory"),
                         matched,
@@ -529,7 +530,7 @@ fn apply_targets(
                     };
 
                     target_outcomes.push(RuntimeTargetOutcome {
-                        target: describe_audio_target(target),
+                        target: describe_target(target),
                         status,
                         detail,
                         matched,
@@ -825,15 +826,6 @@ fn application_match_score(input: &SinkInput, needle: &str) -> Option<u16> {
     (best > 0).then_some(best)
 }
 
-fn describe_audio_target(target: &AudioTarget) -> String {
-    match target {
-        AudioTarget::Master => "master".to_string(),
-        AudioTarget::Application { name } => format!("application:{name}"),
-        AudioTarget::Source { name } => format!("source:{name}"),
-        AudioTarget::Sink { name } => format!("sink:{name}"),
-    }
-}
-
 fn describe_sink_input(input: &SinkInput) -> String {
     let mut parts = vec![format!("#{} {}", input.index, input.primary_name())];
 
@@ -917,8 +909,7 @@ fn contains_case_insensitive(candidate: &str, needle: &str) -> bool {
 }
 
 fn volume_percent(normalized: f64) -> String {
-    let clamped = normalized.clamp(0.0, 1.0);
-    format!("{}%", (clamped * 100.0).round() as u32)
+    format!("{}%", common::volume_percent(normalized))
 }
 
 fn trim(value: String) -> String {

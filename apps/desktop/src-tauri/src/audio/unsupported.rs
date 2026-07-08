@@ -1,9 +1,10 @@
 use std::collections::HashMap;
 
+use super::common::describe_target;
 use super::{
     ApplySliderTargetsRequest, ApplySliderTargetsResponse, AudioEndpoint, AudioError,
-    AudioInventory, AudioTarget, ControlAction, ControlActionOutcome, OutcomeSeverity,
-    RuntimeTargetOutcome, SliderOutcome, TargetOutcomeStatus,
+    AudioInventory, ControlAction, ControlActionOutcome, OutcomeSeverity, RuntimeTargetOutcome,
+    SliderOutcome, TargetOutcomeStatus,
 };
 
 pub fn list_audio_inventory() -> AudioInventory {
@@ -56,13 +57,4 @@ pub fn dispatch_control_action(action: ControlAction) -> Result<ControlActionOut
         supported: false,
         detail: "No native control-action backend is implemented for this platform".to_string(),
     })
-}
-
-fn describe_target(target: &AudioTarget) -> String {
-    match target {
-        AudioTarget::Master => "master".to_string(),
-        AudioTarget::Application { name } => format!("application:{name}"),
-        AudioTarget::Source { name } => format!("source:{name}"),
-        AudioTarget::Sink { name } => format!("sink:{name}"),
-    }
 }
