@@ -24,8 +24,48 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  # Valida RELEASE_TAG ANTES de qualquer build ou gate. Em disparos manuais
+  # (workflow_dispatch) o input pode conter um typo — ex.: "v1.4.0" para uma tag
+  # que nunca foi criada. Sem este gate, todos os jobs de bundle fazem checkout
+  # com ref inexistente e falham em paralelo, desperdiçando até ~10 min de
+  # runner por plataforma (foi exatamente a falha do run 28915129811). Aqui
+  # rejeitamos em segundos num único job ubuntu; no trigger push (tag real) a
+  # checagem é barata e sempre passa.
+  validate-tag:
+    name: Validate Release Tag
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    permissions:
+      contents: read
+
+    steps:
+      - name: Validate tag exists and is well-formed
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          TAG="${RELEASE_TAG}"
+
+          if [[ ! "${TAG}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+([-+].*)?$ ]]; then
+            echo "::error::Tag de release inválida: '${TAG}'. Esperado 'vMAJOR.MINOR.PATCH' (ex.: v1.4.0)."
+            exit 1
+          fi
+
+          # Confirma que a tag existe como ref git. No trigger push a ref é
+          # garantida; no workflow_dispatch pode ser um typo que nunca foi taggeado.
+          if ! gh api "repos/${GITHUB_REPOSITORY}/git/ref/tags/${TAG}" >/dev/null 2>&1; then
+            echo "::error::A tag '${TAG}' não existe em ${GITHUB_REPOSITORY}."
+            echo "::error::Crie e empurre a tag antes de disparar o release:"
+            echo "::error::  git tag ${TAG} && git push origin ${TAG}"
+            exit 1
+          fi
+
+          echo "Tag '${TAG}' validada com sucesso."
+
   ci-gate:
     name: CI Gate
+    needs:
+      - validate-tag
     # Reusa o workflow de CI completo (typecheck, testes shared/desktop, Rust,
     # matriz de firmware e o native-audio-smoke Windows/macOS) como pré-requisito
     # de qualquer build ou publicação. Impede que uma tag vire release com um
@@ -295,7 +335,10 @@ jobs:
     name: Arch Packaging Metadata
     needs:
       - desktop-bundles
-    if: ${{ always() && needs.desktop-bundles.result != 'cancelled' }}
+    # Só gera/publica PKGBUILD quando os bundles de desktop efetivamente
+    # passaram — antes usava `!= 'cancelled'`, o que rodaria este job mesmo
+    # com bundles falhos e publicaria metadados de uma release quebrada.
+    if: ${{ !cancelled() && needs.desktop-bundles.result == 'success' }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
     permissions:
@@ -653,7 +696,11 @@ jobs:
     needs:
       - desktop-bundles
       - firmware
-    if: ${{ always() && needs.desktop-bundles.result != 'cancelled' && needs.firmware.result != 'cancelled' }}
+    # Só atesta e gera checksums quando ambos os produtores de artefato
+    # passaram — antes usava `!= 'cancelled'`, o que atestaria provenance de
+    # uma release incompleta. `!cancelled()` preserva o comportamento de
+    # rodar mesmo se um upstream foi skipped, sem rodar em falha.
+    if: ${{ !cancelled() && needs.desktop-bundles.result == 'success' && needs.firmware.result == 'success' }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
     permissions:
@@ -723,7 +770,7 @@ jobs:
     needs:
       - arch-pkgbuild
       - attest-and-checksum
-    if: ${{ always() && needs.arch-pkgbuild.result == 'success' && needs.attest-and-checksum.result != 'cancelled' }}
+    if: ${{ !cancelled() && needs.arch-pkgbuild.result == 'success' && needs.attest-and-checksum.result == 'success' }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:

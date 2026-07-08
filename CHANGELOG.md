@@ -7,15 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Fixed
+## [1.3.2](https://github.com/bernardopg/ioruba/compare/v1.3.1...v1.3.2) (2026-07-08)
 
-- Volume writes are now throttled (leading + trailing) instead of debounced while a knob is moving. The previous pure debounce restarted its timer on every serial frame, so with smooth transitions enabled the audio backend was only invoked after the knob stopped moving; rapid knob movement now applies the first batch immediately and coalesces the burst into at most one backend call per profile transition window (40 ms minimum), always carrying the latest value per slider.
-### Changed
-
-- The duplicated audio-backend helpers (`describe_target`, `summarize_slider_outcome`, `volume_percent`) and the whole master-only slider-apply loop shared by the Windows and macOS backends were extracted into `audio/common.rs`. The platform backends now only provide a `set_master_volume` closure, outcome strings are parameterized by platform name, and the shared batching/summary logic is covered by host-independent unit tests that run on every CI platform (previously `windows.rs`/`macos.rs` had no tests at all). No behavior change.
 ### Features
 
 - New knob calibration wizard in the Hardware section: a guided min -> max -> review flow per knob that tracks the observed extreme from live serial readings (more robust than instant capture), validates the captured span and stores `minRaw`/`maxRaw` in the active profile. The serial runtime already pushes a `CONFIG` command whenever the profile diverges from the firmware, so applying the wizard result syncs the hardware with no extra step.
+
+### Fixed
+
+- Volume writes are now throttled (leading + trailing) instead of debounced while a knob is moving. The previous pure debounce restarted its timer on every serial frame, so with smooth transitions enabled the audio backend was only invoked after the knob stopped moving; rapid knob movement now applies the first batch immediately and coalesces the burst into at most one backend call per profile transition window (40 ms minimum), always carrying the latest value per slider.
+- The release workflow no longer wastes runner time on nonexistent tags. Manual dispatches (`workflow_dispatch`) accepted any `release_tag` input — a typo such as `v1.4.0` for a tag that was never created caused every bundle job (Linux, Windows, macOS ×2, firmware, Arch) to fail at the `checkout` step in parallel, burning up to ~10 minutes of runner time per platform before erroring. A new `validate-tag` job now runs first: it rejects malformed or nonexistent tags in seconds and short-circuits the entire pipeline before any build starts.
+- Release publish and attestation jobs no longer run when upstream builds fail. The `arch-pkgbuild`, `attest-and-checksum`, and `aur-publish` jobs previously gated on `!= 'cancelled'`, which evaluates to true on failure — meaning a broken bundle could still produce PKGBUILD metadata, generate build-provenance attestations for an incomplete release, or push to the AUR. They now require `== 'success'` so a partial release never reaches distribution.
+
+### Changed
+
+- The duplicated audio-backend helpers (`describe_target`, `summarize_slider_outcome`, `volume_percent`) and the whole master-only slider-apply loop shared by the Windows and macOS backends were extracted into `audio/common.rs`. The platform backends now only provide a `set_master_volume` closure, outcome strings are parameterized by platform name, and the shared batching/summary logic is covered by host-independent unit tests that run on every CI platform (previously `windows.rs`/`macos.rs` had no tests at all). No behavior change.
+- The release pipeline now validates the release tag before kicking off the full CI gate (`typecheck`, shared/desktop tests, firmware matrix, native-audio smoke on Windows/macOS), so a bad tag fails fast instead of consuming the entire multi-platform CI budget.
 
 ## [1.3.1](https://github.com/bernardopg/ioruba/compare/v1.3.0...v1.3.1) (2026-06-25)
 
