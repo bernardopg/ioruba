@@ -7,6 +7,10 @@ e este projeto segue [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Nao publicado]
 
+### Funcionalidades
+
+- Novo wizard de calibracao de knobs na secao Hardware: fluxo guiado min -> max -> revisao por knob que rastreia o extremo observado nas leituras seriais ao vivo (mais robusto que captura instantanea), valida a faixa capturada e grava `minRaw`/`maxRaw` no perfil ativo. O runtime serial ja envia o comando `CONFIG` sempre que o perfil diverge do firmware, entao aplicar o resultado do wizard sincroniza o hardware sem passo extra.
+
 ## [1.3.1](https://github.com/bernardopg/ioruba/compare/v1.3.0...v1.3.1) (2026-06-25)
 
 ### Corrigido
