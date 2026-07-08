@@ -32,6 +32,7 @@ import {
 } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { AudioBackendBanner } from "@/components/dashboard/audio-backend-banner";
+import { CalibrationWizard } from "@/components/dashboard/calibration-wizard";
 import { ConnectionHealthIndicator } from "@/components/dashboard/connection-health";
 import { HardwarePanel } from "@/components/dashboard/hardware-panel";
 import { KnobPanel } from "@/components/dashboard/knob-panel";
@@ -65,6 +66,8 @@ import {
 } from "@/lib/profile-config";
 import { useIorubaStore } from "@/store/ioruba-store";
 import {
+  adcMaxForBits,
+  DEFAULT_ADC_BITS,
   resolveActiveProfile,
   sessionStatsToCsv,
   sessionStatsToJson,
@@ -143,6 +146,9 @@ export default function App() {
   );
   const removeActiveProfile = useIorubaStore((state) => state.removeActiveProfile);
   const setPreferredPort = useIorubaStore((state) => state.setPreferredPort);
+  const updateActiveProfileConfig = useIorubaStore(
+    (state) => state.updateActiveProfileConfig
+  );
   const setThemeMode = useIorubaStore((state) => state.setThemeMode);
   const refreshInventory = useIorubaStore((state) => state.refreshInventory);
   const clearWatchLog = useIorubaStore((state) => state.clearWatchLog);
@@ -805,6 +811,17 @@ export default function App() {
                   snapshot={snapshot}
                 />
               </section>
+
+              <CalibrationWizard
+                adcMax={adcMaxForBits(
+                  snapshot.diagnostics.firmware?.adcBits ?? DEFAULT_ADC_BITS
+                )}
+                knobs={snapshot.knobs}
+                language={language}
+                live={snapshot.status === "connected"}
+                onApply={updateActiveProfileConfig}
+                profile={activeProfile}
+              />
 
               <AudioBackendBanner
                 backend={audioInventory.backend}
