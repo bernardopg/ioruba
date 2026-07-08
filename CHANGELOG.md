@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.4.0](https://github.com/bernardopg/ioruba/compare/v1.3.2...v1.4.0) (2026-07-08)
+
+### Features
+
+- The interface is now available in Spanish (`es`), alongside Portuguese (Brazil) and English. The translation layer was restructured into per-language maps (`TEXT_MAP_EN`/`TEXT_MAP_ES` registered in `LANGUAGE_TEXT_MAPS`), the `UiLanguage` union and its validation were extended end to end (shared normalization and the profile JSON editor fall back to `pt-BR` on unknown values), and the profile editor's language selector offers the new option. The translation guide documents how to add further languages.
+- Dashboard accessibility audit (Scrum 18): the sidebar navigation now implements the full WAI-ARIA tabs keyboard pattern — Arrow keys move selection with roving focus, Home/End jump to the extremes; previously inactive tabs carried `tabindex="-1"` with no key handler, making them unreachable by keyboard. The calibration wizard manages focus across its lifecycle (focus moves into the session panel when calibration starts and returns to the originating knob's button when it ends), announces step changes through a polite live region, and raises the short-span validation as an assertive alert.
+
+### Changed
+
+- Assistive-technology polish across panels: watch log filter buttons expose `aria-pressed`, hardware and session-statistics tables mark their header cells with `scope="col"`, the telemetry chart is exposed as a named image (`role="img"`) instead of leaking raw SVG internals to screen readers, and the advanced JSON editor textarea gained an accessible name. Automated axe coverage now spans every dashboard panel (HardwarePanel, CalibrationWizard, SessionStatsPanel, WatchLogPanel, OverviewSignalPanel, and all three ProfileWorkbench views).
+
+### Fixed
+
+- A typo in the knob panel outcome summary class (`wrap-break-wordword`) that prevented long outcome texts from wrapping.
+
 ## [1.3.2](https://github.com/bernardopg/ioruba/compare/v1.3.1...v1.3.2) (2026-07-08)
 
 ### Features

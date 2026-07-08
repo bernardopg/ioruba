@@ -202,7 +202,7 @@ export function KnobPanel({
                 {knob.outcome.severity}
               </Badge>
             </div>
-            <p className="mt-3 wrap-break-wordword text-sm leading-6 text-(--color-copy)">
+            <p className="mt-3 wrap-break-word text-sm leading-6 text-(--color-copy)">
               {knob.outcome.summary}
             </p>
 

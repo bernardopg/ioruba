@@ -413,7 +413,7 @@ function parseUiSettings(
   const language = readEnum(
     candidate.language,
     "ui.language",
-    ["pt-BR", "en"] as const,
+    ["pt-BR", "en", "es"] as const,
     defaultProfile.ui.language,
   );
   if (!language.ok) {

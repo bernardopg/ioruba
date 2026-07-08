@@ -131,13 +131,13 @@ export function HardwarePanel({
                 <table className="w-full border-collapse text-sm">
                   <thead>
                     <tr className="bg-(--color-shell) text-(--color-muted)">
-                      <th className="px-3 py-2 text-left text-xs font-semibold uppercase tracking-[0.16em]">
+                      <th className="px-3 py-2 text-left text-xs font-semibold uppercase tracking-[0.16em]" scope="col">
                         {lt("Knob")}
                       </th>
-                      <th className="px-3 py-2 text-right text-xs font-semibold uppercase tracking-[0.16em]">
+                      <th className="px-3 py-2 text-right text-xs font-semibold uppercase tracking-[0.16em]" scope="col">
                         {lt("Mín. bruto")}
                       </th>
-                      <th className="px-3 py-2 text-right text-xs font-semibold uppercase tracking-[0.16em]">
+                      <th className="px-3 py-2 text-right text-xs font-semibold uppercase tracking-[0.16em]" scope="col">
                         {lt("Máx. bruto")}
                       </th>
                     </tr>

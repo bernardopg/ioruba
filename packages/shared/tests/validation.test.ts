@@ -71,6 +71,26 @@ describe("persisted state normalization", () => {
     expect(normalized.selectedProfileId).toBe(defaultPersistedState.selectedProfileId);
   });
 
+  it("accepts every supported UI language and falls back to pt-BR otherwise", () => {
+    const withLanguage = (language: unknown) =>
+      normalizePersistedState({
+        selectedProfileId: defaultProfile.id,
+        profiles: [
+          {
+            ...defaultProfile,
+            ui: { ...defaultProfile.ui, language: language as never }
+          }
+        ]
+      }).profiles[0]?.ui.language;
+
+    expect(withLanguage("pt-BR")).toBe("pt-BR");
+    expect(withLanguage("en")).toBe("en");
+    expect(withLanguage("es")).toBe("es");
+    expect(withLanguage("fr")).toBe("pt-BR");
+    expect(withLanguage(42)).toBe("pt-BR");
+    expect(withLanguage(undefined)).toBe("pt-BR");
+  });
+
   it("chooses the first valid profile when selection points to a missing id", () => {
     const normalized = normalizePersistedState({
       selectedProfileId: "ghost-profile",

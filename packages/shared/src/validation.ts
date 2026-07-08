@@ -7,8 +7,15 @@ import type {
   ControlConfig,
   MixerProfile,
   PersistedState,
-  SliderConfig
+  SliderConfig,
+  UiLanguage
 } from "./types";
+
+const UI_LANGUAGES: readonly UiLanguage[] = ["pt-BR", "en", "es"];
+
+function isUiLanguage(candidate: unknown): candidate is UiLanguage {
+  return UI_LANGUAGES.includes(candidate as UiLanguage);
+}
 
 type PersistedStateCandidate = Partial<Omit<PersistedState, "profiles">> & {
   profiles?: Array<Partial<MixerProfile>> | null;
@@ -123,7 +130,7 @@ function normalizeProfile(candidate: Partial<MixerProfile>): MixerProfile | null
           : defaultPersistedState.profiles[0]?.firmware.smoothingStrength ?? 75
     },
     ui: {
-      language: candidate.ui?.language ?? "pt-BR",
+      language: isUiLanguage(candidate.ui?.language) ? candidate.ui.language : "pt-BR",
       theme: candidate.ui?.theme ?? "system",
       showVisualizers: candidate.ui?.showVisualizers ?? true,
       telemetryWindow:

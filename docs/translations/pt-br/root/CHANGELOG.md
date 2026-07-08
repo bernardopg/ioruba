@@ -7,15 +7,37 @@ e este projeto segue [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Nao publicado]
 
-### Corrigido
+## [1.4.0](https://github.com/bernardopg/ioruba/compare/v1.3.2...v1.4.0) (2026-07-08)
 
-- Os writes de volume agora usam throttle (leading + trailing) em vez de debounce enquanto o knob se move. O debounce puro anterior reiniciava o timer a cada frame serial, entao com transicoes suaves habilitadas o backend de audio so era invocado quando o knob parava; movimento rapido agora aplica o primeiro lote imediatamente e coalesce a rajada em no maximo uma chamada de backend por janela de transicao do perfil (minimo 40 ms), sempre com o valor mais recente por slider.
+### Funcionalidades
+
+- A interface agora esta disponivel em espanhol (`es`), alem de portugues (Brasil) e ingles. A camada de traducao foi reestruturada em mapas por idioma (`TEXT_MAP_EN`/`TEXT_MAP_ES` registrados em `LANGUAGE_TEXT_MAPS`), a uniao `UiLanguage` e sua validacao foram estendidas de ponta a ponta (a normalizacao do shared e o editor JSON de perfil caem para `pt-BR` em valores desconhecidos) e o seletor de idioma do editor de perfis oferece a nova opcao. O guia de traducao documenta como adicionar mais idiomas.
+- Auditoria de acessibilidade do dashboard (Scrum 18): a navegacao lateral agora implementa o padrao completo de teclado de tabs do WAI-ARIA — setas movem a selecao com foco itinerante, Home/End pulam para as extremidades; antes os tabs inativos carregavam `tabindex="-1"` sem handler de tecla, ficando inalcancaveis por teclado. O wizard de calibracao gerencia o foco em todo o ciclo (o foco entra no painel da sessao ao iniciar e volta ao botao do knob de origem ao encerrar), anuncia mudancas de passo por live region educada e expoe a validacao de faixa curta como alerta assertivo.
+
 ### Alterado
 
-- Os helpers duplicados dos backends de audio (`describe_target`, `summarize_slider_outcome`, `volume_percent`) e todo o loop de apply master-only compartilhado pelos backends Windows e macOS foram extraidos para `audio/common.rs`. Os backends de plataforma agora fornecem apenas uma closure `set_master_volume`, as strings de outcome sao parametrizadas pelo nome da plataforma e a logica compartilhada de batch/resumo ganhou testes unitarios independentes de host que rodam em toda plataforma do CI (antes `windows.rs`/`macos.rs` nao tinham teste nenhum). Sem mudanca de comportamento.
+- Polimento para tecnologias assistivas em todos os paineis: os botoes de filtro do watch log expoem `aria-pressed`, as tabelas de hardware e de estatisticas de sessao marcam os cabecalhos com `scope="col"`, o grafico de telemetria e exposto como imagem nomeada (`role="img"`) em vez de vazar o SVG cru para leitores de tela e o textarea do editor JSON avancado ganhou nome acessivel. A cobertura automatizada com axe agora abrange todos os paineis do dashboard (HardwarePanel, CalibrationWizard, SessionStatsPanel, WatchLogPanel, OverviewSignalPanel e as tres views do ProfileWorkbench).
+
+### Corrigido
+
+- Um typo na classe do resumo de resultado do painel de knob (`wrap-break-wordword`) que impedia a quebra de textos longos.
+
+## [1.3.2](https://github.com/bernardopg/ioruba/compare/v1.3.1...v1.3.2) (2026-07-08)
+
 ### Funcionalidades
 
 - Novo wizard de calibracao de knobs na secao Hardware: fluxo guiado min -> max -> revisao por knob que rastreia o extremo observado nas leituras seriais ao vivo (mais robusto que captura instantanea), valida a faixa capturada e grava `minRaw`/`maxRaw` no perfil ativo. O runtime serial ja envia o comando `CONFIG` sempre que o perfil diverge do firmware, entao aplicar o resultado do wizard sincroniza o hardware sem passo extra.
+
+### Corrigido
+
+- Os writes de volume agora usam throttle (leading + trailing) em vez de debounce enquanto o knob se move. O debounce puro anterior reiniciava o timer a cada frame serial, entao com transicoes suaves habilitadas o backend de audio so era invocado quando o knob parava; movimento rapido agora aplica o primeiro lote imediatamente e coalesce a rajada em no maximo uma chamada de backend por janela de transicao do perfil (minimo 40 ms), sempre com o valor mais recente por slider.
+- O workflow de release nao desperdica mais tempo de runner com tags inexistentes. Dispatches manuais (`workflow_dispatch`) aceitavam qualquer input `release_tag` — um typo como `v1.4.0` para uma tag nunca criada fazia todos os jobs de bundle (Linux, Windows, macOS ×2, firmware, Arch) falharem no passo de `checkout` em paralelo, queimando ate ~10 minutos de runner por plataforma. Um novo job `validate-tag` roda primeiro: rejeita tags malformadas ou inexistentes em segundos e corta o pipeline inteiro antes de qualquer build.
+- Os jobs de publicacao e atestacao da release nao rodam mais quando builds anteriores falham. Os jobs `arch-pkgbuild`, `attest-and-checksum` e `aur-publish` eram gateados em `!= 'cancelled'`, que avalia como verdadeiro em falha — um bundle quebrado ainda podia produzir metadados de PKGBUILD, gerar atestacoes de proveniencia para uma release incompleta ou publicar no AUR. Agora exigem `== 'success'`, entao uma release parcial nunca chega a distribuicao.
+
+### Alterado
+
+- Os helpers duplicados dos backends de audio (`describe_target`, `summarize_slider_outcome`, `volume_percent`) e todo o loop de apply master-only compartilhado pelos backends Windows e macOS foram extraidos para `audio/common.rs`. Os backends de plataforma agora fornecem apenas uma closure `set_master_volume`, as strings de outcome sao parametrizadas pelo nome da plataforma e a logica compartilhada de batch/resumo ganhou testes unitarios independentes de host que rodam em toda plataforma do CI (antes `windows.rs`/`macos.rs` nao tinham teste nenhum). Sem mudanca de comportamento.
+- O pipeline de release agora valida a tag antes de disparar o gate completo do CI (`typecheck`, testes shared/desktop, matriz de firmware, smoke de audio nativo em Windows/macOS), entao uma tag ruim falha rapido em vez de consumir todo o orcamento de CI multiplataforma.
 
 ## [1.3.1](https://github.com/bernardopg/ioruba/compare/v1.3.0...v1.3.1) (2026-06-25)
 

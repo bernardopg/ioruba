@@ -1,4 +1,4 @@
-# Translation Guide (PT-BR and EN)
+# Translation Guide (PT-BR, EN, and ES)
 
 Use this guide when you need to add or review interface translations in the desktop app.
 
@@ -11,13 +11,18 @@ The current desktop translation flow is text-based and centralized in:
 Today the UI supports:
 
 - `pt-BR` as source text (default)
-- `en` through `TEXT_MAP` lookup
+- `en` through `TEXT_MAP_EN` lookup
+- `es` through `TEXT_MAP_ES` lookup
+
+Language maps are registered in `LANGUAGE_TEXT_MAPS`; the `UiLanguage` union
+lives in `packages/shared/src/types.ts` and is validated in
+`packages/shared/src/validation.ts` and `apps/desktop/src/lib/profile-config.ts`.
 
 ## How translation works
 
 - `translateText(language, text)`
   - if `language` is `pt-BR`, returns original text
-  - if `language` is `en`, tries `TEXT_MAP[text]`
+  - otherwise, tries the registered map for that language (`TEXT_MAP_EN`/`TEXT_MAP_ES`)
   - if key is missing, returns original text (fallback)
 - `translateTemplate(language, text, replacements)`
   - translates a base string first
@@ -28,9 +33,20 @@ Today the UI supports:
 1. Replace hardcoded text in component with translator call:
    - usually `const lt = (text: string) => translateText(language, text)`
    - then `lt("Texto")`
-2. Add the same PT-BR key to `TEXT_MAP` with EN value.
+2. Add the same PT-BR key to **every** language map (`TEXT_MAP_EN` and `TEXT_MAP_ES`).
 3. Keep key text exactly equal to the original PT-BR string used in UI.
 4. Prefer reuse of existing keys before adding a new one.
+
+## Add a new UI language
+
+1. Extend `UiLanguage` in `packages/shared/src/types.ts`.
+2. Add the language to `UI_LANGUAGES` in `packages/shared/src/validation.ts` and to
+   the `readEnum` list in `apps/desktop/src/lib/profile-config.ts`.
+3. Create a `TEXT_MAP_XX` in `i18n.ts` covering all keys and register it in
+   `LANGUAGE_TEXT_MAPS`.
+4. Add an `<option>` to the language selector in
+   `apps/desktop/src/components/config/profile-workbench.tsx`.
+5. Add rendering coverage in `accessibility-shell.test.tsx`.
 
 ## Recommended patterns
 

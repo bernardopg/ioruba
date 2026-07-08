@@ -1,4 +1,4 @@
-import { lazy, Suspense, useMemo, useState } from "react";
+import { lazy, Suspense, useMemo, useState, type KeyboardEvent } from "react";
 
 import {
   Activity,
@@ -270,6 +270,41 @@ export default function App() {
   const currentSection =
     navigationItems.find((item) => item.id === activeSection) ?? navigationItems[0];
 
+  // Padrão WAI-ARIA de tabs com tabindex itinerante: as setas movem a seleção
+  // (ativação automática), Home/End pulam para as extremidades. Sem isso os
+  // tabs inativos (tabIndex -1) ficariam inalcançáveis pelo teclado.
+  function handleTablistKeyDown(event: KeyboardEvent<HTMLDivElement>) {
+    const currentIndex = navigationItems.findIndex(
+      (item) => item.id === activeSection
+    );
+
+    let nextIndex: number | null = null;
+    switch (event.key) {
+      case "ArrowDown":
+      case "ArrowRight":
+        nextIndex = (currentIndex + 1) % navigationItems.length;
+        break;
+      case "ArrowUp":
+      case "ArrowLeft":
+        nextIndex =
+          (currentIndex - 1 + navigationItems.length) % navigationItems.length;
+        break;
+      case "Home":
+        nextIndex = 0;
+        break;
+      case "End":
+        nextIndex = navigationItems.length - 1;
+        break;
+      default:
+        return;
+    }
+
+    event.preventDefault();
+    const nextItem = navigationItems[nextIndex];
+    setActiveSection(nextItem.id);
+    document.getElementById(`tab-${nextItem.id}`)?.focus();
+  }
+
   async function handleWatchLogExport() {
     appendWatchLog({
       scope: "app",
@@ -380,6 +415,7 @@ export default function App() {
                 aria-label={lt("Navegação principal do Ioruba")}
                 className="sidebar-nav"
                 id="app-content"
+                onKeyDown={handleTablistKeyDown}
                 role="tablist"
                 tabIndex={-1}
               >
