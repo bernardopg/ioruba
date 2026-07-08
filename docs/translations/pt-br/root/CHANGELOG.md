@@ -7,6 +7,10 @@ e este projeto segue [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Nao publicado]
 
+### Corrigido
+
+- Os writes de volume agora usam throttle (leading + trailing) em vez de debounce enquanto o knob se move. O debounce puro anterior reiniciava o timer a cada frame serial, entao com transicoes suaves habilitadas o backend de audio so era invocado quando o knob parava; movimento rapido agora aplica o primeiro lote imediatamente e coalesce a rajada em no maximo uma chamada de backend por janela de transicao do perfil (minimo 40 ms), sempre com o valor mais recente por slider.
+
 ## [1.3.1](https://github.com/bernardopg/ioruba/compare/v1.3.0...v1.3.1) (2026-06-25)
 
 ### Corrigido
