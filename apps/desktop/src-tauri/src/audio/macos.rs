@@ -1,11 +1,10 @@
-use std::collections::HashMap;
 use std::ffi::c_void;
 use std::{mem, ptr};
 
+use super::common::{volume_percent, MasterOnlyBackend};
 use super::{
     ApplySliderTargetsRequest, ApplySliderTargetsResponse, AudioEndpoint, AudioError,
-    AudioInventory, AudioTarget, ControlAction, ControlActionOutcome, OutcomeSeverity,
-    RuntimeTargetOutcome, SliderOutcome, TargetOutcomeStatus,
+    AudioInventory, ControlAction, ControlActionOutcome,
 };
 
 // CoreAudio is a thin, stable C API, so we bind the small surface we need by
@@ -38,6 +37,11 @@ const K_AUDIO_DEVICE_PROPERTY_VOLUME_SCALAR: u32 = four_char_code(b"volm");
 // default stereo or surround output is covered without over-reaching.
 const MAX_VOLUME_CHANNELS: u32 = 8;
 const DEFAULT_OUTPUT_ID: &str = "@DEFAULT_OUTPUT@";
+
+const BACKEND: MasterOnlyBackend = MasterOnlyBackend {
+    platform: "macOS",
+    output_id: DEFAULT_OUTPUT_ID,
+};
 
 #[link(name = "CoreAudio", kind = "framework")]
 extern "C" {
@@ -118,71 +122,7 @@ pub fn apply_slider_targets_batch(
     request: ApplySliderTargetsRequest,
 ) -> Result<ApplySliderTargetsResponse, AudioError> {
     let device = default_output_device()?;
-    let outcomes = request
-        .sliders
-        .into_iter()
-        .map(|slider| {
-            let percent = volume_percent(slider.normalized_value);
-            let mut targets = Vec::<RuntimeTargetOutcome>::new();
-            let mut master_updated = false;
-
-            for target in &slider.targets {
-                match target {
-                    AudioTarget::Master => {
-                        if master_updated {
-                            targets.push(RuntimeTargetOutcome {
-                                target: describe_target(target),
-                                status: TargetOutcomeStatus::Skipped,
-                                detail: "macOS default output already updated by this slider"
-                                    .to_string(),
-                                matched: vec![DEFAULT_OUTPUT_ID.to_string()],
-                            });
-                            continue;
-                        }
-
-                        match set_master_volume(device, slider.normalized_value) {
-                            Ok(()) => {
-                                master_updated = true;
-                                targets.push(RuntimeTargetOutcome {
-                                    target: describe_target(target),
-                                    status: TargetOutcomeStatus::Updated,
-                                    detail: format!("Updated macOS default output to {percent}%"),
-                                    matched: vec![DEFAULT_OUTPUT_ID.to_string()],
-                                });
-                            }
-                            Err(error) => {
-                                targets.push(RuntimeTargetOutcome {
-                                    target: describe_target(target),
-                                    status: TargetOutcomeStatus::Error,
-                                    detail: error.to_string(),
-                                    matched: vec![DEFAULT_OUTPUT_ID.to_string()],
-                                });
-                            }
-                        }
-                    }
-                    AudioTarget::Application { .. }
-                    | AudioTarget::Source { .. }
-                    | AudioTarget::Sink { .. } => {
-                        targets.push(RuntimeTargetOutcome {
-                            target: describe_target(target),
-                            status: TargetOutcomeStatus::Unavailable,
-                            detail:
-                                "macOS backend currently supports only the master/default output target"
-                                    .to_string(),
-                            matched: Vec::new(),
-                        });
-                    }
-                }
-            }
-
-            (
-                slider.slider_id,
-                summarize_slider_outcome(targets, "No macOS audio targets configured"),
-            )
-        })
-        .collect::<HashMap<_, _>>();
-
-    Ok(ApplySliderTargetsResponse { outcomes })
+    Ok(BACKEND.apply_batch(request, |normalized| set_master_volume(device, normalized)))
 }
 
 pub fn dispatch_control_action(action: ControlAction) -> Result<ControlActionOutcome, AudioError> {
@@ -330,72 +270,4 @@ fn set_master_volume(device: AudioObjectId, normalized: f64) -> Result<(), Audio
             "CoreAudio: the default output device exposes no settable volume control".to_string(),
         ))
     }
-}
-
-fn describe_target(target: &AudioTarget) -> String {
-    match target {
-        AudioTarget::Master => "master".to_string(),
-        AudioTarget::Application { name } => format!("application:{name}"),
-        AudioTarget::Source { name } => format!("source:{name}"),
-        AudioTarget::Sink { name } => format!("sink:{name}"),
-    }
-}
-
-fn summarize_slider_outcome(
-    targets: Vec<RuntimeTargetOutcome>,
-    empty_summary: &str,
-) -> SliderOutcome {
-    if targets.is_empty() {
-        return SliderOutcome {
-            summary: empty_summary.to_string(),
-            severity: OutcomeSeverity::Info,
-            targets,
-        };
-    }
-
-    let errors = targets
-        .iter()
-        .filter(|target| matches!(target.status, TargetOutcomeStatus::Error))
-        .count();
-    let updated = targets
-        .iter()
-        .filter(|target| matches!(target.status, TargetOutcomeStatus::Updated))
-        .count();
-    let unavailable = targets
-        .iter()
-        .filter(|target| matches!(target.status, TargetOutcomeStatus::Unavailable))
-        .count();
-
-    let severity = if errors > 0 {
-        OutcomeSeverity::Error
-    } else if updated > 0 && unavailable == 0 {
-        OutcomeSeverity::Success
-    } else {
-        OutcomeSeverity::Warning
-    };
-
-    let summary = if updated > 0 {
-        format!(
-            "Updated macOS default output{}",
-            if unavailable > 0 {
-                format!("; {unavailable} unsupported target(s)")
-            } else {
-                String::new()
-            }
-        )
-    } else if unavailable > 0 {
-        "macOS backend supports only master/default output".to_string()
-    } else {
-        empty_summary.to_string()
-    };
-
-    SliderOutcome {
-        summary,
-        severity,
-        targets,
-    }
-}
-
-fn volume_percent(normalized: f64) -> u32 {
-    (normalized.clamp(0.0, 1.0) * 100.0).round() as u32
 }
