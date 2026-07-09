@@ -25,6 +25,13 @@ dist-newstyle/
 .vscode/
 .idea/
 .claude/
+.codex/
+.cursor/
+.continue/
+.windsurf/
+.zed/
+.fleet/
+.history/
 *.swp
 *.swo
 *~
@@ -35,7 +42,38 @@ Thumbs.db
 
 # Application
 *.log
+*.db
+*.db-*
+*.sqlite
+*.sqlite3
 state.yaml
+
+# Environment and local configuration
+.env
+.env.*
+!.env.example
+!.env.sample
+!.env.template
+*.local.yml
+*.local.yaml
+*.local.json
+*.local.toml
+*.local.ts
+*.local.js
+*.local.cjs
+*.local.mjs
+
+# Secrets, signing keys, and certificates
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
+*.keystore
+*.crt
+*.cer
+*.mobileprovision
+*.ppk
 
 # Temporary
 tmp/
@@ -45,6 +83,12 @@ temp/
 .site-src/
 release-dist/
 __pycache__/
+.pytest_cache/
+.ruff_cache/
+.tox/
+.venv/
+venv/
+env/
 .github/scripts/__pycache__/
 
 # Build artifacts
@@ -52,11 +96,30 @@ bin/
 build/
 node_modules/
 coverage/
+target/
+.vite/
+.turbo/
+playwright-report/
+test-results/
 apps/desktop/dist/
 apps/desktop/src-tauri/target/
 apps/desktop/src-tauri/gen/
+*.AppImage
+*.dmg
+*.msi
+*.deb
+*.rpm
+*.exe
+*.apk
+*.aab
+*.ipa
 
-#cache
+# Docs and site generators
+_site/
+.jekyll-cache/
+.sass-cache/
+
+# Cache
 .cache/
 /.mypy_cache/
 .worktrees/
@@ -68,3 +131,4 @@ apps/desktop/src-tauri/gen/
 .serena/
 /cache
 /project.local.yml
+.tokensave/
