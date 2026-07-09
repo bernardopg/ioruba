@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.5.1](https://github.com/bernardopg/ioruba/compare/v1.5.0...v1.5.1) (2026-07-09)
+
+### Security
+
+- Added a dedicated Secret Scan workflow with pinned Gitleaks and TruffleHog jobs on pushes, pull requests, weekly schedules, and manual dispatches.
+- Added local secret-scanning scripts and a `release:check` gate so release validation now covers Gitleaks, TruffleHog, Rust audit, firmware matrix, script linting, tests, build, and docs generation.
+- Updated Rust transitive dependencies `plist` to 1.10.0, `quick-xml` to 0.41.0, and `anyhow` to 1.0.103, clearing the actionable `cargo audit` vulnerabilities while keeping the known GTK3/Tauri informational warnings.
+
+### Changed
+
+- Removed tracked `.serena` project metadata and expanded ignore rules so local agent/tool state stays out of releases.
+
 ## [1.5.0](https://github.com/bernardopg/ioruba/compare/v1.4.0...v1.5.0) (2026-07-09)
 
 ### Features
@@ -462,7 +474,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial tagged baseline before the current Haskell-first productization pass
 
-[Unreleased]: https://github.com/bernardopg/ioruba/compare/v1.2.3...HEAD
+[Unreleased]: https://github.com/bernardopg/ioruba/compare/v1.5.1...HEAD
 [1.2.3]: https://github.com/bernardopg/ioruba/compare/v1.2.2...v1.2.3
 [1.2.2]: https://github.com/bernardopg/ioruba/compare/v1.2.1...v1.2.2
 [1.2.1]: https://github.com/bernardopg/ioruba/compare/v1.2.0...v1.2.1

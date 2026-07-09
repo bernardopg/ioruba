@@ -7,6 +7,18 @@ e este projeto segue [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Nao publicado]
 
+## [1.5.1](https://github.com/bernardopg/ioruba/compare/v1.5.0...v1.5.1) (2026-07-09)
+
+### Seguranca
+
+- Adicionado um workflow dedicado de varredura de segredos com jobs fixados de Gitleaks e TruffleHog em pushes, pull requests, agendamento semanal e disparo manual.
+- Adicionados scripts locais de varredura de segredos e um gate `release:check`, para a validacao de release cobrir Gitleaks, TruffleHog, audit Rust, matriz de firmware, lint de scripts, testes, build e geracao da documentacao.
+- Atualizadas dependencias Rust transitivas `plist` para 1.10.0, `quick-xml` para 0.41.0 e `anyhow` para 1.0.103, limpando as vulnerabilidades acionaveis do `cargo audit` e mantendo apenas os avisos informativos conhecidos da stack GTK3/Tauri.
+
+### Mudancas
+
+- Removidos metadados `.serena` rastreados e ampliadas as regras de ignore para manter estado local de agentes/ferramentas fora dos releases.
+
 ## [1.5.0](https://github.com/bernardopg/ioruba/compare/v1.4.0...v1.5.0) (2026-07-09)
 
 ### Funcionalidades
@@ -225,7 +237,7 @@ e este projeto segue [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 - baseline inicial com tag antes da fase atual de productizacao Haskell-first
 
-[Nao publicado]: https://github.com/bernardopg/ioruba/compare/v0.6.1...HEAD
+[Nao publicado]: https://github.com/bernardopg/ioruba/compare/v1.5.1...HEAD
 [0.6.1]: https://github.com/bernardopg/ioruba/releases/tag/v0.6.1
 [0.6.0]: https://github.com/bernardopg/ioruba/releases/tag/v0.6.0
 [0.5.0]: https://github.com/bernardopg/ioruba/releases/tag/v0.5.0

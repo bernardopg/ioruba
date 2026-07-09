@@ -1,7 +1,7 @@
 {
   "name": "ioruba",
   "private": true,
-  "version": "1.5.0",
+  "version": "1.5.1",
   "workspaces": [
     "apps/*",
     "packages/*"
@@ -27,6 +27,7 @@
     "security:secrets:gitleaks": "gitleaks detect --source . --redact --no-banner",
     "security:secrets:trufflehog": "trufflehog git file://. --branch HEAD --results=verified,unknown --fail --no-update",
     "security:secrets": "npm run security:secrets:gitleaks && npm run security:secrets:trufflehog",
+    "release:check": "npm run verify && npm run rust:audit && npm run firmware:test && npm run firmware:test:wide && npm run firmware:compile:matrix && npm run lint:scripts && npm run security:secrets && npm run docs:prepare-site",
     "verify": "npm run shared:typecheck && npm run desktop:typecheck && npm run shared:test && npm run desktop:test && npm run rust:test && npm run desktop:build",
     "ci": "npm run verify && npm run firmware:compile"
   }
