@@ -157,6 +157,14 @@ export async function listAudioInventory(): Promise<AudioInventory> {
   return invoke<AudioInventory>("list_audio_inventory");
 }
 
+export async function restartApp(): Promise<void> {
+  if (!isTauri()) {
+    return;
+  }
+
+  await invoke("restart_app");
+}
+
 export async function applySliderTargetsBatch(
   profile: MixerProfile,
   updates: SliderUpdate[],

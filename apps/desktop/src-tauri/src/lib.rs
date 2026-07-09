@@ -6,7 +6,7 @@ use std::{
     io::Write,
     path::{Path, PathBuf},
     sync::{
-        atomic::{AtomicU64, Ordering},
+        atomic::{AtomicBool, AtomicU64, Ordering},
         Mutex, OnceLock,
     },
     time::{SystemTime, UNIX_EPOCH},
@@ -15,7 +15,7 @@ use std::{
 use tauri::{
     menu::MenuBuilder,
     tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
-    AppHandle, Manager, WindowEvent,
+    AppHandle, Emitter, Manager, WindowEvent,
 };
 use tauri_plugin_autostart::ManagerExt;
 use tauri_plugin_dialog::DialogExt;
@@ -25,6 +25,15 @@ const TRAY_ICON_ID: &str = "main-tray";
 const TRAY_SHOW_ID: &str = "show-main-window";
 const TRAY_QUIT_ID: &str = "quit-app";
 const STATE_SCHEMA_VERSION_KEY: &str = "schemaVersion";
+const UPDATE_PENDING_EVENT: &str = "ioruba:update-pending";
+
+/// Metadados (mtime, tamanho) do próprio executável no momento em que este
+/// processo subiu. Usado para detectar se o pacman/full-upgrade trocou o
+/// binário em disco enquanto o processo antigo ainda está de pé.
+static LAUNCH_EXE_SNAPSHOT: OnceLock<Option<(SystemTime, u64)>> = OnceLock::new();
+/// Garante que o evento de "atualização pendente" só é emitido uma vez por
+/// sessão, mesmo que o usuário reabra a janela várias vezes.
+static UPDATE_NOTIFIED: AtomicBool = AtomicBool::new(false);
 
 /// Serializa todo acesso ao `ioruba-state.json` para evitar race entre a leitura
 /// no boot e escritas concorrentes (ex.: salvamentos em rajada vindos da store).
@@ -530,6 +539,9 @@ fn show_main_window(app: &AppHandle) {
         let _ = window.show();
         let _ = window.set_focus();
     }
+    if binary_replaced_on_disk() {
+        notify_update_pending_once(app);
+    }
 }
 
 fn hide_to_tray(app: &AppHandle) {
@@ -543,6 +555,55 @@ fn hide_to_tray(app: &AppHandle) {
             Some("runtime permanece ativo em segundo plano".to_string()),
         );
     }
+}
+
+fn exe_snapshot() -> Option<(SystemTime, u64)> {
+    let exe = std::env::current_exe().ok()?;
+    let metadata = fs::metadata(exe).ok()?;
+    Some((metadata.modified().ok()?, metadata.len()))
+}
+
+/// Compara o snapshot do boot com o snapshot atual: `true` só quando ambos
+/// existem e diferem (arquivo trocado). Ausência de qualquer um dos dois
+/// snapshots (stat falhou) nunca conta como "trocado" — não há como saber.
+fn snapshot_changed(
+    launch: Option<(SystemTime, u64)>,
+    current: Option<(SystemTime, u64)>,
+) -> bool {
+    matches!((launch, current), (Some(a), Some(b)) if a != b)
+}
+
+/// Detecta se o binário deste app foi trocado em disco (ex.: full-upgrade
+/// rodou `pacman -U ioruba-desktop`) desde que este processo subiu.
+///
+/// Um processo antigo escondendo/reconstruindo sua janela contra assets do
+/// webview já trocados em disco é o gatilho reproduzido de um segfault do
+/// WebKitWebProcess (ver `hide_to_tray`/`CloseRequested`): por isso o app
+/// nunca deve chamar `window.hide()` nesse estado.
+fn binary_replaced_on_disk() -> bool {
+    let launch = LAUNCH_EXE_SNAPSHOT.get().copied().flatten();
+    snapshot_changed(launch, exe_snapshot())
+}
+
+fn notify_update_pending_once(app: &AppHandle) {
+    if UPDATE_NOTIFIED.swap(true, Ordering::SeqCst) {
+        return;
+    }
+    watch::emit(
+        app,
+        watch::WatchScope::App,
+        watch::WatchLevel::Warning,
+        "Atualizacao do Ioruba detectada em disco",
+        Some(
+            "reinicie para aplicar; fechar a janela agora reinicia automaticamente".to_string(),
+        ),
+    );
+    let _ = app.emit(UPDATE_PENDING_EVENT, ());
+}
+
+#[tauri::command]
+fn restart_app(app: AppHandle) {
+    app.request_restart();
 }
 
 fn toggle_main_window(app: &AppHandle) {
@@ -598,6 +659,10 @@ fn setup_tray(app: &tauri::App) -> tauri::Result<()> {
 }
 
 pub fn run() {
+    // Snapshot do binario no boot, usado por `binary_replaced_on_disk` para
+    // detectar upgrades aplicados enquanto este processo segue rodando.
+    let _ = LAUNCH_EXE_SNAPSHOT.set(exe_snapshot());
+
     // Atalho global: Ctrl+Alt+I alterna a visibilidade da janela principal.
     // Funciona como fallback caso o compositor nao tenha um StatusNotifierWatcher
     // (ex.: Hyprland sem waybar/ironbar configurado com o modulo tray).
@@ -635,7 +700,18 @@ pub fn run() {
                     // janela em vez de encerrar o processo. A saida real so
                     // acontece via item "Sair" no menu do tray.
                     api.prevent_close();
-                    hide_to_tray(window.app_handle());
+                    let app = window.app_handle();
+                    if binary_replaced_on_disk() {
+                        // Binario foi trocado em disco (upgrade) desde o boot
+                        // deste processo: NAO chamamos hide_to_tray aqui.
+                        // Esconder a janela contra assets do webview ja
+                        // trocados e o gatilho reproduzido do segfault do
+                        // WebKitWebProcess. Reinicia limpo no binario novo.
+                        notify_update_pending_once(app);
+                        app.request_restart();
+                    } else {
+                        hide_to_tray(app);
+                    }
                 }
                 WindowEvent::Destroyed => {
                     watch::emit(
@@ -699,7 +775,8 @@ pub fn run() {
             dispatch_control_action,
             import_profile,
             get_launch_on_login_enabled,
-            set_launch_on_login_enabled
+            set_launch_on_login_enabled,
+            restart_app
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
@@ -708,6 +785,25 @@ pub fn run() {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn snapshot_changed_detects_mtime_or_size_diff() {
+        let base = (UNIX_EPOCH, 100);
+        assert!(!snapshot_changed(Some(base), Some(base)));
+        assert!(snapshot_changed(
+            Some(base),
+            Some((UNIX_EPOCH + std::time::Duration::from_secs(1), 100))
+        ));
+        assert!(snapshot_changed(Some(base), Some((UNIX_EPOCH, 200))));
+    }
+
+    #[test]
+    fn snapshot_changed_is_false_when_either_snapshot_is_missing() {
+        let base = (UNIX_EPOCH, 100);
+        assert!(!snapshot_changed(None, Some(base)));
+        assert!(!snapshot_changed(Some(base), None));
+        assert!(!snapshot_changed(None, None));
+    }
 
     fn temp_state_dir(test_name: &str) -> PathBuf {
         let timestamp = SystemTime::now()

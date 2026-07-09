@@ -108,10 +108,12 @@ interface IorubaState {
   connectionMode: ConnectionMode;
   errorMessage: string | null;
   configDraft: string;
+  updatePending: boolean;
   snapshot: ReturnType<typeof buildRuntimeSnapshot>;
   hydrate: (persisted: PersistedState, audioInventory: AudioInventory) => void;
   hydrateWatchLog: (watchLog: WatchLogEntry[]) => void;
   setWatchLogPersistenceReady: (ready: boolean) => void;
+  setUpdatePending: (pending: boolean) => void;
   refreshInventory: (audioInventory: AudioInventory) => void;
   setAvailablePorts: (ports: string[]) => void;
   appendWatchLog: (entry: WatchLogInput) => void;
@@ -367,6 +369,7 @@ export const useIorubaStore = create<IorubaState>((rawSet, get) => {
     connectionMode: "idle",
     errorMessage: null,
     configDraft: serializeActiveProfile(defaultPersistedState),
+    updatePending: false,
     snapshot: initialSnapshot,
     appendWatchLog: (entry) => {
       const state = get();
@@ -407,6 +410,9 @@ export const useIorubaStore = create<IorubaState>((rawSet, get) => {
     },
     setWatchLogPersistenceReady: (ready) => {
       set({ watchLogPersistenceReady: ready });
+    },
+    setUpdatePending: (pending) => {
+      set({ updatePending: pending });
     },
     hydrate: (persisted, audioInventory) => {
       const nextConnectionMode = persisted.demoMode ? "demo" : "idle";

@@ -39,6 +39,7 @@ import { KnobPanel } from "@/components/dashboard/knob-panel";
 import { OnboardingChecklist } from "@/components/dashboard/onboarding-checklist";
 import { OverviewSignalPanel } from "@/components/dashboard/overview-signal-panel";
 import { SessionStatsPanel } from "@/components/dashboard/session-stats-panel";
+import { UpdateToast } from "@/components/dashboard/update-toast";
 import { WatchLogPanel } from "@/components/dashboard/watch-log-panel";
 // recharts pesa ~350 KB (gzip ~104 KB) e só é usado na aba de telemetria.
 // Carregamento lazy mantém esse peso fora do bundle inicial até a aba abrir.
@@ -52,6 +53,7 @@ import { usePersistence } from "@/hooks/use-persistence";
 import { useRuntimeBoot } from "@/hooks/use-runtime-boot";
 import { useSerialRuntime } from "@/hooks/use-serial-runtime";
 import { useThemeSync } from "@/hooks/use-theme-sync";
+import { useUpdateWatch } from "@/hooks/use-update-watch";
 import { useWatchBridge } from "@/hooks/use-watch-bridge";
 import {
   exportSessionStats,
@@ -117,6 +119,7 @@ interface NavGroup {
 export default function App() {
   useBackgroundTray();
   useWatchBridge();
+  useUpdateWatch();
   useRuntimeBoot();
   usePersistence();
   useSerialRuntime();
@@ -383,6 +386,7 @@ export default function App() {
       <a className="skip-link" href="#app-content">
         {lt("Pular para o conteúdo principal")}
       </a>
+      <UpdateToast language={language} />
       <div className="ambient-grid fixed inset-0 opacity-70" />
       <div className="relative mx-auto grid min-h-screen w-full max-w-[108rem] gap-5 px-4 py-5 sm:px-6 lg:grid-cols-[15.5rem_minmax(0,1fr)] lg:gap-6 lg:px-8 xl:grid-cols-[17rem_minmax(0,1fr)] xl:px-10">
         <aside className="sidebar-shell lg:sticky lg:top-5 lg:h-[calc(100vh-2.5rem)]">
