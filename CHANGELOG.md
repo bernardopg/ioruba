@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.5.2](https://github.com/bernardopg/ioruba/compare/v1.5.1...v1.5.2) (2026-07-09)
+
 ### Fixed
 
 - Persisted profiles saved before the firmware baud-rate bump (0.4.x → 0.5.x, 9600 → 115200) now self-heal to 115200 on load instead of getting stuck in a permanent handshake retry loop.
@@ -479,7 +481,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial tagged baseline before the current Haskell-first productization pass
 
-[Unreleased]: https://github.com/bernardopg/ioruba/compare/v1.5.1...HEAD
+[Unreleased]: https://github.com/bernardopg/ioruba/compare/v1.5.2...HEAD
 [1.2.3]: https://github.com/bernardopg/ioruba/compare/v1.2.2...v1.2.3
 [1.2.2]: https://github.com/bernardopg/ioruba/compare/v1.2.1...v1.2.2
 [1.2.1]: https://github.com/bernardopg/ioruba/compare/v1.2.0...v1.2.1

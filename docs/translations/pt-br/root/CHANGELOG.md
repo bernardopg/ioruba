@@ -7,6 +7,8 @@ e este projeto segue [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Nao publicado]
 
+## [1.5.2](https://github.com/bernardopg/ioruba/compare/v1.5.1...v1.5.2) (2026-07-09)
+
 ### Corrigido
 
 - Perfis persistidos salvos antes do bump de baud rate do firmware (0.4.x -> 0.5.x, 9600 -> 115200) agora se autocorrigem para 115200 ao carregar, em vez de ficar preso em loop permanente de retry de handshake.
@@ -242,7 +244,7 @@ e este projeto segue [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 - baseline inicial com tag antes da fase atual de productizacao Haskell-first
 
-[Nao publicado]: https://github.com/bernardopg/ioruba/compare/v1.5.1...HEAD
+[Nao publicado]: https://github.com/bernardopg/ioruba/compare/v1.5.2...HEAD
 [0.6.1]: https://github.com/bernardopg/ioruba/releases/tag/v0.6.1
 [0.6.0]: https://github.com/bernardopg/ioruba/releases/tag/v0.6.0
 [0.5.0]: https://github.com/bernardopg/ioruba/releases/tag/v0.5.0
