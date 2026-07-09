@@ -14,7 +14,8 @@
 // - outer pins wired to 5V/3V3 and GND
 //
 // Serial contract:
-// - 9600 baud
+// - 115200 baud (profile.serial.baudRate is configurable on the host; bumped
+//   from the original 9600 to cut frame transmission latency)
 // - handshake command: "HELLO?" -> "HELLO board=...; fw=...; protocol=...; knobs=...; mcu=...; adcBits=..."
 //   (mcu/adcBits sao campos aditivos do protocolo v2: hosts antigos ignoram;
 //    novos usam adcBits para normalizar a resolucao, suportando 10-bit e 12-bit)
@@ -24,12 +25,20 @@
 //   such as "EV type=button; id=0; event=press" and
 //   "EV type=encoder; id=0; delta=1". Events are disabled by default so older
 //   desktop builds that only parse slider frames remain compatible.
+// - optional raw calibration opt-in: "RAW ON"/"RAW OFF" switches the periodic
+//   frame between calibrated values and raw (oversampled, pre-calibration)
+//   ADC readings prefixed "RAW ", for a live-capture calibration wizard.
+//   Disabled by default; frame shape ("n|n|n" vs "RAW n|n|n") only changes
+//   while a host explicitly opts in.
 // - full frames such as "512|768|1023"
 // - smoothed readings
 // - snaps near the calibrated ADC edges so full travel can still reach 0 / ADC_MAX
+// - averages ADC_OVERSAMPLE_COUNT analogRead samples per knob before mapping to
+//   cut LSB noise near the change threshold
 // - sends updates roughly every 40 ms when values move
 // - emits a heartbeat frame while idle to keep the desktop runtime alive
-// - persists controller tuning and knob calibration in EEPROM
+// - persists controller tuning and knob calibration in EEPROM (ESP32/RP2040/
+//   ESP8266 explicitly begin()/commit() the emulated flash-backed EEPROM)
 
 // Constantes de domínio e a struct ControllerConfig vivem em config_parser.h
 // (lógica pura, testável em host). Aqui só ficam os apelidos e as constantes
@@ -73,6 +82,11 @@ const uint8_t ANALOG_PINS[] = {A0, A3, A4, A5, A6, A7};
 #elif defined(ARDUINO_ARCH_RP2040)
 // RP2040/Pico: ADC0..ADC2 (GPIO26..28); ADC3 e usado para sensar VSYS.
 const uint8_t ANALOG_PINS[] = {A0, A1, A2};
+#elif defined(ESP8266) || defined(ARDUINO_ARCH_ESP8266)
+// ESP8266 (NodeMCU/Wemos): o core so expoe um unico pino ADC (A0, 0..1V ou
+// 0..3V3 dependendo do divisor da placa). IORUBA_NUM_KNOBS precisa ser
+// sobrescrito para 1 nesta placa (ver static_assert abaixo).
+const uint8_t ANALOG_PINS[] = {A0};
 #else
 // Uno e fallback generico: A0..A5 (universalmente expostos).
 const uint8_t ANALOG_PINS[] = {A0, A1, A2, A3, A4, A5};
@@ -80,6 +94,19 @@ const uint8_t ANALOG_PINS[] = {A0, A1, A2, A3, A4, A5};
 
 constexpr int ANALOG_PIN_COUNT =
   static_cast<int>(sizeof(ANALOG_PINS) / sizeof(ANALOG_PINS[0]));
+
+// Codigo alcancavel a partir de uma ISR de encoder precisa viver em RAM de
+// instrucao no ESP8266/ESP32 (senao crasha ao ser chamado enquanto o cache de
+// flash esta ocupado). RP2040 (arduino-pico) executa direto do flash mapeado
+// em XIP e nao define essa macro; AVR tambem nao tem essa distincao — nos
+// dois o atributo fica vazio.
+#if defined(ESP8266) || defined(ARDUINO_ARCH_ESP8266)
+#define IORUBA_ISR_ATTR ICACHE_RAM_ATTR
+#elif defined(ESP32) || defined(ARDUINO_ARCH_ESP32)
+#define IORUBA_ISR_ATTR IRAM_ATTR
+#else
+#define IORUBA_ISR_ATTR
+#endif
 static_assert(IORUBA_NUM_KNOBS >= 1,
               "IORUBA_NUM_KNOBS deve ser >= 1");
 static_assert(IORUBA_NUM_BUTTONS >= 0,
@@ -106,7 +133,7 @@ static_assert(IORUBA_NUM_ENCODERS <= ENCODER_PIN_COUNT,
               "IORUBA_NUM_ENCODERS excede os pares digitais padrao");
 #endif
 
-const long BAUD_RATE = 9600;
+const long BAUD_RATE = 115200;
 // Prefixo IORUBA_ evita colisao com a macro BOARD_NAME definida por alguns cores
 // (ex.: arduino-pico para RP2040).
 const char IORUBA_BOARD_NAME[] = "Ioruba Nano";
@@ -123,6 +150,8 @@ const char MCU_NAME[] = "ATmega328P";
 const char MCU_NAME[] = "RP2040";
 #elif defined(ESP32) || defined(ARDUINO_ARCH_ESP32)
 const char MCU_NAME[] = "ESP32";
+#elif defined(ESP8266) || defined(ARDUINO_ARCH_ESP8266)
+const char MCU_NAME[] = "ESP8266";
 #else
 const char MCU_NAME[] = "unknown";
 #endif
@@ -132,10 +161,14 @@ const char MCU_NAME[] = "unknown";
 // em packages/shared). Bump FIRMWARE_VERSION em qualquer mudanca de comportamento
 // do controlador; bump PROTOCOL_VERSION apenas em mudanca incompativel do frame
 // ou do handshake.
-const char FIRMWARE_VERSION[] = "0.5.1";
+const char FIRMWARE_VERSION[] = "0.6.0";
 const int PROTOCOL_VERSION = 2;
 const int ADC_MIN = IORUBA_ADC_MIN;
 const int ADC_MAX = IORUBA_ADC_MAX;
+// Media de N leituras analogRead por knob antes de calibrar/suavizar. Mata
+// ruido de LSB que faz o valor "tremer" perto do limiar de mudanca, sem
+// custo perceptivel (poucas dezenas de us extras por ciclo do loop).
+const int ADC_OVERSAMPLE_COUNT = 4;
 const unsigned long SEND_INTERVAL_MS = 40;
 const unsigned long HEARTBEAT_INTERVAL_MS = 500;
 const unsigned long STARTUP_SERIAL_DELAY_MS = 120;
@@ -149,6 +182,11 @@ int lastSentValues[NUM_KNOBS];
 unsigned long lastSendTime = 0;
 unsigned long lastHeartbeatTime = 0;
 bool controlEventsEnabled = false;
+// Modo de captura ao vivo p/ o wizard de calibracao: quando ligado, o frame
+// periodico carrega ADC cru (pos-oversample, pre-calibracao/snap) prefixado
+// com "RAW " em vez do frame calibrado normal. Desligado por padrao para nao
+// quebrar hosts que so esperam o frame "n|n|n".
+bool rawModeEnabled = false;
 
 #if IORUBA_NUM_BUTTONS > 0
 bool buttonStates[NUM_BUTTONS];
@@ -157,8 +195,60 @@ unsigned long buttonChangedAt[NUM_BUTTONS];
 #endif
 
 #if IORUBA_NUM_ENCODERS > 0
-uint8_t encoderStates[NUM_ENCODERS];
-int8_t encoderSteps[NUM_ENCODERS];
+// encoderStates/encoderSteps/encoderPendingDelta sao escritas tanto pelo
+// polling em readControls() quanto (quando a placa suporta) pela ISR de
+// interrupcao — precisam ser volatile. encoderInterruptDriven e decidido uma
+// vez em setupControls() e so lido depois, dispensando volatile.
+volatile uint8_t encoderStates[NUM_ENCODERS];
+volatile int8_t encoderSteps[NUM_ENCODERS];
+volatile int8_t encoderPendingDelta[NUM_ENCODERS];
+bool encoderInterruptDriven[NUM_ENCODERS];
+
+const int8_t ENCODER_TRANSITION_TABLE[16] = {
+  0, -1, 1, 0,
+  1, 0, 0, -1,
+  -1, 0, 0, 1,
+  0, 1, -1, 0
+};
+
+// Atualiza o estado de quadratura de um encoder e acumula um delta pendente
+// quando um detent completo (IORUBA_ENCODER_STEPS_PER_EVENT meios-passos) se
+// fecha. Chamada tanto pelo polling quanto pela ISR — por isso so mexe em
+// variaveis volatile e nunca chama Serial (Serial.print dentro de uma ISR
+// pode travar/corromper o UART).
+IORUBA_ISR_ATTR void updateEncoderQuadrature(int index) {
+  const uint8_t nextState =
+    (digitalRead(ENCODER_A_PINS[index]) == HIGH ? 2 : 0) |
+    (digitalRead(ENCODER_B_PINS[index]) == HIGH ? 1 : 0);
+  const uint8_t transition = (encoderStates[index] << 2) | nextState;
+  const int8_t step = ENCODER_TRANSITION_TABLE[transition & 0x0F];
+  encoderStates[index] = nextState;
+
+  if (step == 0) {
+    return;
+  }
+
+  encoderSteps[index] += step;
+  if (encoderSteps[index] >= IORUBA_ENCODER_STEPS_PER_EVENT) {
+    encoderSteps[index] = 0;
+    encoderPendingDelta[index] += 1;
+  } else if (encoderSteps[index] <= -IORUBA_ENCODER_STEPS_PER_EVENT) {
+    encoderSteps[index] = 0;
+    encoderPendingDelta[index] -= 1;
+  }
+}
+
+// Uma ISR por indice: attachInterrupt exige ponteiro de funcao sem argumento,
+// entao nao da pra fechar sobre `index` diretamente. ENCODER_PIN_COUNT e o
+// teto de encoders suportado pela tabela de pinos (ver acima).
+IORUBA_ISR_ATTR void encoderIsr0() { updateEncoderQuadrature(0); }
+IORUBA_ISR_ATTR void encoderIsr1() { updateEncoderQuadrature(1); }
+IORUBA_ISR_ATTR void encoderIsr2() { updateEncoderQuadrature(2); }
+IORUBA_ISR_ATTR void encoderIsr3() { updateEncoderQuadrature(3); }
+
+void (*const ENCODER_ISR_TRAMPOLINES[ENCODER_PIN_COUNT])() = {
+  encoderIsr0, encoderIsr1, encoderIsr2, encoderIsr3
+};
 #endif
 
 int clampAdcValue(int value) {
@@ -182,6 +272,13 @@ void saveControllerConfig() {
   // assim, evitamos a chamada quando o config nao muda (ver applyConfigCommand)
   // para nao tocar magic/schema/knobCount a cada CONFIG repetido do host.
   EEPROM.put(0, controllerConfig);
+#if defined(ESP32) || defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_RP2040) || \
+  defined(ESP8266) || defined(ARDUINO_ARCH_ESP8266)
+  // ESP32/RP2040/ESP8266 emulam EEPROM em flash: put() so grava no buffer em
+  // RAM, commit() e quem persiste de fato. Sem isto a calibracao "gruda" ate
+  // o proximo reboot e some depois (bug real: nunca sobrevivia a um reset).
+  EEPROM.commit();
+#endif
 }
 
 void loadControllerConfig() {
@@ -232,8 +329,16 @@ int snapToEdge(int value) {
   return clamped;
 }
 
+int readRawAdc(int knobIndex) {
+  long sum = 0;
+  for (int sample = 0; sample < ADC_OVERSAMPLE_COUNT; sample++) {
+    sum += analogRead(ANALOG_PINS[knobIndex]);
+  }
+  return static_cast<int>(sum / ADC_OVERSAMPLE_COUNT);
+}
+
 int readKnobValue(int knobIndex) {
-  const int rawValue = analogRead(ANALOG_PINS[knobIndex]);
+  const int rawValue = readRawAdc(knobIndex);
   return snapToEdge(mapCalibratedValue(rawValue, knobIndex));
 }
 
@@ -273,6 +378,18 @@ void copyValues() {
 void sendFrame() {
   for (int index = 0; index < NUM_KNOBS; index++) {
     Serial.print(knobValues[index]);
+    if (index < NUM_KNOBS - 1) {
+      Serial.print("|");
+    }
+  }
+
+  Serial.println();
+}
+
+void sendRawFrame() {
+  Serial.print("RAW ");
+  for (int index = 0; index < NUM_KNOBS; index++) {
+    Serial.print(readRawAdc(index));
     if (index < NUM_KNOBS - 1) {
       Serial.print("|");
     }
@@ -362,6 +479,24 @@ void setupControls() {
       (digitalRead(ENCODER_A_PINS[index]) == HIGH ? 2 : 0) |
       (digitalRead(ENCODER_B_PINS[index]) == HIGH ? 1 : 0);
     encoderSteps[index] = 0;
+    encoderPendingDelta[index] = 0;
+
+    const int interruptA = digitalPinToInterrupt(ENCODER_A_PINS[index]);
+    const int interruptB = digitalPinToInterrupt(ENCODER_B_PINS[index]);
+    encoderInterruptDriven[index] =
+      interruptA != NOT_AN_INTERRUPT && interruptB != NOT_AN_INTERRUPT;
+
+    if (encoderInterruptDriven[index]) {
+      // Placa aceita interrupcao nos dois pinos do par: dispara em qualquer
+      // borda sem depender da cadencia do loop, entao um Serial.print
+      // bloqueante (handshake/RAW) nao derruba passos de quadratura. Nos
+      // pinos fixos 6-13 usados aqui, isto so e verdade em ESP32/RP2040/
+      // ESP8266 (aceitam interrupcao em qualquer GPIO); placas AVR (Nano/Uno/
+      // Mega/Leonardo/Micro) caem no polling abaixo, igual ao comportamento
+      // anterior.
+      attachInterrupt(interruptA, ENCODER_ISR_TRAMPOLINES[index], CHANGE);
+      attachInterrupt(interruptB, ENCODER_ISR_TRAMPOLINES[index], CHANGE);
+    }
   }
 #endif
 }
@@ -384,31 +519,26 @@ void readControls(unsigned long now) {
 #endif
 
 #if IORUBA_NUM_ENCODERS > 0
-  const int8_t transitionTable[16] = {
-    0, -1, 1, 0,
-    1, 0, 0, -1,
-    -1, 0, 0, 1,
-    0, 1, -1, 0
-  };
-
   for (int index = 0; index < NUM_ENCODERS; index++) {
-    const uint8_t nextState =
-      (digitalRead(ENCODER_A_PINS[index]) == HIGH ? 2 : 0) |
-      (digitalRead(ENCODER_B_PINS[index]) == HIGH ? 1 : 0);
-    const uint8_t transition = (encoderStates[index] << 2) | nextState;
-    const int8_t step = transitionTable[transition & 0x0F];
-    encoderStates[index] = nextState;
-
-    if (step == 0) {
-      continue;
+    if (!encoderInterruptDriven[index]) {
+      updateEncoderQuadrature(index);
     }
 
-    encoderSteps[index] += step;
-    if (encoderSteps[index] >= IORUBA_ENCODER_STEPS_PER_EVENT) {
-      encoderSteps[index] = 0;
+    // Drena o delta pendente (fechado pelo polling acima ou pela ISR) fora de
+    // contexto de interrupcao — sendEncoderEvent faz Serial.print, que nao
+    // deve rodar dentro de uma ISR. noInterrupts()/interrupts() torna a
+    // leitura+zeragem atomica mesmo quando a ISR roda em paralelo.
+    noInterrupts();
+    int8_t pendingDelta = encoderPendingDelta[index];
+    encoderPendingDelta[index] = 0;
+    interrupts();
+
+    while (pendingDelta > 0) {
+      pendingDelta--;
       sendEncoderEvent(index, 1);
-    } else if (encoderSteps[index] <= -IORUBA_ENCODER_STEPS_PER_EVENT) {
-      encoderSteps[index] = 0;
+    }
+    while (pendingDelta < 0) {
+      pendingDelta++;
       sendEncoderEvent(index, -1);
     }
   }
@@ -482,6 +612,10 @@ void processIncomingSerial() {
           controlEventsEnabled = true;
         } else if (strcmp(commandBuffer, "EVENTS OFF") == 0) {
           controlEventsEnabled = false;
+        } else if (strcmp(commandBuffer, "RAW ON") == 0) {
+          rawModeEnabled = true;
+        } else if (strcmp(commandBuffer, "RAW OFF") == 0) {
+          rawModeEnabled = false;
         } else if (strncmp(commandBuffer, "CONFIG ", 7) == 0) {
           char payloadBuffer[192];
           strncpy(payloadBuffer, commandBuffer + 7, sizeof(payloadBuffer) - 1);
@@ -512,6 +646,12 @@ void setup() {
   Serial.begin(BAUD_RATE);
   delay(STARTUP_SERIAL_DELAY_MS);
 
+#if defined(ESP32) || defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_RP2040) || \
+  defined(ESP8266) || defined(ARDUINO_ARCH_ESP8266)
+  // Reserva o buffer de EEPROM emulada em flash antes do primeiro get/put.
+  EEPROM.begin(sizeof(ControllerConfig));
+#endif
+
   loadControllerConfig();
   setupControls();
   refreshKnobBuffers();
@@ -538,7 +678,11 @@ void loop() {
   const bool heartbeatDue = now - lastHeartbeatTime >= HEARTBEAT_INTERVAL_MS;
 
   if (changed || heartbeatDue) {
-    sendFrame();
+    if (rawModeEnabled) {
+      sendRawFrame();
+    } else {
+      sendFrame();
+    }
     copyValues();
     lastHeartbeatTime = now;
   }

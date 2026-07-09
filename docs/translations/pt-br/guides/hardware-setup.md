@@ -110,6 +110,7 @@ O build de referencia e o Nano com 3 knobs, mas o firmware e parametrico. A quan
 | Leonardo / Micro | ATmega32U4   | 10       | 12                | 12        | `A0 A1 … A11`                                        |
 | ESP32            | ESP32        | 12       | 6 (so ADC1)       | 6         | `A0 A3 A4 A5 A6 A7` (ADC2 e reservado ao Wi-Fi)     |
 | RP2040 / Pico    | RP2040       | 12       | 3                 | 3         | `A0 A1 A2`                                           |
+| ESP8266 (NodeMCU)| ESP8266      | 10       | 1 (so A0)         | 1         | `A0` (unico pino analogico exposto pelo core Arduino) |
 
 Compile para uma placa especifica com `arduino-cli`, ex. um Mega com 8 knobs:
 
@@ -121,7 +122,7 @@ arduino-cli compile --fqbn arduino:avr:mega \
 
 `npm run firmware:compile:matrix` compila o firmware para todas as placas AVR acima de uma vez (a mesma matriz que o CI roda).
 
-ESP32 e RP2040 precisam dos seus proprios cores do `arduino-cli`. O CI compila ambos num job dedicado `firmware-arch`; instale localmente com:
+ESP32, RP2040 e ESP8266 precisam dos seus proprios cores do `arduino-cli`. O CI compila os tres num job dedicado `firmware-arch`; instale localmente com:
 
 ```bash
 # ESP32
@@ -133,6 +134,14 @@ arduino-cli compile --fqbn esp32:esp32:esp32 firmware/arduino/ioruba-controller
 arduino-cli core install rp2040:rp2040 \
   --additional-urls https://github.com/earlephilhower/arduino-pico/releases/download/global/package_rp2040_index.json
 arduino-cli compile --fqbn rp2040:rp2040:rpipico firmware/arduino/ioruba-controller
+
+# ESP8266 (NodeMCU) — expoe so 1 pino analogico, entao IORUBA_NUM_KNOBS precisa
+# ser sobrescrito para 1 (senao o static_assert(IORUBA_NUM_KNOBS <= ANALOG_PIN_COUNT) trava).
+arduino-cli core install esp8266:esp8266 \
+  --additional-urls http://arduino.esp8266.com/stable/package_esp8266com_index.json
+arduino-cli compile --fqbn esp8266:esp8266:nodemcuv2 \
+  --build-property "build.extra_flags=-DIORUBA_NUM_KNOBS=1" \
+  firmware/arduino/ioruba-controller
 ```
 
 ## Depois de ligar o hardware

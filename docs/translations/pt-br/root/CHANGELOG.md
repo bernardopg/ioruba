@@ -7,15 +7,24 @@ e este projeto segue [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Nao publicado]
 
+### Adicionado
+
+- Suporte de firmware para ESP8266 (NodeMCU e placas compativeis): deteccao de placa, ramos `ANALOG_PINS`/`MCU_NAME`, e o override existente `IORUBA_NUM_KNOBS` em compile-time cobre seu unico pino analogico exposto (A0). Validado numa NodeMCU V3 fisica (CH340) — veja `docs/guides/hardware-setup.md` para a flag de build-property necessaria e o job de CI.
+- Comando serial `RAW ON`/`RAW OFF`: um modo opt-in em que o frame periodico carrega leituras de ADC nao filtradas e com oversampling (prefixo `RAW `) em vez do frame calibrado `n|n|n`, para um futuro wizard de calibracao com captura ao vivo. Desabilitado por padrao para nao mudar o formato do frame em hosts existentes.
+- Oversampling do ADC: cada leitura de knob agora tira a media de 4 amostras consecutivas de `analogRead()`, reduzindo o ruido de amostra unica em todas as placas.
+- Encoders agora usam interrupcao por mudanca de pino nas placas que suportam `attachInterrupt` nos dois pinos de quadratura (ESP32/ESP8266/RP2040), em vez de serem lidos so uma vez por iteracao do loop — um `Serial.print` bloqueante (handshake, modo RAW) nao pode mais causar perda de passo de quadratura. Placas AVR (Nano/Uno/Mega/Leonardo/Micro), cujos pinos fixos de encoder nao suportam interrupcao, mantem o comportamento de polling anterior inalterado.
+
 ### Correcoes
 
 - A conexao serial nao fica mais "surda" apos um ciclo desconectar/conectar nem apos aplicar a calibracao de um knob. O `close()` do plugin serial apenas pausa o gerenciador de auto-reconexao mantendo-o habilitado; o evento de desconexao emitido pelo proprio close re-armava o loop e uma porta "zumbi" reabria em segundo plano segundos depois, roubando a thread de leitura da conexao seguinte (status mostrava conectado sem nenhum frame chegar, e os knobs paravam de controlar o audio ate reiniciar o app). O runtime agora desabilita explicitamente a auto-reconexao antes de fechar, toma a referencia da porta de forma atomica para teardowns concorrentes nao fecharem duas vezes e serializa as operacoes de abrir/fechar numa fila — eliminando as corridas `Serial port open/close already in progress` visiveis no watch log.
+- Configuracoes de calibracao enviadas pelo comando serial `CONFIG` nao sao mais perdidas silenciosamente no proximo reset/ciclo de energia em placas ESP32/RP2040/ESP8266. A EEPROM emulada em flash dessas placas exige um `EEPROM.begin(size)` explicito antes do uso e `EEPROM.commit()` apos o `put()` para persistir de fato — os dois estavam faltando, entao a escrita so alcancava a RAM. Validado numa ESP8266 NodeMCU fisica (config sobrevive a um reset). Placas AVR nao eram afetadas (EEPROM real, enderecavel por byte).
 
 ### Mudancas
 
 - Abrir o app com uma instancia ja em execucao (clique no launcher, entrada `.desktop`, autostart duplicado) agora traz a janela existente de volta do tray em vez de criar um segundo processo (`tauri-plugin-single-instance`).
 - O icone do tray agora tem tooltip "Ioruba".
 - Os pacotes AUR instalam a entrada desktop como `io.ioruba.desktop.desktop` com `StartupWMClass=io.ioruba.desktop`, casando com o `app_id` Wayland/`WM_CLASS` X11 definido por `enableGTKAppId` — corrigindo a associacao janela-icone no Hyprland, taskbars do waybar e docks (antes `ioruba.desktop` com `StartupWMClass=Ioruba` nunca casava).
+- Baud rate padrao do firmware serial elevado de 9600 para 115200 (constante do firmware e o default `profile.serial.baudRate` do host). O campo continua livremente configuravel por perfil para placas/cabos que precisem de uma taxa menor.
 
 ## [1.4.0](https://github.com/bernardopg/ioruba/compare/v1.3.2...v1.4.0) (2026-07-08)
 

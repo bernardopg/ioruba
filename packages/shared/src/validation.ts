@@ -100,7 +100,7 @@ function normalizeProfile(candidate: Partial<MixerProfile>): MixerProfile | null
       baudRate:
         typeof candidate.serial?.baudRate === "number"
           ? candidate.serial.baudRate
-          : 9600,
+          : 115200,
       autoConnect: candidate.serial?.autoConnect ?? true,
       heartbeatTimeoutMs:
         typeof candidate.serial?.heartbeatTimeoutMs === "number"
