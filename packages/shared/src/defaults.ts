@@ -8,7 +8,7 @@ export const defaultProfile: MixerProfile = {
   name: "Linux Mixer",
   serial: {
     preferredPort: null,
-    baudRate: 9600,
+    baudRate: 115200,
     autoConnect: true,
     heartbeatTimeoutMs: 3000
   },

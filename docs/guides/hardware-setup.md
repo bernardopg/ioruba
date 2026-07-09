@@ -110,6 +110,7 @@ The reference build is the Nano with 3 knobs, but the firmware is parametric. Th
 | Leonardo / Micro | ATmega32U4   | 10       | 12              | 12        | `A0 A1 … A11`                                       |
 | ESP32            | ESP32        | 12       | 6 (ADC1 only)   | 6         | `A0 A3 A4 A5 A6 A7` (ADC2 is reserved for Wi-Fi)   |
 | RP2040 / Pico    | RP2040       | 12       | 3               | 3         | `A0 A1 A2`                                          |
+| ESP8266 (NodeMCU)| ESP8266      | 10       | 1 (A0 only)     | 1         | `A0` (single ADC pin exposed by the Arduino core)   |
 
 Compile for a specific board with `arduino-cli`, e.g. a Mega with 8 knobs:
 
@@ -121,7 +122,7 @@ arduino-cli compile --fqbn arduino:avr:mega \
 
 `npm run firmware:compile:matrix` compiles the firmware for every AVR board above in one shot (the same matrix the CI runs).
 
-ESP32 and RP2040 need their own `arduino-cli` cores. CI builds both in a dedicated `firmware-arch` job; install them locally with:
+ESP32, RP2040 and ESP8266 need their own `arduino-cli` cores. CI builds all three in a dedicated `firmware-arch` job; install them locally with:
 
 ```bash
 # ESP32
@@ -133,6 +134,14 @@ arduino-cli compile --fqbn esp32:esp32:esp32 firmware/arduino/ioruba-controller
 arduino-cli core install rp2040:rp2040 \
   --additional-urls https://github.com/earlephilhower/arduino-pico/releases/download/global/package_rp2040_index.json
 arduino-cli compile --fqbn rp2040:rp2040:rpipico firmware/arduino/ioruba-controller
+
+# ESP8266 (NodeMCU) — only exposes 1 analog pin, so IORUBA_NUM_KNOBS must be
+# overridden to 1 or the static_assert(IORUBA_NUM_KNOBS <= ANALOG_PIN_COUNT) trips.
+arduino-cli core install esp8266:esp8266 \
+  --additional-urls http://arduino.esp8266.com/stable/package_esp8266com_index.json
+arduino-cli compile --fqbn esp8266:esp8266:nodemcuv2 \
+  --build-property "build.extra_flags=-DIORUBA_NUM_KNOBS=1" \
+  firmware/arduino/ioruba-controller
 ```
 
 ## After the hardware is wired

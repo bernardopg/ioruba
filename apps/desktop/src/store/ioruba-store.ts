@@ -61,7 +61,8 @@ const WATCH_LOG_LIMIT = 300;
 
 /**
  * Janela mínima (ms) entre dois logs de frame no watch log. O firmware emite
- * frames continuamente (heartbeat + on-change a 9600 baud) e, ao abrir a porta,
+ * frames continuamente (heartbeat + on-change; baud configurável no perfil,
+ * default 115200) e, ao abrir a porta,
  * o buffer serial acumulado é drenado de uma vez — sem este gate, centenas de
  * linhas idênticas inundam o log em poucos milissegundos. O throttle amostra
  * "Frame serial recebido"/"Slideres elegiveis" no máximo uma vez por janela,
