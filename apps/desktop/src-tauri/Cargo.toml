@@ -22,6 +22,7 @@ tauri-plugin-autostart = "2.5.1"
 tauri-plugin-dialog = "2.7.1"
 tauri-plugin-global-shortcut = "2"
 tauri-plugin-serialplugin = "2.22.0"
+tauri-plugin-single-instance = "2"
 thiserror = "2.0"
 
 [target.'cfg(windows)'.dependencies]

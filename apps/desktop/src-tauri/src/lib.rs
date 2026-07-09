@@ -570,6 +570,7 @@ fn setup_tray(app: &tauri::App) -> tauri::Result<()> {
 
     let mut tray_builder = TrayIconBuilder::with_id(TRAY_ICON_ID)
         .menu(&menu)
+        .tooltip("Ioruba")
         .show_menu_on_left_click(false)
         .on_menu_event(|app, event| match event.id().as_ref() {
             TRAY_SHOW_ID => show_main_window(app),
@@ -603,6 +604,12 @@ pub fn run() {
     let toggle_shortcut = Shortcut::new(Some(Modifiers::CONTROL | Modifiers::ALT), Code::KeyI);
 
     tauri::Builder::default()
+        // Deve ser o primeiro plugin registrado: uma segunda invocação do app
+        // (launcher, .desktop, autostart duplicado) apenas traz a janela da
+        // instância existente de volta do tray em vez de abrir outro processo.
+        .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
+            show_main_window(app);
+        }))
         .plugin(
             tauri_plugin_autostart::Builder::new()
                 .args(["--autostart"])
