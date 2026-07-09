@@ -444,7 +444,7 @@ jobs:
               "\${pkgdir}/usr/share/icons/hicolor/scalable/apps/ioruba.svg"
 
             install -dm755 "\${pkgdir}/usr/share/applications"
-            cat > "\${pkgdir}/usr/share/applications/ioruba.desktop" <<'DESKTOP'
+            cat > "\${pkgdir}/usr/share/applications/io.ioruba.desktop.desktop" <<'DESKTOP'
           [Desktop Entry]
           Type=Application
           Name=Ioruba
@@ -458,7 +458,7 @@ jobs:
           Categories=AudioVideo;Audio;Mixer;
           Keywords=audio;mixer;volume;arduino;serial;hardware;potentiometer;
           StartupNotify=true
-          StartupWMClass=Ioruba
+          StartupWMClass=io.ioruba.desktop
           DESKTOP
           }
           EOF
@@ -521,7 +521,7 @@ jobs:
             install -Dm644 "\${srcdir}/ioruba.svg" "\${pkgdir}/usr/share/icons/hicolor/scalable/apps/ioruba.svg"
 
             install -dm755 "\${pkgdir}/usr/share/applications"
-            cat > "\${pkgdir}/usr/share/applications/ioruba.desktop" <<'DESKTOP'
+            cat > "\${pkgdir}/usr/share/applications/io.ioruba.desktop.desktop" <<'DESKTOP'
           [Desktop Entry]
           Type=Application
           Name=Ioruba
@@ -535,7 +535,7 @@ jobs:
           Categories=AudioVideo;Audio;Mixer;
           Keywords=audio;mixer;volume;arduino;serial;hardware;potentiometer;
           StartupNotify=true
-          StartupWMClass=Ioruba
+          StartupWMClass=io.ioruba.desktop
           DESKTOP
 
             printf '%s\n' \

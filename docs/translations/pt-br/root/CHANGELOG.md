@@ -7,6 +7,16 @@ e este projeto segue [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Nao publicado]
 
+### Correcoes
+
+- A conexao serial nao fica mais "surda" apos um ciclo desconectar/conectar nem apos aplicar a calibracao de um knob. O `close()` do plugin serial apenas pausa o gerenciador de auto-reconexao mantendo-o habilitado; o evento de desconexao emitido pelo proprio close re-armava o loop e uma porta "zumbi" reabria em segundo plano segundos depois, roubando a thread de leitura da conexao seguinte (status mostrava conectado sem nenhum frame chegar, e os knobs paravam de controlar o audio ate reiniciar o app). O runtime agora desabilita explicitamente a auto-reconexao antes de fechar, toma a referencia da porta de forma atomica para teardowns concorrentes nao fecharem duas vezes e serializa as operacoes de abrir/fechar numa fila — eliminando as corridas `Serial port open/close already in progress` visiveis no watch log.
+
+### Mudancas
+
+- Abrir o app com uma instancia ja em execucao (clique no launcher, entrada `.desktop`, autostart duplicado) agora traz a janela existente de volta do tray em vez de criar um segundo processo (`tauri-plugin-single-instance`).
+- O icone do tray agora tem tooltip "Ioruba".
+- Os pacotes AUR instalam a entrada desktop como `io.ioruba.desktop.desktop` com `StartupWMClass=io.ioruba.desktop`, casando com o `app_id` Wayland/`WM_CLASS` X11 definido por `enableGTKAppId` — corrigindo a associacao janela-icone no Hyprland, taskbars do waybar e docks (antes `ioruba.desktop` com `StartupWMClass=Ioruba` nunca casava).
+
 ## [1.4.0](https://github.com/bernardopg/ioruba/compare/v1.3.2...v1.4.0) (2026-07-08)
 
 ### Funcionalidades

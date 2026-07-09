@@ -10,6 +10,7 @@ const { mockApplySliderTargetsBatch, serialPortInstances, MockSerialPort } = vi.
     const serialPortInstances: Array<{
       options: { path: string; baudRate: number };
       writes: string[];
+      calls: string[];
       emit: (payload: string) => void;
       reconnect: (success: boolean, attempt: number) => void;
     }> = [];
@@ -17,6 +18,8 @@ const { mockApplySliderTargetsBatch, serialPortInstances, MockSerialPort } = vi.
     class MockSerialPort {
       options: { path: string; baudRate: number };
       writes: string[] = [];
+      /** Ordem das operações de ciclo de vida, para asserção de sequência. */
+      calls: string[] = [];
       private listenHandler: ((data: string) => void) | null = null;
       private reconnectHandler:
         | ((success: boolean, attempt: number) => void)
@@ -27,10 +30,20 @@ const { mockApplySliderTargetsBatch, serialPortInstances, MockSerialPort } = vi.
         serialPortInstances.push(this);
       }
 
-      async open() { }
+      async open() {
+        this.calls.push("open");
+      }
       async startListening() { }
-      async cancelListen() { }
-      async close() { }
+      async cancelListen() {
+        this.calls.push("cancelListen");
+      }
+      async close() {
+        this.calls.push("close");
+      }
+      async disableAutoReconnect() {
+        this.calls.push("disableAutoReconnect");
+        this.reconnectHandler = null;
+      }
 
       async write(payload: string) {
         this.writes.push(payload);
@@ -222,6 +235,65 @@ describe("useSerialRuntime", () => {
     }
 
     expect(mockApplySliderTargetsBatch.mock.calls.length).toBeGreaterThanOrEqual(3);
+  });
+
+  it("disables auto-reconnect before closing the port on disconnect", async () => {
+    setupSerialRuntime();
+    await flushRuntime();
+
+    const port = serialPortInstances[0];
+    expect(port?.calls).toEqual(["open"]);
+
+    await act(async () => {
+      useIorubaStore.getState().disconnect();
+      await Promise.resolve();
+    });
+    await flushRuntime();
+
+    // Sem o disableAutoReconnect antes do close, o evento disconnected do
+    // próprio close re-arma o manager e a porta reabre sozinha ("zumbi"),
+    // roubando a thread de leitura da próxima conexão.
+    const disableIndex = port.calls.indexOf("disableAutoReconnect");
+    const closeIndex = port.calls.indexOf("close");
+    expect(disableIndex).toBeGreaterThan(-1);
+    expect(closeIndex).toBeGreaterThan(disableIndex);
+    // stopSerial concorrente (cleanup + branch de modo) não pode fechar duas vezes.
+    expect(port.calls.filter((call) => call === "close")).toHaveLength(1);
+  });
+
+  it("reconnects cleanly after a disconnect/connect cycle and keeps receiving frames", async () => {
+    setupSerialRuntime();
+    await flushRuntime();
+
+    await act(async () => {
+      useIorubaStore.getState().disconnect();
+      await Promise.resolve();
+    });
+    await flushRuntime();
+
+    await act(async () => {
+      useIorubaStore.getState().requestConnect();
+      await Promise.resolve();
+    });
+    await flushRuntime();
+
+    // Segunda conexão usa uma instância nova, aberta depois do close da antiga.
+    expect(serialPortInstances).toHaveLength(2);
+    const oldPort = serialPortInstances[0];
+    const newPort = serialPortInstances[1];
+    expect(oldPort.calls).toContain("close");
+    expect(newPort.calls).toContain("open");
+    expect(newPort.calls).not.toContain("close");
+    expect(newPort.writes).toContain("HELLO?\n");
+
+    await act(async () => {
+      newPort.emit("300|300|300\n");
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(mockApplySliderTargetsBatch).toHaveBeenCalledTimes(1);
+    expect(useIorubaStore.getState().snapshot.status).toBe("connected");
   });
 
   it("turns an invalid frame from the serial simulator into an error status", async () => {

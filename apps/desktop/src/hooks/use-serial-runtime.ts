@@ -65,6 +65,14 @@ export function useSerialRuntime() {
   const pendingUpdatesRef = useRef<Map<number, SliderUpdate>>(new Map());
   const inFlightUpdatesRef = useRef<Map<number, number>>(new Map());
   const queueRef = useRef(Promise.resolve());
+  /**
+   * Fila de operações de porta (open/close). O cleanup do effect e o corpo do
+   * effect seguinte disparam stop/connect quase simultaneamente; sem
+   * serialização o open corre contra o close ainda em andamento e o plugin
+   * responde "Serial port open/close already in progress", deixando a porta
+   * aberta porém sem thread de leitura (conectado, sem sinal).
+   */
+  const serialOpsRef = useRef(Promise.resolve());
   const heartbeatWarningRef = useRef(false);
   const serialBufferRef = useRef("");
   const lastFirmwareConfigRef = useRef<string | null>(null);
@@ -271,6 +279,12 @@ export function useSerialRuntime() {
       }
     };
 
+    const runSerialOp = (task: () => Promise<void>) => {
+      const run = serialOpsRef.current.then(task, task);
+      serialOpsRef.current = run.catch(() => {});
+      return run;
+    };
+
     const stopSerial = async () => {
       heartbeatWarningRef.current = false;
       serialBufferRef.current = "";
@@ -282,40 +296,62 @@ export function useSerialRuntime() {
         unsubscribeRef.current = null;
       }
 
-      if (portRef.current) {
-        const portPath = portRef.current.options.path;
-        try {
-          await portRef.current.cancelListen();
-        } catch (error) {
-          appendWatchLog({
-            scope: "serial",
-            level: "warning",
-            message: "Falha ao cancelar leitura serial",
-            detail: error instanceof Error ? error.message : String(error),
-          });
-        }
-        try {
-          await portRef.current.close();
-        } catch (error) {
-          appendWatchLog({
-            scope: "serial",
-            level: "warning",
-            message: "Falha ao fechar porta serial",
-            detail: error instanceof Error ? error.message : String(error),
-          });
-        }
+      // Toma a porta de forma atômica: chamadas concorrentes de stopSerial
+      // (cleanup do effect + branch de modo do effect novo) viram no-op em vez
+      // de fechar a mesma porta duas vezes.
+      const port = portRef.current;
+      portRef.current = null;
+      if (!port) {
+        return;
+      }
+
+      const closedPortPath = port.options.path;
+
+      // O close() do plugin apenas faz stop() do auto-reconnect e mantém o
+      // manager "enabled"; o evento disconnected emitido pelo próprio close
+      // re-arma o loop e a porta reabre sozinha segundos depois, matando a
+      // thread de leitura da conexão seguinte (status conectado, sem sinal).
+      // Desabilitar explicitamente antes de fechar elimina o zumbi.
+      try {
+        await port.disableAutoReconnect();
+      } catch (error) {
         appendWatchLog({
           scope: "serial",
           level: "warning",
-          message: "Porta serial encerrada",
-          detail: portPath,
+          message: "Falha ao desabilitar auto-reconexao serial",
+          detail: error instanceof Error ? error.message : String(error),
         });
-        portRef.current = null;
       }
+      try {
+        await port.cancelListen();
+      } catch (error) {
+        appendWatchLog({
+          scope: "serial",
+          level: "warning",
+          message: "Falha ao cancelar leitura serial",
+          detail: error instanceof Error ? error.message : String(error),
+        });
+      }
+      try {
+        await port.close();
+      } catch (error) {
+        appendWatchLog({
+          scope: "serial",
+          level: "warning",
+          message: "Falha ao fechar porta serial",
+          detail: error instanceof Error ? error.message : String(error),
+        });
+      }
+      appendWatchLog({
+        scope: "serial",
+        level: "warning",
+        message: "Porta serial encerrada",
+        detail: closedPortPath,
+      });
     };
 
     if (connectionMode === "demo") {
-      void stopSerial();
+      void runSerialOp(stopSerial);
       if (demoTimerRef.current === null) {
         demoTimerRef.current = window.setInterval(() => {
           runDemoStep();
@@ -329,7 +365,7 @@ export function useSerialRuntime() {
     stopDemo();
 
     if (connectionMode !== "serial") {
-      void stopSerial();
+      void runSerialOp(stopSerial);
       return;
     }
 
@@ -457,6 +493,13 @@ export function useSerialRuntime() {
 
         if (cancelled) {
           unsubscribe();
+          // Mesmo cuidado do stopSerial: fechar com auto-reconnect habilitado
+          // deixa o manager re-abrindo a porta em segundo plano.
+          try {
+            await port.disableAutoReconnect();
+          } catch {
+            // porta já invalidada; o close abaixo é o que importa
+          }
           await port.close();
           return;
         }
@@ -528,14 +571,14 @@ export function useSerialRuntime() {
       void requestFirmwareHandshake(port, `retry-${handshakeAttempts}`);
     }, HANDSHAKE_RETRY_MS);
 
-    void connect();
+    void runSerialOp(connect);
 
     return () => {
       cancelled = true;
       window.clearInterval(heartbeatTimer);
       window.clearInterval(handshakeRetryTimer);
       resetPendingAudioUpdates();
-      void stopSerial();
+      void runSerialOp(stopSerial);
     };
   }, [
     appendWatchLog,
