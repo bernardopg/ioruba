@@ -13,6 +13,9 @@ import type {
 
 const UI_LANGUAGES: readonly UiLanguage[] = ["pt-BR", "en", "es"];
 
+// firmware BAUD_RATE bumped 9600 -> 115200 (fw 0.5.x); heal profiles saved before the bump
+const LEGACY_DEFAULT_BAUD_RATE = 9600;
+
 function isUiLanguage(candidate: unknown): candidate is UiLanguage {
   return UI_LANGUAGES.includes(candidate as UiLanguage);
 }
@@ -98,7 +101,8 @@ function normalizeProfile(candidate: Partial<MixerProfile>): MixerProfile | null
           ? candidate.serial.preferredPort
           : null,
       baudRate:
-        typeof candidate.serial?.baudRate === "number"
+        typeof candidate.serial?.baudRate === "number" &&
+        candidate.serial.baudRate !== LEGACY_DEFAULT_BAUD_RATE
           ? candidate.serial.baudRate
           : 115200,
       autoConnect: candidate.serial?.autoConnect ?? true,

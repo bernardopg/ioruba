@@ -91,6 +91,34 @@ describe("persisted state normalization", () => {
     expect(withLanguage(undefined)).toBe("pt-BR");
   });
 
+  it("heals profiles saved with the pre-0.5.x default baud rate of 9600", () => {
+    const normalized = normalizePersistedState({
+      selectedProfileId: defaultProfile.id,
+      profiles: [
+        {
+          ...defaultProfile,
+          serial: { ...defaultProfile.serial, baudRate: 9600 }
+        }
+      ]
+    });
+
+    expect(normalized.profiles[0]?.serial.baudRate).toBe(115200);
+  });
+
+  it("keeps a non-legacy custom baud rate untouched", () => {
+    const normalized = normalizePersistedState({
+      selectedProfileId: defaultProfile.id,
+      profiles: [
+        {
+          ...defaultProfile,
+          serial: { ...defaultProfile.serial, baudRate: 57600 }
+        }
+      ]
+    });
+
+    expect(normalized.profiles[0]?.serial.baudRate).toBe(57600);
+  });
+
   it("chooses the first valid profile when selection points to a missing id", () => {
     const normalized = normalizePersistedState({
       selectedProfileId: "ghost-profile",

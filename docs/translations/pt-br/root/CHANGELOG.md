@@ -7,6 +7,10 @@ e este projeto segue [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Nao publicado]
 
+### Corrigido
+
+- Perfis persistidos salvos antes do bump de baud rate do firmware (0.4.x -> 0.5.x, 9600 -> 115200) agora se autocorrigem para 115200 ao carregar, em vez de ficar preso em loop permanente de retry de handshake.
+
 ## [1.5.1](https://github.com/bernardopg/ioruba/compare/v1.5.0...v1.5.1) (2026-07-09)
 
 ### Seguranca
