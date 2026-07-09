@@ -7,7 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Added
+## [1.5.0](https://github.com/bernardopg/ioruba/compare/v1.4.0...v1.5.0) (2026-07-09)
+
+### Features
 
 - Firmware support for ESP8266 (NodeMCU and compatible boards): board detection, `ANALOG_PINS`/`MCU_NAME` branches, and the existing `IORUBA_NUM_KNOBS` compile-time override cover its single exposed analog pin (A0). Validated on a physical NodeMCU V3 (CH340) — see `docs/guides/hardware-setup.md` for the required build-property flag and CI job.
 - `RAW ON`/`RAW OFF` serial command: an opt-in mode where the periodic frame carries unfiltered, oversampled ADC readings (prefixed `RAW `) instead of the calibrated `n|n|n` frame, for a future live-capture calibration wizard. Disabled by default so existing hosts see no frame-shape change.
