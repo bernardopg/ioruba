@@ -3,6 +3,12 @@
 #include <stdlib.h>
 #include <string.h>
 
+#if defined(ESP8266) || defined(ARDUINO_ARCH_ESP8266)
+#include <ESP8266WiFi.h>
+#elif defined(ESP32) || defined(ARDUINO_ARCH_ESP32)
+#include <WiFi.h>
+#endif
+
 #include "config_parser.h"
 
 // Active Ioruba controller firmware for Arduino/ESP32-compatible boards.
@@ -161,7 +167,7 @@ const char MCU_NAME[] = "unknown";
 // em packages/shared). Bump FIRMWARE_VERSION em qualquer mudanca de comportamento
 // do controlador; bump PROTOCOL_VERSION apenas em mudanca incompativel do frame
 // ou do handshake.
-const char FIRMWARE_VERSION[] = "0.6.0";
+const char FIRMWARE_VERSION[] = "0.6.1";
 const int PROTOCOL_VERSION = 2;
 const int ADC_MIN = IORUBA_ADC_MIN;
 const int ADC_MAX = IORUBA_ADC_MAX;
@@ -643,6 +649,16 @@ void processIncomingSerial() {
 }
 
 void setup() {
+#if defined(ESP8266) || defined(ARDUINO_ARCH_ESP8266) || defined(ESP32) || defined(ARDUINO_ARCH_ESP32)
+  // Este sketch e serial-only e nunca usa WiFi; o radio ligado por padrao
+  // injeta ruido mensuravel na leitura do ADC (agrava ao tocar no potenciometro,
+  // corpo acopla capacitivamente ao ruido de RF). Desligar reduz o jitter.
+  WiFi.mode(WIFI_OFF);
+#if defined(ESP8266) || defined(ARDUINO_ARCH_ESP8266)
+  WiFi.forceSleepBegin();
+#endif
+#endif
+
   Serial.begin(BAUD_RATE);
   delay(STARTUP_SERIAL_DELAY_MS);
 

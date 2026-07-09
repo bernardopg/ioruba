@@ -10,6 +10,7 @@ e este projeto segue [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ### Corrigido
 
 - Perfis persistidos salvos antes do bump de baud rate do firmware (0.4.x -> 0.5.x, 9600 -> 115200) agora se autocorrigem para 115200 ao carregar, em vez de ficar preso em loop permanente de retry de handshake.
+- Firmware (0.6.1): builds ESP8266/ESP32 agora desligam o radio WiFi no `setup()` (este sketch e serial-only e nunca usa WiFi). O radio ligado por padrao injetava ruido mensuravel no ADC, notavel principalmente como jitter ao tocar no cursor do potenciometro.
 
 ## [1.5.1](https://github.com/bernardopg/ioruba/compare/v1.5.0...v1.5.1) (2026-07-09)
 

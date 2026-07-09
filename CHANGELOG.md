@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Persisted profiles saved before the firmware baud-rate bump (0.4.x → 0.5.x, 9600 → 115200) now self-heal to 115200 on load instead of getting stuck in a permanent handshake retry loop.
+- Firmware (0.6.1): ESP8266/ESP32 builds now disable the WiFi radio in `setup()` (this sketch is serial-only and never uses WiFi). The default-on radio was injecting measurable ADC noise, especially noticeable as jitter when touching the potentiometer wiper.
 
 ## [1.5.1](https://github.com/bernardopg/ioruba/compare/v1.5.0...v1.5.1) (2026-07-09)
 
