@@ -103,6 +103,10 @@ export interface PersistedState {
   lastPort: string | null;
   /** Quando true, o cartão de onboarding inicial não é mais exibido. */
   onboardingDismissed?: boolean;
+  /** Última release remota já apresentada ao usuário. */
+  lastNotifiedReleaseVersion?: string;
+  /** Habilita a checagem periódica de novas releases. */
+  notificationsEnabled?: boolean;
 }
 
 export interface AudioEndpoint {

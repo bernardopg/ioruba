@@ -519,6 +519,32 @@ const TEXT_MAP_EN: Record<string, string> = {
   "Reiniciar agora": "Restart now",
   Depois: "Later",
   "Fechar aviso": "Dismiss notice",
+  "Detalhes do status do Ioruba": "Ioruba status details",
+  "Estado do dispositivo": "Device status",
+  "Versão em execução": "Running version",
+  "Em execução": "Running",
+  Fechar: "Close",
+  "Atualizações e avisos do Ioruba.": "Ioruba updates and notices.",
+  Notificações: "Notifications",
+  "Abrir release": "Open release",
+  Abrir: "Open",
+  "Nenhuma notificação no momento.": "No notifications right now.",
+  "Repositório do projeto": "Project repository",
+  "Preferências do perfil ativo e do aplicativo.":
+    "Active profile and application preferences.",
+  "Configurações do app": "App settings",
+  "Notificações de release": "Release notifications",
+  "Avisa quando uma versão mais recente estiver disponível.":
+    "Notifies you when a newer version is available.",
+  "Iniciar com o sistema": "Start with the system",
+  "Mantém o Ioruba disponível no tray após o login.":
+    "Keeps Ioruba available in the tray after login.",
+  "Ver changelog": "View changelog",
+  "Ações do aplicativo": "Application actions",
+  "Abrir changelog": "Open changelog",
+  "Abrir notificações": "Open notifications",
+  "Abrir configurações do app": "Open app settings",
+  "Nova versão disponível": "New version available",
 };
 
 const TEXT_MAP_ES: Record<string, string> = {
@@ -1037,6 +1063,32 @@ const TEXT_MAP_ES: Record<string, string> = {
   "Reiniciar agora": "Reiniciar ahora",
   Depois: "Después",
   "Fechar aviso": "Cerrar aviso",
+  "Detalhes do status do Ioruba": "Detalles del estado de Ioruba",
+  "Estado do dispositivo": "Estado del dispositivo",
+  "Versão em execução": "Versión en ejecución",
+  "Em execução": "En ejecución",
+  Fechar: "Cerrar",
+  "Atualizações e avisos do Ioruba.": "Actualizaciones y avisos de Ioruba.",
+  Notificações: "Notificaciones",
+  "Abrir release": "Abrir versión",
+  Abrir: "Abrir",
+  "Nenhuma notificação no momento.": "No hay notificaciones por ahora.",
+  "Repositório do projeto": "Repositorio del proyecto",
+  "Preferências do perfil ativo e do aplicativo.":
+    "Preferencias del perfil activo y de la aplicación.",
+  "Configurações do app": "Configuración de la aplicación",
+  "Notificações de release": "Notificaciones de versiones",
+  "Avisa quando uma versão mais recente estiver disponível.":
+    "Avisa cuando hay una versión más reciente disponible.",
+  "Iniciar com o sistema": "Iniciar con el sistema",
+  "Mantém o Ioruba disponível no tray após o login.":
+    "Mantiene Ioruba disponible en la bandeja después del inicio de sesión.",
+  "Ver changelog": "Ver changelog",
+  "Ações do aplicativo": "Acciones de la aplicación",
+  "Abrir changelog": "Abrir changelog",
+  "Abrir notificações": "Abrir notificaciones",
+  "Abrir configurações do app": "Abrir configuración de la aplicación",
+  "Nova versão disponível": "Nueva versión disponible",
 };
 
 const LANGUAGE_TEXT_MAPS: Record<

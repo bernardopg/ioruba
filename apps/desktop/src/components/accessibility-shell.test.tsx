@@ -53,6 +53,10 @@ vi.mock("@/hooks/use-persistence", () => ({
   usePersistence: () => undefined
 }));
 
+vi.mock("@/hooks/use-release-check", () => ({
+  useReleaseCheck: () => undefined
+}));
+
 vi.mock("@/hooks/use-runtime-boot", () => ({
   useRuntimeBoot: () => undefined
 }));
@@ -266,15 +270,16 @@ describe("desktop accessibility shell", () => {
     expect(screen.getByText(/no events for the current filter/i)).not.toBeNull();
   });
 
-  it("translates sidebar copy and session label when the active profile language is en", () => {
+  it("translates shell actions and session label when the active profile language is en", () => {
     const persisted = buildPersistedState("en");
     const store = useIorubaStore.getState();
     store.hydrate(persisted, store.audioInventory);
 
     render(<App />);
 
-    expect(screen.getByText(/audio mixer for linux/i)).not.toBeNull();
-    expect(screen.getByText(/instrument panel with live telemetry/i)).not.toBeNull();
+    expect(screen.getByText("Ioruba Control Deck")).not.toBeNull();
+    expect(screen.getByRole("button", { name: /open changelog/i })).not.toBeNull();
+    expect(screen.getByRole("button", { name: /open app settings/i })).not.toBeNull();
 
     const ribbonMetrics = screen.getAllByText(/session/i);
     expect(ribbonMetrics.length).toBeGreaterThanOrEqual(1);
@@ -350,8 +355,11 @@ describe("desktop accessibility shell", () => {
 
     render(<App />);
 
-    expect(screen.getByText(/mezclador de audio para linux/i)).not.toBeNull();
+    expect(screen.getByText("Ioruba Control Deck")).not.toBeNull();
     expect(screen.getByRole("tab", { name: /panel de control/i })).not.toBeNull();
+    expect(
+      screen.getByRole("button", { name: /abrir configuración de la aplicación/i })
+    ).not.toBeNull();
     expect(
       screen.getByRole("link", { name: /saltar al contenido principal/i })
     ).not.toBeNull();

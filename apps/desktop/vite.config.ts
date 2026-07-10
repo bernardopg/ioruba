@@ -4,11 +4,21 @@ import tailwindcss from "@tailwindcss/vite";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
+import pkg from "./package.json";
+
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
   plugins: [react(), tailwindcss()],
   base: "./",
+  define: {
+    __APP_VERSION__: JSON.stringify(pkg.version),
+  },
+  server: {
+    fs: {
+      allow: [path.resolve(__dirname, "../..")],
+    },
+  },
   build: {
     rollupOptions: {
       output: {

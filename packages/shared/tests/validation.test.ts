@@ -24,6 +24,19 @@ describe("persisted state normalization", () => {
 
     expect(normalized.schemaVersion).toBe(CURRENT_PERSISTED_STATE_SCHEMA_VERSION);
     expect(normalized.launchOnLogin).toBe(false);
+    expect(normalized.notificationsEnabled).toBe(true);
+  });
+
+  it("preserves additive release notification preferences", () => {
+    const normalized = normalizePersistedState({
+      selectedProfileId: defaultProfile.id,
+      profiles: [defaultProfile],
+      notificationsEnabled: false,
+      lastNotifiedReleaseVersion: "1.6.0"
+    });
+
+    expect(normalized.notificationsEnabled).toBe(false);
+    expect(normalized.lastNotifiedReleaseVersion).toBe("1.6.0");
   });
 
   it("fills missing nested profile settings with defaults", () => {

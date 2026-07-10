@@ -8,6 +8,14 @@
     "serialplugin:default",
     "global-shortcut:default",
     "dialog:allow-save",
-    "dialog:allow-open"
+    "dialog:allow-open",
+    {
+      "identifier": "opener:allow-open-url",
+      "allow": [
+        {
+          "url": "https://github.com/bernardopg/ioruba*"
+        }
+      ]
+    }
   ]
 }

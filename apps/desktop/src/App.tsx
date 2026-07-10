@@ -14,7 +14,6 @@ import {
   Mic2,
   PanelsTopLeft,
   PlugZap,
-  Radar,
   RefreshCcw,
   SlidersHorizontal,
   Waves
@@ -39,8 +38,10 @@ import { KnobPanel } from "@/components/dashboard/knob-panel";
 import { OnboardingChecklist } from "@/components/dashboard/onboarding-checklist";
 import { OverviewSignalPanel } from "@/components/dashboard/overview-signal-panel";
 import { SessionStatsPanel } from "@/components/dashboard/session-stats-panel";
+import { StatusPill } from "@/components/dashboard/status-pill";
 import { UpdateToast } from "@/components/dashboard/update-toast";
 import { WatchLogPanel } from "@/components/dashboard/watch-log-panel";
+import { HeaderActions } from "@/components/shell/header-actions";
 // recharts pesa ~350 KB (gzip ~104 KB) e só é usado na aba de telemetria.
 // Carregamento lazy mantém esse peso fora do bundle inicial até a aba abrir.
 const TelemetryChart = lazy(() =>
@@ -50,6 +51,7 @@ const TelemetryChart = lazy(() =>
 );
 import { useBackgroundTray } from "@/hooks/use-background-tray";
 import { usePersistence } from "@/hooks/use-persistence";
+import { useReleaseCheck } from "@/hooks/use-release-check";
 import { useRuntimeBoot } from "@/hooks/use-runtime-boot";
 import { useSerialRuntime } from "@/hooks/use-serial-runtime";
 import { useThemeSync } from "@/hooks/use-theme-sync";
@@ -123,6 +125,7 @@ export default function App() {
   useRuntimeBoot();
   usePersistence();
   useSerialRuntime();
+  useReleaseCheck();
 
   const persisted = useIorubaStore((state) => state.persisted);
   const snapshot = useIorubaStore((state) => state.snapshot);
@@ -387,25 +390,14 @@ export default function App() {
         {lt("Pular para o conteúdo principal")}
       </a>
       <UpdateToast language={language} />
+      <StatusPill />
       <div className="ambient-grid fixed inset-0 opacity-70" />
-      <div className="relative mx-auto grid min-h-screen w-full max-w-[108rem] gap-5 px-4 py-5 sm:px-6 lg:grid-cols-[15.5rem_minmax(0,1fr)] lg:gap-6 lg:px-8 xl:grid-cols-[17rem_minmax(0,1fr)] xl:px-10">
+      <div className="relative mx-auto grid min-h-screen w-full max-w-[108rem] gap-5 px-4 py-5 sm:px-6 lg:grid-cols-[14rem_minmax(0,1fr)] lg:gap-6 lg:px-8 xl:px-10">
         <aside className="sidebar-shell lg:sticky lg:top-5 lg:h-[calc(100vh-2.5rem)]">
           <div className="sidebar-panel">
-            <div className="flex flex-wrap items-center gap-3">
-              <Badge tone={toneForStatus(snapshot.status)}>{snapshot.status}</Badge>
-              <Badge tone="neutral">{lt("Tauri 2 + React + TS")}</Badge>
-            </div>
-            <div className="mt-5">
-              <p className="eyebrow">{lt("Ioruba Control Deck")}</p>
-              <h1 className="mt-2 font-display text-lg leading-tight text-(--color-ink)">
-                {lt("Mixer de áudio para Linux")}
-              </h1>
-              <p className="mt-2 text-xs leading-5 text-(--color-muted)">
-                {lt("Painel instrumental com telemetria viva e perfis locais.")}
-              </p>
-            </div>
+            <p className="eyebrow px-1 py-1">{lt("Ioruba Control Deck")}</p>
 
-            <div className="mt-5">
+            <div className="mt-4">
               <ConnectionHealthIndicator
                 language={language}
                 lastFrameAt={lastFrameAt}
@@ -414,7 +406,7 @@ export default function App() {
               />
             </div>
 
-            <nav className="mt-5">
+            <nav className="mt-4">
               <div
                 aria-label={lt("Navegação principal do Ioruba")}
                 className="sidebar-nav"
@@ -444,16 +436,14 @@ export default function App() {
                             onClick={() => setActiveSection(item.id)}
                             role="tab"
                             tabIndex={isActive ? 0 : -1}
+                            title={item.description}
                             type="button"
                           >
                             <span className="sidebar-nav-icon">
                               <Icon className="h-4 w-4" />
                             </span>
-                            <span className="min-w-0 text-left">
-                              <span className="sidebar-nav-title">{item.label}</span>
-                              <span className="sidebar-nav-description">
-                                {item.description}
-                              </span>
+                            <span className="sidebar-nav-title min-w-0 text-left">
+                              {item.label}
                             </span>
                           </button>
                         );
@@ -464,23 +454,6 @@ export default function App() {
               </div>
             </nav>
 
-            <div className="mt-5 grid gap-2.5">
-              <MiniStatus
-                label={lt("Porta ativa")}
-                tone="teal"
-                value={snapshot.connectionPort ?? lt("nenhuma")}
-              />
-              <MiniStatus
-                label={lt("Audio backend")}
-                tone="copper"
-                value={snapshot.diagnostics.backend}
-              />
-              <MiniStatus
-                label={lt("Última serial")}
-                tone="neutral"
-                value={snapshot.diagnostics.lastSerialLine ?? lt("aguardando")}
-              />
-            </div>
           </div>
         </aside>
 
@@ -492,7 +465,8 @@ export default function App() {
           tabIndex={0}
         >
           <section className="dashboard-ribbon">
-            <div>
+            <HeaderActions language={language} />
+            <div className="dashboard-ribbon-heading">
               <p className="eyebrow">{currentSection.label}</p>
               <h2 className="mt-3 font-display text-2xl leading-tight text-(--color-ink) md:text-3xl xl:text-4xl">
                 {currentSection.description}
@@ -504,11 +478,6 @@ export default function App() {
             <div className="dashboard-ribbon-meta">
               <Metric icon={PlugZap} label={lt("Sessão")} value={snapshot.status} />
               <Metric icon={Gauge} label={lt("Perfil ativo")} value={activeProfile.name} />
-              <Metric
-                icon={Radar}
-                label={lt("Última serial")}
-                value={snapshot.diagnostics.lastSerialLine ?? lt("aguardando")}
-              />
             </div>
           </section>
 
@@ -996,23 +965,6 @@ function Metric({
           <p className="metric-value">{value}</p>
         </div>
       </div>
-    </div>
-  );
-}
-
-function MiniStatus({
-  label,
-  value,
-  tone
-}: {
-  label: string;
-  value: string;
-  tone: "teal" | "copper" | "neutral";
-}) {
-  return (
-    <div className="mini-status" data-tone={tone}>
-      <p className="mini-status-label">{label}</p>
-      <p className="mini-status-value">{value}</p>
     </div>
   );
 }

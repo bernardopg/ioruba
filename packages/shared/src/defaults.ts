@@ -74,7 +74,8 @@ export const defaultPersistedState: PersistedState = {
   },
   demoMode: false,
   launchOnLogin: false,
-  lastPort: null
+  lastPort: null,
+  notificationsEnabled: true
 };
 
 export const emptyAudioInventory: AudioInventory = {

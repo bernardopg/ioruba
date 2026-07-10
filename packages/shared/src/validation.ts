@@ -67,7 +67,15 @@ export function normalizePersistedState(
         : defaultPersistedState.launchOnLogin,
     lastPort:
       typeof candidate.lastPort === "string" ? candidate.lastPort : null,
-    onboardingDismissed: candidate.onboardingDismissed === true
+    onboardingDismissed: candidate.onboardingDismissed === true,
+    lastNotifiedReleaseVersion:
+      typeof candidate.lastNotifiedReleaseVersion === "string"
+        ? candidate.lastNotifiedReleaseVersion
+        : undefined,
+    notificationsEnabled:
+      typeof candidate.notificationsEnabled === "boolean"
+        ? candidate.notificationsEnabled
+        : defaultPersistedState.notificationsEnabled
   };
 }
 

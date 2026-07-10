@@ -14,6 +14,7 @@ const UPDATE_PENDING_EVENT = "ioruba:update-pending";
  */
 export function useUpdateWatch() {
   const setUpdatePending = useIorubaStore((state) => state.setUpdatePending);
+  const pushNotification = useIorubaStore((state) => state.pushNotification);
 
   useEffect(() => {
     if (!isTauri()) {
@@ -25,6 +26,15 @@ export function useUpdateWatch() {
 
     void listen(UPDATE_PENDING_EVENT, () => {
       setUpdatePending(true);
+      pushNotification({
+        id: "update-pending",
+        kind: "update-pending",
+        title: "Atualização instalada",
+        detail:
+          "Reinicie o Ioruba para aplicar. Fechar a janela agora também reinicia automaticamente.",
+        read: false,
+        createdAt: Date.now(),
+      });
     })
       .then((cleanup) => {
         if (disposed) {
@@ -42,5 +52,5 @@ export function useUpdateWatch() {
       disposed = true;
       unlisten?.();
     };
-  }, [setUpdatePending]);
+  }, [pushNotification, setUpdatePending]);
 }

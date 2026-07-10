@@ -57,6 +57,16 @@ import { type WatchLogEntry, type WatchLogInput } from "@/lib/watch";
 
 type ConnectionMode = "idle" | "serial" | "demo";
 
+export interface AppNotification {
+  id: string;
+  kind: "release" | "update-pending" | "info";
+  title: string;
+  detail?: string;
+  url?: string;
+  read: boolean;
+  createdAt: number;
+}
+
 const WATCH_LOG_LIMIT = 300;
 
 /**
@@ -109,11 +119,16 @@ interface IorubaState {
   errorMessage: string | null;
   configDraft: string;
   updatePending: boolean;
+  notifications: AppNotification[];
   snapshot: ReturnType<typeof buildRuntimeSnapshot>;
   hydrate: (persisted: PersistedState, audioInventory: AudioInventory) => void;
   hydrateWatchLog: (watchLog: WatchLogEntry[]) => void;
   setWatchLogPersistenceReady: (ready: boolean) => void;
   setUpdatePending: (pending: boolean) => void;
+  pushNotification: (notification: AppNotification) => void;
+  markNotificationsRead: () => void;
+  setNotificationsEnabled: (enabled: boolean) => void;
+  setLastNotifiedReleaseVersion: (version: string) => void;
   refreshInventory: (audioInventory: AudioInventory) => void;
   setAvailablePorts: (ports: string[]) => void;
   appendWatchLog: (entry: WatchLogInput) => void;
@@ -139,6 +154,7 @@ interface IorubaState {
   updateActiveProfileConfig: (profile: MixerProfile) => void;
   setPreferredPort: (port: string | null) => void;
   setThemeMode: (theme: MixerProfile["ui"]["theme"]) => void;
+  setLanguage: (language: MixerProfile["ui"]["language"]) => void;
   setConfigDraft: (draft: string) => void;
   applyConfigDraft: () => void;
   resetProfile: () => void;
@@ -370,6 +386,7 @@ export const useIorubaStore = create<IorubaState>((rawSet, get) => {
     errorMessage: null,
     configDraft: serializeActiveProfile(defaultPersistedState),
     updatePending: false,
+    notifications: [],
     snapshot: initialSnapshot,
     appendWatchLog: (entry) => {
       const state = get();
@@ -413,6 +430,43 @@ export const useIorubaStore = create<IorubaState>((rawSet, get) => {
     },
     setUpdatePending: (pending) => {
       set({ updatePending: pending });
+    },
+    pushNotification: (notification) => {
+      const state = get();
+      if (state.notifications.some((candidate) => candidate.id === notification.id)) {
+        return;
+      }
+      set({ notifications: [notification, ...state.notifications] });
+    },
+    markNotificationsRead: () => {
+      const state = get();
+      if (!state.notifications.some((notification) => !notification.read)) {
+        return;
+      }
+      set({
+        notifications: state.notifications.map((notification) => ({
+          ...notification,
+          read: true,
+        })),
+      });
+    },
+    setNotificationsEnabled: (enabled) => {
+      const state = get();
+      set({
+        persisted: {
+          ...state.persisted,
+          notificationsEnabled: enabled,
+        },
+      });
+    },
+    setLastNotifiedReleaseVersion: (version) => {
+      const state = get();
+      set({
+        persisted: {
+          ...state.persisted,
+          lastNotifiedReleaseVersion: version,
+        },
+      });
     },
     hydrate: (persisted, audioInventory) => {
       const nextConnectionMode = persisted.demoMode ? "demo" : "idle";
@@ -897,6 +951,28 @@ export const useIorubaStore = create<IorubaState>((rawSet, get) => {
         detail: theme,
       });
     },
+    setLanguage: (language) => {
+      const state = get();
+      const persisted = replaceActiveProfile(state.persisted, {
+        ...resolveActiveProfile(state.persisted),
+        ui: {
+          ...resolveActiveProfile(state.persisted).ui,
+          language,
+        },
+      });
+
+      set({
+        persisted,
+        configDraft: serializeActiveProfile(persisted),
+      });
+
+      get().appendWatchLog({
+        scope: "app",
+        level: "info",
+        message: "Idioma da interface atualizado",
+        detail: language,
+      });
+    },
     setConfigDraft: (draft) => set({ configDraft: draft }),
     applyConfigDraft: () => {
       const state = get();
@@ -1289,3 +1365,10 @@ export const useIorubaStore = create<IorubaState>((rawSet, get) => {
     },
   };
 });
+
+export function selectUnreadNotificationCount(state: IorubaState): number {
+  return state.notifications.reduce(
+    (count, notification) => count + (notification.read ? 0 : 1),
+    0,
+  );
+}

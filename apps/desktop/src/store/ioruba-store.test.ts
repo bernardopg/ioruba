@@ -337,6 +337,47 @@ describe("ioruba store", () => {
     expect(JSON.parse(nextState.configDraft).ui.theme).toBe("dark");
   });
 
+  it("updates the active profile language and keeps the draft in sync", () => {
+    const store = useIorubaStore.getState();
+    store.hydrate(store.persisted, store.audioInventory);
+
+    useIorubaStore.getState().setLanguage("es");
+
+    const nextState = useIorubaStore.getState();
+    expect(resolveActiveProfile(nextState.persisted).ui.language).toBe("es");
+    expect(JSON.parse(nextState.configDraft).ui.language).toBe("es");
+  });
+
+  it("deduplicates notifications and marks unread items as read", () => {
+    const notification = {
+      id: "release-1.6.0",
+      kind: "release" as const,
+      title: "Nova versão disponível",
+      detail: "v1.6.0",
+      read: false,
+      createdAt: 1,
+    };
+
+    useIorubaStore.getState().pushNotification(notification);
+    useIorubaStore.getState().pushNotification(notification);
+
+    expect(useIorubaStore.getState().notifications).toHaveLength(1);
+    expect(useIorubaStore.getState().notifications[0]?.read).toBe(false);
+
+    useIorubaStore.getState().markNotificationsRead();
+    expect(useIorubaStore.getState().notifications[0]?.read).toBe(true);
+  });
+
+  it("persists notification preferences and the last notified release", () => {
+    useIorubaStore.getState().setNotificationsEnabled(false);
+    useIorubaStore.getState().setLastNotifiedReleaseVersion("1.6.0");
+
+    expect(useIorubaStore.getState().persisted.notificationsEnabled).toBe(false);
+    expect(useIorubaStore.getState().persisted.lastNotifiedReleaseVersion).toBe(
+      "1.6.0",
+    );
+  });
+
   it("stores the launch-on-login preference in persisted state", () => {
     const store = useIorubaStore.getState();
     store.hydrate(store.persisted, store.audioInventory);
