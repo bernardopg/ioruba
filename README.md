@@ -7,7 +7,7 @@
 
 **A tactile desktop audio deck. Turn an Arduino Nano + 3 knobs into a real mixer for your computer.**
 
-[![Release workflow](https://github.com/bernardopg/ioruba/actions/workflows/release.yml/badge.svg)](https://github.com/bernardopg/ioruba/actions/workflows/release.yml)
+[![Release](https://github.com/bernardopg/ioruba/actions/workflows/release.yml/badge.svg?branch=main&event=release)](https://github.com/bernardopg/ioruba/actions/workflows/release.yml)
 [![CI workflow](https://github.com/bernardopg/ioruba/actions/workflows/ci.yml/badge.svg)](https://github.com/bernardopg/ioruba/actions/workflows/ci.yml)
 [![Version](https://img.shields.io/github/package-json/v/bernardopg/ioruba?filename=package.json&label=version)](package.json)
 [![Project status](https://img.shields.io/badge/status-active%20development-2ea043)](TODO.md)
