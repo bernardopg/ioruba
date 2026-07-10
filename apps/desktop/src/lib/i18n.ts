@@ -512,6 +512,13 @@ const TEXT_MAP_EN: Record<string, string> = {
   Capturar: "Capture",
   "Aplicar ao perfil": "Apply to profile",
   Cancelar: "Cancel",
+  "Atualização instalada": "Update installed",
+  "Reinicie o Ioruba para aplicar. Fechar a janela agora também reinicia automaticamente.":
+    "Restart Ioruba to apply. Closing the window now also restarts automatically.",
+  "Reiniciando...": "Restarting...",
+  "Reiniciar agora": "Restart now",
+  Depois: "Later",
+  "Fechar aviso": "Dismiss notice",
 };
 
 const TEXT_MAP_ES: Record<string, string> = {
@@ -1023,6 +1030,13 @@ const TEXT_MAP_ES: Record<string, string> = {
   Capturar: "Capturar",
   "Aplicar ao perfil": "Aplicar al perfil",
   Cancelar: "Cancelar",
+  "Atualização instalada": "Actualización instalada",
+  "Reinicie o Ioruba para aplicar. Fechar a janela agora também reinicia automaticamente.":
+    "Reinicia Ioruba para aplicar. Cerrar la ventana ahora también reinicia automáticamente.",
+  "Reiniciando...": "Reiniciando...",
+  "Reiniciar agora": "Reiniciar ahora",
+  Depois: "Después",
+  "Fechar aviso": "Cerrar aviso",
 };
 
 const LANGUAGE_TEXT_MAPS: Record<

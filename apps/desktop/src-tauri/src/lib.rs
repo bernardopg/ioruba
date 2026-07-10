@@ -566,10 +566,7 @@ fn exe_snapshot() -> Option<(SystemTime, u64)> {
 /// Compara o snapshot do boot com o snapshot atual: `true` só quando ambos
 /// existem e diferem (arquivo trocado). Ausência de qualquer um dos dois
 /// snapshots (stat falhou) nunca conta como "trocado" — não há como saber.
-fn snapshot_changed(
-    launch: Option<(SystemTime, u64)>,
-    current: Option<(SystemTime, u64)>,
-) -> bool {
+fn snapshot_changed(launch: Option<(SystemTime, u64)>, current: Option<(SystemTime, u64)>) -> bool {
     matches!((launch, current), (Some(a), Some(b)) if a != b)
 }
 
@@ -594,9 +591,7 @@ fn notify_update_pending_once(app: &AppHandle) {
         watch::WatchScope::App,
         watch::WatchLevel::Warning,
         "Atualizacao do Ioruba detectada em disco",
-        Some(
-            "reinicie para aplicar; fechar a janela agora reinicia automaticamente".to_string(),
-        ),
+        Some("reinicie para aplicar; fechar a janela agora reinicia automaticamente".to_string()),
     );
     let _ = app.emit(UPDATE_PENDING_EVENT, ());
 }
