@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.5.3](https://github.com/bernardopg/ioruba/compare/v1.5.2...v1.5.3) (2026-07-09)
+
+### Fixed
+
+- Fixed a WebKitWebProcess segfault when hiding the window to the tray after the Ioruba binary was replaced on disk (e.g. by a system package upgrade) while the old process was still running. The app now snapshots its own executable at boot and, when the binary has been swapped, closing the window or reopening it from the tray triggers a clean in-place restart instead of hiding/rebuilding the webview against the replaced assets. The frontend shows a dismissable "Update installed" toast (translated to en/es) with a "Restart now" action.
+
 ## [1.5.2](https://github.com/bernardopg/ioruba/compare/v1.5.1...v1.5.2) (2026-07-09)
 
 ### Fixed

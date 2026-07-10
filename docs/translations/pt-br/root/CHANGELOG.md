@@ -7,6 +7,12 @@ e este projeto segue [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Nao publicado]
 
+## [1.5.3](https://github.com/bernardopg/ioruba/compare/v1.5.2...v1.5.3) (2026-07-09)
+
+### Corrigido
+
+- Corrigido segfault do WebKitWebProcess ao esconder a janela para o tray depois que o binario do Ioruba foi trocado em disco (ex.: upgrade de pacote do sistema) enquanto o processo antigo ainda estava rodando. O app agora tira um snapshot do proprio executavel no boot e, quando o binario foi trocado, fechar a janela ou reabri-la pelo tray dispara um restart limpo em vez de esconder/reconstruir o webview contra os assets trocados. O frontend mostra um toast dispensavel de "Atualizacao instalada" (traduzido para en/es) com acao "Reiniciar agora".
+
 ## [1.5.2](https://github.com/bernardopg/ioruba/compare/v1.5.1...v1.5.2) (2026-07-09)
 
 ### Corrigido
