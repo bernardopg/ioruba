@@ -1,6 +1,6 @@
 [package]
 name = "ioruba-desktop"
-version = "1.5.3"
+version = "1.6.0"
 description = "Ioruba desktop control deck"
 authors = ["Bernardo Gomes"]
 license = "MIT"

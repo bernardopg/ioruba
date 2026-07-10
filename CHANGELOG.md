@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.6.0](https://github.com/bernardopg/ioruba/compare/v1.5.3...v1.6.0) (2026-07-10)
+
+### Added
+
+- Added a floating runtime status pill that reports the exact running binary version, device state, active serial port, audio backend, and latest serial frame while avoiding the installed-update toast.
+- Added compact header actions for the embedded changelog, notifications, and app settings. The reusable native dialog shell supports modal focus trapping, Escape/backdrop dismissal, and focus restoration.
+- Added opt-in GitHub release notifications with six-hour checks, semantic-version comparison, unread state, deduplication, persisted preferences, and direct access to release and repository pages.
+- Added a centralized app settings dialog for the active profile language and theme, release notifications, launch-on-login, running version, and changelog access. All new interface chrome is translated into English and Spanish.
+
+### Changed
+
+- Simplified the desktop sidebar to its compact brand, connection health, and icon-plus-label navigation. Runtime port, backend, and serial telemetry now live in the status pill, and the top ribbon keeps only session and active-profile context.
+
+### Security
+
+- External links now use `tauri-plugin-opener` with capability scope restricted to `https://github.com/bernardopg/ioruba*`; the CSP only adds `https://api.github.com` for release checks.
+
 ## [1.5.3](https://github.com/bernardopg/ioruba/compare/v1.5.2...v1.5.3) (2026-07-09)
 
 ### Fixed
