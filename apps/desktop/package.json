@@ -28,7 +28,7 @@
     "react-dom": "^19.2.7",
     "recharts": "^3.9.2",
     "tailwind-merge": "^3.6.0",
-    "tauri-plugin-serialplugin-api": "^2.23.0",
+    "tauri-plugin-serialplugin-api": "^3.0.0",
     "zustand": "^5.0.14"
   },
   "devDependencies": {
