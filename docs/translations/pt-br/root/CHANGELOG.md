@@ -7,6 +7,17 @@ e este projeto segue [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Nao publicado]
 
+## [1.6.1](https://github.com/bernardopg/ioruba/compare/v1.6.0...v1.6.1) (2026-07-15)
+
+### Mudancas
+
+- Migrado para o `tauri-plugin-serialplugin` v3 (API Rust e JS/TS). Auto-reconexao e o stream de leitura serial agora sao gerenciados nativamente pelo plugin (`watch()`/`WatchHandle.unwatch()` substitui o antigo trio `listen()`/`startListening()`/`cancelListen()`), em vez de serem coordenados manualmente em `use-serial-runtime.ts`.
+- Atualizado TypeScript para 7.0.2.
+
+### Corrigido
+
+- Contornado um bug de empacotamento no `tauri-plugin-serialplugin-api@3.0.0`, cuja condicao de export `"development"` apontava para um arquivo-fonte que o pacote npm nunca publica, quebrando a resolucao de modulos em dev local e nos testes.
+
 ## [1.6.0](https://github.com/bernardopg/ioruba/compare/v1.5.3...v1.6.0) (2026-07-10)
 
 ### Funcionalidades

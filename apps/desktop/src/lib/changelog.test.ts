@@ -7,11 +7,11 @@ describe("parseChangelog", () => {
   it("parses the real Keep a Changelog document", () => {
     const releases = parseChangelog(changelogRaw);
 
-    expect(releases[0]?.version).toBe("1.6.0");
-    expect(releases[0]?.date).toBe("2026-07-10");
-    expect(releases[0]?.url).toContain("/compare/v1.5.3...v1.6.0");
-    expect(releases[0]?.sections[0]?.title).toBe("Added");
-    expect(releases[0]?.sections[0]?.items[0]).toContain("runtime status pill");
+    expect(releases[0]?.version).toBe("1.6.1");
+    expect(releases[0]?.date).toBe("2026-07-15");
+    expect(releases[0]?.url).toContain("/compare/v1.6.0...v1.6.1");
+    expect(releases[0]?.sections[0]?.title).toBe("Changed");
+    expect(releases[0]?.sections[0]?.items[0]).toContain("serialplugin");
     expect(releases.some((release) => release.version === "Unreleased")).toBe(false);
   });
 

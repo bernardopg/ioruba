@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.6.1](https://github.com/bernardopg/ioruba/compare/v1.6.0...v1.6.1) (2026-07-15)
+
+### Changed
+
+- Migrated to `tauri-plugin-serialplugin` v3 (Rust and JS/TS API). Auto-reconnect and the serial read stream are now managed natively by the plugin (`watch()`/`WatchHandle.unwatch()` replaces the old `listen()`/`startListening()`/`cancelListen()` trio), instead of coordinating it manually in `use-serial-runtime.ts`.
+- Bumped TypeScript to 7.0.2.
+
+### Fixed
+
+- Worked around a packaging bug in `tauri-plugin-serialplugin-api@3.0.0` where its `"development"` export condition pointed at a source file the npm package never ships, breaking module resolution in local dev and tests.
+
 ## [1.6.0](https://github.com/bernardopg/ioruba/compare/v1.5.3...v1.6.0) (2026-07-10)
 
 ### Added
