@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { SerialPort } from "tauri-plugin-serialplugin-api";
+import { SerialPort, type WatchHandle } from "tauri-plugin-serialplugin-api";
 
 import { applySliderTargetsBatch, dispatchControlAction } from "@/lib/backend";
 import { classifySerialOpenError, resolveSerialPort } from "@/lib/serial";
@@ -58,7 +58,7 @@ export function useSerialRuntime() {
   const runDemoStep = useIorubaStore((state) => state.runDemoStep);
 
   const portRef = useRef<SerialPort | null>(null);
-  const unsubscribeRef = useRef<(() => void) | null>(null);
+  const watchHandleRef = useRef<WatchHandle | null>(null);
   const demoTimerRef = useRef<number | null>(null);
   const applyTimerRef = useRef<number | null>(null);
   const lastFlushEnqueuedAtRef = useRef(0);
@@ -291,9 +291,19 @@ export function useSerialRuntime() {
       lastFirmwareConfigRef.current = null;
       resetPendingAudioUpdates();
 
-      if (unsubscribeRef.current) {
-        unsubscribeRef.current();
-        unsubscribeRef.current = null;
+      if (watchHandleRef.current) {
+        const handle = watchHandleRef.current;
+        watchHandleRef.current = null;
+        try {
+          await handle.unwatch();
+        } catch (error) {
+          appendWatchLog({
+            scope: "serial",
+            level: "warning",
+            message: "Falha ao cancelar leitura serial",
+            detail: error instanceof Error ? error.message : String(error),
+          });
+        }
       }
 
       // Toma a porta de forma atômica: chamadas concorrentes de stopSerial
@@ -307,28 +317,16 @@ export function useSerialRuntime() {
 
       const closedPortPath = port.options.path;
 
-      // O close() do plugin apenas faz stop() do auto-reconnect e mantém o
-      // manager "enabled"; o evento disconnected emitido pelo próprio close
-      // re-arma o loop e a porta reabre sozinha segundos depois, matando a
-      // thread de leitura da conexão seguinte (status conectado, sem sinal).
-      // Desabilitar explicitamente antes de fechar elimina o zumbi.
+      // close() do plugin v3 já limpa o timer de reconexão internamente, mas
+      // desabilitamos aqui também: evita uma reconexão agendada disparar no
+      // instante entre o unwatch acima e o close() abaixo.
       try {
-        await port.disableAutoReconnect();
+        port.disableAutoReconnect();
       } catch (error) {
         appendWatchLog({
           scope: "serial",
           level: "warning",
           message: "Falha ao desabilitar auto-reconexao serial",
-          detail: error instanceof Error ? error.message : String(error),
-        });
-      }
-      try {
-        await port.cancelListen();
-      } catch (error) {
-        appendWatchLog({
-          scope: "serial",
-          level: "warning",
-          message: "Falha ao cancelar leitura serial",
           detail: error instanceof Error ? error.message : String(error),
         });
       }
@@ -410,8 +408,7 @@ export function useSerialRuntime() {
           message: "Porta serial aberta",
           detail: portPath,
         });
-        await port.startListening();
-        await port.enableAutoReconnect({
+        port.enableAutoReconnect({
           interval: 3000,
           maxAttempts: null,
           onReconnect: (success, attempt) => {
@@ -437,66 +434,73 @@ export function useSerialRuntime() {
           detail: `${portPath} | conexao em ${Math.round(performance.now() - connectStartedAt)}ms`,
         });
 
-        const unsubscribe = await port.listen((data) => {
-          const chunk = normalizeIncomingData(data);
-          lastPacketAt = Date.now();
-          heartbeatWarningRef.current = false;
-          serialBufferRef.current += chunk;
+        const watchHandle = await port.watch({
+          onData: (data) => {
+            const chunk = normalizeIncomingData(data);
+            lastPacketAt = Date.now();
+            heartbeatWarningRef.current = false;
+            serialBufferRef.current += chunk;
 
-          const lines = serialBufferRef.current.split(/\r?\n/);
-          serialBufferRef.current = lines.pop() ?? "";
-          const completeLines = lines
-            .map((line) => line.trim())
-            .filter((line) => line.length > 0);
+            const lines = serialBufferRef.current.split(/\r?\n/);
+            serialBufferRef.current = lines.pop() ?? "";
+            const completeLines = lines
+              .map((line) => line.trim())
+              .filter((line) => line.length > 0);
 
-          if (completeLines.length === 0) {
-            return;
-          }
+            if (completeLines.length === 0) {
+              return;
+            }
 
-          queueRef.current = queueRef.current
-            .then(async () => {
-              let hasPendingAudioChanges = false;
-              const controlActions: ReturnType<
-                typeof processSerialLine
-              >["controlActions"] = [];
+            queueRef.current = queueRef.current
+              .then(async () => {
+                let hasPendingAudioChanges = false;
+                const controlActions: ReturnType<
+                  typeof processSerialLine
+                >["controlActions"] = [];
 
-              for (const rawLine of completeLines) {
-                const result = processSerialLine(rawLine);
-                hasPendingAudioChanges =
-                  stageAudioUpdates(result.sliderUpdates) || hasPendingAudioChanges;
-                if (result.controlActions.length > 0) {
-                  controlActions.push(...result.controlActions);
+                for (const rawLine of completeLines) {
+                  const result = processSerialLine(rawLine);
+                  hasPendingAudioChanges =
+                    stageAudioUpdates(result.sliderUpdates) ||
+                    hasPendingAudioChanges;
+                  if (result.controlActions.length > 0) {
+                    controlActions.push(...result.controlActions);
+                  }
                 }
-              }
 
-              if (hasPendingAudioChanges) {
-                scheduleAudioFlush();
-              }
-              if (controlActions.length > 0) {
-                void dispatchControlActions(controlActions);
-              }
-            })
-            .catch((error: unknown) => {
-              appendWatchLog({
-                scope: "serial",
-                level: "error",
-                message: "Falha ao processar frame serial",
-                detail: error instanceof Error ? error.message : String(error),
+                if (hasPendingAudioChanges) {
+                  scheduleAudioFlush();
+                }
+                if (controlActions.length > 0) {
+                  void dispatchControlActions(controlActions);
+                }
+              })
+              .catch((error: unknown) => {
+                appendWatchLog({
+                  scope: "serial",
+                  level: "error",
+                  message: "Falha ao processar frame serial",
+                  detail: error instanceof Error ? error.message : String(error),
+                });
+                setStatus(
+                  "error",
+                  error instanceof Error ? error.message : String(error),
+                  portPath,
+                );
               });
-              setStatus(
-                "error",
-                error instanceof Error ? error.message : String(error),
-                portPath,
-              );
-            });
+          },
         });
 
         if (cancelled) {
-          unsubscribe();
-          // Mesmo cuidado do stopSerial: fechar com auto-reconnect habilitado
-          // deixa o manager re-abrindo a porta em segundo plano.
           try {
-            await port.disableAutoReconnect();
+            await watchHandle.unwatch();
+          } catch {
+            // porta já invalidada; o close abaixo é o que importa
+          }
+          // Mesmo cuidado do stopSerial: desabilita auto-reconexao antes de
+          // fechar para não deixar o manager reagendado em segundo plano.
+          try {
+            port.disableAutoReconnect();
           } catch {
             // porta já invalidada; o close abaixo é o que importa
           }
@@ -505,7 +509,7 @@ export function useSerialRuntime() {
         }
 
         portRef.current = port;
-        unsubscribeRef.current = unsubscribe;
+        watchHandleRef.current = watchHandle;
         await requestFirmwareHandshake(port, "connect");
         await enableControlEvents(port, "connect");
         setStatus("connected", "Aguardando handshake do firmware", portPath);

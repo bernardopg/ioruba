@@ -20,7 +20,7 @@ const { mockApplySliderTargetsBatch, serialPortInstances, MockSerialPort } = vi.
       writes: string[] = [];
       /** Ordem das operações de ciclo de vida, para asserção de sequência. */
       calls: string[] = [];
-      private listenHandler: ((data: string) => void) | null = null;
+      private dataHandler: ((data: string) => void) | null = null;
       private reconnectHandler:
         | ((success: boolean, attempt: number) => void)
         | null = null;
@@ -33,14 +33,10 @@ const { mockApplySliderTargetsBatch, serialPortInstances, MockSerialPort } = vi.
       async open() {
         this.calls.push("open");
       }
-      async startListening() { }
-      async cancelListen() {
-        this.calls.push("cancelListen");
-      }
       async close() {
         this.calls.push("close");
       }
-      async disableAutoReconnect() {
+      disableAutoReconnect() {
         this.calls.push("disableAutoReconnect");
         this.reconnectHandler = null;
       }
@@ -49,7 +45,7 @@ const { mockApplySliderTargetsBatch, serialPortInstances, MockSerialPort } = vi.
         this.writes.push(payload);
       }
 
-      async enableAutoReconnect(options: {
+      enableAutoReconnect(options: {
         interval: number;
         maxAttempts: number | null;
         onReconnect: (success: boolean, attempt: number) => void;
@@ -57,15 +53,19 @@ const { mockApplySliderTargetsBatch, serialPortInstances, MockSerialPort } = vi.
         this.reconnectHandler = options.onReconnect;
       }
 
-      async listen(handler: (data: string) => void) {
-        this.listenHandler = handler;
-        return () => {
-          this.listenHandler = null;
+      async watch(handlers: { onData: (data: string) => void }) {
+        this.dataHandler = handlers.onData;
+        const self = this;
+        return {
+          channelId: 0,
+          async unwatch() {
+            self.dataHandler = null;
+          },
         };
       }
 
       emit(payload: string) {
-        this.listenHandler?.(payload);
+        this.dataHandler?.(payload);
       }
 
       reconnect(success: boolean, attempt: number) {
@@ -250,9 +250,8 @@ describe("useSerialRuntime", () => {
     });
     await flushRuntime();
 
-    // Sem o disableAutoReconnect antes do close, o evento disconnected do
-    // próprio close re-arma o manager e a porta reabre sozinha ("zumbi"),
-    // roubando a thread de leitura da próxima conexão.
+    // Defesa em profundidade: desabilita o auto-reconnect antes do close para
+    // não deixar uma reconexão agendada disparar entre o unwatch e o close.
     const disableIndex = port.calls.indexOf("disableAutoReconnect");
     const closeIndex = port.calls.indexOf("close");
     expect(disableIndex).toBeGreaterThan(-1);
