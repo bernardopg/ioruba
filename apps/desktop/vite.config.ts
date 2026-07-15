@@ -48,6 +48,14 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
+      // tauri-plugin-serialplugin-api@3's "development" export condition
+      // points at guest-js/index.ts, which the npm package never ships
+      // (only dist-js/ is in "files"). Alias past package.json#exports
+      // straight to the built ESM entry so dev/test resolution doesn't 404.
+      "tauri-plugin-serialplugin-api": path.resolve(
+        __dirname,
+        "../../node_modules/tauri-plugin-serialplugin-api/dist-js/index.js",
+      ),
     },
   },
   clearScreen: false,
