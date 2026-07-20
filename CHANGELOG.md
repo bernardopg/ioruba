@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.6.2](https://github.com/bernardopg/ioruba/compare/v1.6.1...v1.6.2) (2026-07-20)
+
+### Changed
+
+- Bumped `tauri-plugin-serialplugin` (Rust and JS/TS) to 3.0.1, `tauri-plugin-dialog` to 2.7.2, and `tauri-plugin-single-instance` to 2.4.3.
+- Bumped `serde` to 1.0.229, `serde_json` to 1.0.151, and `thiserror` to 2.0.19.
+- Bumped frontend dependencies: `vite` to 8.1.5, `@tailwindcss/vite` to 4.3.3, `lucide-react` to 1.25.0, `@radix-ui/react-switch` to 1.3.4, `@radix-ui/react-tabs` to 1.1.18, and the `@fontsource/instrument-sans`/`@fontsource/space-grotesk` font packages to 5.3.0.
+- Bumped pinned GitHub Actions: `actions/setup-node` to v7.0.0, `github/codeql-action` to v4.37.1, and `softprops/action-gh-release` to v3.0.2.
+
 ## [1.6.1](https://github.com/bernardopg/ioruba/compare/v1.6.0...v1.6.1) (2026-07-15)
 
 ### Changed
