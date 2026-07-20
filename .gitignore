@@ -132,3 +132,4 @@ _site/
 /cache
 /project.local.yml
 .tokensave/
+AGENTS.md
