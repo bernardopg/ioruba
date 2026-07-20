@@ -3750,9 +3750,9 @@ dependencies = [
 
 [[package]]
 name = "tauri-plugin-serialplugin"
-version = "3.0.0"
+version = "3.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2906d2f6ded5c4da55d9451be5fb720d5ec26c5aafbec998929ed33e437f2cf6"
+checksum = "e37c27de2513110b004510e9cc98acd57a89ab7b363639f0a68e8b6d63f08ae3"
 dependencies = [
  "android-usb-serial",
  "jni",
