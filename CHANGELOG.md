@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.6.3](https://github.com/bernardopg/ioruba/compare/v1.6.2...v1.6.3) (2026-07-29)
+
+### Changed
+
+- Bumped `react` and `react-dom` to 19.2.8.
+- Bumped frontend dependencies: `lucide-react` to 1.27.0, `recharts` to 3.10.1, `@radix-ui/react-switch` to 1.3.7, `@radix-ui/react-tabs` to 1.1.21, and `@vitejs/plugin-react` to 6.0.4.
+- Bumped test tooling across majors: `jsdom` to 30.0.1 and `jest-axe` to 11.0.0 (`axe-core` 4.12.1).
+- Bumped `@types/node` to 26.1.2.
+- Bumped pinned GitHub Actions: `actions/checkout` to v7.0.1, `github/codeql-action` (`init` and `analyze`) to v4.37.3, and `trufflesecurity/trufflehog` to v3.96.0.
+
+### Documentation
+
+- Recorded that `npm run rust:audit` is reachable only through `npm run release:check` and is not wired into any GitHub workflow, and that the duplicated dev-only `axe-core` in the dependency tree is left in place on purpose.
+
 ## [1.6.2](https://github.com/bernardopg/ioruba/compare/v1.6.1...v1.6.2) (2026-07-20)
 
 ### Changed
