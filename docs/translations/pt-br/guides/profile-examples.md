@@ -82,6 +82,52 @@ Use este guia quando quiser exemplos praticos de JSON para o editor de perfil at
 }
 ```
 
+## 🔇 Exemplo: controles de mute direcionado
+
+Controles (botoes e encoders) aceitam um `target` opcional que direciona uma acao de `mute` a um sink, source ou aplicacao especifica. Sem `target`, o mute alterna a saida padrao.
+
+```json
+{
+  "controls": [
+    {
+      "input": "button",
+      "id": 0,
+      "name": "Mutar Spotify",
+      "event": "press",
+      "action": "mute",
+      "target": { "kind": "application", "name": "Spotify" }
+    },
+    {
+      "input": "button",
+      "id": 1,
+      "name": "Mutar fones",
+      "event": "press",
+      "action": "mute",
+      "target": { "kind": "sink", "name": "bluez" }
+    },
+    {
+      "input": "button",
+      "id": 2,
+      "name": "Mutar microfone",
+      "event": "press",
+      "action": "mute",
+      "target": { "kind": "source", "name": "default_microphone" }
+    },
+    {
+      "input": "button",
+      "id": 3,
+      "name": "Mutar master",
+      "event": "press",
+      "action": "mute"
+    }
+  ]
+}
+```
+
+O objeto `target` segue o mesmo formato e as mesmas regras de correspondencia dos targets de slider (ver abaixo). Um controle com `target` malformado (`name` ausente, `kind` desconhecido) e descartado na validacao em vez de cair silenciosamente para master.
+
+**Suporte por plataforma**: no Linux todos os tipos de target funcionam; no Windows apenas `master` (ou sem target) e aceito — um target especifico retorna `supported: false`.
+
 ## 🔎 Regras de correspondencia no Linux
 
 O backend Linux atual aplica os alvos com a logica abaixo:

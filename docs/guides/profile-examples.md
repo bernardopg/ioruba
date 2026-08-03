@@ -82,6 +82,52 @@ Use this guide when you want practical JSON samples for the current Ioruba profi
 }
 ```
 
+## 🔇 Example: targeted mute controls
+
+Controls (buttons and encoders) accept an optional `target` that directs a `mute` action at a specific sink, source, or application. Without `target`, mute toggles the default output.
+
+```json
+{
+  "controls": [
+    {
+      "input": "button",
+      "id": 0,
+      "name": "Mute Spotify",
+      "event": "press",
+      "action": "mute",
+      "target": { "kind": "application", "name": "Spotify" }
+    },
+    {
+      "input": "button",
+      "id": 1,
+      "name": "Mute headphones",
+      "event": "press",
+      "action": "mute",
+      "target": { "kind": "sink", "name": "bluez" }
+    },
+    {
+      "input": "button",
+      "id": 2,
+      "name": "Mute mic",
+      "event": "press",
+      "action": "mute",
+      "target": { "kind": "source", "name": "default_microphone" }
+    },
+    {
+      "input": "button",
+      "id": 3,
+      "name": "Mute master",
+      "event": "press",
+      "action": "mute"
+    }
+  ]
+}
+```
+
+The `target` object follows the same `AudioTarget` shape and matching rules as slider targets (see below). A control with a malformed `target` (missing `name`, unknown `kind`) is dropped during validation rather than silently falling back to master.
+
+**Platform support**: on Linux all target kinds work; on Windows only `master` (or no target) is accepted — a specific target returns `supported: false`.
+
 ## 🔎 Linux matching rules
 
 The current Linux backend applies targets with the following logic:
