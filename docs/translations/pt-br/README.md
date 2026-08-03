@@ -10,7 +10,7 @@ Este diretorio contem a traducao da documentacao que fica em docs/.
 - [NANO_SETUP.md](../../../NANO_SETUP.md) -> [Setup do Nano (PT-BR)](./root/NANO_SETUP.md)
 - [CONTRIBUTING.md](../../../CONTRIBUTING.md) -> [Contribuicao (PT-BR)](./root/CONTRIBUTING.md)
 - [CHANGELOG.md](../../../CHANGELOG.md) -> [Changelog (PT-BR)](./root/CHANGELOG.md)
-- [TODO.md](../../../TODO.md) -> [TODO (PT-BR)](./root/TODO.md)
+- [TODO.md](../../../TODO.md) -> ja escrito em PT-BR, sem espelho separado
 - [FUNDING.md](../../../FUNDING.md) -> [Financiamento (PT-BR)](./root/FUNDING.md)
 
 ## Guias

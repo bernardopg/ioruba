@@ -1,56 +1,45 @@
 # Roadmap de produto
 
 Documento vivo de metas de produto além da paridade com o protótipo legado
-(Python/GTK, aposentado). Atualizado em 2026-06-13.
+(Python/GTK, aposentado). Atualizado em 2026-08-03.
 
 ## Onde estamos
 
 O backend Linux, o firmware e o app desktop estão completos e endurecidos:
-controle de áudio via `pactl` (master/aplicação/source/sink), firmware com
-handshake/calibração/EEPROM, persistência atômica de estado, observabilidade via
-watch log, perfis com presets e import/export, e onboarding inicial. Releases
-multiplataforma são empacotadas (deb/rpm/AppImage/nsis/msi/app) com provenance
-SLSA, mas o controle de áudio real é Linux-only.
+controle de áudio via `pactl` (master/aplicação/source/sink), firmware
+parametrizado por placa com handshake/calibração/EEPROM, persistência atômica de
+estado, observabilidade via watch log, perfis com presets e import/export,
+telemetria de sessão exportável, wizard de calibração e i18n en/pt-BR/es.
+Releases multiplataforma são empacotadas (deb/rpm/AppImage/nsis/msi/app) com
+provenance SLSA, mas o controle de áudio real é Linux-only.
 
-## Estudo: suporte a múltiplos controladores ou mais de 3 knobs
+## Resolvido: mais de 3 knobs e outras placas
 
-Hoje o domínio assume exatamente 3 knobs, fixado em três pontos:
+Este documento carregava um estudo sobre como sair da restrição de 3 knobs. O
+Scrum 11 fechou o assunto — o registro do estudo vive no git.
 
-1. **Firmware** (`firmware/arduino/ioruba-controller`): `NUM_KNOBS = 3`, três
-   pinos analógicos (`A0..A2`), frame `v0|v1|v2` e struct de EEPROM com arrays de
-   tamanho fixo. O handshake já reporta `knobs=N`, então o desktop sabe a
-   contagem real do controlador.
-2. **Protocolo** (`packages/shared/protocol.ts`): o parser de frame aceita um
-   número variável de valores separados por `|` e o handshake expõe `knobCount`.
-   Esta camada **já é genérica** — não presume 3.
-3. **Perfil/UI**: `MixerProfile.sliders` é uma lista de tamanho arbitrário; a UI
-   renderiza um `KnobPanel` por slider. Também **já é genérica**.
+O firmware não presume mais 3 canais nem 10 bits: `NUM_KNOBS` vem de
+`IORUBA_NUM_KNOBS`, os pinos analógicos saem de uma tabela por placa com
+`static_assert` contra o limite de canais, e `ADC_MAX` vem de `IORUBA_ADC_BITS`.
+O handshake reporta `board`, `mcu` e `adcBits`, e o shared normaliza contra a
+resolução informada em vez do antigo `SLIDER_MAX = 1023`. A matriz de placas
+suportadas e a pinagem estão em `docs/guides/hardware-setup.md`; hoje vai de 1
+canal (ESP8266) a 16 (Mega2560).
 
-### Conclusão do estudo
+O que **continua aberto** desse tema:
 
-A restrição a 3 knobs é essencialmente do **firmware e do hardware**, não do
-domínio de software. Caminhos viáveis, do mais barato ao mais caro:
-
-- **Mais de 3 knobs no mesmo board (curto prazo):** parametrizar `NUM_KNOBS` no
-  sketch e expandir os arrays de EEPROM (bump de `EEPROM_SCHEMA_VERSION`). O Nano
-  expõe 6 entradas analógicas usáveis (`A0..A5`) — até 6 knobs sem hardware
-  adicional. O desktop já lida com `knobCount` variável; o trabalho é firmware +
-  validar a UI com 4–6 canais. **Esforço: médio.**
-- **Múltiplos controladores (médio/longo prazo):** exige modelar mais de uma
-  conexão serial simultânea no runtime (hoje há uma porta ativa por vez), com
-  identidade de controlador no handshake e roteamento de frames por porta. É uma
+- **Múltiplos controladores simultâneos:** exige modelar mais de uma conexão
+  serial ao mesmo tempo no runtime (hoje há uma porta ativa por vez), com
+  identidade de controlador no handshake e roteamento de frames por porta. É
   mudança de arquitetura do `use-serial-runtime` e da store. **Esforço: difícil.**
-- **Mais de 6 canais ou matrizes:** requer um board com mais ADCs ou um
-  multiplexador analógico (ex.: CD74HC4067), o que muda o protocolo de leitura no
-  firmware. Fora de escopo até haver demanda concreta. **Esforço: difícil.**
-
-Recomendação: se houver demanda, priorizar "mais knobs no mesmo board" primeiro
-(menor custo, reusa todo o software) antes de múltiplos controladores.
+- **Mais canais do que a placa expõe, ou matrizes:** requer multiplexador
+  analógico (ex.: CD74HC4067), o que muda o protocolo de leitura no firmware.
+  Fora de escopo até haver demanda concreta. **Esforço: difícil.**
 
 ## Backlog pós-migração (metas de produto)
 
-Itens além da paridade com o legado, sem ordem rígida. Os Scrums 09 e 10 de UX já
-estão majoritariamente fechados (ver `TODO.md`).
+Itens além da paridade com o legado, sem ordem rígida. O recorte executável e o
+estado item a item ficam no `TODO.md`; aqui só a intenção de produto.
 
 - **Telemetria persistente e exportável:** hoje a telemetria é uma janela em
   memória. Avaliar histórico opcional em disco para análise de sessão.
@@ -59,10 +48,13 @@ estão majoritariamente fechados (ver `TODO.md`).
 - **Presets compartilháveis pela comunidade:** o import/export por arquivo já
   existe; um repositório/galeria de presets seria o próximo passo.
 - **Suporte multiplataforma real:** Windows (WASAPI) e macOS (framework CoreAudio)
-  já têm backend para `master`/saída padrão; o Scrum 04 está fechado. O próximo
-  passo é cobertura de targets por app/source/sink fora do Linux (per-app volume
-  via APIs de sessão de áudio) — ainda não mapeado.
-- **Mais knobs / múltiplos controladores:** ver o estudo acima.
+  já têm backend para `master`/saída padrão. O próximo passo é cobertura de
+  targets por app/source/sink fora do Linux (per-app volume via APIs de sessão de
+  áudio) — ainda não mapeado.
+- **Controle por atalho global:** as ações de mixagem (`mute`/`next`/`prev`) hoje
+  só chegam pelos botões e encoders do controlador. Expor as mesmas ações em
+  hotkeys do sistema dá controle sem o hardware e sem foco na janela.
+- **Múltiplos controladores:** ver a seção acima.
 - **Atualizações automáticas:** integrar `tauri-plugin-updater` + assinatura de
   artefatos para entregar updates in-app (hoje desabilitado; falta a chave de
   assinatura e os artefatos `latest.json`).
