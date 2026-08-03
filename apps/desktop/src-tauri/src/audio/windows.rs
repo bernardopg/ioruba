@@ -1,6 +1,6 @@
 use std::ptr;
 
-use super::common::{volume_percent, MasterOnlyBackend};
+use super::common::{describe_target, volume_percent, MasterOnlyBackend};
 use super::{
     ApplySliderTargetsRequest, ApplySliderTargetsResponse, AudioEndpoint, AudioError,
     AudioInventory, AudioTarget, ControlAction, ControlActionOutcome,
