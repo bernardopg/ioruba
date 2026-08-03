@@ -29,6 +29,8 @@ export type ControlConfig =
       name: string;
       event: ButtonEventKind;
       action: ControlAction;
+      /** Alvo da ação. Ausente = saída padrão do sistema. */
+      target?: AudioTarget;
     }
   | {
       input: "encoder";
@@ -36,6 +38,8 @@ export type ControlConfig =
       name: string;
       direction: EncoderDirection;
       action: ControlAction;
+      /** Alvo da ação. Ausente = saída padrão do sistema. */
+      target?: AudioTarget;
     };
 
 export interface FirmwareCalibration {
@@ -266,6 +270,8 @@ export interface ControlActionDispatch {
   controlName: string;
   input: ControlInputKind;
   detail: string;
+  /** Alvo da ação. Ausente = saída padrão do sistema. */
+  target?: AudioTarget;
 }
 
 export type SerialPacket =

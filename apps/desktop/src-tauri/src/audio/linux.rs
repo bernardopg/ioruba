@@ -215,31 +215,159 @@ pub fn apply_slider_targets_batch(
     Ok(ApplySliderTargetsResponse { outcomes })
 }
 
-pub fn dispatch_control_action(action: ControlAction) -> Result<ControlActionOutcome, AudioError> {
+pub fn dispatch_control_action(
+    action: ControlAction,
+    target: Option<AudioTarget>,
+) -> Result<ControlActionOutcome, AudioError> {
     match action {
-        ControlAction::Mute => {
-            if !has_pactl() {
-                return Ok(ControlActionOutcome {
-                    action,
-                    supported: false,
-                    detail: "pactl was not found on PATH; cannot toggle default output mute"
-                        .to_string(),
-                });
-            }
-
-            run_command(&["set-sink-mute", "@DEFAULT_SINK@", "toggle"])?;
-            invalidate_snapshot_cache();
-            Ok(ControlActionOutcome {
-                action,
-                supported: true,
-                detail: "Toggled mute on the default output".to_string(),
-            })
-        }
+        ControlAction::Mute => toggle_mute(action, target.as_ref()),
+        // playerctl atua sobre o player MPRIS, não sobre um nó do PulseAudio:
+        // não há alvo de áudio a honrar aqui.
         ControlAction::Next => run_playerctl_action(action, "next", "Skipped to next media item"),
         ControlAction::Prev => {
             run_playerctl_action(action, "previous", "Skipped to previous media item")
         }
     }
+}
+
+/// Comandos `pactl` que realizam um toggle de mute, já resolvidos contra o
+/// inventário. Separado do I/O para ser testável sem `pactl` no host.
+#[derive(Debug, Default, PartialEq, Eq)]
+struct MutePlan {
+    commands: Vec<Vec<String>>,
+    matched: Vec<String>,
+    label: String,
+}
+
+/// Traduz o alvo de um mute nos comandos correspondentes. Alvo ausente vale
+/// como `master`, que é o comportamento histórico da ação sem alvo.
+///
+/// A correspondência por nome segue as mesmas regras de `apply_targets` (aliases
+/// `default_output`/`default_microphone`, casamento por substring em nome ou
+/// descrição), para um binding não se comportar de um jeito no knob e de outro
+/// no botão.
+fn resolve_mute_plan(target: Option<&AudioTarget>, snapshot: &PactlSnapshot) -> MutePlan {
+    match target {
+        None | Some(AudioTarget::Master) => MutePlan {
+            commands: vec![vec![
+                "set-sink-mute".to_string(),
+                "@DEFAULT_SINK@".to_string(),
+                "toggle".to_string(),
+            ]],
+            matched: vec![snapshot
+                .default_sink
+                .clone()
+                .unwrap_or_else(|| "@DEFAULT_SINK@".to_string())],
+            label: "the default output".to_string(),
+        },
+        Some(AudioTarget::Sink { name }) => {
+            let matches =
+                resolve_sink_matches(&snapshot.sinks, snapshot.default_sink.as_deref(), name);
+            MutePlan {
+                commands: matches
+                    .iter()
+                    .map(|sink| {
+                        vec![
+                            "set-sink-mute".to_string(),
+                            sink.name.clone(),
+                            "toggle".to_string(),
+                        ]
+                    })
+                    .collect(),
+                matched: matches
+                    .iter()
+                    .map(|sink| format!("{} ({})", sink.description, sink.name))
+                    .collect(),
+                label: format!("sink '{name}'"),
+            }
+        }
+        Some(AudioTarget::Source { name }) => {
+            let matches =
+                resolve_source_matches(&snapshot.sources, snapshot.default_source.as_deref(), name);
+            MutePlan {
+                commands: matches
+                    .iter()
+                    .map(|source| {
+                        vec![
+                            "set-source-mute".to_string(),
+                            source.name.clone(),
+                            "toggle".to_string(),
+                        ]
+                    })
+                    .collect(),
+                matched: matches
+                    .iter()
+                    .map(|source| format!("{} ({})", source.description, source.name))
+                    .collect(),
+                label: format!("source '{name}'"),
+            }
+        }
+        Some(AudioTarget::Application { name }) => {
+            let matches = resolve_application_matches(&snapshot.sink_inputs, name);
+            MutePlan {
+                commands: matches
+                    .iter()
+                    .map(|input| {
+                        vec![
+                            "set-sink-input-mute".to_string(),
+                            input.index.to_string(),
+                            "toggle".to_string(),
+                        ]
+                    })
+                    .collect(),
+                matched: matches
+                    .iter()
+                    .map(|input| describe_sink_input(input))
+                    .collect(),
+                label: format!("application '{name}'"),
+            }
+        }
+    }
+}
+
+fn toggle_mute(
+    action: ControlAction,
+    target: Option<&AudioTarget>,
+) -> Result<ControlActionOutcome, AudioError> {
+    if !has_pactl() {
+        return Ok(ControlActionOutcome {
+            action,
+            supported: false,
+            detail: "pactl was not found on PATH; cannot toggle mute".to_string(),
+        });
+    }
+
+    let snapshot = read_pactl_snapshot();
+    let plan = resolve_mute_plan(target, &snapshot);
+
+    // Nada casou: o backend suporta a ação, mas não há nó para aplicar. Reporta
+    // como não suportado para o watch log destacar em vez de fingir sucesso.
+    if plan.commands.is_empty() {
+        return Ok(ControlActionOutcome {
+            action,
+            supported: false,
+            detail: format!(
+                "No node matched {} in the current Linux inventory",
+                plan.label
+            ),
+        });
+    }
+
+    for command in &plan.commands {
+        let args = command.iter().map(String::as_str).collect::<Vec<_>>();
+        run_command(&args)?;
+    }
+
+    invalidate_snapshot_cache();
+    Ok(ControlActionOutcome {
+        action,
+        supported: true,
+        detail: format!(
+            "Toggled mute on {} ({})",
+            plan.label,
+            plan.matched.join(", ")
+        ),
+    })
 }
 
 fn apply_targets(
@@ -364,29 +492,7 @@ fn apply_targets(
                 }
             }
             AudioTarget::Source { name } => {
-                let matches = match normalize_name(name).as_str() {
-                    "default_microphone" => default_source
-                        .map(|source_name| {
-                            sources
-                                .iter()
-                                .filter(|source| source.name == source_name)
-                                .collect::<Vec<_>>()
-                        })
-                        .unwrap_or_else(|| {
-                            sources
-                                .iter()
-                                .filter(|source| !source.name.ends_with(".monitor"))
-                                .take(1)
-                                .collect::<Vec<_>>()
-                        }),
-                    _ => sources
-                        .iter()
-                        .filter(|source| {
-                            contains_case_insensitive(&source.name, name)
-                                || contains_case_insensitive(&source.description, name)
-                        })
-                        .collect::<Vec<_>>(),
-                };
+                let matches = resolve_source_matches(sources, default_source, name);
                 let matched = matches
                     .iter()
                     .map(|source| format!("{} ({})", source.description, source.name))
@@ -455,23 +561,7 @@ fn apply_targets(
                 }
             }
             AudioTarget::Sink { name } => {
-                let matches = match normalize_name(name).as_str() {
-                    "default_output" => default_sink
-                        .map(|sink_name| {
-                            sinks
-                                .iter()
-                                .filter(|sink| sink.name == sink_name)
-                                .collect::<Vec<_>>()
-                        })
-                        .unwrap_or_default(),
-                    _ => sinks
-                        .iter()
-                        .filter(|sink| {
-                            contains_case_insensitive(&sink.name, name)
-                                || contains_case_insensitive(&sink.description, name)
-                        })
-                        .collect::<Vec<_>>(),
-                };
+                let matches = resolve_sink_matches(sinks, default_sink, name);
                 let matched = matches
                     .iter()
                     .map(|sink| format!("{} ({})", sink.description, sink.name))
@@ -752,6 +842,60 @@ fn property_text(properties: Option<&serde_json::Map<String, Value>>, key: &str)
         .filter(|value| !value.is_empty())
 }
 
+/// Sinks que casam com `needle`, com o alias `default_output` resolvendo para o
+/// sink padrão. Compartilhado entre o apply de volume e o toggle de mute.
+fn resolve_sink_matches<'a>(
+    sinks: &'a [AudioEndpoint],
+    default_sink: Option<&str>,
+    needle: &str,
+) -> Vec<&'a AudioEndpoint> {
+    match normalize_name(needle).as_str() {
+        "default_output" => default_sink
+            .map(|sink_name| sinks.iter().filter(|sink| sink.name == sink_name).collect())
+            .unwrap_or_default(),
+        _ => sinks
+            .iter()
+            .filter(|sink| {
+                contains_case_insensitive(&sink.name, needle)
+                    || contains_case_insensitive(&sink.description, needle)
+            })
+            .collect(),
+    }
+}
+
+/// Sources que casam com `needle`. O alias `default_microphone` resolve para o
+/// source padrão e, na ausência dele, para o primeiro source que não seja
+/// monitor. Compartilhado entre o apply de volume e o toggle de mute.
+fn resolve_source_matches<'a>(
+    sources: &'a [AudioEndpoint],
+    default_source: Option<&str>,
+    needle: &str,
+) -> Vec<&'a AudioEndpoint> {
+    match normalize_name(needle).as_str() {
+        "default_microphone" => default_source
+            .map(|source_name| {
+                sources
+                    .iter()
+                    .filter(|source| source.name == source_name)
+                    .collect()
+            })
+            .unwrap_or_else(|| {
+                sources
+                    .iter()
+                    .filter(|source| !source.name.ends_with(".monitor"))
+                    .take(1)
+                    .collect()
+            }),
+        _ => sources
+            .iter()
+            .filter(|source| {
+                contains_case_insensitive(&source.name, needle)
+                    || contains_case_insensitive(&source.description, needle)
+            })
+            .collect(),
+    }
+}
+
 fn resolve_application_matches<'a>(inputs: &'a [SinkInput], needle: &str) -> Vec<&'a SinkInput> {
     let mut scored = inputs
         .iter()
@@ -960,8 +1104,10 @@ impl SinkInput {
 mod tests {
     use super::{
         application_inventory_names, invalidate_snapshot_cache, parse_sink_inputs, parse_sinks,
-        parse_sources, resolve_application_matches, snapshot_cache, PactlSnapshot, SNAPSHOT_TTL,
+        parse_sources, resolve_application_matches, resolve_mute_plan, resolve_sink_matches,
+        resolve_source_matches, snapshot_cache, PactlSnapshot, SinkInput, SNAPSHOT_TTL,
     };
+    use crate::audio::{AudioEndpoint, AudioTarget};
     use serde_json::json;
     use std::time::Instant;
 
@@ -1158,5 +1304,151 @@ Source #56
         let sources = parse_sources(payload);
         assert_eq!(sources.len(), 2);
         assert_eq!(sources[0].name, "alsa_input.usb");
+    }
+
+    fn test_snapshot() -> PactlSnapshot {
+        PactlSnapshot {
+            sink_inputs: vec![SinkInput {
+                index: 42,
+                app_name: "Spotify".to_string(),
+                display_name: "Spotify".to_string(),
+                binary_name: "spotify".to_string(),
+                media_name: "Spotify".to_string(),
+                application_id: "spotify".to_string(),
+            }],
+            sinks: vec![
+                AudioEndpoint {
+                    name: "alsa_output.pci".to_string(),
+                    description: "Built-in Audio".to_string(),
+                },
+                AudioEndpoint {
+                    name: "bluez_sink.A2DP".to_string(),
+                    description: "Bluetooth Headphones".to_string(),
+                },
+            ],
+            sources: vec![AudioEndpoint {
+                name: "alsa_input.usb".to_string(),
+                description: "USB Microphone".to_string(),
+            }],
+            default_sink: Some("alsa_output.pci".to_string()),
+            default_source: Some("alsa_input.usb".to_string()),
+            errors: Vec::new(),
+        }
+    }
+
+    #[test]
+    fn mute_plan_master_targets_default_sink() {
+        let snapshot = test_snapshot();
+        let plan = resolve_mute_plan(None, &snapshot);
+        assert_eq!(plan.commands.len(), 1);
+        assert_eq!(plan.commands[0][0], "set-sink-mute");
+        assert_eq!(plan.commands[0][1], "@DEFAULT_SINK@");
+        assert_eq!(plan.commands[0][2], "toggle");
+    }
+
+    #[test]
+    fn mute_plan_explicit_master_matches_none() {
+        let snapshot = test_snapshot();
+        let plan = resolve_mute_plan(Some(&AudioTarget::Master), &snapshot);
+        assert_eq!(plan, resolve_mute_plan(None, &snapshot));
+    }
+
+    #[test]
+    fn mute_plan_named_sink_resolves_exact() {
+        let snapshot = test_snapshot();
+        let plan = resolve_mute_plan(
+            Some(&AudioTarget::Sink {
+                name: "pci".to_string(),
+            }),
+            &snapshot,
+        );
+        assert_eq!(plan.commands.len(), 1);
+        assert_eq!(plan.commands[0][1], "alsa_output.pci");
+    }
+
+    #[test]
+    fn mute_plan_default_output_alias_resolves_default() {
+        let snapshot = test_snapshot();
+        let plan = resolve_mute_plan(
+            Some(&AudioTarget::Sink {
+                name: "default_output".to_string(),
+            }),
+            &snapshot,
+        );
+        assert_eq!(plan.commands.len(), 1);
+        assert_eq!(plan.commands[0][1], "alsa_output.pci");
+    }
+
+    #[test]
+    fn mute_plan_unknown_sink_is_empty() {
+        let snapshot = test_snapshot();
+        let plan = resolve_mute_plan(
+            Some(&AudioTarget::Sink {
+                name: "nonexistent".to_string(),
+            }),
+            &snapshot,
+        );
+        assert!(plan.commands.is_empty());
+    }
+
+    #[test]
+    fn mute_plan_source_targets_source_mute() {
+        let snapshot = test_snapshot();
+        let plan = resolve_mute_plan(
+            Some(&AudioTarget::Source {
+                name: "usb".to_string(),
+            }),
+            &snapshot,
+        );
+        assert_eq!(plan.commands.len(), 1);
+        assert_eq!(plan.commands[0][0], "set-source-mute");
+        assert_eq!(plan.commands[0][1], "alsa_input.usb");
+    }
+
+    #[test]
+    fn mute_plan_application_targets_sink_input() {
+        let snapshot = test_snapshot();
+        let plan = resolve_mute_plan(
+            Some(&AudioTarget::Application {
+                name: "Spotify".to_string(),
+            }),
+            &snapshot,
+        );
+        assert_eq!(plan.commands.len(), 1);
+        assert_eq!(plan.commands[0][0], "set-sink-input-mute");
+        assert_eq!(plan.commands[0][1], "42");
+    }
+
+    #[test]
+    fn sink_match_by_substring_in_description() {
+        let snapshot = test_snapshot();
+        let matches = resolve_sink_matches(
+            &snapshot.sinks,
+            snapshot.default_sink.as_deref(),
+            "Bluetooth",
+        );
+        assert_eq!(matches.len(), 1);
+        assert_eq!(matches[0].name, "bluez_sink.A2DP");
+    }
+
+    #[test]
+    fn source_default_microphone_alias_falls_back_to_first_non_monitor() {
+        let snapshot = PactlSnapshot {
+            sources: vec![
+                AudioEndpoint {
+                    name: "alsa_output.monitor".to_string(),
+                    description: "Monitor of Built-in Audio".to_string(),
+                },
+                AudioEndpoint {
+                    name: "alsa_input.usb".to_string(),
+                    description: "USB Microphone".to_string(),
+                },
+            ],
+            default_source: None,
+            ..test_snapshot()
+        };
+        let matches = resolve_source_matches(&snapshot.sources, None, "default_microphone");
+        assert_eq!(matches.len(), 1);
+        assert_eq!(matches[0].name, "alsa_input.usb");
     }
 }

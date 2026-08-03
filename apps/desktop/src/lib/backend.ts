@@ -208,6 +208,7 @@ export async function applySliderTargetsBatch(
 
 export async function dispatchControlAction(
   action: ControlAction,
+  target?: AudioTarget,
 ): Promise<ControlActionOutcome> {
-  return invoke<ControlActionOutcome>("dispatch_control_action", { action });
+  return invoke<ControlActionOutcome>("dispatch_control_action", { action, target });
 }

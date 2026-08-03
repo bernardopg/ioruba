@@ -223,6 +223,18 @@ function normalizeControl(candidate: Partial<ControlConfig>): ControlConfig | nu
     return null;
   }
 
+  // Alvo ausente é válido e significa "saída padrão"; alvo presente porém
+  // malformado é descartado junto com o controle, para não silenciar um
+  // binding que o usuário achou que tinha configurado.
+  let target: AudioTarget | undefined;
+  if (candidate.target !== undefined) {
+    const normalized = normalizeTarget(candidate.target);
+    if (!normalized) {
+      return null;
+    }
+    target = normalized;
+  }
+
   if (candidate.input === "button") {
     if (candidate.event !== "press" && candidate.event !== "release") {
       return null;
@@ -233,7 +245,8 @@ function normalizeControl(candidate: Partial<ControlConfig>): ControlConfig | nu
       id: candidate.id,
       name: candidate.name,
       event: candidate.event,
-      action: candidate.action
+      action: candidate.action,
+      ...(target ? { target } : {})
     };
   }
 
@@ -250,7 +263,8 @@ function normalizeControl(candidate: Partial<ControlConfig>): ControlConfig | nu
       id: candidate.id,
       name: candidate.name,
       direction: candidate.direction,
-      action: candidate.action
+      action: candidate.action,
+      ...(target ? { target } : {})
     };
   }
 

@@ -3,8 +3,8 @@ use std::collections::HashMap;
 use super::common::describe_target;
 use super::{
     ApplySliderTargetsRequest, ApplySliderTargetsResponse, AudioEndpoint, AudioError,
-    AudioInventory, ControlAction, ControlActionOutcome, OutcomeSeverity, RuntimeTargetOutcome,
-    SliderOutcome, TargetOutcomeStatus,
+    AudioInventory, AudioTarget, ControlAction, ControlActionOutcome, OutcomeSeverity,
+    RuntimeTargetOutcome, SliderOutcome, TargetOutcomeStatus,
 };
 
 pub fn list_audio_inventory() -> AudioInventory {
@@ -51,7 +51,10 @@ pub fn apply_slider_targets_batch(
     Ok(ApplySliderTargetsResponse { outcomes })
 }
 
-pub fn dispatch_control_action(action: ControlAction) -> Result<ControlActionOutcome, AudioError> {
+pub fn dispatch_control_action(
+    action: ControlAction,
+    _target: Option<AudioTarget>,
+) -> Result<ControlActionOutcome, AudioError> {
     Ok(ControlActionOutcome {
         action,
         supported: false,

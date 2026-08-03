@@ -211,7 +211,7 @@ export function useSerialRuntime() {
     ) => {
       for (const action of actions) {
         try {
-          const outcome = await dispatchControlAction(action.action);
+          const outcome = await dispatchControlAction(action.action, action.target);
           appendWatchLog({
             scope: "serial",
             level: outcome.supported ? "info" : "warning",
