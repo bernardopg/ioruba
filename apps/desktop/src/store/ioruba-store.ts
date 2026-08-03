@@ -299,6 +299,7 @@ function resolveControlActions(
         control.input === "button"
           ? `${control.event} -> ${control.action}`
           : `${control.direction} -> ${control.action}`,
+      ...(control.target ? { target: control.target } : {}),
     }));
 }
 

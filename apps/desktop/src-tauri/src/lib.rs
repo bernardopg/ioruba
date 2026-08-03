@@ -113,8 +113,9 @@ fn list_audio_inventory() -> Result<audio::AudioInventory, String> {
 #[tauri::command]
 async fn dispatch_control_action(
     action: audio::ControlAction,
+    target: Option<audio::AudioTarget>,
 ) -> Result<audio::ControlActionOutcome, String> {
-    tauri::async_runtime::spawn_blocking(move || audio::dispatch_control_action(action))
+    tauri::async_runtime::spawn_blocking(move || audio::dispatch_control_action(action, target))
         .await
         .map_err(|error| error.to_string())?
         .map_err(|error| error.to_string())

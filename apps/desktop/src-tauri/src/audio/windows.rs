@@ -1,9 +1,9 @@
 use std::ptr;
 
-use super::common::{volume_percent, MasterOnlyBackend};
+use super::common::{describe_target, volume_percent, MasterOnlyBackend};
 use super::{
     ApplySliderTargetsRequest, ApplySliderTargetsResponse, AudioEndpoint, AudioError,
-    AudioInventory, ControlAction, ControlActionOutcome,
+    AudioInventory, AudioTarget, ControlAction, ControlActionOutcome,
 };
 use windows::{
     core::GUID,
@@ -106,9 +106,28 @@ pub fn apply_slider_targets_batch(
     Ok(BACKEND.apply_batch(request, |normalized| endpoint.set_master_volume(normalized)))
 }
 
-pub fn dispatch_control_action(action: ControlAction) -> Result<ControlActionOutcome, AudioError> {
+pub fn dispatch_control_action(
+    action: ControlAction,
+    target: Option<AudioTarget>,
+) -> Result<ControlActionOutcome, AudioError> {
     match action {
         ControlAction::Mute => {
+            // O backend WASAPI só cobre o endpoint padrão. Um alvo específico
+            // é recusado explicitamente em vez de silenciosamente virar master,
+            // que mutaria o sistema inteiro no lugar do app pedido.
+            if let Some(target) = target.as_ref() {
+                if !matches!(target, AudioTarget::Master) {
+                    return Ok(ControlActionOutcome {
+                        action,
+                        supported: false,
+                        detail: format!(
+                            "The Windows backend only controls the default output; {} is not addressable yet",
+                            describe_target(target)
+                        ),
+                    });
+                }
+            }
+
             let endpoint = default_endpoint_volume()?;
             let muted = endpoint.toggle_mute()?;
             Ok(ControlActionOutcome {

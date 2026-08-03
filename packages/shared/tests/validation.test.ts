@@ -7,6 +7,12 @@ import {
   normalizePersistedState
 } from "../src/index";
 
+import type { ControlConfig } from "../src/types";
+
+// Partial<ControlConfig> impede alvos malformados (union discriminada), mas o
+// ponto do teste é exatamente esse: input inválido vindo de JSON persistido.
+type RawControl = Record<string, unknown>;
+
 describe("persisted state normalization", () => {
   it("falls back to the shipped default state when no candidate is provided", () => {
     const normalized = normalizePersistedState(undefined);
@@ -151,5 +157,82 @@ describe("persisted state normalization", () => {
 
     expect(normalized.selectedProfileId).toBe("profile-a");
     expect(normalized.profiles).toHaveLength(2);
+  });
+});
+
+describe("control target normalization", () => {
+  function normalizeControlInProfile(control: RawControl) {
+    const raw = {
+      selectedProfileId: defaultProfile.id,
+      profiles: [{ ...defaultProfile, controls: [control] }]
+    };
+    const normalized = normalizePersistedState(raw as typeof defaultPersistedState);
+    return normalized.profiles[0]?.controls?.[0] ?? null;
+  }
+
+  it("accepts a button control without target (default output)", () => {
+    const control = normalizeControlInProfile({
+      input: "button",
+      id: 1,
+      name: "Mute",
+      event: "press",
+      action: "mute"
+    });
+    expect(control).toEqual({
+      input: "button",
+      id: 1,
+      name: "Mute",
+      event: "press",
+      action: "mute"
+    });
+    expect(control).not.toHaveProperty("target");
+  });
+
+  it("preserves a target on a button control", () => {
+    const control = normalizeControlInProfile({
+      input: "button",
+      id: 1,
+      name: "Mute Spotify",
+      event: "press",
+      action: "mute",
+      target: { kind: "application", name: "spotify" }
+    });
+    expect(control?.target).toEqual({ kind: "application", name: "spotify" });
+  });
+
+  it("preserves a sink target on an encoder control", () => {
+    const control = normalizeControlInProfile({
+      input: "encoder",
+      id: 2,
+      name: "Mute headphones",
+      direction: "counterclockwise",
+      action: "mute",
+      target: { kind: "sink", name: "bluez" }
+    });
+    expect(control?.target).toEqual({ kind: "sink", name: "bluez" });
+  });
+
+  it("drops a control with a malformed target (missing name)", () => {
+    const control = normalizeControlInProfile({
+      input: "button",
+      id: 3,
+      name: "Bad",
+      event: "press",
+      action: "mute",
+      target: { kind: "application" }
+    });
+    expect(control).toBeNull();
+  });
+
+  it("drops a control with an unknown target kind", () => {
+    const control = normalizeControlInProfile({
+      input: "button",
+      id: 4,
+      name: "Bad kind",
+      event: "press",
+      action: "mute",
+      target: { kind: "nonsense", name: "x" }
+    });
+    expect(control).toBeNull();
   });
 });

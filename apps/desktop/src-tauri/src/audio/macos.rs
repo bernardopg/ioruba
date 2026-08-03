@@ -4,7 +4,7 @@ use std::{mem, ptr};
 use super::common::{volume_percent, MasterOnlyBackend};
 use super::{
     ApplySliderTargetsRequest, ApplySliderTargetsResponse, AudioEndpoint, AudioError,
-    AudioInventory, ControlAction, ControlActionOutcome,
+    AudioInventory, AudioTarget, ControlAction, ControlActionOutcome,
 };
 
 // CoreAudio is a thin, stable C API, so we bind the small surface we need by
@@ -125,7 +125,10 @@ pub fn apply_slider_targets_batch(
     Ok(BACKEND.apply_batch(request, |normalized| set_master_volume(device, normalized)))
 }
 
-pub fn dispatch_control_action(action: ControlAction) -> Result<ControlActionOutcome, AudioError> {
+pub fn dispatch_control_action(
+    action: ControlAction,
+    _target: Option<AudioTarget>,
+) -> Result<ControlActionOutcome, AudioError> {
     Ok(ControlActionOutcome {
         action,
         supported: false,

@@ -176,21 +176,33 @@ pub fn apply_slider_targets_batch(
 }
 
 #[cfg(target_os = "linux")]
-pub fn dispatch_control_action(action: ControlAction) -> Result<ControlActionOutcome, AudioError> {
-    linux::dispatch_control_action(action)
+pub fn dispatch_control_action(
+    action: ControlAction,
+    target: Option<AudioTarget>,
+) -> Result<ControlActionOutcome, AudioError> {
+    linux::dispatch_control_action(action, target)
 }
 
 #[cfg(target_os = "windows")]
-pub fn dispatch_control_action(action: ControlAction) -> Result<ControlActionOutcome, AudioError> {
-    windows::dispatch_control_action(action)
+pub fn dispatch_control_action(
+    action: ControlAction,
+    target: Option<AudioTarget>,
+) -> Result<ControlActionOutcome, AudioError> {
+    windows::dispatch_control_action(action, target)
 }
 
 #[cfg(target_os = "macos")]
-pub fn dispatch_control_action(action: ControlAction) -> Result<ControlActionOutcome, AudioError> {
-    macos::dispatch_control_action(action)
+pub fn dispatch_control_action(
+    action: ControlAction,
+    target: Option<AudioTarget>,
+) -> Result<ControlActionOutcome, AudioError> {
+    macos::dispatch_control_action(action, target)
 }
 
 #[cfg(not(any(target_os = "linux", target_os = "windows", target_os = "macos")))]
-pub fn dispatch_control_action(action: ControlAction) -> Result<ControlActionOutcome, AudioError> {
-    unsupported::dispatch_control_action(action)
+pub fn dispatch_control_action(
+    action: ControlAction,
+    target: Option<AudioTarget>,
+) -> Result<ControlActionOutcome, AudioError> {
+    unsupported::dispatch_control_action(action, target)
 }
