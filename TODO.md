@@ -1,20 +1,20 @@
 # TODO
 
-Roadmap de desenvolvimento do Ioruba, reescrito em `2026-06-17` a partir do estado real do código após o release **v1.2.0**.
+Roadmap de desenvolvimento do Ioruba. Baseline reescrita em `2026-08-03` a partir do estado real do código no release **v1.6.3**.
 
-**Todos os Scrums anteriores estão cumpridos.** O histórico detalhado vive no git e no `CHANGELOG.md`; este documento olha para frente.
+**Todos os Scrums até o 11 estão cumpridos**, e os Scrums 14, 16 e 18 estão fechados. O histórico detalhado vive no git e no `CHANGELOG.md`; este documento olha para frente.
 
 Formato:
 
 - `[x]` concluído · `[ ]` pendente
 - descrição `(tag/tag/tag)` - `fácil|médio|difícil`
 
-## Estado atual (baseline v1.2.0)
+## Estado atual (baseline v1.6.3)
 
-- **Firmware** (`firmware/arduino/ioruba-controller`): Arduino Nano, `NUM_KNOBS` parametrizável por define (`IORUBA_NUM_KNOBS`), mas `ANALOG_PINS = {A0,A1,A2}` ainda fixo em 3. Handshake `HELLO board=...; fw=...; protocol=...; knobs=N`, frame `v0|v1|...`, calibração + EEPROM (magic/schema). `PROTOCOL_VERSION=2`, AVR 10-bit.
-- **Shared** (`packages/shared`): protocolo e perfil já genéricos em contagem de knobs. **Assume ADC 10-bit em todo lugar** (`SLIDER_MAX=1023`, `validation`/`protocol` rejeitam `>1023`).
-- **Desktop** (`apps/desktop`): Tauri 2 + React 19, store Zustand, serial via `tauri-plugin-serialplugin`. Backends de áudio: `linux` (pactl: master/app/source/sink), `windows` (WASAPI: master), `macos` (CoreAudio: master), `unsupported`. Telemetria de sessão + watch log.
-- **Distribuição**: release multiplataforma (deb/rpm/AppImage/nsis/msi/app) + PKGBUILD AUR + provenance; instalador one-line (`scripts/install.sh`/`install.ps1`).
+- **Firmware** (`firmware/arduino/ioruba-controller`): `NUM_KNOBS` parametrizável por `IORUBA_NUM_KNOBS`, com tabela de pinos analógicos por placa (Nano, Uno, Mega2560, Leonardo/Micro, ESP32, RP2040, ESP8266) e `static_assert` contra o limite de canais da placa. `ADC_MAX` derivado de `IORUBA_ADC_BITS` (10-bit AVR, 12-bit ESP32/RP2040). Handshake `HELLO board=...; fw=...; protocol=...; knobs=...; mcu=...; adcBits=...`, frame `v0|v1|...`, calibração + EEPROM (magic/schema). Botões e encoders opcionais (`IORUBA_NUM_BUTTONS`/`IORUBA_NUM_ENCODERS`) emitem `EV` após opt-in `EVENTS ON`. `PROTOCOL_VERSION=2`.
+- **Shared** (`packages/shared`): protocolo, perfil e runtime genéricos em contagem de knobs **e em resolução de ADC** — o lock `SLIDER_MAX=1023` saiu, a normalização usa `firmwareInfo.adcBits` e o parser de frame aceita até 16-bit. Perfil tem `controls` com bindings `mute`/`next`/`prev`.
+- **Desktop** (`apps/desktop`): Tauri 2 + React 19, store Zustand, serial via `tauri-plugin-serialplugin` v3 (stream e auto-reconnect nativos via `watch()`). Backends de áudio: `linux` (pactl: master/app/source/sink), `windows` (WASAPI: master), `macos` (CoreAudio: master), `unsupported`. Shell com sidebar compacto, status pill de runtime, dialog central de configurações, changelog embutido e notificação opt-in de release nova. Telemetria de sessão exportável (JSON/CSV), watch log, wizard de calibração, painel de hardware, i18n en/pt-BR/es.
+- **Distribuição**: release multiplataforma (deb/rpm/AppImage/nsis/msi/app) + PKGBUILD AUR + provenance; instalador one-line (`scripts/install.sh`/`install.ps1`). Sem auto-update in-app.
 
 Prioridade declarada: **integração hardware↔SO, mais placas, eficiência, organização, ampliação, distribuição e UX completa.**
 
@@ -50,7 +50,8 @@ Hoje Windows/macOS só controlam `master`. Linux tem cobertura completa.
 - [ ] Per-app volume no Windows via `IAudioSessionManager2`/`ISimpleAudioVolume` — targets `application` fora do Linux `(backend/audio/windows)` - `difícil`
 - [ ] Enumerar e controlar `sink`/`source` no Windows (devices de saída/entrada) `(backend/audio/windows)` - `difícil`
 - [ ] Avaliar per-app volume no macOS (sem API pública trivial; investigar `AudioObject` por processo ou rejeitar formalmente) `(backend/audio/macos/research)` - `difícil`
-- [ ] Ação de mute/toggle por knob ou botão, não só set de volume `(backend/shared/frontend)` - `médio`
+- [ ] Ação de mute/toggle **direcionada**, não só set de volume — hoje `dispatch_control_action(action)` não recebe target, então o mute é global `(backend/shared/frontend)` - `médio`
+  - Parcial: botões e encoders já despacham `mute`/`next`/`prev` (fechado no Scrum 11). Falta o alvo por ação e o toggle atribuído a um knob.
 - [ ] Mapear hotkeys globais (`tauri-plugin-global-shortcut` já presente) a ações de mixagem `(frontend/backend/ux)` - `médio`
 - [ ] Avaliar backend PipeWire nativo no Linux (sem fork/exec de `pactl`) `(backend/audio/linux/research)` - `difícil`
 - [ ] Estudo: transporte MIDI como alternativa à serial para controladores genéricos `(backend/protocol/research)` - `difícil`
@@ -61,7 +62,8 @@ Hoje Windows/macOS só controlam `master`. Linux tem cobertura completa.
 - [ ] Reusar handle de device (COM apartment / `IMMDevice` / `AudioObjectID`) entre chamadas respeitando thread-affinity `(backend/audio/performance)` - `difícil`
 - [x] Coalescing/debounce de writes de volume sob movimento rápido de knob, por target `(backend/runtime/performance)` - `médio`
   - `scheduleAudioFlush` virou throttle leading+trailing (`AUDIO_APPLY_MIN_INTERVAL_MS` 40ms; com `smoothTransitions` usa o `transitionDurationMs` do perfil): primeiro lote sai imediato, rajadas coalescem num flush trailing com o valor mais recente por slider. Corrige também o starvation do debounce puro anterior, que só aplicava áudio quando o knob parava. +2 testes com fake timers.
-- [ ] Reduzir o bundle do chart (`charts` ~353KB gzip 104KB) — lib mais leve ou code-split por aba `(frontend/bundle/performance)` - `médio`
+- [ ] Reduzir o bundle do chart trocando `recharts` por uma lib mais leve — o chunk `charts` está em 368.91 kB (gzip 106.66 kB) `(frontend/bundle/performance)` - `médio`
+  - Parcial: o code-split já existe — `TelemetryChart` entra por `lazy` + `Suspense` (`App.tsx`) e o `manualChunks` isola `recharts` no chunk `charts`, fora do bundle inicial. Resta só o peso da lib quando a aba abre.
 - [x] Instrumentar e logar latência knob→áudio no watch log (já há timings de boot/connect/refresh) `(observability/performance)` - `fácil`
   - `use-serial-runtime` cronometra `applySliderTargetsBatch` com `performance.now()`; emite `warning` no watch log quando passa de `AUDIO_APPLY_SLOW_MS` (80ms), com tempo + nº de alvos (sem flood).
 - [ ] Perfilar consumo em sessão longa (telemetria + watch log) e validar ausência de leaks `(performance/observability)` - `médio`
@@ -116,6 +118,19 @@ Hoje Windows/macOS só controlam `master`. Linux tem cobertura completa.
   - `HardwarePanel` (seção Hardware): placa, MCU, resolução do ADC, protocolo (compat.), knobs e calibração por knob, com estado vazio. Integrado à navegação agrupada nova.
 - [x] Indicador visual de latência e saúde da conexão sempre visível (alinhado ao `.impeccable.md`) `(frontend/ux/observability)` - `fácil`
   - `ConnectionHealthIndicator` no topo do sidebar (sempre visível): dot colorido por estado + label + frescura do sinal (tempo desde o último frame, tick 1s) como proxy de latência. Store ganhou `lastFrameAt`. +4 testes.
+
+## Entregue fora de Scrum (v1.5.2 → v1.6.3)
+
+Trabalho que nasceu de bug report ou de decisão de produto no meio do caminho, sem ter passado por um item planejado. Registrado aqui para a baseline não mentir.
+
+- [x] Auto-heal de perfis salvos antes do bump de baud do firmware (9600 → 115200), que ficavam presos em loop de handshake `(desktop/persistence)` - `fácil`
+- [x] Firmware 0.6.1: desligar o rádio WiFi no `setup()` em ESP8266/ESP32 — o rádio ligado por padrão injetava ruído mensurável no ADC `(firmware/hardware)` - `fácil`
+- [x] Restart limpo quando o binário é trocado em disco durante a execução (upgrade de pacote), no lugar do segfault do WebKitWebProcess ao esconder para a bandeja `(desktop/runtime)` - `médio`
+- [x] Migração para `tauri-plugin-serialplugin` v3: `watch()` nativo substitui o trio `listen()`/`startListening()`/`cancelListen()`, e o auto-reconnect sai do `use-serial-runtime` para o plugin `(desktop/serial)` - `médio`
+- [x] Refresh do shell: sidebar compacto (marca + saúde de conexão + navegação ícone-e-rótulo), status pill flutuante de runtime e ribbon reduzido a sessão e perfil ativo `(frontend/ux)` - `médio`
+- [x] Dialog central de configurações (idioma, tema, notificações, launch-on-login, versão em execução, changelog) sobre um wrapper reusável de `<dialog>` nativo com foco preso, Escape/backdrop e restauração de foco `(frontend/ux/a11y)` - `médio`
+- [x] Notificação opt-in de release nova: checagem a cada seis horas, comparação semver, estado de não-lido, deduplicação e preferências persistidas `(frontend/product)` - `médio`
+- [x] Links externos por `tauri-plugin-opener` com escopo de capability restrito a `https://github.com/bernardopg/ioruba*`; CSP libera só `https://api.github.com` `(security/desktop)` - `fácil`
 
 ## Não-objetivos
 
