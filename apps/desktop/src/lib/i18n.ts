@@ -326,6 +326,9 @@ const TEXT_MAP_EN: Record<string, string> = {
   "saída padrão": "default output",
   "next e prev agem sobre o player de mídia e não aceitam alvo de áudio.":
     "next and prev act on the media player and do not accept an audio target.",
+  "Binding de controle duplicado": "Duplicate control binding",
+  "Já existe um controle com o mesmo tipo, id e evento/direção":
+    "Another control already uses the same input, id, and event/direction",
   Tipo: "Type",
   master: "master",
   application: "application",
@@ -891,6 +894,9 @@ const TEXT_MAP_ES: Record<string, string> = {
   "saída padrão": "salida predeterminada",
   "next e prev agem sobre o player de mídia e não aceitam alvo de áudio.":
     "next y prev actúan sobre el reproductor de medios y no aceptan destino de audio.",
+  "Binding de controle duplicado": "Binding de control duplicado",
+  "Já existe um controle com o mesmo tipo, id e evento/direção":
+    "Ya existe un control con el mismo tipo, id y evento/dirección",
   Tipo: "Tipo",
   master: "master",
   application: "application",

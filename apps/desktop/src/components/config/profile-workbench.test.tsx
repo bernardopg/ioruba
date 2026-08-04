@@ -21,7 +21,7 @@ afterEach(() => {
  * Renderiza o editor visual já sincronizado com `profile` e devolve o espião de
  * `setConfigDraft`, por onde toda edição estruturada sai serializada.
  */
-function renderEditor(profile?: MixerProfile) {
+function renderEditor(profile?: MixerProfile, appendWatchLog = vi.fn()) {
   const persisted = {
     ...structuredClone(defaultPersistedState),
     profiles: [profile ?? structuredClone(defaultProfile)]
@@ -39,7 +39,7 @@ function renderEditor(profile?: MixerProfile) {
   render(
     <ProfileWorkbench
       activeProfile={activeProfile}
-      appendWatchLog={vi.fn()}
+      appendWatchLog={appendWatchLog}
       applyConfigDraft={vi.fn()}
       applyPreset={vi.fn()}
       audioInventory={emptyAudioInventory}
@@ -137,6 +137,27 @@ describe("profile workbench control editor", () => {
     const control = lastDraft(setConfigDraft).controls[0];
     expect(control?.action).toBe("next");
     expect(control?.target).toBeUndefined();
+  });
+
+  it("reverts an edit that would duplicate an existing binding", () => {
+    const profile = structuredClone(defaultProfile);
+    profile.controls = [
+      { input: "button", id: 0, name: "Mute", event: "press", action: "mute" },
+      { input: "button", id: 1, name: "Mute alt", event: "press", action: "mute" }
+    ];
+
+    const appendWatchLog = vi.fn();
+    const { setConfigDraft } = renderEditor(profile, appendWatchLog);
+
+    // O segundo binding tentando virar button:0:press colide com o primeiro.
+    fireEvent.change(screen.getAllByLabelText(/id do controle/i)[1], {
+      target: { value: "0" }
+    });
+
+    expect(lastDraft(setConfigDraft).controls[1]?.id).toBe(1);
+    expect(appendWatchLog).toHaveBeenCalledWith(
+      expect.objectContaining({ level: "warning" })
+    );
   });
 
   it("keeps id, name and target when switching a button into an encoder", () => {

@@ -342,15 +342,49 @@ export function ProfileWorkbench({
     });
   }
 
+  function controlBindingKey(control: ControlConfig) {
+    return `${control.input}:${control.id}:${
+      control.input === "button" ? control.event : control.direction
+    }`;
+  }
+
+  /**
+   * Um binding duplicado reprova o perfil inteiro na validação e trancaria o
+   * editor visual atrás do JSON avançado. A edição que colidiria é revertida e
+   * anunciada no watch log em vez de ser gravada.
+   */
   function updateControl(index: number, mutator: (control: ControlConfig) => void) {
     updateStructuredProfile((profile) => {
-      const control = profile.controls?.[index];
-      if (!control) {
+      const controls = profile.controls;
+      const control = controls?.[index];
+      if (!controls || !control) {
         return;
       }
 
+      const previous = structuredClone(control);
       mutator(control);
+
+      if (controlBindingCollides(controls, index)) {
+        controls[index] = previous;
+        appendEditorWarning(
+          lt("Binding de controle duplicado"),
+          lt("Já existe um controle com o mesmo tipo, id e evento/direção")
+        );
+      }
     });
+  }
+
+  function controlBindingCollides(controls: ControlConfig[], index: number) {
+    const control = controls[index];
+    if (!control) {
+      return false;
+    }
+
+    const key = controlBindingKey(control);
+    return controls.some(
+      (candidate, candidateIndex) =>
+        candidateIndex !== index && controlBindingKey(candidate) === key
+    );
   }
 
   /**
@@ -376,6 +410,14 @@ export function ProfileWorkbench({
         input === "button"
           ? { input: "button", event: "press", ...base }
           : { input: "encoder", direction: "clockwise", ...base };
+
+      if (controlBindingCollides(controls, index)) {
+        controls[index] = control;
+        appendEditorWarning(
+          lt("Binding de controle duplicado"),
+          lt("Já existe um controle com o mesmo tipo, id e evento/direção")
+        );
+      }
     });
   }
 
@@ -1216,19 +1258,16 @@ export function ProfileWorkbench({
                           <input
                             className="field"
                             min={0}
-                            onChange={(event) =>
-                              updateNumberField(
-                                event.currentTarget.valueAsNumber,
-                                (profile, nextValue) => {
-                                  const next = profile.controls?.[controlIndex];
-                                  if (!next || nextValue < 0) {
-                                    return;
-                                  }
+                            onChange={(event) => {
+                              const nextValue = event.currentTarget.valueAsNumber;
+                              if (!Number.isFinite(nextValue) || nextValue < 0) {
+                                return;
+                              }
 
-                                  next.id = nextValue;
-                                }
-                              )
-                            }
+                              updateControl(controlIndex, (next) => {
+                                next.id = Math.round(nextValue);
+                              });
+                            }}
                             type="number"
                             value={control.id}
                           />
