@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Control bindings (buttons, encoders) now accept an optional `target` (`AudioTarget`) that directs a `mute` action at a specific sink, source, or application instead of the default output. Absent target preserves the previous behavior (toggle default output). Linux uses the same name-matching rules as knob volume targets (aliases `default_output`/`default_microphone`, case-insensitive substring); Windows accepts `master` or no target and rejects specific targets with `supported: false`.
+
+- Visual editor for control bindings in **Settings › Profile editor › Buttons and encoders**: add or remove buttons and encoders, switch between the two input kinds, and pick the mute target from the session audio inventory without touching the advanced JSON.
+
+### Changed
+
+- `target` is now only accepted with `action: "mute"`. `next`/`prev` drive the MPRIS media player, so a target there could never take effect: the profile editor reports it as a validation error and persisted-state validation drops the binding.
+- The in-app changelog dialog no longer lists the `Unreleased` section: it describes work that is not in the running binary.
+
 ## [1.6.3](https://github.com/bernardopg/ioruba/compare/v1.6.2...v1.6.3) (2026-07-29)
 
 ### Changed

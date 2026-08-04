@@ -305,6 +305,30 @@ const TEXT_MAP_EN: Record<string, string> = {
   "Misture master, app, source e sink no mesmo canal.":
     "Mix master, app, source, and sink in the same channel.",
   "Adicionar target": "Add target",
+  "Botões e encoders": "Buttons and encoders",
+  "Bindings de controle: mute com alvo específico, faixa anterior e próxima faixa.":
+    "Control bindings: mute with a specific target, previous track, and next track.",
+  "Adicionar botão": "Add button",
+  "Adicionar encoder": "Add encoder",
+  "Corrija o JSON avançado para liberar o editor visual dos controles.":
+    "Fix the advanced JSON to unlock the visual control editor.",
+  "Nenhum binding configurado. O firmware ainda envia knobs normalmente.":
+    "No binding configured. The firmware still sends knobs as usual.",
+  "Botão": "Button",
+  Encoder: "Encoder",
+  "Tipo de entrada": "Input type",
+  "id do controle": "Control id",
+  "Nome do controle": "Control name",
+  Evento: "Event",
+  "Direção": "Direction",
+  "Ação": "Action",
+  "Alvo do mute": "Mute target",
+  "saída padrão": "default output",
+  "next e prev agem sobre o player de mídia e não aceitam alvo de áudio.":
+    "next and prev act on the media player and do not accept an audio target.",
+  "Binding de controle duplicado": "Duplicate control binding",
+  "Já existe um controle com o mesmo tipo, id e evento/direção":
+    "Another control already uses the same input, id, and event/direction",
   Tipo: "Type",
   master: "master",
   application: "application",
@@ -849,6 +873,30 @@ const TEXT_MAP_ES: Record<string, string> = {
   "Misture master, app, source e sink no mesmo canal.":
     "Mezcla master, app, source y sink en el mismo canal.",
   "Adicionar target": "Agregar target",
+  "Botões e encoders": "Botones y encoders",
+  "Bindings de controle: mute com alvo específico, faixa anterior e próxima faixa.":
+    "Bindings de control: mute con destino específico, pista anterior y pista siguiente.",
+  "Adicionar botão": "Agregar botón",
+  "Adicionar encoder": "Agregar encoder",
+  "Corrija o JSON avançado para liberar o editor visual dos controles.":
+    "Corrige el JSON avanzado para desbloquear el editor visual de los controles.",
+  "Nenhum binding configurado. O firmware ainda envia knobs normalmente.":
+    "Ningún binding configurado. El firmware sigue enviando knobs normalmente.",
+  "Botão": "Botón",
+  Encoder: "Encoder",
+  "Tipo de entrada": "Tipo de entrada",
+  "id do controle": "id del control",
+  "Nome do controle": "Nombre del control",
+  Evento: "Evento",
+  "Direção": "Dirección",
+  "Ação": "Acción",
+  "Alvo do mute": "Destino del mute",
+  "saída padrão": "salida predeterminada",
+  "next e prev agem sobre o player de mídia e não aceitam alvo de áudio.":
+    "next y prev actúan sobre el reproductor de medios y no aceptan destino de audio.",
+  "Binding de controle duplicado": "Binding de control duplicado",
+  "Já existe um controle com o mesmo tipo, id e evento/direção":
+    "Ya existe un control con el mismo tipo, id y evento/dirección",
   Tipo: "Tipo",
   master: "master",
   application: "application",

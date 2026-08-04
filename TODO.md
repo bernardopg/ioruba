@@ -50,8 +50,8 @@ Hoje Windows/macOS só controlam `master`. Linux tem cobertura completa.
 - [ ] Per-app volume no Windows via `IAudioSessionManager2`/`ISimpleAudioVolume` — targets `application` fora do Linux `(backend/audio/windows)` - `difícil`
 - [ ] Enumerar e controlar `sink`/`source` no Windows (devices de saída/entrada) `(backend/audio/windows)` - `difícil`
 - [ ] Avaliar per-app volume no macOS (sem API pública trivial; investigar `AudioObject` por processo ou rejeitar formalmente) `(backend/audio/macos/research)` - `difícil`
-- [ ] Ação de mute/toggle **direcionada**, não só set de volume — hoje `dispatch_control_action(action)` não recebe target, então o mute é global `(backend/shared/frontend)` - `médio`
-  - Parcial: botões e encoders já despacham `mute`/`next`/`prev` (fechado no Scrum 11). Falta o alvo por ação e o toggle atribuído a um knob.
+- [x] Ação de mute/toggle **direcionada** — `dispatch_control_action(action, target)` aceita `AudioTarget` opcional e resolve sink/source/application no Linux (`set-sink-mute`/`set-source-mute`/`set-sink-input-mute`); Windows aceita `master` ou sem alvo, rejeita o resto `(backend/shared/frontend)` - `médio`
+  - `ControlConfig` ganhou `target?`. Os matchers de sink/source foram extraídos de `apply_targets` para `resolve_sink_matches`/`resolve_source_matches`, compartilhados entre knob e mute. `target` só é aceito com `action: "mute"` (`next`/`prev` falam com o player MPRIS). O editor visual (Configurações › Editor de perfil › Botões e encoders) cria os bindings sem passar pelo JSON. Pendente: toggle atribuído a um knob (não só botão/encoder).
 - [ ] Mapear hotkeys globais (`tauri-plugin-global-shortcut` já presente) a ações de mixagem `(frontend/backend/ux)` - `médio`
 - [ ] Avaliar backend PipeWire nativo no Linux (sem fork/exec de `pactl`) `(backend/audio/linux/research)` - `difícil`
 - [ ] Estudo: transporte MIDI como alternativa à serial para controladores genéricos `(backend/protocol/research)` - `difícil`

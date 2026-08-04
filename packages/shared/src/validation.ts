@@ -225,11 +225,13 @@ function normalizeControl(candidate: Partial<ControlConfig>): ControlConfig | nu
 
   // Alvo ausente é válido e significa "saída padrão"; alvo presente porém
   // malformado é descartado junto com o controle, para não silenciar um
-  // binding que o usuário achou que tinha configurado.
+  // binding que o usuário achou que tinha configurado. `next`/`prev` agem
+  // sobre o player de mídia, não sobre um nó de áudio: alvo ali nunca teria
+  // efeito e cai na mesma regra.
   let target: AudioTarget | undefined;
   if (candidate.target !== undefined) {
     const normalized = normalizeTarget(candidate.target);
-    if (!normalized) {
+    if (!normalized || candidate.action !== "mute") {
       return null;
     }
     target = normalized;

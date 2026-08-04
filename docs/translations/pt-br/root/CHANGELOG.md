@@ -7,6 +7,17 @@ e este projeto segue [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Nao publicado]
 
+### Adicionado
+
+- Bindings de controle (botoes, encoders) agora aceitam um `target` opcional (`AudioTarget`) que direciona uma acao de `mute` a um sink, source ou aplicacao especifica em vez da saida padrao. Sem target, mantem o comportamento anterior (toggle da saida padrao). Linux usa as mesmas regras de correspondencia de nome dos targets de volume do knob (aliases `default_output`/`default_microphone`, substring case-insensitive); Windows aceita `master` ou sem target e rejeita targets especificos com `supported: false`.
+
+- Editor visual de bindings de controle em **Configuracoes › Editor de perfil › Botoes e encoders**: adiciona e remove botoes e encoders, alterna entre os dois tipos de entrada e escolhe o alvo do mute a partir do inventario de audio da sessao, sem passar pelo JSON avancado.
+
+### Mudanças
+
+- `target` agora so e aceito com `action: "mute"`. `next`/`prev` atuam sobre o player MPRIS, entao um alvo ali nunca teria efeito: o editor de perfis reporta erro de validacao e a validacao do estado persistido descarta o binding.
+- O diálogo de changelog no app não lista mais a seção `Unreleased`: ela descreve trabalho que não está no binário em execução.
+
 ## [1.6.3](https://github.com/bernardopg/ioruba/compare/v1.6.2...v1.6.3) (2026-07-29)
 
 ### Mudanças

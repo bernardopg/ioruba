@@ -22,10 +22,14 @@ export function parseChangelog(raw: string): ChangelogRelease[] {
       return;
     }
 
-    const sections = release.sections.filter((candidate) => candidate.items.length > 0);
-    if (sections.length > 0 || release.version.toLowerCase() !== "unreleased") {
-      releases.push({ ...release, sections });
+    // "Unreleased" descreve o que ainda nao esta no binario em execucao: nunca
+    // entra no dialogo de novidades, com ou sem itens.
+    if (release.version.toLowerCase() === "unreleased") {
+      return;
     }
+
+    const sections = release.sections.filter((candidate) => candidate.items.length > 0);
+    releases.push({ ...release, sections });
   }
 
   for (const rawLine of raw.split(/\r?\n/)) {

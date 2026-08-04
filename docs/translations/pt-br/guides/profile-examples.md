@@ -82,6 +82,56 @@ Use este guia quando quiser exemplos praticos de JSON para o editor de perfil at
 }
 ```
 
+## 🔇 Exemplo: controles de mute direcionado
+
+Controles (botoes e encoders) aceitam um `target` opcional que direciona uma acao de `mute` a um sink, source ou aplicacao especifica. Sem `target`, o mute alterna a saida padrao.
+
+```json
+{
+  "controls": [
+    {
+      "input": "button",
+      "id": 0,
+      "name": "Mutar Spotify",
+      "event": "press",
+      "action": "mute",
+      "target": { "kind": "application", "name": "Spotify" }
+    },
+    {
+      "input": "button",
+      "id": 1,
+      "name": "Mutar fones",
+      "event": "press",
+      "action": "mute",
+      "target": { "kind": "sink", "name": "bluez" }
+    },
+    {
+      "input": "button",
+      "id": 2,
+      "name": "Mutar microfone",
+      "event": "press",
+      "action": "mute",
+      "target": { "kind": "source", "name": "default_microphone" }
+    },
+    {
+      "input": "button",
+      "id": 3,
+      "name": "Mutar master",
+      "event": "press",
+      "action": "mute"
+    }
+  ]
+}
+```
+
+O objeto `target` segue o mesmo formato e as mesmas regras de correspondencia dos targets de slider (ver abaixo). Um controle com `target` malformado (`name` ausente, `kind` desconhecido) e descartado na validacao em vez de cair silenciosamente para master; no editor de perfis do app o mesmo `target` malformado vira erro de validacao em vez de ser salvo.
+
+`target` so e valido com `action: "mute"`. As acoes `next`/`prev` atuam sobre o player MPRIS, que nao tem um no de audio para mirar, entao um controle que combina as duas coisas e rejeitado (erro de validacao no editor de perfis, binding descartado ao carregar o estado persistido).
+
+**Suporte por plataforma**: no Linux todos os tipos de target funcionam; no Windows apenas `master` (ou sem target) e aceito — um target especifico retorna `supported: false`.
+
+Nada disso exige o editor JSON: **Configuracoes › Editor de perfil › Botoes e encoders** adiciona bindings, alterna entre botao e encoder e escolhe o alvo do mute a partir do inventario de audio da sessao.
+
 ## 🔎 Regras de correspondencia no Linux
 
 O backend Linux atual aplica os alvos com a logica abaixo:

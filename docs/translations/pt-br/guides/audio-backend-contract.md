@@ -14,7 +14,7 @@ diretamente de componentes.
 | --- | --- | --- | --- |
 | `list_audio_inventory` | `listAudioInventory()` | — | `AudioInventory` |
 | `apply_slider_targets_batch` | `applySliderTargetsBatch(profile, updates)` | `ApplySliderTargetsRequest` | `ApplySliderTargetsResponse` (`outcomes` por id de slider) |
-| `dispatch_control_action` | `dispatchControlAction(action)` | `ControlAction` | `ControlActionOutcome` |
+| `dispatch_control_action` | `dispatchControlAction(action, target?)` | `ControlAction`, `AudioTarget` opcional | `ControlActionOutcome` |
 
 `applySliderTargetsBatch` converte valores brutos do knob para `0.0..=1.0`
 normalizado (`sliderToAppliedNormalized`, ciente da resolucao do ADC) antes de
@@ -45,9 +45,13 @@ encaminham para o modulo da plataforma:
 
 - `linux.rs` — `pactl` (PulseAudio/PipeWire-pulse). Cobertura completa:
   targets master, application, sink e source, alem das acoes de controle
-  mute/next/prev.
-- `windows.rs` — WASAPI via crate `windows`. Apenas volume e mute da saida
-  padrao/master; outros targets retornam `unavailable`.
+  mute/next/prev. Mute pode ser direcionado a qualquer tipo de target via
+  parametro opcional `target` (`set-sink-mute`, `set-source-mute`,
+  `set-sink-input-mute`), usando as mesmas regras de correspondencia de nome
+  dos targets de volume.
+- `windows.rs` — WASAPI via crate `windows`. Volume e mute da saida
+  padrao/master. Mute direcionado (nao-master) retorna `supported: false`
+  pois o WASAPI so controla o endpoint padrao.
 - `macos.rs` — FFI CoreAudio feito a mao. Apenas volume da saida padrao/master.
 - `unsupported.rs` — compilado em qualquer outro SO; reporta tudo como
   `unavailable` para a UI renderizar o modo demo com banners explicitos.
