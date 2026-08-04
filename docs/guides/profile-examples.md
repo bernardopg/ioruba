@@ -126,7 +126,11 @@ Controls (buttons and encoders) accept an optional `target` that directs a `mute
 
 The `target` object follows the same `AudioTarget` shape and matching rules as slider targets (see below). A control with a malformed `target` (missing `name`, unknown `kind`) is dropped during validation rather than silently falling back to master; in the in-app profile editor the same malformed `target` is reported as a validation error instead of being saved.
 
+`target` is only valid with `action: "mute"`. The `next`/`prev` actions drive the MPRIS media player, which has no audio node to aim at, so a control that pairs them with a target is rejected (validation error in the profile editor, dropped binding when loading persisted state).
+
 **Platform support**: on Linux all target kinds work; on Windows only `master` (or no target) is accepted — a specific target returns `supported: false`.
+
+You do not need the JSON editor for any of this: **Settings › Profile editor › Buttons and encoders** adds bindings, switches between button and encoder, and picks the mute target from the live audio inventory.
 
 ## 🔎 Linux matching rules
 

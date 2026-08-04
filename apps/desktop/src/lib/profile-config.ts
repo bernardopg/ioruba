@@ -617,6 +617,12 @@ function parseControl(
   // de edicao, nao algo a descartar em silencio.
   let target: AudioTarget | undefined;
   if (candidate.target !== undefined) {
+    if (action.value !== "mute") {
+      return failure(
+        `${path}.target so e valido com action mute; next e prev agem sobre o player de midia`,
+      );
+    }
+
     const targetResult = parseTarget(candidate.target, `${path}.target`);
     if (!targetResult.ok) {
       return targetResult;

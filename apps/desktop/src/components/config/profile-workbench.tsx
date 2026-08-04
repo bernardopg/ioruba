@@ -23,6 +23,8 @@ import {
   MIXER_PRESETS,
   type AudioInventory,
   type AudioTarget,
+  type ControlAction,
+  type ControlConfig,
   type MixerProfile,
   type PersistedState,
   type UiLanguage
@@ -296,6 +298,98 @@ export function ProfileWorkbench({
       }
 
       slider.targets.splice(targetIndex, 1);
+    });
+  }
+
+  /**
+   * Bindings de controle são identificados por `input:id:event|direction`; um
+   * par duplicado invalida o perfil inteiro. O novo binding entra com o menor
+   * id livre para o mesmo tipo de entrada.
+   */
+  function handleAddControl(input: ControlConfig["input"]) {
+    updateStructuredProfile((profile) => {
+      const controls = profile.controls ?? [];
+      const nextId =
+        controls
+          .filter((control) => control.input === input)
+          .reduce((max, control) => Math.max(max, control.id), -1) + 1;
+
+      controls.push(
+        input === "button"
+          ? {
+              input: "button",
+              id: nextId,
+              name: `${lt("Botão")} ${nextId + 1}`,
+              event: "press",
+              action: "mute"
+            }
+          : {
+              input: "encoder",
+              id: nextId,
+              name: `${lt("Encoder")} ${nextId + 1}`,
+              direction: "clockwise",
+              action: "next"
+            }
+      );
+
+      profile.controls = controls;
+    });
+  }
+
+  function handleRemoveControl(index: number) {
+    updateStructuredProfile((profile) => {
+      profile.controls?.splice(index, 1);
+    });
+  }
+
+  function updateControl(index: number, mutator: (control: ControlConfig) => void) {
+    updateStructuredProfile((profile) => {
+      const control = profile.controls?.[index];
+      if (!control) {
+        return;
+      }
+
+      mutator(control);
+    });
+  }
+
+  /**
+   * Troca button <-> encoder preservando id, nome e ação: o campo específico
+   * (event ou direction) volta ao default do novo tipo.
+   */
+  function handleChangeControlInput(index: number, input: ControlConfig["input"]) {
+    updateStructuredProfile((profile) => {
+      const controls = profile.controls;
+      const control = controls?.[index];
+      if (!controls || !control || control.input === input) {
+        return;
+      }
+
+      const base = {
+        id: control.id,
+        name: control.name,
+        action: control.action,
+        ...(control.target ? { target: control.target } : {})
+      };
+
+      controls[index] =
+        input === "button"
+          ? { input: "button", event: "press", ...base }
+          : { input: "encoder", direction: "clockwise", ...base };
+    });
+  }
+
+  /**
+   * `next`/`prev` atuam no player MPRIS, não em um nó de áudio: o alvo é
+   * removido junto com a troca para não gerar um perfil que a validação
+   * rejeitaria.
+   */
+  function handleChangeControlAction(index: number, action: ControlAction) {
+    updateControl(index, (control) => {
+      control.action = action;
+      if (action !== "mute") {
+        delete control.target;
+      }
     });
   }
 
@@ -1021,6 +1115,279 @@ export function ProfileWorkbench({
                           </p>
                         )}
                       </div>
+                    </div>
+                  );
+                })
+              )}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <div>
+                <CardTitle>{lt("Botões e encoders")}</CardTitle>
+                <CardDescription>
+                  {lt("Bindings de controle: mute com alvo específico, faixa anterior e próxima faixa.")}
+                </CardDescription>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  disabled={structuredEditorLocked}
+                  onClick={() => handleAddControl("button")}
+                  size="small"
+                >
+                  <Plus className="h-4 w-4" />
+                  {lt("Adicionar botão")}
+                </Button>
+                <Button
+                  disabled={structuredEditorLocked}
+                  onClick={() => handleAddControl("encoder")}
+                  size="small"
+                  variant="secondary"
+                >
+                  <Plus className="h-4 w-4" />
+                  {lt("Adicionar encoder")}
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {structuredEditorLocked ? (
+                <div className="rounded-[20px] border border-[color-mix(in_oklab,var(--accent-rose)_32%,var(--color-border))] bg-[color-mix(in_oklab,var(--accent-rose)_8%,var(--color-panel))] px-4 py-4 text-sm text-(--accent-rose)">
+                  {lt("Corrija o JSON avançado para liberar o editor visual dos controles.")}
+                </div>
+              ) : (workingProfile.controls ?? []).length === 0 ? (
+                <p className="text-sm text-(--color-muted)">
+                  {lt("Nenhum binding configurado. O firmware ainda envia knobs normalmente.")}
+                </p>
+              ) : (
+                (workingProfile.controls ?? []).map((control, controlIndex) => {
+                  const controlTarget = control.target;
+                  const suggestions =
+                    controlTarget && controlTarget.kind !== "master"
+                      ? targetSuggestions(controlTarget.kind, audioInventory, language)
+                      : [];
+
+                  return (
+                    <div
+                      className="rounded-3xl border border-(--color-border) bg-[color-mix(in_oklab,var(--color-panel)_94%,var(--color-shell)_6%)] px-4 py-4"
+                      key={`${control.input}-${control.id}-${controlIndex}`}
+                    >
+                      <div className="flex flex-wrap items-center justify-between gap-3">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <Badge tone="neutral">
+                            {control.input === "button" ? lt("Botão") : lt("Encoder")}
+                          </Badge>
+                          <Badge tone="neutral">{lt("id")} {control.id}</Badge>
+                        </div>
+                        <Button
+                          onClick={() => handleRemoveControl(controlIndex)}
+                          size="small"
+                          variant="ghost"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                          {lt("Remover")}
+                        </Button>
+                      </div>
+
+                      <div className="mt-4 grid gap-3 md:grid-cols-2">
+                        <label className="grid gap-2">
+                          <span className="text-[0.7rem] font-semibold uppercase tracking-[0.24em] text-(--color-muted)">
+                            {lt("Tipo de entrada")}
+                          </span>
+                          <select
+                            className="field"
+                            onChange={(event) =>
+                              handleChangeControlInput(
+                                controlIndex,
+                                event.currentTarget.value as ControlConfig["input"]
+                              )
+                            }
+                            value={control.input}
+                          >
+                            <option value="button">{lt("Botão")}</option>
+                            <option value="encoder">{lt("Encoder")}</option>
+                          </select>
+                        </label>
+
+                        <label className="grid gap-2">
+                          <span className="text-[0.7rem] font-semibold uppercase tracking-[0.24em] text-(--color-muted)">
+                            {lt("id do controle")}
+                          </span>
+                          <input
+                            className="field"
+                            min={0}
+                            onChange={(event) =>
+                              updateNumberField(
+                                event.currentTarget.valueAsNumber,
+                                (profile, nextValue) => {
+                                  const next = profile.controls?.[controlIndex];
+                                  if (!next || nextValue < 0) {
+                                    return;
+                                  }
+
+                                  next.id = nextValue;
+                                }
+                              )
+                            }
+                            type="number"
+                            value={control.id}
+                          />
+                        </label>
+
+                        <BufferedTextField
+                          label={lt("Nome do controle")}
+                          onCommit={(value) =>
+                            updateControl(controlIndex, (next) => {
+                              next.name = value;
+                            })
+                          }
+                          value={control.name}
+                        />
+
+                        {control.input === "button" ? (
+                          <label className="grid gap-2">
+                            <span className="text-[0.7rem] font-semibold uppercase tracking-[0.24em] text-(--color-muted)">
+                              {lt("Evento")}
+                            </span>
+                            <select
+                              className="field"
+                              onChange={(event) => {
+                                const value = event.currentTarget.value as "press" | "release";
+                                updateControl(controlIndex, (next) => {
+                                  if (next.input === "button") {
+                                    next.event = value;
+                                  }
+                                });
+                              }}
+                              value={control.event}
+                            >
+                              <option value="press">{lt("press")}</option>
+                              <option value="release">{lt("release")}</option>
+                            </select>
+                          </label>
+                        ) : (
+                          <label className="grid gap-2">
+                            <span className="text-[0.7rem] font-semibold uppercase tracking-[0.24em] text-(--color-muted)">
+                              {lt("Direção")}
+                            </span>
+                            <select
+                              className="field"
+                              onChange={(event) => {
+                                const value = event.currentTarget.value as
+                                  | "clockwise"
+                                  | "counterclockwise";
+                                updateControl(controlIndex, (next) => {
+                                  if (next.input === "encoder") {
+                                    next.direction = value;
+                                  }
+                                });
+                              }}
+                              value={control.direction}
+                            >
+                              <option value="clockwise">{lt("clockwise")}</option>
+                              <option value="counterclockwise">{lt("counterclockwise")}</option>
+                            </select>
+                          </label>
+                        )}
+
+                        <label className="grid gap-2">
+                          <span className="text-[0.7rem] font-semibold uppercase tracking-[0.24em] text-(--color-muted)">
+                            {lt("Ação")}
+                          </span>
+                          <select
+                            className="field"
+                            onChange={(event) =>
+                              handleChangeControlAction(
+                                controlIndex,
+                                event.currentTarget.value as ControlAction
+                              )
+                            }
+                            value={control.action}
+                          >
+                            <option value="mute">{lt("mute")}</option>
+                            <option value="next">{lt("next")}</option>
+                            <option value="prev">{lt("prev")}</option>
+                          </select>
+                        </label>
+
+                        {control.action === "mute" ? (
+                          <label className="grid gap-2">
+                            <span className="text-[0.7rem] font-semibold uppercase tracking-[0.24em] text-(--color-muted)">
+                              {lt("Alvo do mute")}
+                            </span>
+                            <select
+                              className="field"
+                              onChange={(event) => {
+                                const value = event.currentTarget.value;
+                                updateControl(controlIndex, (next) => {
+                                  if (value === "default") {
+                                    delete next.target;
+                                    return;
+                                  }
+
+                                  next.target = createTarget(
+                                    value as AudioTarget["kind"],
+                                    next.target
+                                  );
+                                });
+                              }}
+                              value={controlTarget?.kind ?? "default"}
+                            >
+                              <option value="default">{lt("saída padrão")}</option>
+                              <option value="master">{lt("master")}</option>
+                              <option value="application">{lt("application")}</option>
+                              <option value="source">{lt("source")}</option>
+                              <option value="sink">{lt("sink")}</option>
+                            </select>
+                          </label>
+                        ) : (
+                          <div className="rounded-[18px] border border-dashed border-(--color-border) bg-[color-mix(in_oklab,var(--color-panel)_90%,transparent)] px-4 py-3 text-sm text-(--color-muted)">
+                            {lt("next e prev agem sobre o player de mídia e não aceitam alvo de áudio.")}
+                          </div>
+                        )}
+                      </div>
+
+                      {controlTarget && controlTarget.kind !== "master" ? (
+                        <div className="mt-3">
+                          <BufferedTextField
+                            label={lt("Nome do target")}
+                            onCommit={(value) =>
+                              updateControl(controlIndex, (next) => {
+                                if (next.target && next.target.kind !== "master") {
+                                  next.target.name = value;
+                                }
+                              })
+                            }
+                            placeholder={defaultTargetName(
+                              controlTarget.kind,
+                              audioInventory,
+                              language
+                            )}
+                            value={controlTarget.name}
+                          />
+
+                          {suggestions.length > 0 ? (
+                            <div className="mt-3 flex flex-wrap gap-2">
+                              {suggestions.slice(0, 6).map((suggestion) => (
+                                <button
+                                  className="inline-flex min-h-8 items-center rounded-full border border-(--color-border) bg-[color-mix(in_oklab,var(--color-panel)_88%,transparent)] px-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-(--color-copy) transition hover:border-(--accent-teal) hover:text-(--color-ink)"
+                                  key={suggestion}
+                                  onClick={() =>
+                                    updateControl(controlIndex, (next) => {
+                                      if (next.target && next.target.kind !== "master") {
+                                        next.target.name = suggestion;
+                                      }
+                                    })
+                                  }
+                                  type="button"
+                                >
+                                  {suggestion}
+                                </button>
+                              ))}
+                            </div>
+                          ) : null}
+                        </div>
+                      ) : null}
                     </div>
                   );
                 })

@@ -151,6 +151,29 @@ describe("profile config", () => {
     }
   });
 
+  it("rejects a target on a media action", () => {
+    const draft = JSON.stringify({
+      ...defaultProfile,
+      controls: [
+        {
+          input: "encoder",
+          id: 0,
+          name: "Next track",
+          direction: "clockwise",
+          action: "next",
+          target: { kind: "application", name: "Spotify" },
+        },
+      ],
+    });
+
+    const result = parseProfileDraft(draft);
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.error).toContain("controls[0].target so e valido com action mute");
+    }
+  });
+
   it("reports line and column for malformed JSON drafts", () => {
     const result = parseProfileDraft('{\n  "id": "broken",\n  "name": \n}');
 

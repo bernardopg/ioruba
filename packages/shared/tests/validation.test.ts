@@ -224,6 +224,18 @@ describe("control target normalization", () => {
     expect(control).toBeNull();
   });
 
+  it("drops a control that pairs a target with a media action", () => {
+    const control = normalizeControlInProfile({
+      input: "encoder",
+      id: 5,
+      name: "Next on Spotify",
+      direction: "clockwise",
+      action: "next",
+      target: { kind: "application", name: "spotify" }
+    });
+    expect(control).toBeNull();
+  });
+
   it("drops a control with an unknown target kind", () => {
     const control = normalizeControlInProfile({
       input: "button",

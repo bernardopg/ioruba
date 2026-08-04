@@ -544,6 +544,25 @@ describe("desktop accessibility shell", () => {
   it("ProfileWorkbench has no axe violations in any settings view", async () => {
     const persisted = buildPersistedState();
     const activeProfile = resolveActiveProfile(persisted);
+    // Um binding com alvo e outro sem exercitam os dois estados do editor de
+    // controles (campos de target visíveis e substituídos pela nota de mídia).
+    activeProfile.controls = [
+      {
+        input: "button",
+        id: 0,
+        name: "Mute Spotify",
+        event: "press",
+        action: "mute",
+        target: { kind: "application", name: "Spotify" }
+      },
+      {
+        input: "encoder",
+        id: 0,
+        name: "Next track",
+        direction: "clockwise",
+        action: "next"
+      }
+    ];
     const configDraft = serializeProfileDraft(activeProfile);
     const draftValidation = parseProfileDraft(configDraft);
 
