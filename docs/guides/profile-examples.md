@@ -124,7 +124,7 @@ Controls (buttons and encoders) accept an optional `target` that directs a `mute
 }
 ```
 
-The `target` object follows the same `AudioTarget` shape and matching rules as slider targets (see below). A control with a malformed `target` (missing `name`, unknown `kind`) is dropped during validation rather than silently falling back to master.
+The `target` object follows the same `AudioTarget` shape and matching rules as slider targets (see below). A control with a malformed `target` (missing `name`, unknown `kind`) is dropped during validation rather than silently falling back to master; in the in-app profile editor the same malformed `target` is reported as a validation error instead of being saved.
 
 **Platform support**: on Linux all target kinds work; on Windows only `master` (or no target) is accepted — a specific target returns `supported: false`.
 

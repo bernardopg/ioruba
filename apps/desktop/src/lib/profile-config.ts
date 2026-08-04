@@ -613,6 +613,17 @@ function parseControl(
     return action;
   }
 
+  // Alvo ausente vale como "saida padrao"; presente porem malformado e um erro
+  // de edicao, nao algo a descartar em silencio.
+  let target: AudioTarget | undefined;
+  if (candidate.target !== undefined) {
+    const targetResult = parseTarget(candidate.target, `${path}.target`);
+    if (!targetResult.ok) {
+      return targetResult;
+    }
+    target = targetResult.value;
+  }
+
   if (input.value === "button") {
     const event = readEnum(
       candidate.event,
@@ -630,6 +641,7 @@ function parseControl(
       name: name.value,
       event: event.value,
       action: action.value as ControlAction,
+      ...(target ? { target } : {}),
     });
   }
 
@@ -649,6 +661,7 @@ function parseControl(
     name: name.value,
     direction: direction.value,
     action: action.value as ControlAction,
+    ...(target ? { target } : {}),
   });
 }
 

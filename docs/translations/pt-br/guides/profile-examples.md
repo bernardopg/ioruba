@@ -124,7 +124,7 @@ Controles (botoes e encoders) aceitam um `target` opcional que direciona uma aca
 }
 ```
 
-O objeto `target` segue o mesmo formato e as mesmas regras de correspondencia dos targets de slider (ver abaixo). Um controle com `target` malformado (`name` ausente, `kind` desconhecido) e descartado na validacao em vez de cair silenciosamente para master.
+O objeto `target` segue o mesmo formato e as mesmas regras de correspondencia dos targets de slider (ver abaixo). Um controle com `target` malformado (`name` ausente, `kind` desconhecido) e descartado na validacao em vez de cair silenciosamente para master; no editor de perfis do app o mesmo `target` malformado vira erro de validacao em vez de ser salvo.
 
 **Suporte por plataforma**: no Linux todos os tipos de target funcionam; no Windows apenas `master` (ou sem target) e aceito — um target especifico retorna `supported: false`.
 

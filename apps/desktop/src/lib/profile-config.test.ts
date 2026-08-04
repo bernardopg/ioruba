@@ -104,6 +104,53 @@ describe("profile config", () => {
     }
   });
 
+  it("keeps the optional control target and rejects a malformed one", () => {
+    const withTarget = JSON.stringify({
+      ...defaultProfile,
+      controls: [
+        {
+          input: "button",
+          id: 0,
+          name: "Mute Spotify",
+          event: "press",
+          action: "mute",
+          target: { kind: "application", name: "Spotify" },
+        },
+      ],
+    });
+
+    const result = parseProfileDraft(withTarget);
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value.controls[0]?.target).toEqual({
+        kind: "application",
+        name: "Spotify",
+      });
+    }
+
+    const malformed = JSON.stringify({
+      ...defaultProfile,
+      controls: [
+        {
+          input: "button",
+          id: 0,
+          name: "Mute Spotify",
+          event: "press",
+          action: "mute",
+          target: { kind: "application" },
+        },
+      ],
+    });
+
+    const failed = parseProfileDraft(malformed);
+
+    expect(failed.ok).toBe(false);
+    if (!failed.ok) {
+      expect(failed.error).toContain("controls[0].target.name");
+    }
+  });
+
   it("reports line and column for malformed JSON drafts", () => {
     const result = parseProfileDraft('{\n  "id": "broken",\n  "name": \n}');
 
