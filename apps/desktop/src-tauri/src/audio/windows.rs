@@ -181,8 +181,8 @@ where
 }
 
 pub fn list_audio_inventory() -> AudioInventory {
-    let volume = on_wasapi_thread(|host| host.with_endpoint(current_volume))
-        .and_then(|result| result);
+    let volume =
+        on_wasapi_thread(|host| host.with_endpoint(current_volume)).and_then(|result| result);
 
     match volume {
         Ok(volume) => AudioInventory {
@@ -197,10 +197,7 @@ pub fn list_audio_inventory() -> AudioInventory {
             default_source: None,
             summary: "Windows Core Audio default output is available".to_string(),
             diagnostics: vec![
-                format!(
-                    "Current default output volume: {}%",
-                    volume_percent(volume)
-                ),
+                format!("Current default output volume: {}%", volume_percent(volume)),
                 "Windows backend currently supports master/default output volume only".to_string(),
             ],
         },

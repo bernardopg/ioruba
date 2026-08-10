@@ -36,10 +36,7 @@ impl<T> TtlCache<T> {
     }
 
     /// The cached value, or `None` when empty or expired.
-    #[cfg_attr(
-        not(any(target_os = "linux", target_os = "macos")),
-        allow(dead_code)
-    )]
+    #[cfg_attr(not(any(target_os = "linux", target_os = "macos")), allow(dead_code))]
     pub fn get(&self) -> Option<&T> {
         match self.slot.as_ref() {
             Some((captured_at, value)) if captured_at.elapsed() < self.ttl => Some(value),
@@ -48,10 +45,7 @@ impl<T> TtlCache<T> {
     }
 
     /// Replaces the entry and restarts its TTL.
-    #[cfg_attr(
-        not(any(target_os = "linux", target_os = "macos")),
-        allow(dead_code)
-    )]
+    #[cfg_attr(not(any(target_os = "linux", target_os = "macos")), allow(dead_code))]
     pub fn store(&mut self, value: T) {
         self.slot = Some((Instant::now(), value));
     }
@@ -486,7 +480,10 @@ mod tests {
             });
         }
 
-        assert_eq!(calls, 3, "an expired entry must be recomputed on every read");
+        assert_eq!(
+            calls, 3,
+            "an expired entry must be recomputed on every read"
+        );
     }
 
     #[test]
@@ -495,7 +492,11 @@ mod tests {
 
         let failed = cache.get_or_try_init(|| Err::<u32, &str>("device is gone"));
         assert_eq!(failed, Err("device is gone"));
-        assert_eq!(cache.get(), None, "a failed init must not populate the slot");
+        assert_eq!(
+            cache.get(),
+            None,
+            "a failed init must not populate the slot"
+        );
 
         // The next attempt still gets a chance to succeed.
         let recovered = cache.get_or_try_init::<&str>(|| Ok(7)).copied();

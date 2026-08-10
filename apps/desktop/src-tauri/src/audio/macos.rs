@@ -227,9 +227,7 @@ pub fn apply_slider_targets_batch(
 ) -> Result<ApplySliderTargetsResponse, AudioError> {
     // Resolved once for the whole batch, then reused per slider.
     let device = resolve_output_device()?;
-    Ok(BACKEND.apply_batch(request, |normalized| {
-        set_master_volume(&device, normalized)
-    }))
+    Ok(BACKEND.apply_batch(request, |normalized| set_master_volume(&device, normalized)))
 }
 
 pub fn dispatch_control_action(
