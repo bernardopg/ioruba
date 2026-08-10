@@ -90,13 +90,19 @@ Hoje Windows/macOS só controlam `master`. Linux tem cobertura completa.
 ## Scrum 15 — Distribuição e updates
 
 - [ ] Auto-updater in-app (`tauri-plugin-updater` + `latest.json` no release) — **bloqueado** em chave de assinatura/secret no CI; preparar infra e deixar a chave como TODO `(dist/release/security)` - `difícil`
+  - Preparado o contrato fail-closed e o runbook em `docs/guides/release-distribution.md`: não se publica `latest.json` sem `TAURI_SIGNING_PRIVATE_KEY`/password, chave pública embutida e `tauri-plugin-updater` registrado. Um JSON de update sem assinatura é endpoint de RCE, não update. `includeUpdaterJson: false` permanece intencional até os 5 pré-requisitos documentados existirem e forem testados em draft nas 4 plataformas.
 - [ ] Assinatura + notarização macOS (hoje `.app` unsigned; installer faz strip de quarantine) `(dist/macos/security)` - `difícil`
+  - O workflow já sabe importar o certificado e passa Apple ID/app-password/team ID ao Tauri, mas os secrets de Developer ID/notarização não estão provisionados. O guia lista nomes, verificações `codesign`/`spctl` e gate de validação; sem eles, afirmar que o binário é assinado seria falso.
 - [ ] Gerar `.dmg` no macOS além do `.app.tar.gz` `(dist/macos)` - `médio`
-- [ ] Manifest Homebrew cask para macOS `(dist/macos/packaging)` - `médio`
-- [ ] Manifest Scoop e submissão winget para Windows `(dist/windows/packaging)` - `médio`
+  - **Não habilitado cegamente**: o script DMG do Tauri chama Finder via AppleScript, que já falhou por autorização intermitente em runner GitHub-hosted; adicioná-lo à matriz hoje faz uma release inteira falhar. O `.app.tar.gz` é o artefato reproduzível. Habilitar só após o draft assinado no `macos-15` passar `codesign` e `spctl` (procedimento no guia).
+- [x] Manifest Homebrew cask para macOS `(dist/macos/packaging)` - `médio`
+  - Job `package-manifests` gera e anexa `ioruba.rb` à release depois de `SHA256SUMS.txt`; cask escolhe Intel/Apple Silicon e usa os dois digests publicados. O arquivo é pronto para um tap; o workflow não finge publicar num tap que não existe.
+- [x] Manifest Scoop e submissão winget para Windows `(dist/windows/packaging)` - `médio`
+  - Mesmo job anexa `ioruba.json` (NSIS silencioso instalado no `$dir` do Scoop) e os três YAMLs `BernardoGomes.Ioruba*` para PR em `microsoft/winget-pkgs`, todos derivados de URL+SHA256 da release. Submissão externa continua manual até haver fork/token do projeto.
 - [x] Automatizar publicação do AUR (`ioruba-desktop` / `-bin`) no fluxo de release `(dist/linux/ci)` - `médio`
   - Já existia: job `aur-publish` no `release.yml` gera PKGBUILD/.SRCINFO, clona os dois pacotes por SSH (host key pinada, sem `ssh-keyscan`) e faz push. O item estava marcado como pendente por engano. Endurecido na v1.7.1 com retry e backoff — o release da v1.7.1 bateu num outage do AUR (`The AUR is down due to maintenance`) e o job morreu na primeira tentativa.
-- [ ] Endurecer o instalador one-line: testar arm64 Linux/macOS e cobrir ausência de assets `(dist/installer/quality)` - `fácil`
+- [x] Endurecer o instalador one-line: testar arm64 Linux/macOS e cobrir ausência de assets `(dist/installer/quality)` - `fácil`
+  - Corrigido fallback perigoso: padrões como `_arm64.deb$|.deb$` escolhiam o primeiro `.deb` (amd64) quando não havia build arm64 e o instalavam silenciosamente. `require_asset_url` agora exige arquitetura exata e, na ausência, mostra os assets da release. 13 testes por fixture cobrem tokens x86_64/arm64/aarch64, ausência, ambiguidade e release vazia; ShellCheck + teste entram no CI.
 
 ## Scrum 16 — Telemetria e dados
 

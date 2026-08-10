@@ -225,6 +225,9 @@ chmod +x Ioruba_*.AppImage
 ### Windows
 
 Download the Windows installer assets from the latest release page (`.exe` / `.msi`).
+The release also contains a verified Scoop manifest (`ioruba.json`) and the three
+winget manifest files required for upstream submission; see the [distribution
+release guide](docs/guides/release-distribution.md#generated-package-manager-manifests).
 
 ### macOS (Apple Silicon and Intel)
 
@@ -232,6 +235,12 @@ Download the macOS app bundle archive from the latest release page:
 
 - `Ioruba_..._aarch64.app.tar.gz`
 - `Ioruba_..._x64.app.tar.gz`
+
+Each release also contains a generated Homebrew cask (`ioruba.rb`). The current
+macOS bundles are unsigned and not notarized; a `.dmg` is deliberately not
+advertised until the signed macOS release path is proven reliable. See the
+[distribution release guide](docs/guides/release-distribution.md) for the
+security and publishing status.
 
 </details>
 

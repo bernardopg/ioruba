@@ -765,6 +765,57 @@ jobs:
             release-assets/*.app.tar.gz
             release-assets/*.hex
 
+  package-manifests:
+    name: Generate Package Manager Manifests
+    needs:
+      - attest-and-checksum
+    # Manifests quote SHA256SUMS.txt, which is produced in the upstream job.
+    # Keeping this separate avoids a cyclic "manifest needs checksum; checksum
+    # needs manifest" dependency: the executable assets are the trust boundary,
+    # and their attested checksums are what package managers verify.
+    if: ${{ !cancelled() && needs.attest-and-checksum.result == 'success' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout manifest generator
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 1
+          ref: ${{ env.RELEASE_TAG }}
+          persist-credentials: false
+
+      - name: Download release metadata and checksums
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          gh api "repos/${GITHUB_REPOSITORY}/releases/tags/${RELEASE_TAG}" > release.json
+          gh release download "${RELEASE_TAG}" \
+            --pattern "SHA256SUMS.txt" \
+            --dir release-assets \
+            --repo "${GITHUB_REPOSITORY}"
+
+      - name: Generate Homebrew, Scoop and winget manifests
+        run: |
+          set -euo pipefail
+          node scripts/packaging/generate.mjs \
+            --release-json release.json \
+            --sums release-assets/SHA256SUMS.txt \
+            --out release-dist/manifests
+
+      - name: Publish manifests to the release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          mapfile -t manifests < <(find release-dist/manifests -type f -print | sort)
+          test "${#manifests[@]}" -gt 0
+          gh release upload "${RELEASE_TAG}" "${manifests[@]}" --clobber \
+            --repo "${GITHUB_REPOSITORY}"
+
   aur-publish:
     name: Publish to AUR
     needs:

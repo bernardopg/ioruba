@@ -7,6 +7,10 @@ e este projeto segue [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Adicionado
+
+- Workflows de release agora geram manifests verificados de Homebrew cask, Scoop e winget a partir dos assets publicados e de `SHA256SUMS.txt`. Os manifests são anexados à release para o tap, bucket ou submissão no `winget-pkgs` externo; seus checksums nunca são copiados à mão.
+
 ### Mudanças
 
 - O gráfico de telemetria não depende mais do `recharts`. É desenhado por um componente SVG pequeno com a mesma curva monotone, grid, eixos e tooltip. O payload de boot cai de 878,45 kB para 535,15 kB raw (252,14 kB para 154,49 kB gzip, -39%): o `lazy` que deveria manter o `recharts` fora da inicialização nunca funcionou, porque o `manualChunks` colocava o próprio entry do React no mesmo chunk e o Vite fazia preload dele no `index.html`.
@@ -14,6 +18,7 @@ e este projeto segue [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Corrigido
 
+- O instalador one-line multiplataforma não faz mais fallback de um pacote arm64 indisponível para um pacote arbitrário de outra arquitetura. Agora nomeia o artefato pedido e lista os assets da release; a seleção de arquitetura é exercitada por testes com fixtures no CI.
 - As notificações retidas passam a ter teto de 100. A lista deduplicava por id mas nunca aparava, então nada além da cadência de seis horas da checagem de release a mantinha limitada numa sessão deixada aberta por dias.
 - O job de release `Publish to AUR` agora repete cada chamada de rede ao AUR com backoff em vez de derrubar o job no primeiro erro. O AUR entra em manutenção sem aviso, e foi isso que deixou `ioruba-desktop`/`ioruba-desktop-bin` sem atualizar no release da v1.7.1.
 
