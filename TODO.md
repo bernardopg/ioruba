@@ -91,7 +91,8 @@ Hoje Windows/macOS só controlam `master`. Linux tem cobertura completa.
 - [ ] Gerar `.dmg` no macOS além do `.app.tar.gz` `(dist/macos)` - `médio`
 - [ ] Manifest Homebrew cask para macOS `(dist/macos/packaging)` - `médio`
 - [ ] Manifest Scoop e submissão winget para Windows `(dist/windows/packaging)` - `médio`
-- [ ] Automatizar publicação do AUR (`ioruba-desktop` / `-bin`) no fluxo de release `(dist/linux/ci)` - `médio`
+- [x] Automatizar publicação do AUR (`ioruba-desktop` / `-bin`) no fluxo de release `(dist/linux/ci)` - `médio`
+  - Já existia: job `aur-publish` no `release.yml` gera PKGBUILD/.SRCINFO, clona os dois pacotes por SSH (host key pinada, sem `ssh-keyscan`) e faz push. O item estava marcado como pendente por engano. Endurecido na v1.7.1 com retry e backoff — o release da v1.7.1 bateu num outage do AUR (`The AUR is down due to maintenance`) e o job morreu na primeira tentativa.
 - [ ] Endurecer o instalador one-line: testar arm64 Linux/macOS e cobrir ausência de assets `(dist/installer/quality)` - `fácil`
 
 ## Scrum 16 — Telemetria e dados

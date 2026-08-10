@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+
+- The `Publish to AUR` release job now retries every AUR network call with backoff instead of failing the whole job on the first error. The AUR takes itself down for maintenance without notice, which is what left `ioruba-desktop`/`ioruba-desktop-bin` un-updated on the v1.7.1 release.
+
 ## [1.7.1](https://github.com/bernardopg/ioruba/compare/v1.7.0...v1.7.1) (2026-08-10)
 
 ### Changed

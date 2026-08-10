@@ -772,11 +772,51 @@ jobs:
       - attest-and-checksum
     if: ${{ !cancelled() && needs.arch-pkgbuild.result == 'success' && needs.attest-and-checksum.result == 'success' }}
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    # Generous because every AUR network call is retried with backoff below.
+    timeout-minutes: 30
     permissions:
       contents: read
 
     steps:
+      # The AUR takes itself down for maintenance without notice and answers SSH
+      # with "The AUR is down due to maintenance" — a published release must not
+      # be left half-delivered because of a transient outage on their side.
+      # This job has no checkout, so the helper is materialised here and sourced
+      # by both push steps instead of being duplicated in each.
+      - name: Install AUR retry helper
+        run: |
+          set -euo pipefail
+          cat > "${RUNNER_TEMP}/aur-retry.sh" <<'HELPER'
+          AUR_MAX_ATTEMPTS="${AUR_MAX_ATTEMPTS:-5}"
+
+          aur_retry() {
+            local attempt=1 delay
+            until "$@"; do
+              if [ "${attempt}" -ge "${AUR_MAX_ATTEMPTS}" ]; then
+                echo "::error::AUR unreachable after ${attempt} attempts: $*"
+                return 1
+              fi
+              delay=$((attempt * 30))
+              echo "AUR attempt ${attempt}/${AUR_MAX_ATTEMPTS} failed; retrying in ${delay}s: $*"
+              sleep "${delay}"
+              attempt=$((attempt + 1))
+            done
+          }
+
+          aur_clone() {
+            local url="$1" dest="$2"
+            # A failed clone can leave a partial directory behind, which would
+            # make every later attempt die on "destination path already exists".
+            # bash locals are dynamically scoped, so this sees url/dest.
+            # shellcheck disable=SC2329  # invoked indirectly through aur_retry
+            _aur_clone_attempt() {
+              rm -rf "${dest}"
+              git clone "${url}" "${dest}"
+            }
+            aur_retry _aur_clone_attempt
+          }
+          HELPER
+
       - name: Install AUR SSH key
         env:
           AUR_SSH_PRIVATE_KEY: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
@@ -829,8 +869,10 @@ jobs:
         run: |
           set -euo pipefail
           VERSION="${RELEASE_TAG#v}"
+          # shellcheck source=/dev/null
+          . "${RUNNER_TEMP}/aur-retry.sh"
 
-          git clone ssh://aur@aur.archlinux.org/ioruba-desktop.git aur-clone/ioruba-desktop
+          aur_clone ssh://aur@aur.archlinux.org/ioruba-desktop.git aur-clone/ioruba-desktop
           cp aur-dist/ioruba-desktop/PKGBUILD aur-clone/ioruba-desktop/PKGBUILD
           cp aur-dist/ioruba-desktop/.SRCINFO  aur-clone/ioruba-desktop/.SRCINFO
 
@@ -840,15 +882,17 @@ jobs:
           else
             git add PKGBUILD .SRCINFO
             git commit -m "chore: update to v${VERSION}"
-            git push origin master
+            aur_retry git push origin master
           fi
 
       - name: Push ioruba-desktop-bin to AUR
         run: |
           set -euo pipefail
           VERSION="${RELEASE_TAG#v}"
+          # shellcheck source=/dev/null
+          . "${RUNNER_TEMP}/aur-retry.sh"
 
-          git clone ssh://aur@aur.archlinux.org/ioruba-desktop-bin.git aur-clone/ioruba-desktop-bin
+          aur_clone ssh://aur@aur.archlinux.org/ioruba-desktop-bin.git aur-clone/ioruba-desktop-bin
           cp aur-dist/ioruba-desktop-bin/PKGBUILD aur-clone/ioruba-desktop-bin/PKGBUILD
           cp aur-dist/ioruba-desktop-bin/.SRCINFO  aur-clone/ioruba-desktop-bin/.SRCINFO
 
@@ -858,5 +902,5 @@ jobs:
           else
             git add PKGBUILD .SRCINFO
             git commit -m "chore: update to v${VERSION}"
-            git push origin master
+            aur_retry git push origin master
           fi
