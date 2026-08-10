@@ -1,19 +1,19 @@
 # TODO
 
-Roadmap de desenvolvimento do Ioruba. Baseline reescrita em `2026-08-03` a partir do estado real do código no release **v1.6.3**.
+Roadmap de desenvolvimento do Ioruba. Baseline reescrita em `2026-08-03` e ressincronizada em `2026-08-10` a partir do estado real do código no release **v1.7.0**.
 
-**Todos os Scrums até o 11 estão cumpridos**, e os Scrums 14, 16 e 18 estão fechados. O histórico detalhado vive no git e no `CHANGELOG.md`; este documento olha para frente.
+**Todos os Scrums até o 11 estão cumpridos**, e os Scrums 14 e 18 estão fechados. O Scrum 16 entregou o export de `sessionStats` mas segue aberto (persistência e comparação entre sessões). O histórico detalhado vive no git e no `CHANGELOG.md`; este documento olha para frente.
 
 Formato:
 
 - `[x]` concluído · `[ ]` pendente
 - descrição `(tag/tag/tag)` - `fácil|médio|difícil`
 
-## Estado atual (baseline v1.6.3)
+## Estado atual (baseline v1.7.0)
 
 - **Firmware** (`firmware/arduino/ioruba-controller`): `NUM_KNOBS` parametrizável por `IORUBA_NUM_KNOBS`, com tabela de pinos analógicos por placa (Nano, Uno, Mega2560, Leonardo/Micro, ESP32, RP2040, ESP8266) e `static_assert` contra o limite de canais da placa. `ADC_MAX` derivado de `IORUBA_ADC_BITS` (10-bit AVR, 12-bit ESP32/RP2040). Handshake `HELLO board=...; fw=...; protocol=...; knobs=...; mcu=...; adcBits=...`, frame `v0|v1|...`, calibração + EEPROM (magic/schema). Botões e encoders opcionais (`IORUBA_NUM_BUTTONS`/`IORUBA_NUM_ENCODERS`) emitem `EV` após opt-in `EVENTS ON`. `PROTOCOL_VERSION=2`.
-- **Shared** (`packages/shared`): protocolo, perfil e runtime genéricos em contagem de knobs **e em resolução de ADC** — o lock `SLIDER_MAX=1023` saiu, a normalização usa `firmwareInfo.adcBits` e o parser de frame aceita até 16-bit. Perfil tem `controls` com bindings `mute`/`next`/`prev`.
-- **Desktop** (`apps/desktop`): Tauri 2 + React 19, store Zustand, serial via `tauri-plugin-serialplugin` v3 (stream e auto-reconnect nativos via `watch()`). Backends de áudio: `linux` (pactl: master/app/source/sink), `windows` (WASAPI: master), `macos` (CoreAudio: master), `unsupported`. Shell com sidebar compacto, status pill de runtime, dialog central de configurações, changelog embutido e notificação opt-in de release nova. Telemetria de sessão exportável (JSON/CSV), watch log, wizard de calibração, painel de hardware, i18n en/pt-BR/es.
+- **Shared** (`packages/shared`): protocolo, perfil e runtime genéricos em contagem de knobs **e em resolução de ADC** — o lock `SLIDER_MAX=1023` saiu, a normalização usa `firmwareInfo.adcBits` e o parser de frame aceita até 16-bit. Perfil tem `controls` com bindings `mute`/`next`/`prev`, e `mute` aceita um `target` (`AudioTarget`) opcional — `next`/`prev` rejeitam `target` na validação.
+- **Desktop** (`apps/desktop`): Tauri 2 + React 19, store Zustand, serial via `tauri-plugin-serialplugin` v3 (stream e auto-reconnect nativos via `watch()`). Backends de áudio: `linux` (pactl: master/app/source/sink), `windows` (WASAPI: master), `macos` (CoreAudio: master), `unsupported`. Shell com sidebar compacto, status pill de runtime, dialog central de configurações, changelog embutido e notificação opt-in de release nova. Telemetria de sessão exportável (JSON/CSV), watch log, wizard de calibração, painel de hardware, editor visual de botões e encoders (com escolha do alvo do mute a partir do inventário de áudio), i18n en/pt-BR/es.
 - **Distribuição**: release multiplataforma (deb/rpm/AppImage/nsis/msi/app) + PKGBUILD AUR + provenance; instalador one-line (`scripts/install.sh`/`install.ps1`). Sem auto-update in-app.
 
 Prioridade declarada: **integração hardware↔SO, mais placas, eficiência, organização, ampliação, distribuição e UX completa.**
@@ -51,7 +51,8 @@ Hoje Windows/macOS só controlam `master`. Linux tem cobertura completa.
 - [ ] Enumerar e controlar `sink`/`source` no Windows (devices de saída/entrada) `(backend/audio/windows)` - `difícil`
 - [ ] Avaliar per-app volume no macOS (sem API pública trivial; investigar `AudioObject` por processo ou rejeitar formalmente) `(backend/audio/macos/research)` - `difícil`
 - [x] Ação de mute/toggle **direcionada** — `dispatch_control_action(action, target)` aceita `AudioTarget` opcional e resolve sink/source/application no Linux (`set-sink-mute`/`set-source-mute`/`set-sink-input-mute`); Windows aceita `master` ou sem alvo, rejeita o resto `(backend/shared/frontend)` - `médio`
-  - `ControlConfig` ganhou `target?`. Os matchers de sink/source foram extraídos de `apply_targets` para `resolve_sink_matches`/`resolve_source_matches`, compartilhados entre knob e mute. `target` só é aceito com `action: "mute"` (`next`/`prev` falam com o player MPRIS). O editor visual (Configurações › Editor de perfil › Botões e encoders) cria os bindings sem passar pelo JSON. Pendente: toggle atribuído a um knob (não só botão/encoder).
+  - `ControlConfig` ganhou `target?`. Os matchers de sink/source foram extraídos de `apply_targets` para `resolve_sink_matches`/`resolve_source_matches`, compartilhados entre knob e mute. `target` só é aceito com `action: "mute"` (`next`/`prev` falam com o player MPRIS). O editor visual (Configurações › Editor de perfil › Botões e encoders) cria os bindings sem passar pelo JSON.
+- [ ] Toggle de mute atribuível a um **knob** (hoje só botão/encoder disparam `ControlConfig`) — pendência herdada do item acima `(shared/frontend/ux)` - `médio`
 - [ ] Mapear hotkeys globais (`tauri-plugin-global-shortcut` já presente) a ações de mixagem `(frontend/backend/ux)` - `médio`
 - [ ] Avaliar backend PipeWire nativo no Linux (sem fork/exec de `pactl`) `(backend/audio/linux/research)` - `difícil`
 - [ ] Estudo: transporte MIDI como alternativa à serial para controladores genéricos `(backend/protocol/research)` - `difícil`
@@ -119,7 +120,7 @@ Hoje Windows/macOS só controlam `master`. Linux tem cobertura completa.
 - [x] Indicador visual de latência e saúde da conexão sempre visível (alinhado ao `.impeccable.md`) `(frontend/ux/observability)` - `fácil`
   - `ConnectionHealthIndicator` no topo do sidebar (sempre visível): dot colorido por estado + label + frescura do sinal (tempo desde o último frame, tick 1s) como proxy de latência. Store ganhou `lastFrameAt`. +4 testes.
 
-## Entregue fora de Scrum (v1.5.2 → v1.6.3)
+## Entregue fora de Scrum (v1.5.2 → v1.7.0)
 
 Trabalho que nasceu de bug report ou de decisão de produto no meio do caminho, sem ter passado por um item planejado. Registrado aqui para a baseline não mentir.
 
@@ -131,6 +132,7 @@ Trabalho que nasceu de bug report ou de decisão de produto no meio do caminho, 
 - [x] Dialog central de configurações (idioma, tema, notificações, launch-on-login, versão em execução, changelog) sobre um wrapper reusável de `<dialog>` nativo com foco preso, Escape/backdrop e restauração de foco `(frontend/ux/a11y)` - `médio`
 - [x] Notificação opt-in de release nova: checagem a cada seis horas, comparação semver, estado de não-lido, deduplicação e preferências persistidas `(frontend/product)` - `médio`
 - [x] Links externos por `tauri-plugin-opener` com escopo de capability restrito a `https://github.com/bernardopg/ioruba*`; CSP libera só `https://api.github.com` `(security/desktop)` - `fácil`
+- [x] Dialog de changelog no app deixou de listar a seção `Unreleased` — ela descreve trabalho que não está no binário em execução `(frontend/product)` - `fácil`
 
 ## Não-objetivos
 

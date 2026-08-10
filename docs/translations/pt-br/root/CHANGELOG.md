@@ -5,6 +5,17 @@ Todas as mudancas relevantes deste projeto sao documentadas neste arquivo.
 O formato segue [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 e este projeto segue [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Mudanças
+
+- `lucide-react` atualizado para 1.31.0, `vite` para 8.2.1 e `@types/node` para 26.2.0.
+- Grupo de GitHub Actions atualizado: `Swatinem/rust-cache` para 2.9.2, `github/codeql-action/{init,analyze}` para 4.37.6 e `actions/attest-build-provenance` para 4.2.2.
+
+### Corrigido
+
+- O link de comparação `[Unreleased]` no fim deste arquivo apontava para `v1.5.2`, três releases atrás da baseline real.
+
 ## [1.7.0](https://github.com/bernardopg/ioruba/compare/v1.6.3...v1.7.0) (2026-08-03)
 
 ### Adicionado
