@@ -1,15 +1,11 @@
 import { Activity } from "lucide-react";
 import { memo, useMemo } from "react";
-import {
-  CartesianGrid,
-  Line,
-  LineChart,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis
-} from "recharts";
 
+import {
+  TimeSeriesChart,
+  type ChartRow,
+  type ChartSeries
+} from "@/components/charts/time-series-chart";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { translateText } from "@/lib/i18n";
 import type { RuntimeSnapshot, UiLanguage } from "@ioruba/shared";
@@ -29,7 +25,10 @@ function accentColor(accent: string): string {
   }
 }
 
-function buildSeries(snapshot: RuntimeSnapshot) {
+const Y_TICKS = [0, 25, 50, 75, 100] as const;
+const Y_DOMAIN = [0, 100] as const;
+
+function buildSeries(snapshot: RuntimeSnapshot): ChartRow[] {
   const groupedByTick = new Map<number, Record<string, number>>();
 
   for (const point of snapshot.telemetry) {
@@ -50,7 +49,7 @@ function buildSeries(snapshot: RuntimeSnapshot) {
       }
 
       return {
-        tick: values.tick,
+        x: values.tick,
         ...lastSeen
       };
     });
@@ -67,8 +66,20 @@ function TelemetryChartImpl({ snapshot, language = "pt-BR" }: TelemetryChartProp
   // quando o array de pontos muda de referência (pushTelemetry já preserva a
   // referência quando nada é anexado), não a cada render do dashboard.
   const data = useMemo(() => buildSeries(snapshot), [snapshot.telemetry]);
-  const latestTick = data.at(-1)?.tick ?? 0;
+  const latestTick = data.at(-1)?.x ?? 0;
   const windowSize = snapshot.telemetry.length;
+
+  const series = useMemo<ChartSeries[]>(
+    () =>
+      snapshot.knobs.map((knob, index) => ({
+        key: `knob-${knob.id}`,
+        name: knob.name,
+        color: accentColor(knob.accent),
+        // The first knob reads as the primary channel, as before.
+        strokeWidth: index === 0 ? 3.2 : 2.6
+      })),
+    [snapshot.knobs]
+  );
 
   return (
     <Card className="overflow-hidden">
@@ -122,7 +133,7 @@ function TelemetryChartImpl({ snapshot, language = "pt-BR" }: TelemetryChartProp
               </p>
             </div>
           ) : (
-            // O SVG do recharts não carrega semântica útil para leitores de
+            // O SVG do gráfico não carrega semântica útil para leitores de
             // tela; expõe o gráfico como uma imagem nomeada e deixa os números
             // acessíveis na tabela de estatísticas da sessão.
             <div
@@ -130,65 +141,15 @@ function TelemetryChartImpl({ snapshot, language = "pt-BR" }: TelemetryChartProp
               className="h-full w-full"
               role="img"
             >
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={data}>
-                  <CartesianGrid
-                    stroke="color-mix(in oklab, var(--color-border) 75%, transparent)"
-                    strokeDasharray="4 6"
-                    vertical={false}
-                  />
-                  <XAxis
-                    axisLine={false}
-                    dataKey="tick"
-                    minTickGap={28}
-                    stroke="var(--color-muted)"
-                    tickLine={false}
-                    tickMargin={10}
-                  />
-                  <YAxis
-                    axisLine={false}
-                    width={34}
-                    stroke="var(--color-muted)"
-                    tickLine={false}
-                    tickMargin={10}
-                    domain={[0, 100]}
-                  />
-                  <Tooltip
-                    contentStyle={{
-                      border: "1px solid var(--color-border)",
-                      borderRadius: "18px",
-                      background: "color-mix(in oklab, var(--color-panel) 94%, var(--color-shell) 6%)",
-                      boxShadow: "var(--shadow-float)"
-                    }}
-                    cursor={{
-                      stroke: "color-mix(in oklab, var(--accent-teal) 45%, var(--color-border))",
-                      strokeDasharray: "3 5"
-                    }}
-                    labelStyle={{
-                      color: "var(--color-ink)",
-                      fontWeight: 700
-                    }}
-                    wrapperStyle={{
-                      outline: "none"
-                    }}
-                  />
-                  {snapshot.knobs.map((knob, index) => (
-                    <Line
-                      activeDot={{ r: 4 }}
-                      connectNulls
-                      dot={false}
-                      isAnimationActive={false}
-                      key={knob.id}
-                      name={knob.name}
-                      stroke={accentColor(knob.accent)}
-                      strokeLinecap="round"
-                      strokeWidth={index === 0 ? 3.2 : 2.6}
-                      type="monotoneX"
-                      dataKey={`knob-${knob.id}`}
-                    />
-                  ))}
-                </LineChart>
-              </ResponsiveContainer>
+              <TimeSeriesChart
+                data={data}
+                formatValue={(value) => `${Math.round(value)}%`}
+                formatX={(value) => String(value)}
+                series={series}
+                xAxisLabel={lt("Tick")}
+                yDomain={Y_DOMAIN}
+                yTicks={Y_TICKS}
+              />
             </div>
           )}
         </div>

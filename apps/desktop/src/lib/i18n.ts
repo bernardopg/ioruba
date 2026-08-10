@@ -467,7 +467,6 @@ const TEXT_MAP_EN: Record<string, string> = {
     "Add your user to the dialout group: sudo usermod -aG dialout $USER",
   "não encontrada. O dispositivo pode ter sido desconectado.":
     "not found. The device may have been disconnected.",
-  "Carregando telemetria...": "Loading telemetry...",
   "Começar por um preset": "Start from a preset",
   "Cria um novo perfil com sliders prontos para o caso de uso. Você ainda pode ajustar tudo depois.":
     "Creates a new profile with sliders ready for the use case. You can still tweak everything afterward.",
@@ -1035,7 +1034,6 @@ const TEXT_MAP_ES: Record<string, string> = {
     "Agrega tu usuario al grupo dialout: sudo usermod -aG dialout $USER",
   "não encontrada. O dispositivo pode ter sido desconectado.":
     "no encontrado. El dispositivo puede haber sido desconectado.",
-  "Carregando telemetria...": "Cargando telemetría...",
   "Começar por um preset": "Comenzar con un preset",
   "Cria um novo perfil com sliders prontos para o caso de uso. Você ainda pode ajustar tudo depois.":
     "Crea un nuevo perfil con sliders listos para el caso de uso. Aún puedes ajustar todo después.",
