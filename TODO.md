@@ -59,15 +59,18 @@ Hoje Windows/macOS só controlam `master`. Linux tem cobertura completa.
 
 ## Scrum 13 — Eficiência e otimização
 
-- [ ] Estender o cache de inventário (TTL ~250ms, já existe no Linux) aos backends Windows/macOS — hoje re-inicializam COM/CoreAudio a cada chamada `(backend/audio/performance)` - `médio`
-- [ ] Reusar handle de device (COM apartment / `IMMDevice` / `AudioObjectID`) entre chamadas respeitando thread-affinity `(backend/audio/performance)` - `difícil`
+- [x] Estender o cache de inventário (TTL ~250ms, já existe no Linux) aos backends Windows/macOS — hoje re-inicializam COM/CoreAudio a cada chamada `(backend/audio/performance)` - `médio`
+  - `TtlCache<T>` + `INVENTORY_TTL` em `audio/common.rs`, com 7 testes host-independentes. Os três backends passam a concordar sobre quão velho aceitam ficar; o TTL também é o mecanismo que faz troca de device padrão ser notada sem assinar `IMMNotificationClient`. Linux mantém `get`/`store` para não segurar o mutex durante o fork/exec do `pactl`.
+- [x] Reusar handle de device (COM apartment / `IMMDevice` / `AudioObjectID`) entre chamadas respeitando thread-affinity `(backend/audio/performance)` - `difícil`
+  - Windows: thread dedicada (`ioruba-wasapi`) entra no apartment uma vez e é dona do `IAudioEndpointVolume`; chamadas viram jobs enviados por canal. Afinidade deixa de ser algo a raciocinar — antes cada escrita de volume fazia `CoInitializeEx` + `CoCreateInstance` + `GetDefaultAudioEndpoint` + `Activate` inteiros. Um lote de sliders é um único hop. macOS: o `AudioObjectID` não tem afinidade, mas o probe `HasProperty`/`IsPropertySettable` (até 8 canais × 2 chamadas) rodava por escrita; virou uma estratégia `VolumeElements` resolvida uma vez e cacheada com o id. Escrita que falha invalida na hora.
 - [x] Coalescing/debounce de writes de volume sob movimento rápido de knob, por target `(backend/runtime/performance)` - `médio`
   - `scheduleAudioFlush` virou throttle leading+trailing (`AUDIO_APPLY_MIN_INTERVAL_MS` 40ms; com `smoothTransitions` usa o `transitionDurationMs` do perfil): primeiro lote sai imediato, rajadas coalescem num flush trailing com o valor mais recente por slider. Corrige também o starvation do debounce puro anterior, que só aplicava áudio quando o knob parava. +2 testes com fake timers.
-- [ ] Reduzir o bundle do chart trocando `recharts` por uma lib mais leve — o chunk `charts` está em 368.91 kB (gzip 106.66 kB) `(frontend/bundle/performance)` - `médio`
-  - Parcial: o code-split já existe — `TelemetryChart` entra por `lazy` + `Suspense` (`App.tsx`) e o `manualChunks` isola `recharts` no chunk `charts`, fora do bundle inicial. Resta só o peso da lib quando a aba abre.
+- [x] Reduzir o bundle do chart trocando `recharts` por uma lib mais leve — o chunk `charts` está em 368.91 kB (gzip 106.66 kB) `(frontend/bundle/performance)` - `médio`
+  - Trocado por um componente SVG próprio (~8 kB) com a mesma spline monotone (Fritsch–Carlson, o que o recharts pegava do `curveMonotoneX` do d3-shape), grid, eixos, cursor e tooltip. **O `lazy` nunca funcionou**: o `manualChunks` mandava `react/index.js` e `react-dom/index.js` para o chunk `charts`, o que dava ao entry uma dependência estática dele e fazia o Vite emitir `modulepreload` no `index.html` — os 360 kB desciam em todo boot. Payload de boot medido: **878.45 kB → 535.15 kB raw, 252.14 kB → 154.49 kB gzip (-39%)**. O `lazy`/`Suspense` saiu junto: não se paga para 8 kB.
 - [x] Instrumentar e logar latência knob→áudio no watch log (já há timings de boot/connect/refresh) `(observability/performance)` - `fácil`
   - `use-serial-runtime` cronometra `applySliderTargetsBatch` com `performance.now()`; emite `warning` no watch log quando passa de `AUDIO_APPLY_SLOW_MS` (80ms), com tempo + nº de alvos (sem flood).
-- [ ] Perfilar consumo em sessão longa (telemetria + watch log) e validar ausência de leaks `(performance/observability)` - `médio`
+- [x] Perfilar consumo em sessão longa (telemetria + watch log) e validar ausência de leaks `(performance/observability)` - `médio`
+  - `ioruba-store.soak.test.ts`: 20k frames seriais e asserção de que toda coleção para de crescer, mais uma asserção genérica sobre o tamanho serializado da store inteira (para que um campo futuro sem teto falhe aqui sem ninguém lembrar de estender o teste). Achou um leak real: `pushNotification` deduplicava por id mas nunca aparava — era a cadência de release (6h) segurando a lista, não o código. Capado em 100.
 
 ## Scrum 14 — Organização e qualidade de código
 

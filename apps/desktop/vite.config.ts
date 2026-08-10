@@ -24,10 +24,6 @@ export default defineConfig({
       output: {
         manualChunks(id) {
           if (id.includes("node_modules")) {
-            if (id.includes("recharts")) {
-              return "charts";
-            }
-
             if (
               id.includes("@tauri-apps/api") ||
               id.includes("tauri-plugin-serialplugin-api")

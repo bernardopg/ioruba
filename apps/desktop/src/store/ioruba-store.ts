@@ -70,6 +70,17 @@ export interface AppNotification {
 const WATCH_LOG_LIMIT = 300;
 
 /**
+ * Teto de notificacoes retidas.
+ *
+ * A checagem de release roda a cada seis horas e deduplica por id, entao na
+ * pratica a lista tem um punhado de itens. Mas nada a limitava: era a cadencia
+ * do upstream, e nao o codigo, que a mantinha pequena. Numa sessao de dias
+ * (o app vive na bandeja) qualquer id novo por engano acumularia para sempre.
+ * 100 e muito mais do que a UI mostra e mantem o custo fixo.
+ */
+const NOTIFICATION_LIMIT = 100;
+
+/**
  * Janela mínima (ms) entre dois logs de frame no watch log. O firmware emite
  * frames continuamente (heartbeat + on-change; baud configurável no perfil,
  * default 115200) e, ao abrir a porta,
@@ -437,7 +448,12 @@ export const useIorubaStore = create<IorubaState>((rawSet, get) => {
       if (state.notifications.some((candidate) => candidate.id === notification.id)) {
         return;
       }
-      set({ notifications: [notification, ...state.notifications] });
+      set({
+        notifications: [notification, ...state.notifications].slice(
+          0,
+          NOTIFICATION_LIMIT,
+        ),
+      });
     },
     markNotificationsRead: () => {
       const state = get();

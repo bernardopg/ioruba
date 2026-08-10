@@ -1,4 +1,4 @@
-import { lazy, Suspense, useMemo, useState, type KeyboardEvent } from "react";
+import { useMemo, useState, type KeyboardEvent } from "react";
 
 import {
   Activity,
@@ -42,13 +42,7 @@ import { StatusPill } from "@/components/dashboard/status-pill";
 import { UpdateToast } from "@/components/dashboard/update-toast";
 import { WatchLogPanel } from "@/components/dashboard/watch-log-panel";
 import { HeaderActions } from "@/components/shell/header-actions";
-// recharts pesa ~350 KB (gzip ~104 KB) e só é usado na aba de telemetria.
-// Carregamento lazy mantém esse peso fora do bundle inicial até a aba abrir.
-const TelemetryChart = lazy(() =>
-  import("@/components/dashboard/telemetry-chart").then((module) => ({
-    default: module.TelemetryChart
-  }))
-);
+import { TelemetryChart } from "@/components/dashboard/telemetry-chart";
 import { useBackgroundTray } from "@/hooks/use-background-tray";
 import { usePersistence } from "@/hooks/use-persistence";
 import { useReleaseCheck } from "@/hooks/use-release-check";
@@ -765,19 +759,7 @@ export default function App() {
           {activeSection === "telemetry" ? (
             <>
               <section className="grid gap-5 xl:grid-cols-[minmax(0,1.55fr)_minmax(320px,0.85fr)]">
-                <Suspense
-                  fallback={
-                    <div
-                      className="flex h-80 w-full items-center justify-center rounded-(--radius-card) border border-(--color-border) bg-(--color-panel) text-sm text-(--color-muted) sm:h-95"
-                      role="status"
-                      aria-live="polite"
-                    >
-                      {lt("Carregando telemetria...")}
-                    </div>
-                  }
-                >
-                  <TelemetryChart language={language} snapshot={snapshot} />
-                </Suspense>
+                <TelemetryChart language={language} snapshot={snapshot} />
                 <OverviewSignalPanel
                   activeProfileName={activeProfile.name}
                   language={language}
