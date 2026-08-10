@@ -248,7 +248,16 @@ jobs:
 
       # shellcheck ships on ubuntu-latest runners; lint the POSIX/bash installers.
       - name: ShellCheck installer and AppImage scripts
-        run: shellcheck scripts/install.sh scripts/run-appimage-compat.sh scripts/validate-appimage.sh
+        run: shellcheck scripts/install.sh scripts/install.test.sh scripts/run-appimage-compat.sh scripts/validate-appimage.sh
+
+      # The installer picks release assets by architecture. Getting that wrong
+      # means an x86_64 binary on an arm64 machine, so the selection logic is
+      # exercised against fixture release payloads on every run.
+      - name: Test installer asset selection
+        run: bash scripts/install.test.sh
+
+      - name: Test package manager manifests
+        run: node --test scripts/packaging/manifests.test.mjs
 
       # pwsh ships on ubuntu-latest runners. Report warnings for visibility but
       # only fail the gate on PSScriptAnalyzer errors.

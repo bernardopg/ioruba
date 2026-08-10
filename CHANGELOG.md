@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Release workflows now generate verified Homebrew cask, Scoop, and winget manifests from the published release assets and their `SHA256SUMS.txt`. The manifests are attached to the release for the respective external tap, bucket, or `winget-pkgs` submission; their checksums are never copied by hand.
+
 ### Changed
 
 - The telemetry chart no longer depends on `recharts`. It is drawn by a small SVG component with the same monotone-cubic curve, grid, axes and tooltip. The boot payload drops from 878.45 kB to 535.15 kB raw (252.14 kB to 154.49 kB gzip, -39%): the lazy boundary that was supposed to keep `recharts` out of startup never worked, because `manualChunks` placed React's own entry in the same chunk and Vite preloaded it from `index.html`.
@@ -14,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- The cross-platform one-line installer no longer falls back from an unavailable arm64 package to an arbitrary package of another architecture. It now names the requested artifact and lists the release assets, and its architecture selection is exercised by fixture tests in CI.
 - Retained notifications are capped at 100. The list deduplicated by id but never trimmed, so nothing except the six-hour release-check cadence kept it bounded in a session left running for days.
 - The `Publish to AUR` release job now retries every AUR network call with backoff instead of failing the whole job on the first error. The AUR takes itself down for maintenance without notice, which is what left `ioruba-desktop`/`ioruba-desktop-bin` un-updated on the v1.7.1 release.
 
