@@ -7,8 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- The telemetry chart no longer depends on `recharts`. It is drawn by a small SVG component with the same monotone-cubic curve, grid, axes and tooltip. The boot payload drops from 878.45 kB to 535.15 kB raw (252.14 kB to 154.49 kB gzip, -39%): the lazy boundary that was supposed to keep `recharts` out of startup never worked, because `manualChunks` placed React's own entry in the same chunk and Vite preloaded it from `index.html`.
+- The Windows audio backend now runs on a dedicated thread that owns the COM apartment and caches the default-output handle, instead of rebuilding the whole COM stack on every volume write. The macOS backend caches the resolved device together with the elements that accept a volume write, instead of re-probing them per write. Both use the 250 ms window Linux already had.
+
 ### Fixed
 
+- Retained notifications are capped at 100. The list deduplicated by id but never trimmed, so nothing except the six-hour release-check cadence kept it bounded in a session left running for days.
 - The `Publish to AUR` release job now retries every AUR network call with backoff instead of failing the whole job on the first error. The AUR takes itself down for maintenance without notice, which is what left `ioruba-desktop`/`ioruba-desktop-bin` un-updated on the v1.7.1 release.
 
 ## [1.7.1](https://github.com/bernardopg/ioruba/compare/v1.7.0...v1.7.1) (2026-08-10)

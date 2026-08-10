@@ -7,8 +7,14 @@ e este projeto segue [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Mudanças
+
+- O gráfico de telemetria não depende mais do `recharts`. É desenhado por um componente SVG pequeno com a mesma curva monotone, grid, eixos e tooltip. O payload de boot cai de 878,45 kB para 535,15 kB raw (252,14 kB para 154,49 kB gzip, -39%): o `lazy` que deveria manter o `recharts` fora da inicialização nunca funcionou, porque o `manualChunks` colocava o próprio entry do React no mesmo chunk e o Vite fazia preload dele no `index.html`.
+- O backend de áudio do Windows agora roda numa thread dedicada, dona do apartment COM e do handle da saída padrão, em vez de reconstruir toda a pilha COM a cada escrita de volume. O backend do macOS cacheia o device resolvido junto com os elementos que aceitam escrita de volume, em vez de re-sondar a cada escrita. Ambos usam a janela de 250 ms que o Linux já tinha.
+
 ### Corrigido
 
+- As notificações retidas passam a ter teto de 100. A lista deduplicava por id mas nunca aparava, então nada além da cadência de seis horas da checagem de release a mantinha limitada numa sessão deixada aberta por dias.
 - O job de release `Publish to AUR` agora repete cada chamada de rede ao AUR com backoff em vez de derrubar o job no primeiro erro. O AUR entra em manutenção sem aviso, e foi isso que deixou `ioruba-desktop`/`ioruba-desktop-bin` sem atualizar no release da v1.7.1.
 
 ## [1.7.1](https://github.com/bernardopg/ioruba/compare/v1.7.0...v1.7.1) (2026-08-10)
