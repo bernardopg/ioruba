@@ -1,9 +1,100 @@
 use std::collections::HashMap;
+use std::time::{Duration, Instant};
 
 use super::{
     ApplySliderTargetsRequest, ApplySliderTargetsResponse, AudioError, AudioTarget,
     OutcomeSeverity, RuntimeTargetOutcome, SliderOutcome, TargetOutcomeStatus,
 };
+
+/// Window during which a captured audio snapshot or resolved device handle is
+/// reused across calls.
+///
+/// A knob sweep fires `apply_slider_targets_batch` once per serial frame. Without
+/// a cache every one of those re-derives the same inventory: 5 `pactl` fork/execs
+/// on Linux, a full COM apartment + `IMMDeviceEnumerator` + endpoint activation on
+/// Windows, a `HasProperty`/`IsPropertySettable` probe sweep on macOS.
+///
+/// 250 ms is short enough that plugging a headset or switching the default output
+/// is picked up as good as immediately, and long enough to collapse a burst. It is
+/// also the staleness bound: for at most one window after the user switches
+/// devices, writes may still land on the previous one.
+pub const INVENTORY_TTL: Duration = Duration::from_millis(250);
+
+/// Single-slot cache whose entry expires after `ttl`.
+///
+/// Deliberately not a map: every backend caches exactly one thing (the inventory
+/// snapshot, or the resolved default-output handle), and a single slot keeps
+/// invalidation obvious — there is no way to evict half of it.
+pub struct TtlCache<T> {
+    ttl: Duration,
+    slot: Option<(Instant, T)>,
+}
+
+impl<T> TtlCache<T> {
+    pub const fn new(ttl: Duration) -> Self {
+        Self { ttl, slot: None }
+    }
+
+    /// The cached value, or `None` when empty or expired.
+    #[cfg_attr(
+        not(any(target_os = "linux", target_os = "macos")),
+        allow(dead_code)
+    )]
+    pub fn get(&self) -> Option<&T> {
+        match self.slot.as_ref() {
+            Some((captured_at, value)) if captured_at.elapsed() < self.ttl => Some(value),
+            _ => None,
+        }
+    }
+
+    /// Replaces the entry and restarts its TTL.
+    #[cfg_attr(
+        not(any(target_os = "linux", target_os = "macos")),
+        allow(dead_code)
+    )]
+    pub fn store(&mut self, value: T) {
+        self.slot = Some((Instant::now(), value));
+    }
+
+    /// Drops the entry so the next read recomputes.
+    ///
+    /// Callers use this after a write that invalidates what was cached (a volume
+    /// change makes the snapshot's reported levels wrong) and after an error that
+    /// suggests the cached handle is dead (device unplugged).
+    #[cfg_attr(
+        not(any(target_os = "linux", target_os = "macos", target_os = "windows")),
+        allow(dead_code)
+    )]
+    pub fn invalidate(&mut self) {
+        self.slot = None;
+    }
+
+    /// Returns the cached value, running `init` first when empty or expired.
+    ///
+    /// Only for caches owned exclusively by one thread — it borrows the cache
+    /// across `init`. Backends that keep the cache behind a `Mutex` use
+    /// `get`/`store` instead so the lock is never held across I/O.
+    ///
+    /// A failing `init` leaves the (already expired) entry in place and is
+    /// reported to the caller; it never installs a half-built value.
+    #[cfg_attr(not(target_os = "windows"), allow(dead_code))]
+    pub fn get_or_try_init<E>(&mut self, init: impl FnOnce() -> Result<T, E>) -> Result<&T, E> {
+        let fresh = matches!(
+            self.slot.as_ref(),
+            Some((captured_at, _)) if captured_at.elapsed() < self.ttl
+        );
+
+        if !fresh {
+            self.slot = Some((Instant::now(), init()?));
+        }
+
+        Ok(&self
+            .slot
+            .as_ref()
+            .expect("slot is populated either by the freshness check or by init")
+            .1)
+    }
+}
 
 /// Renders an `AudioTarget` as the stable identifier used in outcome payloads
 /// (`master`, `application:<name>`, `source:<name>`, `sink:<name>`).
@@ -335,5 +426,101 @@ mod tests {
         assert!(matches!(outcome.severity, OutcomeSeverity::Info));
         assert_eq!(outcome.summary, "No Windows audio targets configured");
         assert!(outcome.targets.is_empty());
+    }
+
+    #[test]
+    fn ttl_cache_starts_empty_and_serves_a_stored_value() {
+        let mut cache = TtlCache::<u32>::new(Duration::from_secs(60));
+        assert_eq!(cache.get(), None);
+
+        cache.store(7);
+        assert_eq!(cache.get(), Some(&7));
+    }
+
+    #[test]
+    fn ttl_cache_expires_entries_past_the_window() {
+        // Zero TTL: every entry is born expired, which pins the boundary without
+        // sleeping. `elapsed() < 0ns` is false even on the very next instruction.
+        let mut cache = TtlCache::<u32>::new(Duration::ZERO);
+        cache.store(7);
+        assert_eq!(cache.get(), None);
+    }
+
+    #[test]
+    fn ttl_cache_invalidate_drops_a_fresh_entry() {
+        let mut cache = TtlCache::<u32>::new(Duration::from_secs(60));
+        cache.store(7);
+
+        cache.invalidate();
+
+        assert_eq!(cache.get(), None);
+    }
+
+    #[test]
+    fn ttl_cache_get_or_try_init_runs_once_while_fresh() {
+        let mut cache = TtlCache::<u32>::new(Duration::from_secs(60));
+        let mut calls = 0;
+
+        for _ in 0..3 {
+            let value = cache
+                .get_or_try_init::<()>(|| {
+                    calls += 1;
+                    Ok(7)
+                })
+                .expect("init succeeds");
+            assert_eq!(*value, 7);
+        }
+
+        assert_eq!(calls, 1, "a fresh entry must not be recomputed");
+    }
+
+    #[test]
+    fn ttl_cache_get_or_try_init_recomputes_after_expiry() {
+        let mut cache = TtlCache::<u32>::new(Duration::ZERO);
+        let mut calls = 0;
+
+        for _ in 0..3 {
+            let _ = cache.get_or_try_init::<()>(|| {
+                calls += 1;
+                Ok(7)
+            });
+        }
+
+        assert_eq!(calls, 3, "an expired entry must be recomputed on every read");
+    }
+
+    #[test]
+    fn ttl_cache_get_or_try_init_propagates_errors_without_caching_them() {
+        let mut cache = TtlCache::<u32>::new(Duration::from_secs(60));
+
+        let failed = cache.get_or_try_init(|| Err::<u32, &str>("device is gone"));
+        assert_eq!(failed, Err("device is gone"));
+        assert_eq!(cache.get(), None, "a failed init must not populate the slot");
+
+        // The next attempt still gets a chance to succeed.
+        let recovered = cache.get_or_try_init::<&str>(|| Ok(7)).copied();
+        assert_eq!(recovered, Ok(7));
+    }
+
+    #[test]
+    fn ttl_cache_get_or_try_init_reinitializes_after_invalidate() {
+        let mut cache = TtlCache::<u32>::new(Duration::from_secs(60));
+        let mut calls = 0;
+
+        let resolve = |cache: &mut TtlCache<u32>, calls: &mut u32| {
+            cache
+                .get_or_try_init::<()>(|| {
+                    *calls += 1;
+                    Ok(7)
+                })
+                .copied()
+                .expect("init succeeds")
+        };
+
+        assert_eq!(resolve(&mut cache, &mut calls), 7);
+        cache.invalidate();
+        assert_eq!(resolve(&mut cache, &mut calls), 7);
+
+        assert_eq!(calls, 2, "invalidate must force a re-resolve");
     }
 }

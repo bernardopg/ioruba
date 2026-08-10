@@ -1,7 +1,8 @@
 use std::ffi::c_void;
+use std::sync::{Mutex, OnceLock};
 use std::{mem, ptr};
 
-use super::common::{volume_percent, MasterOnlyBackend};
+use super::common::{volume_percent, MasterOnlyBackend, TtlCache, INVENTORY_TTL};
 use super::{
     ApplySliderTargetsRequest, ApplySliderTargetsResponse, AudioEndpoint, AudioError,
     AudioInventory, AudioTarget, ControlAction, ControlActionOutcome,
@@ -43,6 +44,109 @@ const BACKEND: MasterOnlyBackend = MasterOnlyBackend {
     output_id: DEFAULT_OUTPUT_ID,
 };
 
+/// Where a device actually accepts a volume scalar.
+///
+/// Resolving this is the expensive part of a write: `AudioObjectHasProperty` +
+/// `AudioObjectIsPropertySettable` on the master element and, when the device
+/// only exposes per-channel controls, on up to `MAX_VOLUME_CHANNELS` more. Doing
+/// that probe sweep on every frame of a knob sweep is pure waste — the answer
+/// only changes when the device does.
+#[derive(Clone, Debug, PartialEq, Eq)]
+enum VolumeElements {
+    /// Element 0 carries a settable master scalar (typical stereo output).
+    Master,
+    /// The device only exposes settable per-channel scalars.
+    Channels(Vec<u32>),
+}
+
+impl VolumeElements {
+    /// Elements to write, in order.
+    fn write_targets(&self) -> &[u32] {
+        match self {
+            Self::Master => std::slice::from_ref(&K_AUDIO_OBJECT_PROPERTY_ELEMENT_MAIN),
+            Self::Channels(channels) => channels,
+        }
+    }
+
+    /// Element to read the current level from.
+    fn read_target(&self) -> Option<u32> {
+        self.write_targets().first().copied()
+    }
+}
+
+/// A resolved default output: the device id plus how to drive its volume.
+#[derive(Clone, Debug)]
+struct OutputDevice {
+    id: AudioObjectId,
+    elements: VolumeElements,
+}
+
+static OUTPUT_CACHE: OnceLock<Mutex<TtlCache<OutputDevice>>> = OnceLock::new();
+
+fn output_cache() -> &'static Mutex<TtlCache<OutputDevice>> {
+    OUTPUT_CACHE.get_or_init(|| Mutex::new(TtlCache::new(INVENTORY_TTL)))
+}
+
+/// Returns the cached default output, re-resolving when the entry is cold or
+/// stale.
+///
+/// `OutputDevice` is cheap to clone, so the lock is taken twice for a moment
+/// each and never held across a CoreAudio call. Two threads racing on an expired
+/// entry may both probe; the result is identical, so the duplicate work is
+/// preferable to serializing every caller behind the FFI.
+fn resolve_output_device() -> Result<OutputDevice, AudioError> {
+    if let Ok(guard) = output_cache().lock() {
+        if let Some(device) = guard.get() {
+            return Ok(device.clone());
+        }
+    }
+
+    let device = probe_output_device()?;
+
+    if let Ok(mut guard) = output_cache().lock() {
+        guard.store(device.clone());
+    }
+
+    Ok(device)
+}
+
+/// Drops the cached device so the next call re-resolves.
+///
+/// Called when a CoreAudio write fails: the usual cause is the cached device
+/// disappearing (headphones unplugged, output switched), and a stale entry would
+/// keep failing until the TTL ran out.
+fn invalidate_output_cache() {
+    if let Ok(mut guard) = output_cache().lock() {
+        guard.invalidate();
+    }
+}
+
+fn probe_output_device() -> Result<OutputDevice, AudioError> {
+    let id = default_output_device()?;
+
+    if is_settable(id, K_AUDIO_OBJECT_PROPERTY_ELEMENT_MAIN) {
+        return Ok(OutputDevice {
+            id,
+            elements: VolumeElements::Master,
+        });
+    }
+
+    let channels = (1..=MAX_VOLUME_CHANNELS)
+        .filter(|channel| is_settable(id, *channel))
+        .collect::<Vec<_>>();
+
+    if channels.is_empty() {
+        return Err(AudioError::BackendUnavailable(
+            "CoreAudio: the default output device exposes no settable volume control".to_string(),
+        ));
+    }
+
+    Ok(OutputDevice {
+        id,
+        elements: VolumeElements::Channels(channels),
+    })
+}
+
 #[link(name = "CoreAudio", kind = "framework")]
 extern "C" {
     fn AudioObjectGetPropertyData(
@@ -76,9 +180,9 @@ extern "C" {
 }
 
 pub fn list_audio_inventory() -> AudioInventory {
-    match default_output_device() {
+    match resolve_output_device() {
         Ok(device) => {
-            let current_percent = read_current_scalar(device)
+            let current_percent = read_current_scalar(&device)
                 .map(|volume| {
                     format!(
                         "Current default output volume: {}%",
@@ -121,8 +225,11 @@ pub fn list_audio_inventory() -> AudioInventory {
 pub fn apply_slider_targets_batch(
     request: ApplySliderTargetsRequest,
 ) -> Result<ApplySliderTargetsResponse, AudioError> {
-    let device = default_output_device()?;
-    Ok(BACKEND.apply_batch(request, |normalized| set_master_volume(device, normalized)))
+    // Resolved once for the whole batch, then reused per slider.
+    let device = resolve_output_device()?;
+    Ok(BACKEND.apply_batch(request, |normalized| {
+        set_master_volume(&device, normalized)
+    }))
 }
 
 pub fn dispatch_control_action(
@@ -178,8 +285,21 @@ fn volume_address(element: u32) -> AudioObjectPropertyAddress {
     }
 }
 
-fn read_current_scalar(device: AudioObjectId) -> Option<f32> {
-    read_scalar(device, K_AUDIO_OBJECT_PROPERTY_ELEMENT_MAIN).or_else(|| read_scalar(device, 1))
+fn read_current_scalar(device: &OutputDevice) -> Option<f32> {
+    read_scalar(device.id, device.elements.read_target()?)
+}
+
+/// Whether `element` exists on `device` and accepts a volume scalar write.
+fn is_settable(device: AudioObjectId, element: u32) -> bool {
+    let address = volume_address(element);
+    if unsafe { AudioObjectHasProperty(device, &address) } == 0 {
+        return false;
+    }
+
+    let mut settable: Boolean = 0;
+    let status = unsafe { AudioObjectIsPropertySettable(device, &address, &mut settable) };
+
+    status == 0 && settable != 0
 }
 
 fn read_scalar(device: AudioObjectId, element: u32) -> Option<f32> {
@@ -204,20 +324,9 @@ fn read_scalar(device: AudioObjectId, element: u32) -> Option<f32> {
     (status == 0).then_some(value)
 }
 
-/// Writes the scalar to a single channel element.
-/// `Ok(true)` when written, `Ok(false)` when the element has no settable
-/// volume scalar, `Err` on an actual CoreAudio failure.
-fn write_scalar(device: AudioObjectId, element: u32, value: f32) -> Result<bool, OsStatus> {
+/// Writes the scalar to a single element that was already probed as settable.
+fn write_scalar(device: AudioObjectId, element: u32, value: f32) -> Result<(), OsStatus> {
     let address = volume_address(element);
-    if unsafe { AudioObjectHasProperty(device, &address) } == 0 {
-        return Ok(false);
-    }
-
-    let mut settable: Boolean = 0;
-    let settable_status = unsafe { AudioObjectIsPropertySettable(device, &address, &mut settable) };
-    if settable_status != 0 || settable == 0 {
-        return Ok(false);
-    }
 
     let status = unsafe {
         AudioObjectSetPropertyData(
@@ -231,46 +340,91 @@ fn write_scalar(device: AudioObjectId, element: u32, value: f32) -> Result<bool,
     };
 
     if status == 0 {
-        Ok(true)
+        Ok(())
     } else {
         Err(status)
     }
 }
 
-fn set_master_volume(device: AudioObjectId, normalized: f64) -> Result<(), AudioError> {
+fn set_master_volume(device: &OutputDevice, normalized: f64) -> Result<(), AudioError> {
     let scalar = normalized.clamp(0.0, 1.0) as f32;
-
-    // Prefer the master element; fall back to per-channel scalars when the
-    // device only exposes them (common on multi-channel outputs).
-    match write_scalar(device, K_AUDIO_OBJECT_PROPERTY_ELEMENT_MAIN, scalar) {
-        Ok(true) => return Ok(()),
-        Ok(false) => {}
-        Err(status) => {
-            return Err(AudioError::CommandFailed(format!(
-                "CoreAudio: failed to set master volume (OSStatus {status})"
-            )))
-        }
-    }
 
     let mut wrote_any = false;
     let mut last_error: Option<OsStatus> = None;
-    for channel in 1..=MAX_VOLUME_CHANNELS {
-        match write_scalar(device, channel, scalar) {
-            Ok(true) => wrote_any = true,
-            Ok(false) => {}
+    for element in device.elements.write_targets() {
+        match write_scalar(device.id, *element, scalar) {
+            Ok(()) => wrote_any = true,
             Err(status) => last_error = Some(status),
         }
     }
 
     if wrote_any {
-        Ok(())
-    } else if let Some(status) = last_error {
-        Err(AudioError::CommandFailed(format!(
-            "CoreAudio: failed to set output volume (OSStatus {status})"
-        )))
-    } else {
-        Err(AudioError::BackendUnavailable(
-            "CoreAudio: the default output device exposes no settable volume control".to_string(),
-        ))
+        return Ok(());
+    }
+
+    // Every write failed: the cached device is very likely stale (unplugged or
+    // switched), so force the next call to re-resolve instead of hammering a
+    // dead id until the TTL expires.
+    invalidate_output_cache();
+
+    Err(AudioError::CommandFailed(format!(
+        "CoreAudio: failed to set output volume (OSStatus {})",
+        last_error.unwrap_or(0)
+    )))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn master_elements_write_and_read_element_zero() {
+        let elements = VolumeElements::Master;
+
+        assert_eq!(
+            elements.write_targets(),
+            &[K_AUDIO_OBJECT_PROPERTY_ELEMENT_MAIN]
+        );
+        assert_eq!(
+            elements.read_target(),
+            Some(K_AUDIO_OBJECT_PROPERTY_ELEMENT_MAIN)
+        );
+    }
+
+    #[test]
+    fn channel_elements_write_every_channel_and_read_the_first() {
+        let elements = VolumeElements::Channels(vec![1, 2, 5]);
+
+        assert_eq!(elements.write_targets(), &[1, 2, 5]);
+        assert_eq!(
+            elements.read_target(),
+            Some(1),
+            "reading one channel is enough to report a level"
+        );
+    }
+
+    #[test]
+    fn empty_channel_list_has_nothing_to_read() {
+        // `probe_output_device` rejects this case, so it should never reach a
+        // read; assert the accessor stays total instead of panicking if it does.
+        let elements = VolumeElements::Channels(Vec::new());
+
+        assert!(elements.write_targets().is_empty());
+        assert_eq!(elements.read_target(), None);
+    }
+
+    #[test]
+    fn output_device_clone_is_cheap_and_faithful() {
+        // The cache hands out clones so the lock is never held across CoreAudio
+        // calls; the clone has to carry the resolved strategy, not re-probe.
+        let device = OutputDevice {
+            id: 42,
+            elements: VolumeElements::Channels(vec![1, 2]),
+        };
+
+        let cloned = device.clone();
+
+        assert_eq!(cloned.id, 42);
+        assert_eq!(cloned.elements, VolumeElements::Channels(vec![1, 2]));
     }
 }

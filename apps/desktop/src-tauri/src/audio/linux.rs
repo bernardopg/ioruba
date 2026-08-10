@@ -2,26 +2,18 @@ use std::{
     collections::{HashMap, HashSet},
     process::Command,
     sync::{Mutex, OnceLock},
-    time::{Duration, Instant},
 };
 
 use serde_json::Value;
 
-use super::common::{self, describe_target};
+use super::common::{self, describe_target, TtlCache, INVENTORY_TTL};
 use super::{
     ApplySliderTargetsRequest, ApplySliderTargetsResponse, AudioEndpoint, AudioError,
     AudioInventory, AudioTarget, ControlAction, ControlActionOutcome, OutcomeSeverity,
     RuntimeTargetOutcome, SliderOutcome, SliderTargetChange, TargetOutcomeStatus,
 };
 
-/// Janela durante a qual um snapshot do `pactl` é reusado entre chamadas. Movimentos
-/// rápidos de knob disparam vários `apply_slider_targets_batch` em sequência; sem
-/// cache cada um re-executa 5 comandos `pactl` (fork/exec) só para reler o mesmo
-/// inventário. 250 ms é curto o bastante para refletir plugs/unplugs quase em tempo
-/// real e longo o bastante para colapsar rajadas.
-const SNAPSHOT_TTL: Duration = Duration::from_millis(250);
-
-static SNAPSHOT_CACHE: OnceLock<Mutex<Option<(Instant, PactlSnapshot)>>> = OnceLock::new();
+static SNAPSHOT_CACHE: OnceLock<Mutex<TtlCache<PactlSnapshot>>> = OnceLock::new();
 
 #[derive(Debug, Clone)]
 struct SinkInput {
@@ -45,27 +37,26 @@ struct PactlSnapshot {
     errors: Vec<String>,
 }
 
-fn snapshot_cache() -> &'static Mutex<Option<(Instant, PactlSnapshot)>> {
-    SNAPSHOT_CACHE.get_or_init(|| Mutex::new(None))
+fn snapshot_cache() -> &'static Mutex<TtlCache<PactlSnapshot>> {
+    SNAPSHOT_CACHE.get_or_init(|| Mutex::new(TtlCache::new(INVENTORY_TTL)))
 }
 
 /// Lê o snapshot do `pactl`, reusando o último resultado se ainda estiver dentro
-/// da janela `SNAPSHOT_TTL`. Threads concorrentes podem, no pior caso, recomputar
+/// da janela `INVENTORY_TTL`. Threads concorrentes podem, no pior caso, recomputar
 /// em paralelo na expiração — aceitável, pois o resultado é idempotente e o lock
-/// nunca é segurado durante o I/O do `pactl`.
+/// nunca é segurado durante o I/O do `pactl` (daí `get`/`store` em vez de
+/// `get_or_try_init`, que atravessaria o fork/exec com o lock na mão).
 fn read_pactl_snapshot() -> PactlSnapshot {
     if let Ok(guard) = snapshot_cache().lock() {
-        if let Some((captured_at, snapshot)) = guard.as_ref() {
-            if captured_at.elapsed() < SNAPSHOT_TTL {
-                return snapshot.clone();
-            }
+        if let Some(snapshot) = guard.get() {
+            return snapshot.clone();
         }
     }
 
     let snapshot = capture_pactl_snapshot();
 
     if let Ok(mut guard) = snapshot_cache().lock() {
-        *guard = Some((Instant::now(), snapshot.clone()));
+        guard.store(snapshot.clone());
     }
 
     snapshot
@@ -134,7 +125,7 @@ fn capture_pactl_snapshot() -> PactlSnapshot {
 /// mudaram, então a próxima leitura deve refletir o estado novo imediatamente.
 fn invalidate_snapshot_cache() {
     if let Ok(mut guard) = snapshot_cache().lock() {
-        *guard = None;
+        guard.invalidate();
     }
 }
 
@@ -154,7 +145,7 @@ pub fn list_audio_inventory() -> AudioInventory {
         };
     }
 
-    // Snapshot único do pactl (cacheado por SNAPSHOT_TTL). Falhas parciais por
+    // Snapshot único do pactl (cacheado por INVENTORY_TTL). Falhas parciais por
     // comando ficam em `snapshot.errors` em vez de virar inventário vazio sem
     // pista de causa para o usuário.
     let snapshot = read_pactl_snapshot();
@@ -1105,11 +1096,10 @@ mod tests {
     use super::{
         application_inventory_names, invalidate_snapshot_cache, parse_sink_inputs, parse_sinks,
         parse_sources, resolve_application_matches, resolve_mute_plan, resolve_sink_matches,
-        resolve_source_matches, snapshot_cache, PactlSnapshot, SinkInput, SNAPSHOT_TTL,
+        resolve_source_matches, snapshot_cache, PactlSnapshot, SinkInput,
     };
     use crate::audio::{AudioEndpoint, AudioTarget};
     use serde_json::json;
-    use std::time::Instant;
 
     #[test]
     fn snapshot_cache_serves_fresh_entries_and_clears_on_invalidate() {
@@ -1124,21 +1114,20 @@ mod tests {
 
         {
             let mut guard = snapshot_cache().lock().expect("cache lock");
-            *guard = Some((Instant::now(), snapshot));
+            guard.store(snapshot);
         }
 
         // Entrada recente (dentro do TTL) continua disponível para reuso.
         {
             let guard = snapshot_cache().lock().expect("cache lock");
-            let (captured_at, cached) = guard.as_ref().expect("cache should be populated");
-            assert!(captured_at.elapsed() < SNAPSHOT_TTL);
+            let cached = guard.get().expect("cache should be populated");
             assert_eq!(cached.default_sink.as_deref(), Some("sink-cacheado"));
         }
 
         // Após uma escrita de volume o cache é descartado para forçar releitura.
         invalidate_snapshot_cache();
         let guard = snapshot_cache().lock().expect("cache lock");
-        assert!(guard.is_none());
+        assert!(guard.get().is_none());
     }
 
     #[test]
