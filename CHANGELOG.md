@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed
+
+- Bumped `lucide-react` to 1.31.0, `vite` to 8.2.1 and `@types/node` to 26.2.0.
+- Bumped the GitHub Actions group: `Swatinem/rust-cache` to 2.9.2, `github/codeql-action/{init,analyze}` to 4.37.6 and `actions/attest-build-provenance` to 4.2.2.
+
+### Fixed
+
+- The `[Unreleased]` comparison link at the bottom of this file pointed at `v1.5.2`, three releases behind the actual baseline.
+
 ## [1.7.0](https://github.com/bernardopg/ioruba/compare/v1.6.3...v1.7.0) (2026-08-03)
 
 ### Added
@@ -549,7 +560,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial tagged baseline before the current Haskell-first productization pass
 
-[Unreleased]: https://github.com/bernardopg/ioruba/compare/v1.5.2...HEAD
+[Unreleased]: https://github.com/bernardopg/ioruba/compare/v1.7.0...HEAD
 [1.2.3]: https://github.com/bernardopg/ioruba/compare/v1.2.2...v1.2.3
 [1.2.2]: https://github.com/bernardopg/ioruba/compare/v1.2.1...v1.2.2
 [1.2.1]: https://github.com/bernardopg/ioruba/compare/v1.2.0...v1.2.1

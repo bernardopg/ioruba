@@ -1,7 +1,7 @@
 # Roadmap de produto
 
 Documento vivo de metas de produto além da paridade com o protótipo legado
-(Python/GTK, aposentado). Atualizado em 2026-08-03.
+(Python/GTK, aposentado). Atualizado em 2026-08-10.
 
 ## Onde estamos
 
@@ -9,7 +9,8 @@ O backend Linux, o firmware e o app desktop estão completos e endurecidos:
 controle de áudio via `pactl` (master/aplicação/source/sink), firmware
 parametrizado por placa com handshake/calibração/EEPROM, persistência atômica de
 estado, observabilidade via watch log, perfis com presets e import/export,
-telemetria de sessão exportável, wizard de calibração e i18n en/pt-BR/es.
+telemetria de sessão exportável, wizard de calibração, botões e encoders com mute
+direcionado a sink/source/aplicação (editor visual, sem JSON) e i18n en/pt-BR/es.
 Releases multiplataforma são empacotadas (deb/rpm/AppImage/nsis/msi/app) com
 provenance SLSA, mas o controle de áudio real é Linux-only.
 
@@ -53,7 +54,8 @@ estado item a item ficam no `TODO.md`; aqui só a intenção de produto.
   áudio) — ainda não mapeado.
 - **Controle por atalho global:** as ações de mixagem (`mute`/`next`/`prev`) hoje
   só chegam pelos botões e encoders do controlador. Expor as mesmas ações em
-  hotkeys do sistema dá controle sem o hardware e sem foco na janela.
+  hotkeys do sistema dá controle sem o hardware e sem foco na janela. O mute já
+  aceita alvo específico (sink/source/aplicação) no Linux desde a v1.7.0.
 - **Múltiplos controladores:** ver a seção acima.
 - **Atualizações automáticas:** integrar `tauri-plugin-updater` + assinatura de
   artefatos para entregar updates in-app (hoje desabilitado; falta a chave de
