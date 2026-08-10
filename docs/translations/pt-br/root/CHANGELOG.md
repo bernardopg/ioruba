@@ -5,7 +5,7 @@ Todas as mudancas relevantes deste projeto sao documentadas neste arquivo.
 O formato segue [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 e este projeto segue [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [1.7.1](https://github.com/bernardopg/ioruba/compare/v1.7.0...v1.7.1) (2026-08-10)
 
 ### Mudanças
 
