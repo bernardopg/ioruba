@@ -28,6 +28,7 @@
   "bundle": {
     "active": true,
     "targets": "all",
+    "createUpdaterArtifacts": true,
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",
@@ -58,6 +59,17 @@
       "certificateThumbprint": null,
       "digestAlgorithm": "sha256",
       "timestampUrl": "http://timestamp.digicert.com"
+    }
+  },
+  "plugins": {
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEE3MEZCMUU2NEFGQkU2QkUKUldTKzV2dEs1ckVQcDNpVktSUmgyM1JvQXBWS2hpdHo1djdMaUcrVU1XNUtSZGFyajFybU1TZ1kK",
+      "endpoints": [
+        "https://github.com/bernardopg/ioruba/releases/latest/download/latest.json"
+      ],
+      "windows": {
+        "installMode": "passive"
+      }
     }
   }
 }

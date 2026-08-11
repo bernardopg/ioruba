@@ -256,8 +256,8 @@ jobs:
       - name: Test installer asset selection
         run: bash scripts/install.test.sh
 
-      - name: Test package manager manifests
-        run: node --test scripts/packaging/manifests.test.mjs
+      - name: Test package manager and updater manifests
+        run: node --test scripts/packaging/*.test.mjs
 
       # pwsh ships on ubuntu-latest runners. Report warnings for visibility but
       # only fail the gate on PSScriptAnalyzer errors.

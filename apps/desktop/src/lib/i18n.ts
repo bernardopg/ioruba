@@ -536,6 +536,13 @@ const TEXT_MAP_EN: Record<string, string> = {
   "Aplicar ao perfil": "Apply to profile",
   Cancelar: "Cancel",
   "Atualização instalada": "Update installed",
+  "Atualização disponível": "Update available",
+  "v{version} foi verificada pela assinatura do Ioruba.":
+    "v{version} was verified by Ioruba's signature.",
+  "Não foi possível instalar a atualização. Tente novamente.":
+    "The update could not be installed. Try again.",
+  "Baixando atualização...": "Downloading update...",
+  "Atualizar e reiniciar": "Update and restart",
   "Reinicie o Ioruba para aplicar. Fechar a janela agora também reinicia automaticamente.":
     "Restart Ioruba to apply. Closing the window now also restarts automatically.",
   "Reiniciando...": "Restarting...",
@@ -1103,6 +1110,13 @@ const TEXT_MAP_ES: Record<string, string> = {
   "Aplicar ao perfil": "Aplicar al perfil",
   Cancelar: "Cancelar",
   "Atualização instalada": "Actualización instalada",
+  "Atualização disponível": "Actualización disponible",
+  "v{version} foi verificada pela assinatura do Ioruba.":
+    "v{version} fue verificada por la firma de Ioruba.",
+  "Não foi possível instalar a atualização. Tente novamente.":
+    "No se pudo instalar la actualización. Inténtalo de nuevo.",
+  "Baixando atualização...": "Descargando actualización...",
+  "Atualizar e reiniciar": "Actualizar y reiniciar",
   "Reinicie o Ioruba para aplicar. Fechar a janela agora também reinicia automaticamente.":
     "Reinicia Ioruba para aplicar. Cerrar la ventana ahora también reinicia automáticamente.",
   "Reiniciando...": "Reiniciando...",

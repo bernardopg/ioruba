@@ -665,6 +665,11 @@ pub fn run() {
     let toggle_shortcut = Shortcut::new(Some(Modifiers::CONTROL | Modifiers::ALT), Code::KeyI);
 
     tauri::Builder::default()
+        // A chave pública fica no tauri.conf.json; o plugin rejeita qualquer
+        // artefato cujo .sig não tenha sido produzido pela chave privada guardada
+        // exclusivamente nos secrets do release.
+        .plugin(tauri_plugin_updater::Builder::new().build())
+        .plugin(tauri_plugin_process::init())
         // Deve ser o primeiro plugin registrado: uma segunda invocação do app
         // (launcher, .desktop, autostart duplicado) apenas traz a janela da
         // instância existente de volta do tray em vez de abrir outro processo.

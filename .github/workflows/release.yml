@@ -116,6 +116,8 @@ jobs:
     env:
       HAS_WINDOWS_CERT: ${{ secrets.WINDOWS_CERTIFICATE != '' && '1' || '' }}
       HAS_APPLE_CERT: ${{ secrets.APPLE_CERTIFICATE != '' && '1' || '' }}
+      # An unsigned latest.json would be a remote-code-execution endpoint.
+      HAS_TAURI_UPDATER_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY != '' && '1' || '' }}
 
     steps:
       - name: Checkout
@@ -162,6 +164,12 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+
+      - name: Require updater signing key
+        if: env.HAS_TAURI_UPDATER_KEY != '1'
+        run: |
+          echo "::error::TAURI_SIGNING_PRIVATE_KEY is required for a release."
+          exit 1
 
       - name: Import Windows certificate
         if: matrix.platform == 'windows-latest' && env.HAS_WINDOWS_CERT == '1'
@@ -213,6 +221,8 @@ jobs:
           APPLE_ID: ${{ secrets.APPLE_ID }}
           APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         with:
           projectPath: apps/desktop
           tagName: ${{ env.RELEASE_TAG }}
@@ -224,9 +234,11 @@ jobs:
             `gh attestation verify <asset> --repo bernardopg/ioruba`
           releaseDraft: false
           prerelease: false
-          # Ioruba does not ship tauri-plugin-updater yet. Keep latest.json
-          # disabled until updater artifacts and TAURI_SIGNING_PRIVATE_KEY are configured.
-          includeUpdaterJson: false
+          # Every matrix entry uploads its detached .sig. `updater-json` runs
+          # after the matrix and creates the one complete latest.json; doing it
+          # here races concurrent delete-and-upload calls for that same asset.
+          uploadUpdaterJson: false
+          uploadUpdaterSignatures: true
           args: ${{ matrix.args }}
 
       - name: Validate AppImage bundle
@@ -256,6 +268,8 @@ jobs:
         uses: tauri-apps/tauri-action@1deb371b0cd8bd54025b384f1cd735e725c4060f # v1.0.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         with:
           projectPath: apps/desktop
           tagName: ${{ env.RELEASE_TAG }}
@@ -267,15 +281,65 @@ jobs:
             `gh attestation verify <asset> --repo bernardopg/ioruba`
           releaseDraft: false
           prerelease: false
-          # Ioruba does not ship tauri-plugin-updater yet. Keep latest.json
-          # disabled until updater artifacts and TAURI_SIGNING_PRIVATE_KEY are configured.
-          includeUpdaterJson: false
+          # macOS code-signing/notarization is separate; updater signatures are
+          # still required and independently verified on every platform.
+          uploadUpdaterJson: false
+          uploadUpdaterSignatures: true
           args: ${{ matrix.args }}
 
       - name: Clean up keychain
         if: startsWith(matrix.platform, 'macos') && always()
         run: |
           security delete-keychain build.keychain 2>/dev/null || true
+
+  updater-json:
+    name: Publish Signed Updater Manifest
+    needs:
+      - desktop-bundles
+    # Matrix bundle jobs upload their .sig files independently. Generate one
+    # latest.json only after all of them finish: concurrent matrix jobs race
+    # while deleting/re-uploading a shared latest.json asset.
+    if: ${{ !cancelled() && needs.desktop-bundles.result == 'success' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout updater manifest generator
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 1
+          ref: ${{ env.RELEASE_TAG }}
+          persist-credentials: false
+
+      - name: Download release metadata and updater signatures
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          gh api "repos/${GITHUB_REPOSITORY}/releases/tags/${RELEASE_TAG}" > release.json
+          gh release download "${RELEASE_TAG}" \
+            --pattern "*.sig" \
+            --dir updater-signatures \
+            --repo "${GITHUB_REPOSITORY}"
+          test -n "$(find updater-signatures -maxdepth 1 -type f -name '*.sig' -print -quit)"
+
+      - name: Build complete latest.json
+        run: |
+          set -euo pipefail
+          node scripts/packaging/updater-manifest.mjs \
+            --release-json release.json \
+            --signature-dir updater-signatures \
+            --out latest.json
+          cat latest.json
+
+      - name: Upload latest.json
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release upload "${RELEASE_TAG}" latest.json --clobber \
+            --repo "${GITHUB_REPOSITORY}"
 
   release-notes:
     name: Publish Release Notes
@@ -778,6 +842,9 @@ jobs:
     timeout-minutes: 10
     permissions:
       contents: write
+    env:
+      HAS_HOMEBREW_TAP_KEY: ${{ secrets.HOMEBREW_IORUBA_DEPLOY_KEY != '' && '1' || '' }}
+      HAS_SCOOP_BUCKET_KEY: ${{ secrets.SCOOP_IORUBA_DEPLOY_KEY != '' && '1' || '' }}
 
     steps:
       - name: Checkout manifest generator
@@ -815,6 +882,62 @@ jobs:
           test "${#manifests[@]}" -gt 0
           gh release upload "${RELEASE_TAG}" "${manifests[@]}" --clobber \
             --repo "${GITHUB_REPOSITORY}"
+
+      - name: Require package repository deploy keys
+        if: env.HAS_HOMEBREW_TAP_KEY != '1' || env.HAS_SCOOP_BUCKET_KEY != '1'
+        run: |
+          echo "::error::Both package-repository deploy keys are required."
+          exit 1
+
+      - name: Configure package repository SSH keys
+        env:
+          HOMEBREW_IORUBA_DEPLOY_KEY: ${{ secrets.HOMEBREW_IORUBA_DEPLOY_KEY }}
+          SCOOP_IORUBA_DEPLOY_KEY: ${{ secrets.SCOOP_IORUBA_DEPLOY_KEY }}
+        run: |
+          set -euo pipefail
+          install -d -m 700 ~/.ssh
+          printf '%s\n' "${HOMEBREW_IORUBA_DEPLOY_KEY}" > ~/.ssh/homebrew_ioruba
+          printf '%s\n' "${SCOOP_IORUBA_DEPLOY_KEY}" > ~/.ssh/scoop_ioruba
+          chmod 600 ~/.ssh/homebrew_ioruba ~/.ssh/scoop_ioruba
+          # Pinned GitHub ED25519 key from GitHub Docs, not ssh-keyscan/TOFU.
+          cat >> ~/.ssh/known_hosts <<'KNOWN'
+          github.com ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOMqqnkVzrm0SdG6UOoqKLsabgH5C9okWi0dh2l9GKJl
+          KNOWN
+
+      - name: Publish Homebrew cask tap
+        run: |
+          set -euo pipefail
+          export GIT_SSH_COMMAND='ssh -i ~/.ssh/homebrew_ioruba -o IdentitiesOnly=yes'
+          git clone --depth=1 git@github.com:bernardopg/homebrew-ioruba.git homebrew-ioruba
+          install -Dm644 release-dist/manifests/homebrew/Casks/ioruba.rb \
+            homebrew-ioruba/Casks/ioruba.rb
+          cd homebrew-ioruba
+          if git diff --quiet; then
+            echo "Homebrew cask is already current."
+            exit 0
+          fi
+          git config user.name "ioruba-release[bot]"
+          git config user.email "ioruba-release[bot]@users.noreply.github.com"
+          git add Casks/ioruba.rb
+          git commit -m "chore: update Ioruba to ${RELEASE_TAG}"
+          git push origin main
+
+      - name: Publish Scoop bucket
+        run: |
+          set -euo pipefail
+          export GIT_SSH_COMMAND='ssh -i ~/.ssh/scoop_ioruba -o IdentitiesOnly=yes'
+          git clone --depth=1 git@github.com:bernardopg/scoop-ioruba.git scoop-ioruba
+          install -Dm644 release-dist/manifests/scoop/ioruba.json scoop-ioruba/ioruba.json
+          cd scoop-ioruba
+          if git diff --quiet; then
+            echo "Scoop manifest is already current."
+            exit 0
+          fi
+          git config user.name "ioruba-release[bot]"
+          git config user.email "ioruba-release[bot]@users.noreply.github.com"
+          git add ioruba.json
+          git commit -m "chore: update Ioruba to ${RELEASE_TAG}"
+          git push origin main
 
   aur-publish:
     name: Publish to AUR

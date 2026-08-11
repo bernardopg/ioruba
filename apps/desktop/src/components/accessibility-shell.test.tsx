@@ -54,7 +54,14 @@ vi.mock("@/hooks/use-persistence", () => ({
 }));
 
 vi.mock("@/hooks/use-release-check", () => ({
-  useReleaseCheck: () => undefined
+  useReleaseCheck: () => ({
+    available: false,
+    version: null,
+    installing: false,
+    error: null,
+    dismiss: () => undefined,
+    install: async () => undefined,
+  }),
 }));
 
 vi.mock("@/hooks/use-runtime-boot", () => ({
