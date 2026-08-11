@@ -1,6 +1,11 @@
+import { isTauri } from "@tauri-apps/api/core";
 import { useEffect, useRef } from "react";
 
 import { useAppVersion } from "@/hooks/use-app-version";
+import {
+  type SignedUpdateState,
+  useSignedUpdater,
+} from "@/hooks/use-signed-updater";
 import { useIorubaStore } from "@/store/ioruba-store";
 
 const RELEASE_URL = "https://api.github.com/repos/bernardopg/ioruba/releases/latest";
@@ -30,7 +35,7 @@ export function isNewerVersion(candidate: string, current: string): boolean {
   return false;
 }
 
-export function useReleaseCheck() {
+export function useReleaseCheck(): SignedUpdateState {
   const currentVersion = useAppVersion();
   const enabled = useIorubaStore(
     (state) => state.persisted.notificationsEnabled !== false,
@@ -41,9 +46,12 @@ export function useReleaseCheck() {
   );
   const appendWatchLog = useIorubaStore((state) => state.appendWatchLog);
   const loggedFailure = useRef(false);
+  const signedUpdater = useSignedUpdater(enabled);
 
   useEffect(() => {
-    if (!enabled) {
+    // Packaged builds use Tauri's public-key verification. The HTTP/GitHub path
+    // is kept only for the browser/dev shell, where the native plugin is absent.
+    if (!enabled || isTauri()) {
       return;
     }
 
@@ -112,4 +120,6 @@ export function useReleaseCheck() {
     pushNotification,
     setLastNotifiedReleaseVersion,
   ]);
+
+  return signedUpdater;
 }

@@ -7,6 +7,8 @@
     "core:default",
     "serialplugin:default",
     "global-shortcut:default",
+    "updater:default",
+    "process:allow-restart",
     "dialog:allow-save",
     "dialog:allow-open",
     {

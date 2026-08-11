@@ -11,9 +11,9 @@ After a release, the workflow uploads these additional assets:
 
 | Asset | Consumer | What to do |
 | --- | --- | --- |
-| `ioruba.rb` | Homebrew | Copy it into the project cask tap as `Casks/ioruba.rb`; then test `brew install --cask <tap>/ioruba`. |
-| `ioruba.json` | Scoop | Publish it in the project Scoop bucket, or install it by URL from the release after reviewing it. |
-| `BernardoGomes.Ioruba*.yaml` (three files) | winget | Open a PR containing the three files in [`microsoft/winget-pkgs`](https://github.com/microsoft/winget-pkgs). |
+| `ioruba.rb` | Homebrew | Automatically committed to [`bernardopg/homebrew-ioruba`](https://github.com/bernardopg/homebrew-ioruba); users run `brew tap bernardopg/ioruba && brew install --cask ioruba`. |
+| `ioruba.json` | Scoop | Automatically committed to [`bernardopg/scoop-ioruba`](https://github.com/bernardopg/scoop-ioruba); users run `scoop bucket add ioruba https://github.com/bernardopg/scoop-ioruba && scoop install ioruba`. |
+| `BernardoGomes.Ioruba*.yaml` (three files) | winget | Attached to the release and submitted as a PR to [`microsoft/winget-pkgs`](https://github.com/microsoft/winget-pkgs), where Microsoft validates and reviews it. |
 
 They are generated from the release API plus its `SHA256SUMS.txt` by
 [`scripts/packaging/generate.mjs`](../../scripts/packaging/generate.mjs). The
@@ -22,10 +22,17 @@ pure renderer is covered by
 Do not edit digest, URL, or version by hand: regenerate from the release if a
 mistake is found.
 
-A Homebrew tap, a Scoop bucket, and a fork/token for `winget-pkgs` are external
-publishing authorities. This repository deliberately does **not** pretend that
-creating a release asset publishes to any of them. Create those repositories and
-add their deployment credentials before automating submissions.
+The Homebrew tap and Scoop bucket are public repositories owned by the project.
+Each has an **isolated write-only deploy key**: the release workflow cannot use
+one key to modify the other or the source repository. The known GitHub ED25519
+host key is pinned; the workflow never trusts `ssh-keyscan` output.
+
+winget uses Microsoft’s public community repository and requires its review. The
+initial submission is [PR #415149](https://github.com/microsoft/winget-pkgs/pull/415149).
+Future manifests remain attached to every release; fully automated upstream PRs
+would require a dedicated, least-privilege GitHub App or fine-grained token for
+the project fork, neither of which should be substituted by a broad personal
+credential.
 
 ## macOS signing, notarization, and DMG
 
@@ -50,24 +57,28 @@ are provisioned, run a draft tag on `macos-15`, verify both `codesign --verify
 --deep --strict` and `spctl -a -vv`, then add `dmg` and make it a required
 release artifact.
 
-## In-app updater: security gate
+## In-app updater
 
-The in-app updater is intentionally **not enabled** yet. A `latest.json` file
-without signatures is a remote-code-execution endpoint, not an update feature.
-Before enabling it, all of the following must be provisioned together:
+The updater is enabled and fail-closed. `tauri-plugin-updater` verifies every
+candidate against the public key embedded in `tauri.conf.json`; the private key
+and its password exist only as `TAURI_SIGNING_PRIVATE_KEY` and
+`TAURI_SIGNING_PRIVATE_KEY_PASSWORD` repository secrets. The original encrypted
+key pair is retained outside the repository at `~/.config/ioruba/updater/` with
+mode 600 and must be backed up before the machine is retired — losing it would
+strand installed clients on the current update chain.
 
-1. Generate a Tauri updater key pair offline; store only
-   `TAURI_SIGNING_PRIVATE_KEY` and `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` as
-   Actions secrets, and put the corresponding public key in Tauri updater
-   configuration.
-2. Add `tauri-plugin-updater` and register it in `src-tauri/src/lib.rs`.
-3. Configure the updater endpoint as
-   `https://github.com/bernardopg/ioruba/releases/latest/download/latest.json`.
-4. Pass the signing secrets only to the release bundle step and set
-   `includeUpdaterJson: true` only when those secrets are present.
-5. Test update verification on Linux, Windows, and both macOS architectures
-   against a draft release before changing a public release workflow.
+Every platform build uploads a detached `.sig`. A separate job waits for the
+whole build matrix, then creates exactly one `latest.json` from the complete set
+of signed Linux and Windows artifacts (and macOS artifacts when present). This
+avoids the known parallel-matrix race where several jobs delete and upload the
+same `latest.json`. Missing signatures fail the release instead of publishing a
+partial manifest.
 
-`release.yml` keeps `includeUpdaterJson: false` until this complete chain is
-available. That is an explicit fail-closed setting, not a missing release
-artifact.
+The app checks this endpoint every six hours, offers an explicit **Update and
+restart** action, verifies the artifact before installing it, and relaunches
+only after a successful verification. Browser/dev mode keeps the informational
+GitHub release check; it never treats an arbitrary URL as an installable update.
+
+The first tag after this change is the end-to-end production verification: check
+that its release contains `latest.json` and `.sig` files, then install it from a
+previous Ioruba build on Linux and Windows. Apple notarization remains separate.

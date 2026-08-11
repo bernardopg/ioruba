@@ -9,7 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Release workflows now generate verified Homebrew cask, Scoop, and winget manifests from the published release assets and their `SHA256SUMS.txt`. The manifests are attached to the release for the respective external tap, bucket, or `winget-pkgs` submission; their checksums are never copied by hand.
+- The app now offers signed in-app updates. Tauri verifies the detached signature against a public key embedded in the app before it downloads, installs, and restarts; releases fail closed if their signing key or a platform signature is absent. A single post-matrix job builds `latest.json`, avoiding concurrent release jobs overwriting it with incomplete platform data.
+- Release workflows now generate verified Homebrew cask, Scoop, and winget manifests from the published release assets and their `SHA256SUMS.txt`. Homebrew and Scoop manifests are also committed automatically to the project tap/bucket through separate deploy keys; winget manifests remain attached for Microsoft’s external review. Their checksums are never copied by hand.
 
 ### Changed
 

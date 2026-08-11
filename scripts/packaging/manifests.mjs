@@ -163,7 +163,8 @@ export function wingetManifests({ version, repo, releasedAt, assets }) {
   );
 
   const identifier = "BernardoGomes.Ioruba";
-  const schema = "1.6.0";
+  // Keep this aligned with the current winget-pkgs multiple-manifest schema.
+  const schema = "1.12.0";
   const releaseDate = new Date(releasedAt).toISOString().slice(0, 10);
   const dir = `manifests/b/BernardoGomes/Ioruba/${version}`;
 

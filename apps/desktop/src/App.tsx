@@ -119,7 +119,7 @@ export default function App() {
   useRuntimeBoot();
   usePersistence();
   useSerialRuntime();
-  useReleaseCheck();
+  const signedUpdate = useReleaseCheck();
 
   const persisted = useIorubaStore((state) => state.persisted);
   const snapshot = useIorubaStore((state) => state.snapshot);
@@ -383,7 +383,7 @@ export default function App() {
       <a className="skip-link" href="#app-content">
         {lt("Pular para o conteúdo principal")}
       </a>
-      <UpdateToast language={language} />
+      <UpdateToast language={language} signedUpdate={signedUpdate} />
       <StatusPill />
       <div className="ambient-grid fixed inset-0 opacity-70" />
       <div className="relative mx-auto grid min-h-screen w-full max-w-[108rem] gap-5 px-4 py-5 sm:px-6 lg:grid-cols-[14rem_minmax(0,1fr)] lg:gap-6 lg:px-8 xl:px-10">
