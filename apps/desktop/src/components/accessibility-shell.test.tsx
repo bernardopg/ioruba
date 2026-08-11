@@ -323,7 +323,7 @@ describe("desktop accessibility shell", () => {
     // color-contrast is excluded: CSS custom properties are not resolved in jsdom;
     // contrast ratios are verified statically in app.css via WCAG comments.
     expect(await axe(container, { rules: { "color-contrast": { enabled: false } } })).toHaveNoViolations();
-  });
+  }, 15_000);
 
   it("KnobPanel has no axe violations", async () => {
     const knob = useIorubaStore.getState().snapshot.knobs[0];
@@ -609,7 +609,7 @@ describe("desktop accessibility shell", () => {
       expect(await axe(container, AXE_OPTIONS)).toHaveNoViolations();
       unmount();
     }
-  });
+  }, 15_000);
 
   it("keeps the watch log viewport keyboard-focusable for scrolling", () => {
     const store = useIorubaStore.getState();

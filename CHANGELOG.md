@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.8.0](https://github.com/bernardopg/ioruba/compare/v1.7.1...v1.8.0) (2026-08-10)
+
 ### Added
 
 - The app now offers signed in-app updates. Tauri verifies the detached signature against a public key embedded in the app before it downloads, installs, and restarts; releases fail closed if their signing key or a platform signature is absent. A single post-matrix job builds `latest.json`, avoiding concurrent release jobs overwriting it with incomplete platform data.
@@ -578,7 +580,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial tagged baseline before the current Haskell-first productization pass
 
-[Unreleased]: https://github.com/bernardopg/ioruba/compare/v1.7.0...HEAD
+[Unreleased]: https://github.com/bernardopg/ioruba/compare/v1.8.0...HEAD
 [1.2.3]: https://github.com/bernardopg/ioruba/compare/v1.2.2...v1.2.3
 [1.2.2]: https://github.com/bernardopg/ioruba/compare/v1.2.1...v1.2.2
 [1.2.1]: https://github.com/bernardopg/ioruba/compare/v1.2.0...v1.2.1

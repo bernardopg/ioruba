@@ -7,11 +7,11 @@ describe("parseChangelog", () => {
   it("parses the real Keep a Changelog document", () => {
     const releases = parseChangelog(changelogRaw);
 
-    expect(releases[0]?.version).toBe("1.7.1");
+    expect(releases[0]?.version).toBe("1.8.0");
     expect(releases[0]?.date).toBe("2026-08-10");
-    expect(releases[0]?.url).toContain("/compare/v1.7.0...v1.7.1");
-    expect(releases[0]?.sections[0]?.title).toBe("Changed");
-    expect(releases[0]?.sections[0]?.items[0]).toContain("lucide-react");
+    expect(releases[0]?.url).toContain("/compare/v1.7.1...v1.8.0");
+    expect(releases[0]?.sections[0]?.title).toBe("Added");
+    expect(releases[0]?.sections[0]?.items[0]).toContain("signed in-app updates");
     expect(releases.some((release) => release.version === "Unreleased")).toBe(false);
   });
 

@@ -7,6 +7,8 @@ e este projeto segue [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [1.8.0](https://github.com/bernardopg/ioruba/compare/v1.7.1...v1.8.0) (2026-08-10)
+
 ### Adicionado
 
 - O app agora oferece updates in-app assinados. Tauri verifica a assinatura destacada contra uma chave pública embutida antes de baixar, instalar e reiniciar; releases falham fechados se faltar a chave de assinatura ou uma assinatura de plataforma. Um único job pós-matriz monta o `latest.json`, evitando que jobs concorrentes sobrescrevam-o com dados incompletos de plataforma.

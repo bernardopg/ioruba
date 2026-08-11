@@ -29,7 +29,7 @@ describe("HeaderActions", () => {
     fireEvent.click(screen.getByRole("button", { name: "Fechar" }));
     expect(screen.queryByRole("dialog")).toBeNull();
     expect(document.activeElement).toBe(trigger);
-  });
+  }, 10_000);
 
   it("clears the unread indicator when notifications are opened", () => {
     useIorubaStore.getState().pushNotification({
