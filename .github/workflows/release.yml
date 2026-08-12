@@ -946,8 +946,10 @@ jobs:
       - attest-and-checksum
     if: ${{ !cancelled() && needs.arch-pkgbuild.result == 'success' && needs.attest-and-checksum.result == 'success' }}
     runs-on: ubuntu-latest
-    # Generous because every AUR network call is retried with backoff below.
-    timeout-minutes: 30
+    # Generous because every AUR network call is retried with backoff below,
+    # across two push steps (ioruba-desktop, ioruba-desktop-bin) that can each
+    # burn ~15min riding out an AUR maintenance window.
+    timeout-minutes: 45
     permissions:
       contents: read
 
@@ -961,7 +963,12 @@ jobs:
         run: |
           set -euo pipefail
           cat > "${RUNNER_TEMP}/aur-retry.sh" <<'HELPER'
-          AUR_MAX_ATTEMPTS="${AUR_MAX_ATTEMPTS:-5}"
+          # 8 attempts with linear backoff capped at 5min gives ~14min of total
+          # wait per push step (30+60+90+120+150+180+210s) — enough to ride out
+          # the AUR's undocumented maintenance windows, which have been observed
+          # to outlast the previous 5-attempt/~5min budget.
+          AUR_MAX_ATTEMPTS="${AUR_MAX_ATTEMPTS:-8}"
+          AUR_MAX_DELAY_SECONDS="${AUR_MAX_DELAY_SECONDS:-300}"
 
           aur_retry() {
             local attempt=1 delay
@@ -971,6 +978,9 @@ jobs:
                 return 1
               fi
               delay=$((attempt * 30))
+              if [ "${delay}" -gt "${AUR_MAX_DELAY_SECONDS}" ]; then
+                delay="${AUR_MAX_DELAY_SECONDS}"
+              fi
               echo "AUR attempt ${attempt}/${AUR_MAX_ATTEMPTS} failed; retrying in ${delay}s: $*"
               sleep "${delay}"
               attempt=$((attempt + 1))
