@@ -7,7 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [1.8.0](https://github.com/bernardopg/ioruba/compare/v1.7.1...v1.8.0) (2026-08-10)
+## [1.8.1](https://github.com/bernardopg/ioruba/compare/v1.8.0...v1.8.1) (2026-08-12)
+
+### Fixed
+
+- The generated AUR `PKGBUILD` for `ioruba-desktop` now sets `options=('!lto' '!debug')`. Arch's stock `makepkg.conf` enables LTO and injects `-flto=auto` into `CFLAGS`, so the `cc` crate compiled the `ring` crate's C and assembly sources into GIMPLE bitcode instead of native ELF objects; the final link, driven by `rust-lld`, then failed with `undefined symbol: ring_core_0_17_14__*` and no one could install v1.8.0 from source. The linker was a red herring — only removing `-flto` fixes it. The `PKGBUILD` also regained the `provides`/`conflicts`/`replaces` entries that v1.8.0 dropped, so it no longer silently coexists with `ioruba-desktop-bin`.
 
 ### Added
 
@@ -580,7 +584,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial tagged baseline before the current Haskell-first productization pass
 
-[Unreleased]: https://github.com/bernardopg/ioruba/compare/v1.8.0...HEAD
+[Unreleased]: https://github.com/bernardopg/ioruba/compare/v1.8.1...HEAD
 [1.2.3]: https://github.com/bernardopg/ioruba/compare/v1.2.2...v1.2.3
 [1.2.2]: https://github.com/bernardopg/ioruba/compare/v1.2.1...v1.2.2
 [1.2.1]: https://github.com/bernardopg/ioruba/compare/v1.2.0...v1.2.1

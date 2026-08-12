@@ -7,7 +7,11 @@ e este projeto segue [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
-## [1.8.0](https://github.com/bernardopg/ioruba/compare/v1.7.1...v1.8.0) (2026-08-10)
+## [1.8.1](https://github.com/bernardopg/ioruba/compare/v1.8.0...v1.8.1) (2026-08-12)
+
+### Corrigido
+
+- O `PKGBUILD` do AUR gerado para `ioruba-desktop` agora define `options=('!lto' '!debug')`. O `makepkg.conf` padrão do Arch habilita LTO e injeta `-flto=auto` no `CFLAGS`, então o crate `cc` compilava os fontes C e assembly do crate `ring` como bitcode GIMPLE em vez de objetos ELF nativos; o link final, feito pelo `rust-lld`, falhava com `undefined symbol: ring_core_0_17_14__*` e ninguém conseguia instalar a v1.8.0 a partir do fonte. O linker era pista falsa — só remover o `-flto` resolve. O `PKGBUILD` também recuperou as entradas `provides`/`conflicts`/`replaces` que a v1.8.0 perdeu, de modo que não coexiste mais silenciosamente com `ioruba-desktop-bin`.
 
 ### Adicionado
 
