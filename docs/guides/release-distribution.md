@@ -82,3 +82,31 @@ GitHub release check; it never treats an arbitrary URL as an installable update.
 The first tag after this change is the end-to-end production verification: check
 that its release contains `latest.json` and `.sig` files, then install it from a
 previous Ioruba build on Linux and Windows. Apple notarization remains separate.
+
+## AUR: the PKGBUILD must opt out of LTO
+
+`arch-pkgbuild` in `.github/workflows/release.yml` generates the `ioruba-desktop`
+PKGBUILD, which builds from source on the user's machine. That PKGBUILD must
+always carry `options=('!lto' '!debug')`.
+
+Arch's stock `/etc/makepkg.conf` ships `OPTIONS=(... lto)` with
+`LTOFLAGS="-flto=auto"`, and makepkg injects that flag into `CFLAGS`. The `cc`
+crate — used by the `ring` crate's `build.rs` — then compiles ring's C and
+assembly sources into GIMPLE bitcode (`.gnu.lto_*` sections) instead of native
+ELF objects. Cargo drives the final link through `rust-lld`, which cannot run
+GCC's LTO front-end, so every ring symbol comes back undefined:
+
+```text
+rust-lld: error: undefined symbol: ring_core_0_17_14__x25519_sc_mask
+rust-lld: error: undefined symbol: ring_core_0_17_14__OPENSSL_cpuid_setup
+...
+```
+
+The linker is a red herring — forcing `bfd` via `RUSTFLAGS` reproduces the same
+wall of errors. Only removing `-flto` from `CFLAGS` fixes it. Regressed in
+`1.8.0-1`; fixed in `1.8.0-2`.
+
+When editing the published package directly, work in the AUR clone
+(`git push origin HEAD:master`) and regenerate the metadata with
+`makepkg --printsrcinfo > .SRCINFO` before committing. The `-bin` package
+installs a prebuilt AppImage and is unaffected.
