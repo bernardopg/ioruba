@@ -145,9 +145,9 @@ check "refuses an install when SHA256SUMS.txt is missing" "1" \
     "$( (verify_checksum "$tmp/Ioruba.AppImage") >/dev/null 2>&1; echo $?)"
 
 release_json='{"assets":[{"browser_download_url":"https://example.invalid/SHA256SUMS.txt"}]}'
-# shellcheck disable=SC2329 # Invoked indirectly by verify_checksum.
+# shellcheck disable=SC2317,SC2329 # Invoked indirectly by verify_checksum.
 checksum_for() { return 0; }
-# shellcheck disable=SC2329 # Invoked indirectly by verify_checksum.
+# shellcheck disable=SC2317,SC2329 # Invoked indirectly by verify_checksum.
 curl() { printf '%064d  ./different-file\n' 0 > "$4"; }
 check "refuses an install when the exact checksum entry is missing" "1" \
     "$( (verify_checksum "$tmp/Ioruba.AppImage") >/dev/null 2>&1; echo $?)"
