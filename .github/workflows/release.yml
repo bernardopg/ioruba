@@ -173,8 +173,9 @@ jobs:
 
       - name: Require Windows signing certificate
         if: matrix.platform == 'windows-latest' && env.HAS_WINDOWS_CERT != '1'
+        shell: bash
         run: |
-          echo "WINDOWS_CERTIFICATE is required for a public Windows release." >&2
+          echo "::error::WINDOWS_CERTIFICATE is required for a public Windows release."
           exit 1
 
       - name: Import Windows certificate
