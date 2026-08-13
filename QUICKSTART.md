@@ -1,182 +1,226 @@
 # Quick Start
 
-This is the fastest path from a fresh clone to a working Ioruba session on the **active Linux stack**.
+Use this guide to get from installation or a fresh clone to a working Ioruba session. The reference hardware is an Arduino Nano with three potentiometers; the desktop app also supports other boards documented in the [hardware guide](docs/guides/hardware-setup.md).
 
-> **Just want to install the app?** Skip the source build and use the one‑line installer
-> (auto‑detects OS/arch, verifies checksums):
->
-> ```bash
-> curl -fsSL https://raw.githubusercontent.com/bernardopg/ioruba/main/scripts/install.sh | sh
-> ```
->
-> Windows: `irm https://raw.githubusercontent.com/bernardopg/ioruba/main/scripts/install.ps1 | iex`.
-> See the [README installation section](README.md#-fast-installation) for options. This guide
-> below covers building from source.
+> Linux has full audio-target support through `pactl`. Windows and macOS support the default output (`master`) only. Serial input, profiles, demo mode, telemetry, and diagnostics are cross-platform.
 
-> **Heads up**
-> Real system-audio control is production-ready on Linux via `pactl`.
-> **Windows** and **macOS** provide `master`/default-output volume via Core Audio.
-> Application/source/sink targets remain Linux-only.
+## 1. Choose installation or development
 
-## 1. What you need
+### Install a release
 
-### Software
-
-- Node.js `22` recommended (same major version used in CI)
-- `npm`
-- Rust stable + Cargo
-- `arduino-cli`
-- `pactl` available on `PATH`
-
-### Hardware
-
-- `Arduino Nano ATmega328P`
-- `3x 10k` linear potentiometers
-- USB data cable
-- jumper wires and a breadboard or enclosure
-
-Quick version check:
+Linux or macOS:
 
 ```bash
-node --version
-npm --version
-rustc --version
-cargo --version
-arduino-cli version
-pactl info
+curl -fsSL https://raw.githubusercontent.com/bernardopg/ioruba/main/scripts/install.sh | sh
 ```
 
-## 2. Install repository dependencies
+Windows PowerShell:
+
+```powershell
+irm https://raw.githubusercontent.com/bernardopg/ioruba/main/scripts/install.ps1 | iex
+```
+
+The installers choose the matching OS/architecture asset and require an exact match in `SHA256SUMS.txt`; they refuse an unverified installation. Package-manager and manual options are in the [README installation section](README.md#install).
+
+### Build from source
+
+You need:
+
+- Node.js 22 and npm;
+- Rust stable and Cargo;
+- `arduino-cli` if you will compile or flash firmware;
+- Tauri's platform development dependencies;
+- `pactl` on Linux for real audio control.
+
+Clone and install dependencies:
 
 ```bash
+git clone https://github.com/bernardopg/ioruba.git
+cd ioruba
 npm install
 ```
 
-## 3. Prepare Linux serial permissions
-
-Depending on the distro, add your user to `dialout` or `uucp`:
-
-```bash
-sudo usermod -a -G dialout $USER
-sudo usermod -a -G uucp $USER
-```
-
-Log out and back in after changing group membership.
-
-## 4. Wire and flash the controller
-
-If you still need to assemble the hardware, start with:
-
-- [docs/guides/hardware-setup.md](docs/guides/hardware-setup.md)
-- [NANO_SETUP.md](NANO_SETUP.md)
-
-Detect the board:
-
-```bash
-arduino-cli board list
-```
-
-Compile the current firmware:
-
-```bash
-arduino-cli compile --fqbn arduino:avr:nano firmware/arduino/ioruba-controller
-```
-
-Upload for a standard Nano:
-
-```bash
-arduino-cli upload -p /dev/ttyUSB0 --fqbn arduino:avr:nano firmware/arduino/ioruba-controller
-```
-
-Upload for common Nano clones with the old bootloader:
-
-```bash
-arduino-cli upload -p /dev/ttyUSB0 --fqbn arduino:avr:nano:cpu=atmega328old firmware/arduino/ioruba-controller
-```
-
-## 5. Validate the repository
-
-Run the main automated checks before launching the desktop shell:
+Validate the software stack:
 
 ```bash
 npm run verify
 ```
 
-If you only want to make sure the firmware still compiles from the root workspace:
-
-```bash
-npm run firmware:compile
-```
-
-## 6. Launch the desktop app
-
-Frontend only:
-
-```bash
-npm run desktop:dev
-```
-
-Full Tauri desktop shell:
+Launch the full desktop app:
 
 ```bash
 npm run desktop:watch
 ```
 
-Use the Tauri shell for real serial sessions, persistence, and backend validation.
+Use `npm run desktop:dev` only for browser-based frontend work; it does not provide native serial, persistence, tray, updater, or audio integrations.
 
-## 7. Confirm everything is working
+## 2. Assemble the reference controller
 
-When the app opens, this is the expected flow:
+Reference parts:
 
-- the app discovers serial ports or respects your preferred port
-- the status card moves through connection states instead of staying idle forever
-- the runtime receives a firmware handshake before or alongside knob frames
-- the `Watch` tab shows frames such as `512|768|1023`
-- the telemetry chart reacts when you turn the knobs
-- the active profile is stored as JSON and survives restarts
-- `Atualizar áudio` refreshes the Linux audio inventory
-- turning the knobs updates targets such as master volume, apps, or microphone input
+- Arduino Nano ATmega328P;
+- three 10k linear potentiometers;
+- USB data cable;
+- jumper wires and a breadboard or enclosure.
 
-Default profile mapping:
+Reference wiring:
 
-| Knob | Default target                        |
-| ---- | ------------------------------------- |
-| 1    | Default output / master volume        |
-| 2    | `Spotify`, `Google Chrome`, `Firefox` |
-| 3    | `default_microphone`                  |
+| Knob | Outer pin | Center pin | Other outer pin |
+| --- | --- | --- | --- |
+| 1 | `GND` | `A0` | `5V` |
+| 2 | `GND` | `A1` | `5V` |
+| 3 | `GND` | `A2` | `5V` |
 
-## 8. Know where the app stores data
+If rotation feels inverted, swap the two outer pins. Read [Hardware setup](docs/guides/hardware-setup.md) before wiring another board or adding buttons/encoders.
 
-The desktop app persists two important files:
+## 3. Compile and flash the firmware
 
-- `ioruba-state.json` — active profile and runtime state
-- `ioruba-watch.log` — structured watch events, automatically trimmed to about `1 MiB`
-
-Locations:
-
-- Linux: `~/.config/io.ioruba.desktop/`
-- macOS: `~/Library/Application Support/io.ioruba.desktop/`
-- Windows: `%APPDATA%\\io.ioruba.desktop\\`
-
-## 9. Build the desktop app locally
-
-For a local Tauri build without final installers:
+Detect the board and port:
 
 ```bash
-npm run desktop:tauri:build
+arduino-cli board list
 ```
 
-If you change the source app icon in [apps/desktop/src-tauri/icons/app-icon.svg](apps/desktop/src-tauri/icons/app-icon.svg), regenerate every derived asset first:
+Compile the default Nano firmware:
 
 ```bash
-npm run desktop:icons
+npm run firmware:compile
 ```
 
-## 10. Quick troubleshooting
+Upload to a standard Nano:
 
-### Tauri fails to compile on Linux
+```bash
+arduino-cli upload \
+  -p /dev/ttyUSB0 \
+  --fqbn arduino:avr:nano \
+  firmware/arduino/ioruba-controller
+```
 
-Install the WebKit/GTK development packages required by Tauri:
+For common clones with the old bootloader:
+
+```bash
+arduino-cli upload \
+  -p /dev/ttyUSB0 \
+  --fqbn arduino:avr:nano:cpu=atmega328old \
+  firmware/arduino/ioruba-controller
+```
+
+Replace `/dev/ttyUSB0` with the port reported on your system. See [Nano setup](NANO_SETUP.md) for upload failures and serial validation.
+
+## 4. Prepare Linux serial access
+
+If the app reports permission denied, add your user to the group used by your distribution:
+
+```bash
+sudo usermod -a -G dialout "$USER"
+sudo usermod -a -G uucp "$USER"
+```
+
+Not every distribution uses both groups. Log out and back in after changing membership.
+
+## 5. Connect Ioruba
+
+Open the app and confirm:
+
+1. the serial port is auto-detected or selected manually;
+2. connection health progresses to **connected**;
+3. the firmware handshake reports board, firmware, protocol, knob count, MCU, and ADC bits;
+4. the **Watch** section receives frames such as `512|768|1023`;
+5. turning a knob changes the live control and telemetry displays;
+6. the Hardware section reports protocol 2 as compatible;
+7. the active profile survives an app restart.
+
+The current firmware uses **115200 baud** and emits:
+
+```text
+HELLO board=Ioruba Nano; fw=0.6.1; protocol=2; knobs=3; mcu=ATmega328P; adcBits=10; threshold=4; deadzone=7; smooth=75; mins=0,0,0; maxs=1023,1023,1023
+512|768|1023
+```
+
+The app accepts the legacy `P1:512` format and migrates profiles that still use the old 9600-baud default.
+
+## 6. Configure audio targets
+
+The default profile maps:
+
+| Knob | Target |
+| --- | --- |
+| 1 | Default output / master volume |
+| 2 | Spotify, Google Chrome, and Firefox |
+| 3 | Default microphone source |
+
+Open **Settings → Profile editor** to choose a preset, edit sliders and controls visually, or use advanced JSON. Profiles can be imported, exported, duplicated, and reset.
+
+On Linux:
+
+```bash
+pactl info
+pactl list short sink-inputs
+pactl list short sinks
+pactl list short sources
+```
+
+Start playback in target applications, then select **Refresh audio** / **Atualizar áudio**. Application streams only appear while active. For durable device mappings, prefer `default_output` and `default_microphone`.
+
+See [Profile examples and target matching](docs/guides/profile-examples.md).
+
+## 7. Use calibration, telemetry, and controls
+
+- **Calibration:** open Hardware and run the per-knob calibration wizard. The profile stores `minRaw`/`maxRaw`, and the serial runtime sends the matching `CONFIG` command to firmware.
+- **Telemetry:** inspect the live chart and whole-session min/average/max values. Export session statistics as JSON or CSV.
+- **Watch log:** filter runtime events and export them as JSON Lines or text.
+- **Buttons/encoders:** enable them at firmware compile time and bind `mute`, `next`, or `prev` in the visual profile editor.
+- **Demo mode:** validate UI behavior without changing system audio.
+
+## 8. Desktop behavior
+
+Closing the main window hides Ioruba instead of exiting. Use the tray action or **Ctrl+Alt+I** to restore it; choose **Quit** / **Sair** from the tray to end the process.
+
+- KDE Plasma supports the tray natively.
+- GNOME requires the AppIndicator/KStatusNotifierItem extension.
+- Environments without a tray host can still use **Ctrl+Alt+I**.
+
+Launch-on-login and update preferences are available in app settings. Signed in-app updates are offered by installed native builds when a newer release is available.
+
+## 9. Data and reset
+
+Ioruba stores state and logs in:
+
+| OS | Directory |
+| --- | --- |
+| Linux | `~/.config/io.ioruba.desktop/` |
+| macOS | `~/Library/Application Support/io.ioruba.desktop/` |
+| Windows | `%APPDATA%\io.ioruba.desktop\` |
+
+Important files:
+
+- `ioruba-state.json` — profiles and app settings;
+- `ioruba-watch.log` — persistent, size-limited watch events.
+
+Back up the directory before recovery work. If the state is corrupt, close Ioruba and remove only `ioruba-state.json`; safe defaults are recreated at next launch.
+
+## 10. Common problems
+
+### No serial frames
+
+- Confirm the current sketch is flashed.
+- Confirm **115200 baud** in the profile and serial monitor.
+- Use a USB data cable.
+- Check `A0`, `A1`, and `A2` wiring for the reference build.
+- Make sure no serial monitor is holding the port: `fuser -v /dev/ttyUSB0`.
+- Try the Nano old-bootloader upload profile if flashing fails.
+
+### Linux audio does not move
+
+- Confirm `pactl info` succeeds.
+- Keep application targets actively playing audio.
+- Refresh the audio inventory.
+- Check names with `pactl list short sink-inputs`.
+- Inspect the latest per-target outcome and Watch entries.
+
+### Tauri does not compile on Linux
+
+Install the [current Tauri Linux prerequisites](https://v2.tauri.app/start/prerequisites/). On Arch Linux, the project commonly needs:
 
 ```bash
 sudo pacman -S --needed \
@@ -188,209 +232,35 @@ sudo pacman -S --needed \
   xdotool
 ```
 
-On Arch, the tray path depends on `libappindicator-gtk3`. This matches the current Tauri 2 Linux prerequisites.
+### AppImage bundling fails on recent Arch Linux
 
-## 11. Smoke test as an end user on Arch
+New Arch libraries can expose a `linuxdeploy`/`strip` incompatibility around `.relr.dyn`. Use the release binary for a local behavior smoke test, or build the public AppImage in CI/Ubuntu 22.04. Release CI validates extraction and launch with `scripts/validate-appimage.sh --require-launch`.
 
-Try to build an installable Linux artifact from the repository root:
+### Windows or macOS application targets do not work
 
-```bash
-npm --workspace @ioruba/desktop run tauri build -- --bundles appimage
-```
+This is an explicit current limitation. Those platforms support default-output `master` volume only; application/source/sink targets return unsupported outcomes rather than pretending to apply.
 
-The AppImage is written under:
+## 11. Validate a downloaded release
 
-```bash
-apps/desktop/src-tauri/target/release/bundle/appimage/
-```
-
-Validate the generated AppImage structure before running it:
+Download the asset and `SHA256SUMS.txt` into one directory, then run:
 
 ```bash
-scripts/validate-appimage.sh apps/desktop/src-tauri/target/release/bundle/appimage/Ioruba_*.AppImage
-```
-
-Run it as a user would:
-
-```bash
-./apps/desktop/src-tauri/target/release/bundle/appimage/Ioruba_*.AppImage
-```
-
-What to verify in this pass:
-
-- the app opens normally outside `tauri dev`
-- closing the main window does not kill the process
-- the app remains available in the tray
-- left click or the `Abrir Ioruba` tray action restores the window
-- `Sair` from the tray really exits the process
-- persistence, serial connection, and `Atualizar áudio` still behave the same
-
-Known limitation on current Arch hosts:
-
-- the AppImage bundling step can still fail inside `linuxdeploy` because the embedded `strip` does not understand newer Arch libraries with `.relr.dyn`
-- when that happens, treat the release binary at `apps/desktop/src-tauri/target/release/ioruba-desktop` as the local smoke-test target for tray/background behavior
-- for public AppImage artifacts, prefer building in CI or in an older Linux base image instead of on a bleeding-edge Arch workstation
-- the tagged release workflow runs `scripts/validate-appimage.sh --require-launch` on Ubuntu 22.04, so public AppImage assets have automated extraction and launch smoke checks
-
-### The app opens but no packets arrive
-
-- confirm the board is flashing the current sketch
-- confirm the board answers with `HELLO board=...; fw=...; protocol=...; knobs=...`
-- confirm the board is sending `512|768|1023`
-- confirm `9600` baud
-- check the knob wiring on `A0`, `A1`, and `A2`
-- verify the selected serial port in the app
-- retry with the old-bootloader Nano profile if you use a clone
-
-### Audio targets do not move
-
-- confirm `pactl info` works
-- make sure target applications are actively playing audio
-- refresh the inventory from the desktop app
-- inspect the JSON profile in the `Config` tab
-
-### You are on Windows
-
-Windows has partial audio support: `master` targets control the default output volume via Core Audio. Application/source/sink targets are explicitly unsupported. Demo mode, serial, telemetry, and packaging work normally.
-
-### You are on macOS
-
-macOS has partial audio support: `master` targets control the default output volume via the Core Audio framework. Application/source/sink targets are explicitly unsupported. Demo mode, serial, telemetry, and packaging work normally.
-
-## 12. Verify a release download
-
-Every release ships a `SHA256SUMS.txt` alongside the binary installers. Before installing, verify the download:
-
-```bash
-# Download SHA256SUMS.txt and the installer into the same directory, then:
 sha256sum --check SHA256SUMS.txt --ignore-missing
 ```
 
-GitHub also publishes SLSA build provenance attestations for each binary. Verify with the GitHub CLI:
+GitHub provenance can also be verified:
 
 ```bash
-gh attestation verify Ioruba_0.6.9_amd64.deb \
-  --repo bernardopg/ioruba
+gh attestation verify <downloaded-asset> --repo bernardopg/ioruba
 ```
 
-Replace the filename with the artifact you downloaded. A passing verification confirms the file was produced by the official release workflow and has not been tampered with.
-
-## 13. Update and recovery
-
-### Updating to a new release
-
-**Debian/Ubuntu (.deb):**
-
-```bash
-sudo dpkg -i Ioruba_<version>_amd64.deb
-```
-
-**Fedora/RHEL (.rpm):**
-
-```bash
-sudo rpm -Uvh Ioruba-<version>-1.x86_64.rpm
-```
-
-**AppImage:**
-
-Replace the existing `.AppImage` file and re-mark it executable:
-
-```bash
-chmod +x Ioruba_<version>_amd64.AppImage
-```
-
-No uninstall step required — the new file replaces the old one in place.
-
-**Arch Linux (AUR):**
-
-```bash
-# ioruba-desktop (build from source):
-paru -Syu ioruba-desktop
-
-# ioruba-desktop-bin (prebuilt AppImage):
-paru -Syu ioruba-desktop-bin
-```
-
-### Recovering from a broken bundle
-
-If the app fails to start after an update, your configuration is stored separately from the binary and survives reinstallation.
-
-**Back up your configuration first:**
-
-```bash
-cp -r ~/.config/io.ioruba.desktop/ ~/ioruba-config-backup/
-```
-
-**Recover a valid state file:**
-
-If `ioruba-state.json` is corrupted, delete it — the app recreates it with safe defaults on next launch:
-
-```bash
-rm ~/.config/io.ioruba.desktop/ioruba-state.json
-```
-
-Your `ioruba-watch.log` (the event log) is safe to delete at any time:
-
-```bash
-rm ~/.config/io.ioruba.desktop/ioruba-watch.log
-```
-
-**Full reset (last resort):**
-
-```bash
-# Back up first, then:
-rm -rf ~/.config/io.ioruba.desktop/
-```
-
-The app will rebuild all defaults on next launch. Re-enter your serial port preference and profile configuration.
-
-**Reinstall the binary:**
-
-Download the latest installer from [Releases](https://github.com/bernardopg/ioruba/releases) and install as described above. Your configuration directory is untouched by reinstallation.
-
-### Tray icon not appearing after update
-
-If the system tray icon disappears after an update, the app may be running in the background without a visible tray host. Check with:
-
-```bash
-pgrep -a ioruba-desktop
-```
-
-If the process is running, kill it and relaunch. See [Desktop Environment tray notes](#tray-support-by-desktop-environment) in this file and the troubleshooting playbook at [docs/debug/support.md](docs/debug/support.md).
-
-## 14. Tray support by desktop environment
-
-The app keeps running in the background when you close the main window and exposes itself through the system tray. Tray behavior varies by desktop environment.
-
-### Hyprland (Wayland)
-
-Works without a tray host. The app registers a `CloseRequested` handler to hide the window instead of exiting. Use the global shortcut **Ctrl+Alt+I** to toggle the window when the compositor does not provide a `StatusNotifierWatcher`.
-
-### KDE Plasma (Wayland and X11)
-
-Native StatusNotifier support. The tray icon appears without any extra packages or extensions.
-
-### GNOME (Wayland and X11)
-
-GNOME does not display StatusNotifier tray icons by default. Install the **AppIndicator and KStatusNotifierItem Support** extension:
-
-- From GNOME Extensions: [extensions.gnome.org/extension/615](https://extensions.gnome.org/extension/615/appindicator-support/)
-- On Ubuntu: `sudo apt install gnome-shell-extension-appindicator`
-- On Fedora: `sudo dnf install gnome-shell-extension-appindicator`
-- On Arch: `paru -S gnome-shell-extension-appindicator`
-
-Enable the extension in GNOME Extensions or `gnome-extensions-app`, then log out and back in. The Ioruba tray icon will appear in the top bar.
-
-Until the extension is active, use the global shortcut **Ctrl+Alt+I** to toggle the main window.
-
-### Other environments
-
-Any desktop that implements the StatusNotifierItem/AppIndicator protocol should display the tray icon without additional configuration. Environments without tray support can still use **Ctrl+Alt+I** to toggle the window.
+Signed updater artifacts (`.sig` and `latest.json`) are verified by Tauri before an in-app installation.
 
 ## Next reads
 
-- [README.md](README.md) for the repository overview
-- [NANO_SETUP.md](NANO_SETUP.md) for firmware and serial details
-- [docs/guides/profile-examples.md](docs/guides/profile-examples.md) for JSON profile samples
-- [docs/debug/support.md](docs/debug/support.md) for troubleshooting playbooks
-- [TESTING.md](TESTING.md) for the validation matrix
+- [README](README.md) — product, installation, architecture, and repository map
+- [Hardware setup](docs/guides/hardware-setup.md) — boards, pin maps, buttons, and encoders
+- [Nano setup](NANO_SETUP.md) — reference firmware flashing
+- [Profile examples](docs/guides/profile-examples.md) — current JSON schema and target rules
+- [Support playbook](docs/debug/support.md) — deeper troubleshooting and recovery
+- [Testing](TESTING.md) — automated and manual validation matrix

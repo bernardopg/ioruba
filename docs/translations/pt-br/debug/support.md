@@ -1,152 +1,171 @@
-# Playbook de Suporte
+# Playbook de suporte
 
-Use este documento quando voce precisar de um checklist pratico de triagem para a stack atual do Ioruba.
+Use este roteiro para isolar a falha na ordem: hardware → serial → perfil/runtime → backend de áudio → integração/update.
 
-## 🧾 O que coletar primeiro
+## Coletar primeiro
 
-Antes de abrir uma issue ou depurar uma sessao com problema, capture:
+- versão do Ioruba e método de instalação;
+- SO, versão, arquitetura e ambiente desktop;
+- placa e handshake do firmware;
+- porta serial e baud configurado;
+- trecho relevante do perfil;
+- export do Watch perto da falha;
+- passos, resultado esperado e resultado real.
 
-- sistema operacional e versao
-- se voce esta usando um Nano real ou modo demo
-- o JSON de perfil atual na aba Config
-- as ultimas linhas de ioruba-watch.log
-- saida de:
+No Linux:
 
 ```bash
-node --version
-npm --version
+arduino-cli board list
 pactl info
-arduino-cli board list
+pactl list short sink-inputs
+pactl list short sinks
+pactl list short sources
 ```
 
-Locais uteis de configuracao:
+Diretórios:
 
-- Linux: ~/.config/io.ioruba.desktop/
-- macOS: ~/Library/Application Support/io.ioruba.desktop/
-- Windows: %APPDATA%\\io.ioruba.desktop\\
+- Linux: `~/.config/io.ioruba.desktop/`;
+- macOS: `~/Library/Application Support/io.ioruba.desktop/`;
+- Windows: `%APPDATA%\io.ioruba.desktop\`.
 
-## 🔌 Problemas de serial
+Revise e remova dados pessoais antes de publicar logs.
 
-### Sintoma: controlador nao encontrado
+## Serial
 
-Verifique:
+### Controlador não detectado
 
-- a placa esta alimentada por um cabo USB de dados real
-- o sketch em firmware/arduino/ioruba-controller foi gravado
-- a placa aparece em arduino-cli board list
-- seu usuario Linux esta nos grupos dialout e/ou uucp
+- use cabo USB de dados;
+- confirme energia e firmware gravado;
+- rode `arduino-cli board list`;
+- selecione a porta manualmente;
+- no Linux, confira `/dev/ttyUSB*` e `/dev/ttyACM*`.
 
-Comandos:
+### Permissão negada
 
 ```bash
-arduino-cli board list
-ls -l /dev/ttyUSB* /dev/ttyACM* 2>/dev/null
+sudo usermod -a -G dialout "$USER"
+sudo usermod -a -G uucp "$USER"
 ```
 
-### Sintoma: porta ocupada ou permissao negada
+Use o grupo da distribuição e entre novamente na sessão.
 
-Verifique se outra ferramenta esta segurando a porta:
+### Porta ocupada
 
 ```bash
 fuser -v /dev/ttyUSB0
 ```
 
-Corrija permissoes no Linux se necessario:
+Feche monitores seriais e outros processos.
 
-```bash
-sudo usermod -a -G dialout $USER
-sudo usermod -a -G uucp $USER
+### Conectado sem frames
+
+- confirme **115200 baud**;
+- teste um monitor serial e feche-o antes do Ioruba;
+- confirme protocolo 2 e quantidade de knobs;
+- confira `A0/A1/A2` no Nano de referência;
+- exporte o Watch em torno de connect/disconnect.
+
+Saída esperada:
+
+```text
+HELLO board=Ioruba Nano; fw=0.6.1; protocol=2; knobs=3; mcu=ATmega328P; adcBits=10; threshold=4; deadzone=7; smooth=75; mins=0,0,0; maxs=1023,1023,1023
+512|768|1023
 ```
 
-Depois, encerre a sessao e entre novamente.
+Perfis com o antigo padrão 9600 são migrados automaticamente.
 
-## 🎛️ Problemas de audio no Linux
+## Hardware
 
-### Sintoma: backend indisponivel
+- faixa incompleta: execute o wizard de calibração;
+- sentido invertido: troque os pinos externos ou marque `inverted`;
+- jitter: confira GND, fios, calibração, ADC e só então smoothing.
 
-O caminho de audio de producao atual depende de pactl.
+## Áudio no Linux
 
-Verifique:
+### Backend indisponível
 
 ```bash
 pactl info
 ```
 
-Se falhar, instale uma interface compativel com PulseAudio, como PipeWire Pulse ou utilitarios do PulseAudio.
+É necessária uma interface `pactl` compatível com PulseAudio ou PipeWire Pulse.
 
-### Sintoma: aplicativos nao se movem
-
-Verifique:
+### Aplicação não muda
 
 ```bash
 pactl list short sink-inputs
 ```
 
-Dicas:
+Mantenha a aplicação tocando, atualize o inventário e use parte estável do nome. Aplicação inativa retorna `idle`.
 
-- mantenha o aplicativo alvo reproduzindo audio ativamente
-- atualize o inventario no app desktop
-- use nomes estaveis de aplicacao no JSON de perfil
-
-### Sintoma: microfone ou saida nao se move
-
-Verifique:
+### Sink/source não muda
 
 ```bash
-pactl list short sinks
-pactl list short sources
 pactl get-default-sink
 pactl get-default-source
+pactl list short sinks
+pactl list short sources
 ```
 
-Prefira default_output e default_microphone quando quiser que os perfis sobrevivam a mudancas de dispositivo.
+Prefira `default_output` e `default_microphone`.
 
-## 🧩 Problemas no JSON de perfil
+### Mute ou mídia falha
 
-### Sintoma: perfil nao salva
+Mute usa `pactl`; `next`/`prev` precisam de `playerctl`. `target` só é válido para `mute`. Leia o outcome e o Watch.
 
-O editor ja faz validacao inline. Causas comuns:
+## Windows e macOS
 
-- sintaxe JSON invalida
-- slider id duplicado
-- name vazio
-- kind invalido
-- valores de enum invalidos em audio ou ui
+- Windows: volume/mute `master` da saída padrão via WASAPI;
+- macOS: volume `master` da saída padrão via CoreAudio;
+- application/source/sink continuam Linux-only.
 
-Exemplos de referencia:
+Serial, perfis, demo, telemetria, persistência, tray e updater devem funcionar. Alvos sem suporte precisam retornar outcome explícito.
 
-- [../guides/profile-examples.md](../guides/profile-examples.md)
+## Perfil e estado
 
-## 📈 Problemas de runtime e watch log
+Erros comuns no editor: JSON inválido, IDs duplicados, target sem nome, enum inválido, controle malformado ou `target` em `next`/`prev`. Compare com [Exemplos de perfil](../guides/profile-examples.md).
 
-Se a UI abrir mas o comportamento ainda parecer incorreto:
+Para resetar:
 
-- inspecione a aba Watch
-- compare a ultima linha serial com o movimento no controlador
-- verifique se o app esta preso em searching, connecting, connected ou demo
-- confirme se ioruba-watch.log esta sendo escrito no diretorio de configuracao
+```bash
+cp -a ~/.config/io.ioruba.desktop ~/ioruba-config-backup
+rm ~/.config/io.ioruba.desktop/ioruba-state.json
+```
 
-## 🖥️ Plataformas nao Linux
+O app recria defaults. Backups `ioruba-state.backup.*.json` podem ser criados ao substituir estado corrompido/incompatível. `ioruba-watch.log` é limitado a ~1 MiB e pode ser apagado com o app fechado.
 
-No Windows, trate o app atual como suporte parcial de audio:
+## Tray e janela
 
-- valido para revisao de layout
-- valido para modo demo
-- valido para validacao de persistencia
-- controle real de volume de saida padrao (`master`) via Core Audio
-- targets app/source/sink devem reportar outcomes nao suportados
+Fechar esconde a janela. Restaure pelo tray ou **Ctrl+Alt+I**; use **Sair** para encerrar.
 
-No macOS, trate o app atual como suporte parcial de audio:
+No GNOME, instale AppIndicator/KStatusNotifierItem:
 
-- valido para revisao de layout
-- valido para modo demo
-- valido para validacao de persistencia
-- controle real de volume de saida padrao (`master`) via framework Core Audio
-- targets app/source/sink devem reportar outcomes nao suportados
+- Ubuntu: `sudo apt install gnome-shell-extension-appindicator`;
+- Fedora: `sudo dnf install gnome-shell-extension-appindicator`;
+- Arch: `paru -S gnome-shell-extension-appindicator`.
+
+KDE suporta nativamente; ambientes sem host de tray usam o atalho.
+
+## Instalação e update
+
+Verifique downloads:
+
+```bash
+sha256sum --check SHA256SUMS.txt --ignore-missing
+gh attestation verify <asset> --repo bernardopg/ioruba
+```
+
+Se update assinado falhar, exporte o Watch e confirme que o release contém `latest.json`, o artefato e `.sig`. Não ignore falha de assinatura; instale um asset verificado manualmente.
+
+Bundles macOS atuais podem estar sem assinatura/notarização. AppImages públicos são gerados/testados no Ubuntu 22.04; build local em Arch recente pode esbarrar em `linuxdeploy`/`.relr.dyn`.
+
+## Abrir issue
+
+Se persistir, abra uma [issue](https://github.com/bernardopg/ioruba/issues) com o bundle mínimo de suporte.
 
 ## Documentos relacionados
 
-- [../../README.md](../../README.md)
-- [../../QUICKSTART.md](../../QUICKSTART.md)
-- [../guides/profile-examples.md](../guides/profile-examples.md)
-- [../../TESTING.md](../../TESTING.md)
+- [README PT-BR](../root/README.md)
+- [Início rápido](../root/QUICKSTART.md)
+- [Perfis](../guides/profile-examples.md)
+- [Testes](../root/TESTING.md)

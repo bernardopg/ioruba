@@ -10,6 +10,10 @@ inputs:
     description: arduino-cli release version (without the leading "v").
     required: false
     default: "1.5.1"
+  sha256:
+    description: SHA-256 of the Linux x86_64 release archive.
+    required: false
+    default: "28a8e119c498a25607821c36cb2dc49e8463941b261a0d99091baa7bc692dd2b"
 
 runs:
   using: composite
@@ -25,10 +29,13 @@ runs:
         # All firmware jobs run on ubuntu-latest (x86_64), so Linux_64bit is the
         # only asset we need. Bump the input to move arduino-cli forward.
         tmpdir="$(mktemp -d)"
-        curl -fsSL \
-          "https://github.com/arduino/arduino-cli/releases/download/v${VERSION}/arduino-cli_${VERSION}_Linux_64bit.tar.gz" \
-          -o "$tmpdir/arduino-cli.tar.gz"
-        tar -xzf "$tmpdir/arduino-cli.tar.gz" -C "$tmpdir" arduino-cli
+        archive="$tmpdir/arduino-cli.tar.gz"
+        url="https://github.com/arduino/arduino-cli/releases/download/v${VERSION}/arduino-cli_${VERSION}_Linux_64bit.tar.gz"
+        curl --fail --location --silent --show-error \
+          --retry 5 --retry-all-errors --retry-delay 2 \
+          "$url" -o "$archive"
+        echo "${{ inputs.sha256 }}  $archive" | sha256sum --check --strict
+        tar -xzf "$archive" -C "$tmpdir" arduino-cli
         install -m 0755 "$tmpdir/arduino-cli" "$INSTALL_DIR/arduino-cli"
 
         # Prepends to PATH for every subsequent step in the calling job.

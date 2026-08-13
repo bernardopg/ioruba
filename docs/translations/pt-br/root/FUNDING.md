@@ -24,9 +24,9 @@ Se preferir apoiar direto do celular, escaneie o QR code abaixo:
 
 O apoio vai para:
 
-- fortalecer o shell desktop Tauri e o backend de audio Linux
-- melhorar compatibilidade de firmware entre variantes de Nano
-- manter CI, automacao de release e documentacao de migracao
+- fortalecer o shell desktop Tauri e os backends de áudio
+- ampliar e validar compatibilidade de firmware entre placas
+- manter CI, segurança, automação de release e documentação
 
 ## Contato
 

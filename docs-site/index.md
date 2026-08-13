@@ -7,79 +7,48 @@ source_path: docs/index.md
 ---
 # Ioruba Documentation
 
-Ioruba turns an `Arduino Nano + 3 knobs` into a tactile control deck for desktop audio workflows.
+Build, configure, troubleshoot, and contribute to the Ioruba tactile desktop audio controller.
 
-This GitHub Pages hub is organized for the real path users take in the project:
+> Canonical content lives in the repository Markdown files. This Pages site is generated with `npm run docs:prepare-site`.
 
-1. understand the product surface,
-2. wire and flash the hardware,
-3. validate the desktop app,
-4. troubleshoot audio and serial issues,
-5. contribute, translate, and ship updates.
+## Start here
 
-## 🚀 Start here
+- [Project overview](root/README.html) — product, platforms, installation, architecture
+- [Quick start](root/QUICKSTART.html) — install/build, flash, connect, and configure
+- [Hardware setup](guides/hardware-setup.html) — supported boards and wiring
+- [Nano setup](root/NANO_SETUP.html) — reference controller firmware
 
-- [Quick Start Guide](root/QUICKSTART.html) — fastest path to a working session
-- [Project README](root/README.html) — full repository overview
-- [Nano Setup](root/NANO_SETUP.html) — flash the Arduino board
+## Configure and troubleshoot
 
-## 📖 Practical guides
+- [Profile examples](guides/profile-examples.html) — profile schema, targets, and controls
+- [Support playbook](debug/support.html) — serial, audio, state, update, and tray diagnosis
+- [Testing](root/TESTING.html) — local checks, CI, hardware, and releases
 
-- [Hardware Setup](guides/hardware-setup.html) — wiring the potentiometers
-- [Profile Examples](guides/profile-examples.html) — JSON profiles and Linux target matching
-- [Translation Guide](guides/translation-guide.html) — how translations work
-- [Support Playbook](debug/support.html) — troubleshooting serial, audio, and profiles
+## Architecture and project
 
-## ⚙️ Project operations
+- [Audio backend contract](guides/audio-backend-contract.html)
+- [Release distribution](guides/release-distribution.html)
+- [Translation guide](guides/translation-guide.html)
+- [Contributing](root/CONTRIBUTING.html)
+- [Roadmap](roadmap.html) and [executable backlog](root/TODO.html)
+- [Changelog](root/CHANGELOG.html)
 
-- [Testing](root/TESTING.html) — validation matrix and smoke tests
-- [Contributing](root/CONTRIBUTING.html) — guidelines for contributors
-- [Funding](root/FUNDING.html) — support the project
-- [Roadmap](root/TODO.html) — upcoming features
-- [Changelog](root/CHANGELOG.html) — release history
+## Languages
 
-## 🌐 Portuguese docs
+- [PT-BR documentation](translations/pt-br/README.html)
 
-- [PT-BR Index](translations/pt-br/README.html)
+## Quick reference
 
----
-
-## 📋 Quick reference
-
-### Default knob mapping
-
-| Knob | Target |
-|------|--------|
-| 1 | Master volume |
-| 2 | Applications (Spotify, Chrome, Firefox) |
-| 3 | Default microphone |
-
-### Serial protocol
-
+```text
+Current firmware: 0.6.1
+Serial default: 115200 baud
+Protocol: 2
+Reference frame: 512|768|1023
 ```
-HELLO board=Ioruba Nano; fw=0.5.1; protocol=2; knobs=3; threshold=4; deadzone=7; smooth=75
-512|768|1023
-```
-
-### Common commands
 
 ```bash
-# Install dependencies
 npm install
-
-# Verify the stack
 npm run verify
-
-# Compile firmware
 npm run firmware:compile
-
-# Launch desktop app
 npm run desktop:watch
 ```
-
-### Config directory
-
-- Linux: `~/.config/io.ioruba.desktop/`
-- macOS: `~/Library/Application Support/io.ioruba.desktop/`
-- Windows: `%APPDATA%\\io.ioruba.desktop\\`
-

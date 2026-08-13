@@ -1,291 +1,183 @@
 <div align="center">
 
-[![Release workflow](https://github.com/bernardopg/ioruba/actions/workflows/release.yml/badge.svg)](https://github.com/bernardopg/ioruba/actions/workflows/release.yml)
-[![CI workflow](https://github.com/bernardopg/ioruba/actions/workflows/ci.yml/badge.svg)](https://github.com/bernardopg/ioruba/actions/workflows/ci.yml)
-[![Version](https://img.shields.io/github/package-json/v/bernardopg/ioruba?filename=package.json&label=version)](../../../../package.json)
-[![Project status](https://img.shields.io/badge/status-active%20development-2ea043)](./TODO.md)
-[![Last commit](https://img.shields.io/github/last-commit/bernardopg/ioruba?label=last%20commit)](https://github.com/bernardopg/ioruba/commits/main)
-[![License: MIT](https://img.shields.io/badge/license-MIT-0A66C2)](../../../../LICENSE)
+<img src="../../../assets/banner.png" alt="Ioruba — áudio do desktop em controles físicos" width="100%" />
 
 <br />
-
-[![GitHub Sponsors](https://img.shields.io/badge/GitHub%20Sponsors-30363D?logo=GitHub-Sponsors&logoColor=EA4AAA)](https://github.com/sponsors/bernardopg)
-[![Buy Me a Coffee](https://img.shields.io/badge/Buy%20Me%20a%20Coffee-FFDD00?logo=buy-me-a-coffee&logoColor=black)](https://www.buymeacoffee.com/WctwoM9eMU)
-
 <br />
 
-[![Tauri 2](https://img.shields.io/badge/Tauri-2-24C8DB?logo=tauri&logoColor=fff)](https://tauri.app/)
-[![Rust](https://img.shields.io/badge/Rust-%23000000.svg?logo=rust&logoColor=white)](https://www.rust-lang.org/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=fff)](https://www.typescriptlang.org/)
-[![C++](https://img.shields.io/badge/C++-%2300599C.svg?logo=c%2B%2B&logoColor=white)](https://isocpp.org/)
-[![Arduino Nano](https://img.shields.io/badge/Arduino%20Nano-00979D?logo=arduino&logoColor=white)](https://www.arduino.cc/)
-[![Node.js 22](https://img.shields.io/badge/Node.js-22-5FA04E?logo=node.js&logoColor=white)](https://nodejs.org/en)
-[![PT-BR Docs](https://img.shields.io/badge/docs-PT--BR-0A66C2?logo=readthedocs&logoColor=white)](../README.md)
+**Um painel tátil de áudio para desktop, feito com Arduino, Tauri, React e Rust.**
 
-<br />
+[![Release](https://github.com/bernardopg/ioruba/actions/workflows/release.yml/badge.svg?event=release)](https://github.com/bernardopg/ioruba/actions/workflows/release.yml)
+[![CI](https://github.com/bernardopg/ioruba/actions/workflows/ci.yml/badge.svg)](https://github.com/bernardopg/ioruba/actions/workflows/ci.yml)
+[![Versão](https://img.shields.io/github/package-json/v/bernardopg/ioruba?filename=package.json&label=vers%C3%A3o)](../../../../package.json)
+[![Licença: MIT](https://img.shields.io/badge/licen%C3%A7a-MIT-0A66C2)](../../../../LICENSE)
 
-[![Linux: Supported](https://img.shields.io/badge/Linux-supported-3FB950?logo=linux&logoColor=black)](#%EF%B8%8F-suporte-de-plataforma)
-[![macOS: Partial](https://img.shields.io/badge/macOS-partial-A0A0A0?logo=apple&logoColor=white)](#%EF%B8%8F-suporte-de-plataforma)
-[![Windows: Partial](https://img.shields.io/badge/Windows-partial-0078D6?logo=windows11&logoColor=white)](#%EF%B8%8F-suporte-de-plataforma)
-[![Arch Linux](https://img.shields.io/badge/Arch%20Linux-compatible-1793D1?logo=arch-linux&logoColor=fff)](#%EF%B8%8F-suporte-de-plataforma)
+[**Download**](https://github.com/bernardopg/ioruba/releases/latest) · [**Início rápido**](QUICKSTART.md) · [**Montar o controlador**](../guides/hardware-setup.md) · [**Índice PT-BR**](../README.md)
 
 </div>
 
-# Ioruba
+## O que é o Ioruba?
 
-Ioruba transforma um **Arduino Nano + 3 knobs** em um controle físico para desktop.
-A stack ativa é um app desktop em **Tauri 2 + React + TypeScript**, com camada de áudio em **Rust** (via `pactl` no Linux) e firmware em **Arduino C++**.
+O Ioruba transforma hardware barato de microcontrolador em um controlador físico de áudio para desktop. A montagem de referência usa **Arduino Nano e três potenciômetros**, mas o firmware também aceita configurações com Uno, Mega 2560, Leonardo/Micro, ESP32, RP2040/Pico e ESP8266.
 
-> **Status atual de plataforma**
-> O controle real de áudio está pronto para produção no **Linux** via `pactl`.
-> **Windows** e **macOS** fornecem volume `master`/saída padrão via Core Audio.
-> Alvos application/source/sink permanecem exclusivos do Linux.
+Ao girar um knob, o Ioruba lê o frame serial, aplica o perfil ativo, atualiza a telemetria e altera o alvo de áudio. No Linux, o alvo pode ser a saída master, aplicações, sinks ou sources. Windows e macOS atualmente controlam apenas a saída padrão.
 
-## 📚 Links rápidos
+![Dashboard desktop do Ioruba](../../../assets/screenshot.png)
 
-- [Releases](https://github.com/bernardopg/ioruba/releases)
-- [Início Rápido](./QUICKSTART.md)
-- [Setup de Hardware](../guides/hardware-setup.md)
-- [Setup do Nano](./NANO_SETUP.md)
-- [Exemplos de Perfil](../guides/profile-examples.md)
-- [Guia de Tradução](../guides/translation-guide.md)
-- [Docs PT‑BR](../README.md)
-- [Suporte & Depuração](../debug/support.md)
-- [Testes](./TESTING.md)
-- [Contribuição](./CONTRIBUTING.md)
-- [Financiamento](./FUNDING.md)
-- [Roadmap](./TODO.md)
+## Destaques
 
-![Ioruba visual reference](../../../assets/screenshot.png)
-_Screenshot arquivado – referência visual da direção do painel tátil._
+- knobs, botões e encoders físicos opcionais;
+- firmware parametrizável de 1 a 16 knobs, conforme a placa;
+- ADC de 10/12 bits, calibração em EEPROM e handshake com diagnóstico;
+- controle Linux completo via `pactl`;
+- volume `master` no Windows via WASAPI e no macOS via CoreAudio;
+- presets, editor visual, JSON avançado e import/export de perfis;
+- telemetria, estatísticas de sessão exportáveis e watch log persistente;
+- tray, atalho `Ctrl+Alt+I`, inicialização com a sessão e atualização in-app assinada;
+- interface em português do Brasil, inglês e espanhol;
+- releases com checksums, provenance e manifests de gerenciadores de pacotes.
 
----
+## Suporte de plataforma
 
-## 🎛️ Por que este repositório existe
+| Plataforma | Áudio | Distribuição |
+| --- | --- | --- |
+| **Linux** | Completo: `master`, `application`, `sink` e `source` via interface `pactl` compatível com PulseAudio/PipeWire. | `.deb`, `.rpm`, AppImage e AUR. |
+| **Windows** | Parcial: volume e mute da saída padrão (`master`) via WASAPI. | MSI/NSIS; o workflow público passa a exigir Authenticode; Scoop e manifests winget. |
+| **macOS** | Parcial: volume da saída padrão (`master`) via CoreAudio. | `.app.tar.gz` para Apple Silicon/Intel e cask Homebrew; bundles podem estar sem assinatura/notarização. |
 
-O projeto preserva a sensação prática de um mixer pequeno enquanto moderniza a stack:
+Serial, perfis, modo demo, telemetria e diagnósticos funcionam nas três plataformas. Alvos por aplicação/source/sink continuam exclusivos do Linux.
 
-- **Runtime desktop** – `apps/desktop` (Tauri 2, React, TypeScript, Zustand)
-- **Firmware** – `firmware/arduino/ioruba-controller` (Arduino Nano C++)
-- **Lógica compartilhada** – `packages/shared` (tipos de domínio, parsing de protocolo, matemática de runtime)
-- **Backend Linux** – implementação em Rust usando `pactl`
-- **Persistência** – perfis JSON no diretório de configuração do app
-- **CI** – valida TypeScript, Rust e compilação do firmware
+## Instalação
 
-## ✅ O que você recebe hoje
-
-- Pacotes seriais como `512|768|1023` (três valores de 10 bits)
-- Handshake de firmware: `HELLO board=...; fw=...; protocol=...; knobs=...`
-- Compatibilidade com o formato legado `P1:512`
-- Telemetria ao vivo e watch log persistente no app desktop
-- Perfis JSON editáveis (persistidos por plataforma)
-- Modo demo para validar UI sem alterar o áudio real
-- Tratamento de alvos Linux para **master**, **application**, **source** e **sink**
-- Backends Windows e macOS Core Audio para controle de volume **master** (saída padrão)
-- CI para validação desktop/shared e compilação do firmware
-- Workflows de release com bundles desktop e metadados Arch (`PKGBUILD` + `.SRCINFO`)
-
-## 🖥️ Suporte de plataforma
-
-| Plataforma | Status | Notas |
-|----------|-----------|---------------------------------------------------------------------------------------------------|
-| Linux    | ✅ Suportado | Caminho principal de produção: serial, backend `pactl`, modo demo e validação de hardware. |
-| macOS    | ⚠️ Parcial  | Backend Core Audio controla o volume da saída padrão (`master`); alvos app/source/sink ainda não são suportados. |
-| Windows  | ⚠️ Parcial  | Backend Core Audio controla o volume da saída padrão (`master`); alvos app/source/sink ainda não são suportados. |
-
-> **Nota:** Linux ainda é a única plataforma com cobertura completa de targets (`master`, aplicações, sinks, sources). Windows e macOS atualmente suportam apenas volume da saída padrão.
-
-## ⚡ Instalação rápida
-
-Instaladores pré-build ficam no latest release:
-[https://github.com/bernardopg/ioruba/releases/latest](https://github.com/bernardopg/ioruba/releases/latest)
-
-### Instalador de uma linha (recomendado)
-
-O instalador detecta seu SO e a arquitetura da CPU, baixa o asset correspondente
-do último release, verifica contra o `SHA256SUMS.txt` e instala.
-
-**Linux / macOS:**
+### Linux e macOS
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/bernardopg/ioruba/main/scripts/install.sh | sh
 ```
 
-Opções: `--version v1.1.0` (fixar release), `--type deb|rpm` (pacote Linux em vez do
-AppImage padrão), `--dir <caminho>` (local de instalação). No Linux o padrão é um AppImage
-sem root em `~/.local/bin`; no macOS instala o `.app` em `/Applications`.
+O padrão no Linux é AppImage sem root em `~/.local/bin/ioruba.AppImage`. O instalador exige uma entrada exata em `SHA256SUMS.txt` e recusa instalação sem verificação. Opções locais:
 
-**Windows (PowerShell):**
+```bash
+./scripts/install.sh --version v1.8.2
+./scripts/install.sh --type appimage
+./scripts/install.sh --type deb
+./scripts/install.sh --type rpm
+./scripts/install.sh --dir "$HOME/.local/bin"
+```
+
+No macOS, o instalador usa `/Applications` quando possível e `~/Applications` como fallback.
+
+### Windows
+
+No PowerShell:
 
 ```powershell
 irm https://raw.githubusercontent.com/bernardopg/ioruba/main/scripts/install.ps1 | iex
 ```
 
-Opções: `-Version v1.1.0`, `-Type msi|nsis` (padrão `msi`).
+O padrão é MSI. Opções locais:
 
-> Sempre revise um script de instalação por pipe antes de executar. Fonte:
-> [`scripts/install.sh`](../../../scripts/install.sh) · [`scripts/install.ps1`](../../../scripts/install.ps1).
-
-### Arch Linux (AUR)
-
-```bash
-# Build de source
-yay -S ioruba-desktop
-
-# AppImage pré-build
-yay -S ioruba-desktop-bin
+```powershell
+.\scripts\install.ps1 -Version v1.8.2 -Type msi
+.\scripts\install.ps1 -Type nsis
 ```
 
-### Debian / Ubuntu / Linux Mint / Pop!_OS
+> Revise scripts remotos antes de enviá-los ao shell. Fontes: [`install.sh`](../../../../scripts/install.sh) e [`install.ps1`](../../../../scripts/install.ps1).
 
-```bash
-curl -s https://api.github.com/repos/bernardopg/ioruba/releases/latest \
-  | jq -r '.assets[] | select(.name | test("\\.deb$")) | .browser_download_url' \
-  | xargs -n1 curl -LO
+### Gerenciadores de pacotes
 
-sudo apt install ./Ioruba_*_amd64.deb
+- Arch: `yay -S ioruba-desktop` ou `yay -S ioruba-desktop-bin`;
+- Homebrew: `brew tap bernardopg/ioruba && brew install --cask ioruba`;
+- Scoop: `scoop bucket add ioruba https://github.com/bernardopg/scoop-ioruba && scoop install ioruba`.
+
+## Primeiro uso
+
+1. Instale o app ou faça o [setup de desenvolvimento](#desenvolvimento).
+2. Monte e grave o controlador com o [guia de hardware](../guides/hardware-setup.md) e o [setup do Nano](NANO_SETUP.md).
+3. Abra o Ioruba e selecione a porta serial, se necessário.
+4. Confirme conexão, handshake e frames na seção **Watch**.
+5. Abra **Configurações → Editor de perfil** e escolha os alvos.
+6. No Linux, inicie os apps de áudio e clique em **Atualizar áudio**.
+
+O firmware atual usa **115200 baud**, protocolo **2** e emite:
+
+```text
+HELLO board=Ioruba Nano; fw=0.6.1; protocol=2; knobs=3; mcu=ATmega328P; adcBits=10; threshold=4; deadzone=7; smooth=75; mins=0,0,0; maxs=1023,1023,1023
+512|768|1023
 ```
 
-### Fedora / RHEL / CentOS Stream / openSUSE (RPM)
+O parser ainda aceita `P1:512`, e perfis com o antigo padrão de 9600 baud são migrados automaticamente.
+
+### Perfil padrão
+
+| Knob | Alvo |
+| --- | --- |
+| 1 | Volume master / saída padrão |
+| 2 | Spotify, Google Chrome e Firefox |
+| 3 | Microfone padrão |
+
+## Desenvolvimento
+
+Pré-requisitos: Node.js 22/npm, Rust/Cargo, `arduino-cli`, dependências do Tauri e `pactl` para áudio Linux.
 
 ```bash
-curl -s https://api.github.com/repos/bernardopg/ioruba/releases/latest \
-  | jq -r '.assets[] | select(.name | test("\\.rpm$")) | .browser_download_url' \
-  | xargs -n1 curl -LO
-
-# Para Fedora/RHEL via dnf:
-sudo dnf install ./Ioruba-*.x86_64.rpm
-# Para zypper (openSUSE) ou yum (CentOS antigo), ajuste o comando.
-```
-
-### Qualquer distro Linux (AppImage)
-
-```bash
-curl -s https://api.github.com/repos/bernardopg/ioruba/releases/latest \
-  | jq -r '.assets[] | select(.name | test("\\.AppImage$")) | .browser_download_url' \
-  | xargs -n1 curl -LO
-
-chmod +x Ioruba_*.AppImage
-./Ioruba_*.AppImage
-```
-
-### Windows
-
-Baixe os assets de instalador do Windows no latest release (`.exe` / `.msi`).
-
-### macOS (Apple Silicon e Intel)
-
-Baixe o arquivo do bundle de app do macOS no latest release:
-- `Ioruba_..._aarch64.app.tar.gz`
-- `Ioruba_..._x64.app.tar.gz`
-
-> **Lembrete:** no Windows e no macOS, o app controla apenas o volume da saída padrão (`master`). Cobertura completa de targets (aplicações, sinks, sources) exige Linux.
-
-## 🧰 Pré-requisitos (para build por código-fonte)
-
-- **Node.js** `22` (mesma major usada no CI) + `npm`
-- **Rust** stable + `cargo`
-- `arduino-cli`
-- `pactl` (apenas Linux, para o backend de áudio completo)
-- Git
-
-## 🚀 Início rápido (source)
-
-```bash
-# 1️⃣ Clonar e instalar
 git clone https://github.com/bernardopg/ioruba.git
 cd ioruba
 npm install
-
-# 2️⃣ Verificar a stack
-npm run verify   # typecheck, testes, checks Rust e build desktop
-
-# 3️⃣ Compilar firmware (opcional se a placa já estiver gravada)
+npm run verify
 npm run firmware:compile
-
-# 4️⃣ Subir app desktop
-npm run desktop:dev   # só frontend (iteração rápida)
-npm run desktop:watch # shell Tauri completo (serial, persistência, backend)
-
-# 5️⃣ Setup de hardware
-#   - Fiação do controlador -> docs/guides/hardware-setup.md
-#   - Gravação do Nano      -> NANO_SETUP.md
-#   - Perfis de exemplo     -> docs/guides/profile-examples.md
+npm run desktop:watch
 ```
 
-### O que confirmar quando o app abrir
+| Comando | Uso |
+| --- | --- |
+| `npm run verify` | Typecheck, testes shared/desktop/Rust e build frontend. |
+| `npm run ci` | `verify` + compilação do firmware Nano. |
+| `npm run desktop:dev` | Frontend Vite sem integrações nativas. |
+| `npm run desktop:watch` | App Tauri completo. |
+| `npm run desktop:tauri:build` | Binário Tauri local, sem instaladores. |
+| `npm run firmware:compile:matrix` | Matriz AVR. |
+| `npm run release:check` | Gate local estendido de release. |
 
-1. O app detecta portas seriais (ou usa a porta preferida).
-2. O card de status avança pelos estados de conexão (sem ficar em “idle”).
-3. O runtime recebe o handshake (`HELLO …`) junto dos frames de knobs.
-4. A aba **Watch** mostra frames como `512|768|1023`.
-5. Girar os knobs move o gráfico de telemetria.
-6. O perfil ativo é salvo em JSON e sobrevive a reinícios.
-7. Clicar em **Atualizar áudio** recarrega o inventário de áudio Linux.
-8. Os knobs controlam os alvos configurados (master, apps, microfone etc.).
+## Dados e recuperação
 
-Mapeamento padrão de perfil:
+- `ioruba-state.json`: perfis e preferências;
+- `ioruba-watch.log`: eventos persistentes, limitado a cerca de 1 MiB;
+- `ioruba-state.backup.*.json`: backup ao substituir estado incompatível/corrompido.
 
-| Knob | Rótulo padrão | Alvo |
-|------|--------------------|------------------------------------------------|
-| 1    | Master Volume      | Saída padrão / volume master |
-| 2    | Applications       | Spotify, Google Chrome, Firefox |
-| 3    | Microphone         | Entrada padrão de microfone |
+| SO | Diretório |
+| --- | --- |
+| Linux | `~/.config/io.ioruba.desktop/` |
+| macOS | `~/Library/Application Support/io.ioruba.desktop/` |
+| Windows | `%APPDATA%\io.ioruba.desktop\` |
 
-## 📂 Onde o app salva dados
+Apagar apenas `ioruba-state.json` restaura defaults seguros. Faça backup antes. Consulte o [playbook de suporte](../debug/support.md).
 
-O app desktop persiste dois arquivos no diretório de configuração da plataforma:
+## Arquitetura do repositório
 
-- `ioruba-state.json` – perfil ativo e estado de runtime
-- `ioruba-watch.log` – eventos estruturados de watch (auto-trim para ~1 MiB)
+| Caminho | Responsabilidade |
+| --- | --- |
+| `apps/desktop` | UI React e shell Tauri. |
+| `packages/shared` | Tipos, defaults, protocolo, validação, presets e matemática. |
+| `firmware/arduino/ioruba-controller` | Firmware parametrizável e testes host. |
+| `docs` | Guias, suporte, roadmap, planos e traduções. |
+| `docs-site` | Layout/navegação/estilo do GitHub Pages. |
+| `scripts` | Instalação, packaging, AppImage e geração de docs. |
 
-| SO      | Caminho |
-|---------|----------------------------------------------------------|
-| Linux   | `~/.config/io.ioruba.desktop/` |
-| macOS   | `~/Library/Application Support/io.ioruba.desktop/` |
-| Windows | `%APPDATA%\\io.ioruba.desktop\\` |
+## Documentação
 
-## 🧰 Scripts npm comuns
+- [Índice PT-BR](../README.md)
+- [Início rápido](QUICKSTART.md)
+- [Setup de hardware](../guides/hardware-setup.md)
+- [Setup do Nano](NANO_SETUP.md)
+- [Exemplos de perfil](../guides/profile-examples.md)
+- [Suporte](../debug/support.md)
+- [Testes](TESTING.md)
+- [Contrato do backend](../guides/audio-backend-contract.md)
+- [Contribuição](CONTRIBUTING.md)
+- [Roadmap](../../../roadmap.md) e [TODO](../../../../TODO.md)
+- [Changelog](CHANGELOG.md)
 
-| Script                         | Descrição |
-|--------------------------------|------------------------------------------------------------------------|
-| `npm run verify`               | Validação completa: typecheck, testes, Rust e build desktop. |
-| `npm run desktop:dev`          | Inicia frontend Vite (trabalho de UI). |
-| `npm run desktop:watch`        | Inicia shell desktop Tauri completo (desenvolvimento). |
-| `npm run desktop:icons`        | Regenera ícones desktop a partir de `app-icon.svg`. |
-| `npm run desktop:tauri:build`  | Build local do app Tauri (sem instaladores). |
-| `npm run firmware:compile`     | Compila firmware Arduino Nano. |
-| `npm run rust:test`            | Roda testes do backend Rust. |
-| `npm run rust:audit`           | Audita lockfile Rust (inclui backport local de glib). |
+## Licença
 
-## 🗂️ Mapa do repositório
-
-| Caminho                                 | Objetivo |
-|--------------------------------------|----------------------------------------------------------------------------|
-| `apps/desktop`                       | App Tauri 2, UI React, estado Zustand e dashboards de telemetria. |
-| `apps/desktop/src-tauri`             | Comandos Rust (persistência, watch log, controle de áudio Linux). |
-| `packages/shared`                    | Tipos de domínio, defaults, matemática de runtime e parsing de protocolo. |
-| `firmware/arduino/ioruba-controller` | Firmware Arduino para placas compatíveis com Nano. |
-| `docs/guides`                        | Guias práticos (hardware, Nano, perfis, traduções). |
-| `docs/debug/support.md`              | Playbook de suporte para serial, áudio e perfis. |
-| `TESTING.md`                         | Checks automatizados, smoke tests e matriz de validação de release. |
-
-## 📚 Mapa da documentação
-
-| Documento                                                          | Quando você precisa de… |
-|-------------------------------------------------------------------|---------------------------------------------------------------------------|
-| [QUICKSTART.md](./QUICKSTART.md)                                    | Caminho mais rápido para subir o app (Linux). |
-| [NANO_SETUP.md](./NANO_SETUP.md)                                    | Gravar e validar o Arduino Nano. |
-| [docs/guides/hardware-setup.md](../guides/hardware-setup.md)    | Fiação do controlador físico (potenciômetros, protoboard/caixa). |
-| [docs/guides/profile-examples.md](../guides/profile-examples.md)| Exemplos de perfis JSON e regras de correspondência de alvos Linux. |
-| [docs/guides/translation-guide.md](../guides/translation-guide.md)| Como funcionam traduções no app desktop e passos de validação. |
-| [docs/translations/pt-br/README.md](../README.md)| Índice de tradução em português para docs e manuais da raiz. |
-| [docs/debug/support.md](../debug/support.md)                    | Troubleshooting serial, áudio e perfil. |
-| [TESTING.md](./TESTING.md)                                          | Checks automatizados, smoke tests e validação de release. |
-| [CONTRIBUTING.md](./CONTRIBUTING.md)                                | Diretrizes de contribuição (código, docs, tradução etc.). |
-| [FUNDING.md](./FUNDING.md)                                          | Como apoiar o projeto (GitHub Sponsors, Buy Me a Coffee etc.). |
-| [TODO.md](./TODO.md)                                                | Roadmap e próximas features. |
-
-## 📜 Licença
-
-MIT © Bernardo Gomes
+MIT © Bernardo Gomes. Consulte [`LICENSE`](../../../../LICENSE).

@@ -6,9 +6,10 @@ funciona o dispatch por plataforma em `apps/desktop/src-tauri/src/audio/mod.rs`.
 
 ## Comandos
 
-Tres comandos Tauri formam toda a superficie de audio. Os wrappers tipados de
+Três comandos Tauri formam toda a superfície de áudio. Os wrappers tipados de
 TypeScript vivem em `apps/desktop/src/lib/backend.ts`; nunca chame `invoke`
-diretamente de componentes.
+diretamente de componentes. Persistência, import/export, watch log, autostart e
+updater ficam fora deste contrato específico de áudio.
 
 | Comando | Wrapper TS | Request | Response |
 | --- | --- | --- | --- |
@@ -52,7 +53,8 @@ encaminham para o modulo da plataforma:
 - `windows.rs` — WASAPI via crate `windows`. Volume e mute da saida
   padrao/master. Mute direcionado (nao-master) retorna `supported: false`
   pois o WASAPI so controla o endpoint padrao.
-- `macos.rs` — FFI CoreAudio feito a mao. Apenas volume da saida padrao/master.
+- `macos.rs` — FFI CoreAudio. Apenas volume da saída padrão/master; ações de
+  controle atualmente retornam indisponíveis.
 - `unsupported.rs` — compilado em qualquer outro SO; reporta tudo como
   `unavailable` para a UI renderizar o modo demo com banners explicitos.
 - `common.rs` — helpers sem cfg compartilhados por todos os backends

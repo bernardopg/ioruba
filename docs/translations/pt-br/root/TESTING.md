@@ -3,7 +3,7 @@
 Este documento e a matriz pratica de validacao da stack ativa do Ioruba.
 
 > **Importante**
-> A cobertura completa de targets atualmente esta implementada apenas no Linux. Windows suporta volume real de `master`/saida padrao via Core Audio; macOS permanece apenas em modo UI/demo.
+> A cobertura completa de targets atualmente está implementada apenas no Linux. Windows (WASAPI) e macOS (CoreAudio) suportam volume real de `master`/saída padrão.
 
 ## 1. Caminho rapido de validacao
 
@@ -71,7 +71,7 @@ Formato atual esperado:
 O firmware atual le as tres entradas analogicas, persiste ajuste e calibracao em EEPROM e emite linhas como:
 
 ```text
-HELLO board=Ioruba Nano; fw=0.5.1; protocol=2; knobs=3; threshold=4; deadzone=7; smooth=75; mins=0,0,0; maxs=1023,1023,1023
+HELLO board=Ioruba Nano; fw=0.6.1; protocol=2; knobs=3; mcu=ATmega328P; adcBits=10; threshold=4; deadzone=7; smooth=75; mins=0,0,0; maxs=1023,1023,1023
 512|768|1023
 ```
 
@@ -171,7 +171,7 @@ sudo pacman -S --needed \
 
 ### Sem dados da placa
 
-- confirme 9600 baud
+- confirme 115200 baud para o firmware atual
 - confirme que o firmware foi gravado
 - confira ligacao dos knobs em A0, A1 e A2
 - inspecione primeiro no Arduino Serial Monitor
@@ -186,12 +186,13 @@ sudo pacman -S --needed \
 
 ### Rodando em macOS
 
-Trate como passagem parcial por design:
+Trate como suporte parcial de áudio:
 
 - launch e layout desktop devem funcionar
 - modo demo deve funcionar
-- persistencia deve funcionar
-- inventario de audio deve reportar backend nao suportado em vez de fingir funcionar
+- persistência deve funcionar
+- `master` deve alterar o volume da saída padrão via CoreAudio
+- targets app/source/sink devem reportar outcomes não suportados
 
 ### Rodando em Windows
 
@@ -220,4 +221,4 @@ Antes de cortar release publica, verifique:
 11. tagged releases continuam produzindo bundles desktop e artefatos de firmware
 12. tagged releases enviam metadados Arch (PKGBUILD, .SRCINFO, PKGBUILD-bin, .SRCINFO-bin) e source tarball usado por PKGBUILD
 
-Se voce precisa de checklist de suporte para triagem manual, leia [docs/debug/support.md](../../debug/support.md).
+Se voce precisa de checklist de suporte para triagem manual, leia [Playbook de suporte](../debug/support.md).

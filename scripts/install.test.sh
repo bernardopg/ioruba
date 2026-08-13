@@ -79,6 +79,12 @@ check "returns nothing when no asset matches" \
     "" \
     "$(asset_url_for '_arm64\.deb$')"
 
+release_json='{"assets":[{"browser_download_url":"https://example.invalid/Ioruba_a.AppImage"},{"browser_download_url":"https://example.invalid/Ioruba_b.AppImage"}]}'
+check "refuses an ambiguous asset match" \
+    "" \
+    "$(asset_url_for '\.AppImage$')"
+release_json="$(release_fixture)"
+
 echo "require_asset_url"
 OS="Linux"; ARCH="x86_64"
 check "resolves an existing asset" \
@@ -127,6 +133,26 @@ check "does not accept a longer filename as a checksum match" "" \
     "$(checksum_for "Ioruba_1.7.1_amd64" "$sums_file")"
 
 rm -f "$sums_file"
+trap - EXIT
+
+echo "verify_checksum"
+tmp="$(mktemp -d)"
+trap 'rm -rf "$tmp"' EXIT
+printf 'payload' > "$tmp/Ioruba.AppImage"
+release_json='{"assets":[]}'
+VERSION="v1.8.2"
+check "refuses an install when SHA256SUMS.txt is missing" "1" \
+    "$( (verify_checksum "$tmp/Ioruba.AppImage") >/dev/null 2>&1; echo $?)"
+
+release_json='{"assets":[{"browser_download_url":"https://example.invalid/SHA256SUMS.txt"}]}'
+# shellcheck disable=SC2329 # Invoked indirectly by verify_checksum.
+checksum_for() { return 0; }
+# shellcheck disable=SC2329 # Invoked indirectly by verify_checksum.
+curl() { printf '%064d  ./different-file\n' 0 > "$4"; }
+check "refuses an install when the exact checksum entry is missing" "1" \
+    "$( (verify_checksum "$tmp/Ioruba.AppImage") >/dev/null 2>&1; echo $?)"
+unset -f checksum_for curl
+rm -rf "$tmp"
 trap - EXIT
 
 echo "empty release"

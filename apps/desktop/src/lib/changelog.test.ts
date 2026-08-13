@@ -7,11 +7,11 @@ describe("parseChangelog", () => {
   it("parses the real Keep a Changelog document", () => {
     const releases = parseChangelog(changelogRaw);
 
-    expect(releases[0]?.version).toBe("1.8.1");
-    expect(releases[0]?.date).toBe("2026-08-12");
-    expect(releases[0]?.url).toContain("/compare/v1.8.0...v1.8.1");
-    expect(releases[0]?.sections[0]?.title).toBe("Fixed");
-    expect(releases[0]?.sections[0]?.items[0]).toContain("options=('!lto' '!debug')");
+    expect(releases[0]?.version).toBe("1.8.2");
+    expect(releases[0]?.date).toBe("2026-08-13");
+    expect(releases[0]?.url).toContain("/compare/v1.8.1...v1.8.2");
+    expect(releases[0]?.sections[0]?.title).toBe("Security");
+    expect(releases[0]?.sections[0]?.items[0]).toContain("RUSTSEC-2026-0221");
     expect(releases.some((release) => release.version === "Unreleased")).toBe(false);
   });
 

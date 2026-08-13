@@ -65,6 +65,9 @@ jobs:
       - name: Install NPM dependencies
         run: npm ci
 
+      - name: Audit NPM dependencies
+        run: npm audit
+
       - name: Typecheck shared package
         run: npm run shared:typecheck
 
@@ -85,6 +88,11 @@ jobs:
 
       - name: Run Rust tests
         run: cargo test --manifest-path apps/desktop/src-tauri/Cargo.toml
+
+      - name: Audit Rust dependencies
+        run: |
+          cargo install cargo-audit --locked --version 0.22.2
+          cargo audit --file apps/desktop/src-tauri/Cargo.lock
 
       - name: Check glib vendor patch is still required
         shell: bash

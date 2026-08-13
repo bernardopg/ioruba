@@ -1,264 +1,164 @@
-# Inicio Rapido
+# Início rápido
 
-Este e o caminho mais rapido de um clone limpo para uma sessao Ioruba funcionando na stack Linux ativa.
+Use este guia para sair de uma instalação ou clone limpo até uma sessão funcional do Ioruba. A montagem de referência usa Arduino Nano e três potenciômetros.
 
-> **So quer instalar o app?** Pule o build por codigo-fonte e use o instalador de uma linha
-> (detecta SO/arch, verifica checksums):
-> ```bash
-> curl -fsSL https://raw.githubusercontent.com/bernardopg/ioruba/main/scripts/install.sh | sh
-> ```
-> Windows: `irm https://raw.githubusercontent.com/bernardopg/ioruba/main/scripts/install.ps1 | iex`.
-> Veja a [secao de instalacao do README](README.md#-instalacao-rapida) para opcoes. O guia
-> abaixo cobre o build por codigo-fonte.
+> Linux possui cobertura completa via `pactl`. Windows e macOS controlam apenas a saída padrão (`master`). Serial, perfis, modo demo, telemetria e diagnósticos são multiplataforma.
 
-> **Atencao**
-> O controle real de audio do sistema esta pronto para producao no Linux via `pactl`.
-> **Windows** e **macOS** fornecem volume `master`/saida padrao via Core Audio.
-> Alvos application/source/sink permanecem exclusivos do Linux.
+## 1. Instalar ou preparar o desenvolvimento
 
-## 1. O que voce precisa
-
-### Software
-
-- Node.js 22 recomendado (mesma major usada na CI)
-- npm
-- Rust stable + Cargo
-- arduino-cli
-- pactl disponivel no PATH
-
-### Hardware
-
-- Arduino Nano ATmega328P
-- 3 potenciometros lineares de 10k
-- cabo USB de dados
-- fios jumper e protoboard ou case
-
-Check rapido de versao:
+Linux/macOS:
 
 ```bash
-node --version
-npm --version
-rustc --version
-cargo --version
-arduino-cli version
-pactl info
+curl -fsSL https://raw.githubusercontent.com/bernardopg/ioruba/main/scripts/install.sh | sh
 ```
 
-## 2. Instalar dependencias do repositorio
+Windows PowerShell:
+
+```powershell
+irm https://raw.githubusercontent.com/bernardopg/ioruba/main/scripts/install.ps1 | iex
+```
+
+Para desenvolver:
 
 ```bash
+git clone https://github.com/bernardopg/ioruba.git
+cd ioruba
 npm install
-```
-
-## 3. Preparar permissoes seriais no Linux
-
-Dependendo da distro, adicione seu usuario em dialout ou uucp:
-
-```bash
-sudo usermod -a -G dialout $USER
-sudo usermod -a -G uucp $USER
-```
-
-Saia da sessao e entre novamente apos mudar grupos.
-
-## 4. Ligar e gravar o controlador
-
-Se voce ainda precisa montar o hardware, comece por:
-
-- [docs/guides/hardware-setup.md](../../guides/hardware-setup.md)
-- [NANO_SETUP.md](./NANO_SETUP.md)
-
-Detecte a placa:
-
-```bash
-arduino-cli board list
-```
-
-Compile o firmware atual:
-
-```bash
-arduino-cli compile --fqbn arduino:avr:nano firmware/arduino/ioruba-controller
-```
-
-Upload para Nano padrao:
-
-```bash
-arduino-cli upload -p /dev/ttyUSB0 --fqbn arduino:avr:nano firmware/arduino/ioruba-controller
-```
-
-Upload para clones comuns de Nano com old bootloader:
-
-```bash
-arduino-cli upload -p /dev/ttyUSB0 --fqbn arduino:avr:nano:cpu=atmega328old firmware/arduino/ioruba-controller
-```
-
-## 5. Validar o repositorio
-
-Rode os checks automatizados principais antes de subir o shell desktop:
-
-```bash
 npm run verify
-```
-
-Se voce so quiser garantir que o firmware ainda compila pela raiz:
-
-```bash
-npm run firmware:compile
-```
-
-## 6. Iniciar o app desktop
-
-Somente frontend:
-
-```bash
-npm run desktop:dev
-```
-
-Shell desktop Tauri completo:
-
-```bash
 npm run desktop:watch
 ```
 
-Use o shell Tauri para sessoes seriais reais, persistencia e validacao de backend.
+Use `npm run desktop:dev` somente para frontend no navegador; integrações nativas exigem `desktop:watch`.
 
-## 7. Confirmar que esta tudo funcionando
+## 2. Montar o controlador
 
-Quando o app abrir, o fluxo esperado e:
+| Knob | Pino externo | Centro | Outro externo |
+| --- | --- | --- | --- |
+| 1 | `GND` | `A0` | `5V` |
+| 2 | `GND` | `A1` | `5V` |
+| 3 | `GND` | `A2` | `5V` |
 
-- o app descobre portas seriais ou respeita sua porta preferida
-- o card de status passa pelos estados de conexao em vez de ficar parado
-- o runtime recebe handshake de firmware antes ou junto dos frames de knob
-- a aba Watch mostra frames como 512|768|1023
-- o grafico de telemetria reage quando voce gira os knobs
-- o perfil ativo e salvo como JSON e sobrevive a reinicios
-- Atualizar audio atualiza o inventario de audio Linux
-- girar os knobs atualiza alvos como master, apps ou entrada de microfone
+Use cabo USB de dados. Consulte o [guia de hardware](../guides/hardware-setup.md) para outras placas, mais knobs, botões e encoders.
 
-Mapeamento do perfil padrao:
-
-| Knob | Alvo padrao                     |
-| ---- | ------------------------------- |
-| 1    | Saida padrao / volume master    |
-| 2    | Spotify, Google Chrome, Firefox |
-| 3    | default_microphone              |
-
-## 8. Onde o app salva dados
-
-O app desktop persiste dois arquivos importantes:
-
-- ioruba-state.json - perfil ativo e estado de runtime
-- ioruba-watch.log - eventos estruturados da watch, com trim automatico para cerca de 1 MiB
-
-Locais:
-
-- Linux: ~/.config/io.ioruba.desktop/
-- macOS: ~/Library/Application Support/io.ioruba.desktop/
-- Windows: %APPDATA%\\io.ioruba.desktop\\
-
-## 9. Build local do app desktop
-
-Para build local Tauri sem instaladores finais:
+## 3. Compilar e gravar
 
 ```bash
-npm run desktop:tauri:build
+arduino-cli board list
+npm run firmware:compile
 ```
 
-Se voce mudar o source do icone em apps/desktop/src-tauri/icons/app-icon.svg, regenere todos os assets derivados antes:
+Nano padrão:
 
 ```bash
-npm run desktop:icons
+arduino-cli upload \
+  -p /dev/ttyUSB0 \
+  --fqbn arduino:avr:nano \
+  firmware/arduino/ioruba-controller
 ```
 
-## 10. Solucao rapida de problemas
-
-### Tauri falha para compilar no Linux
-
-Instale os pacotes de desenvolvimento WebKit/GTK exigidos pelo Tauri:
+Clone com bootloader antigo:
 
 ```bash
-sudo pacman -S --needed \
-  webkit2gtk-4.1 \
-  gtk3 \
-  librsvg \
-  appmenu-gtk-module \
-  libappindicator-gtk3 \
-  xdotool
+arduino-cli upload \
+  -p /dev/ttyUSB0 \
+  --fqbn arduino:avr:nano:cpu=atmega328old \
+  firmware/arduino/ioruba-controller
 ```
 
-No Arch, o caminho de tray depende de libappindicator-gtk3. Isso bate com os prerequisitos Linux atuais do Tauri 2.
+Troque a porta conforme `arduino-cli board list`.
 
-## 11. Smoke test como usuario final no Arch
-
-Tente gerar um artefato Linux instalavel pela raiz do repositorio:
+## 4. Permissão serial no Linux
 
 ```bash
-npm --workspace @ioruba/desktop run tauri build -- --bundles appimage
+sudo usermod -a -G dialout "$USER"
+sudo usermod -a -G uucp "$USER"
 ```
 
-O AppImage fica em:
+Use o grupo da sua distribuição e entre novamente na sessão.
+
+## 5. Conectar
+
+Confirme:
+
+1. porta detectada/selecionada;
+2. status conectado;
+3. handshake com placa, firmware, protocolo, knobs, MCU e ADC;
+4. Watch recebendo `512|768|1023`;
+5. knobs atualizando controles e telemetria;
+6. protocolo 2 compatível no painel Hardware;
+7. perfil persistindo após reinício.
+
+Contrato atual:
+
+```text
+HELLO board=Ioruba Nano; fw=0.6.1; protocol=2; knobs=3; mcu=ATmega328P; adcBits=10; threshold=4; deadzone=7; smooth=75; mins=0,0,0; maxs=1023,1023,1023
+512|768|1023
+```
+
+O padrão é **115200 baud**. Perfis com o antigo padrão 9600 são migrados.
+
+## 6. Configurar áudio
+
+Abra **Configurações → Editor de perfil**. O perfil padrão mapeia master, Spotify/Chrome/Firefox e microfone padrão.
+
+No Linux:
 
 ```bash
-apps/desktop/src-tauri/target/release/bundle/appimage/
+pactl info
+pactl list short sink-inputs
+pactl list short sinks
+pactl list short sources
 ```
 
-Valide a estrutura do AppImage gerado antes de executar:
+Mantenha aplicações reproduzindo áudio e clique em **Atualizar áudio**. Use `default_output`/`default_microphone` para perfis resistentes a trocas de dispositivo.
 
-```bash
-scripts/validate-appimage.sh apps/desktop/src-tauri/target/release/bundle/appimage/Ioruba_*.AppImage
-```
+## 7. Calibração e telemetria
 
-Execute como um usuario final faria:
+- calibre cada knob na seção Hardware;
+- exporte estatísticas de sessão em JSON/CSV;
+- filtre/exporte o watch log;
+- use o editor visual para bindings de botões/encoders;
+- use modo demo para testar UI sem alterar áudio.
 
-```bash
-./apps/desktop/src-tauri/target/release/bundle/appimage/Ioruba_*.AppImage
-```
+## 8. Janela, tray e dados
 
-O que verificar:
+Fechar esconde a janela. Restaure pelo tray ou **Ctrl+Alt+I**; use **Sair** para encerrar.
 
-- o app abre normalmente fora do tauri dev
-- fechar a janela principal nao mata o processo
-- o app continua disponivel no tray
-- clique esquerdo ou a acao Abrir Ioruba no tray restaura a janela
-- Sair pelo tray realmente encerra o processo
-- persistencia, conexao serial e Atualizar audio continuam iguais
+Dados:
 
-Limitacao conhecida em hosts Arch atuais:
+- Linux: `~/.config/io.ioruba.desktop/`;
+- macOS: `~/Library/Application Support/io.ioruba.desktop/`;
+- Windows: `%APPDATA%\io.ioruba.desktop\`.
 
-- o passo de bundling AppImage ainda pode falhar dentro do linuxdeploy porque o strip embutido nao entende libs novas do Arch com .relr.dyn
-- quando isso acontecer, trate o binario de release em apps/desktop/src-tauri/target/release/ioruba-desktop como alvo local de smoke test para tray/background
-- para artefatos AppImage publicos, prefira build em CI ou em imagem Linux mais antiga em vez de um Arch bleeding-edge
-- o workflow de release roda scripts/validate-appimage.sh --require-launch no Ubuntu 22.04, entao AppImages publicos tem checks automatizados de extracao e smoke launch
+`ioruba-state.json` guarda perfis/preferências; `ioruba-watch.log` é limitado a cerca de 1 MiB. Faça backup e remova apenas o state para restaurar defaults.
 
-### O app abre mas nenhum pacote chega
+## Problemas comuns
 
-- confirme que a placa esta com o sketch atual
-- confirme que a placa responde com HELLO board=...; fw=...; protocol=...; knobs=...
-- confirme que a placa esta enviando 512|768|1023
-- confirme 9600 baud
-- confira a ligacao dos knobs em A0, A1 e A2
-- verifique a porta serial selecionada no app
-- tente o perfil old bootloader se voce usa clone
+### Sem frames
 
-### Alvos de audio nao se movem
+- confirme 115200 baud;
+- feche outros monitores seriais;
+- confira cabo e `A0/A1/A2`;
+- rode `fuser -v /dev/ttyUSB0`;
+- tente o perfil old bootloader ao gravar.
 
-- confirme que pactl info funciona
-- garanta que apps alvo estao reproduzindo audio
-- atualize o inventario pelo app desktop
-- inspecione o perfil JSON na aba Config
+### Áudio Linux não muda
 
-### Voce esta no Windows
+- confirme `pactl info`;
+- mantenha a aplicação ativa;
+- atualize o inventário;
+- confira nomes em `pactl list short sink-inputs`;
+- leia o outcome e o Watch.
 
-O Windows tem suporte parcial de audio: alvos `master` controlam o volume da saida padrao via Core Audio. Alvos application/source/sink sao explicitamente nao suportados. Modo demo, serial, telemetria e empacotamento funcionam normalmente.
+### Windows/macOS não controlam aplicação
 
-### Voce esta no macOS
+Limitação atual explícita: apenas `master`/saída padrão. Outros tipos retornam não suportado.
 
-O macOS tem suporte parcial de audio: alvos `master` controlam o volume da saida padrao via framework Core Audio. Alvos application/source/sink sao explicitamente nao suportados. Modo demo, serial, telemetria e empacotamento funcionam normalmente.
+## Próximas leituras
 
-## Leituras seguintes
-
-- [README.md](./README.md) para visao geral do repositorio
-- [NANO_SETUP.md](./NANO_SETUP.md) para detalhes de firmware e serial
-- [docs/guides/profile-examples.md](../../guides/profile-examples.md) para amostras de JSON de perfil
-- [docs/debug/support.md](../../debug/support.md) para playbook de troubleshooting
-- [TESTING.md](./TESTING.md) para matriz de validacao
+- [README PT-BR](README.md)
+- [Setup do Nano](NANO_SETUP.md)
+- [Hardware](../guides/hardware-setup.md)
+- [Perfis](../guides/profile-examples.md)
+- [Suporte](../debug/support.md)
+- [Testes](TESTING.md)

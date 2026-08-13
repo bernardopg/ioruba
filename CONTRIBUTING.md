@@ -1,59 +1,112 @@
 # Contributing to Ioruba
 
-## Active stack
+Thanks for contributing code, firmware, documentation, translations, tests, or hardware support.
 
-The current product path lives in:
+## Before you start
 
-- `apps/desktop` for the Tauri + React desktop app
-- `apps/desktop/src-tauri` for the Rust backend
-- `packages/shared` for protocol and runtime logic shared by the UI
-- `firmware/arduino/ioruba-controller` for the Arduino firmware
+- Search existing [issues](https://github.com/bernardopg/ioruba/issues) and the [roadmap](docs/roadmap.md).
+- Keep changes focused; discuss large architecture or product changes before implementing them.
+- Do not commit secrets, generated coverage/build output, local tool state, or release credentials.
+- Preserve the active stack; retired legacy build surfaces must not be reintroduced.
+
+## Repository areas
+
+| Area | Path | Notes |
+| --- | --- | --- |
+| Desktop UI | `apps/desktop/src` | React, Zustand, serial runtime, profiles, telemetry, and desktop UX. |
+| Rust shell | `apps/desktop/src-tauri` | Tauri commands, persistence, watch logging, platform audio, tray, and updater. |
+| Shared domain | `packages/shared` | Types, defaults, protocol, validation, presets, and runtime math. |
+| Firmware | `firmware/arduino/ioruba-controller` | Parametric Arduino sketch and host parser tests. |
+| Documentation | `README.md`, root manuals, `docs/` | Canonical Markdown and PT-BR mirrors. |
+| Docs theme | `docs-site/` | GitHub Pages layouts/navigation/styles, not canonical guide content. |
+
+Protocol and knob-to-value behavior belong in `packages/shared`; components should use typed wrappers from `apps/desktop/src/lib/backend.ts` rather than calling Tauri `invoke` directly.
 
 ## Local setup
 
-Install dependencies:
+Prerequisites are listed in the [README](README.md#development-setup). Install dependencies from the repository root:
 
 ```bash
 npm install
 ```
 
-Recommended validation pass:
+Run the standard gate:
 
 ```bash
 npm run verify
+npm run firmware:compile
 ```
 
-If you are changing the desktop shell itself, also build the Tauri binary:
+For the full native shell:
 
 ```bash
-npm run desktop:tauri:build
+npm run desktop:watch
 ```
 
-If you edit the app icon source at [apps/desktop/src-tauri/icons/app-icon.svg](apps/desktop/src-tauri/icons/app-icon.svg), regenerate all derived desktop, Android, iOS, `icns`, and `ico` assets with:
+## Make and validate changes
 
-```bash
-npm run desktop:icons
-```
+Use the narrowest relevant checks while iterating, then run the complete required gate.
 
-If you are changing firmware:
+| Change | Minimum validation |
+| --- | --- |
+| Shared TypeScript | `npm run shared:typecheck && npm run shared:test` |
+| Desktop frontend | `npm run desktop:typecheck && npm run desktop:test && npm run desktop:build` |
+| Rust/Tauri | `cargo fmt --check --manifest-path apps/desktop/src-tauri/Cargo.toml`, clippy, `npm run rust:test`, and `npm run desktop:tauri:build` |
+| Firmware | `npm run firmware:test && npm run firmware:test:wide && npm run firmware:compile:matrix` |
+| Installer/scripts | `npm run lint:scripts && npm run test:installer` |
+| Packaging/updater | `npm run test:packaging` |
+| Documentation | link/fact review plus `npm run docs:prepare-site` |
+| Release preparation | `npm run release:check` |
 
-```bash
-arduino-cli compile --fqbn arduino:avr:nano firmware/arduino/ioruba-controller
-```
+See [TESTING.md](TESTING.md) for exact commands and the CI matrix.
 
-## Workflow
+## Development conventions
 
-1. Keep changes focused on the active stack.
-2. Update docs when paths, commands, or runtime behavior change.
-3. Prefer adding tests alongside `packages/shared`, `apps/desktop`, or `apps/desktop/src-tauri` when behavior changes.
-4. Regenerate generated assets, including desktop icons, whenever their source files change.
-5. Do not reintroduce root-level Haskell build files or old release tooling.
+- Add or update tests alongside behavior changes.
+- Keep Rust ↔ TypeScript audio shapes synchronized; see the [audio backend contract](docs/guides/audio-backend-contract.md).
+- Preserve explicit unsupported outcomes on platforms without a target implementation.
+- Keep persisted-state additions backward compatible and update normalization in `packages/shared/src/validation.ts`.
+- When changing protocol behavior, document compatibility and update firmware/shared tests together.
+- Do not hand-edit generated package checksums or updater manifests.
+- If changing the app icon source, regenerate assets with `npm run desktop:icons`.
+- Follow the instrument-panel/studio-lab direction in `.impeccable.md`; keep connection and diagnostic state obvious.
+- Maintain keyboard and screen-reader behavior and extend accessibility tests for new UI surfaces.
+
+## Documentation and translations
+
+When behavior, commands, paths, defaults, platform coverage, or release operations change:
+
+1. update the canonical English document;
+2. update the PT-BR mirror when one exists under `docs/translations/pt-br/`;
+3. update `docs/index.md` or site navigation if a document is added/moved;
+4. run `npm run docs:prepare-site`;
+5. verify examples against current code—especially firmware version, 115200 baud, profile shape, and platform support.
+
+`docs-site/` contains the site shell. Generated `.site-src/` content must not become the source of truth.
 
 ## Pull requests
 
-Before opening a PR, make sure:
+A good pull request:
 
-- `npm run verify` passes
-- `npm run desktop:tauri:build` passes for desktop-shell changes
-- firmware still compiles when firmware files changed
-- docs reflect the current repository layout
+- explains the problem and why the chosen solution fits;
+- links the issue/spec when applicable;
+- lists user-visible and compatibility effects;
+- includes tests or explains why none are needed;
+- includes screenshots/video for meaningful UI changes;
+- updates docs and translations;
+- keeps unrelated formatting/refactors out of the diff.
+
+Before requesting review, confirm:
+
+- `npm run verify` passes;
+- `npm run desktop:tauri:build` passes for native-shell changes;
+- relevant firmware checks pass for firmware/protocol changes;
+- relevant script/packaging checks pass;
+- docs generation succeeds;
+- no secrets or generated local artifacts are included.
+
+## Reporting bugs
+
+Use the [support playbook](docs/debug/support.md) to collect useful context. Include OS/version, Ioruba version, board, firmware handshake, serial port/baud, relevant profile excerpt, Watch export, reproduction steps, and expected/actual behavior. Redact personal paths or device information before posting logs.
+
+By contributing, you agree that your contribution is licensed under the project's [MIT License](LICENSE).

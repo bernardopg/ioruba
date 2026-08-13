@@ -24,9 +24,9 @@ If you prefer to support directly from your phone, scan the QR code below:
 
 Support goes toward:
 
-- hardening the Tauri desktop shell and Linux audio backend
-- improving firmware compatibility across Nano variants
-- maintaining CI, release automation, and documentation
+- hardening the Tauri desktop shell and native audio backends
+- expanding and validating firmware compatibility across supported boards
+- maintaining CI, security, release automation, and documentation
 
 ## Contact
 

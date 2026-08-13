@@ -12,10 +12,10 @@ Este guia foca na placa controladora usada pela stack atual do Ioruba.
 
 - Arduino Nano ATmega328P
 - 3x potenciometros lineares B10K / 10k
-- A0, A1 e A2 como entradas analogicas
-- saida serial em 9600 baud
+- A0, A1 e A2 como entradas analógicas
+- saída serial em 115200 baud
 
-Se voce ainda precisa da referencia fisica de ligacao, leia primeiro [docs/guides/hardware-setup.md](../../guides/hardware-setup.md).
+Se voce ainda precisa da referencia fisica de ligacao, leia primeiro [Guia de setup de hardware](../guides/hardware-setup.md).
 
 ## Resumo de ligacao
 
@@ -35,8 +35,8 @@ Use o sketch ativo:
 
 O que ele envia:
 
-- handshake de inicializacao e sob demanda como HELLO board=Ioruba Nano; fw=0.5.1; protocol=2; knobs=3; threshold=4; deadzone=7; smooth=75; mins=0,0,0; maxs=1023,1023,1023
-- leituras analogicas suavizadas
+- handshake de inicialização e sob demanda como `HELLO board=Ioruba Nano; fw=0.6.1; protocol=2; knobs=3; mcu=ATmega328P; adcBits=10; threshold=4; deadzone=7; smooth=75; mins=0,0,0; maxs=1023,1023,1023`
+- leituras analógicas suavizadas
 - frames aproximadamente a cada 40 ms quando os valores mudam
 - linhas separadas por pipe como 512|768|1023
 
@@ -94,11 +94,11 @@ arduino-cli upload -p /dev/ttyUSB0 --fqbn arduino:avr:nano:cpu=atmega328old firm
 Depois do flash, a placa deve emitir linhas como:
 
 ```text
-HELLO board=Ioruba Nano; fw=0.5.1; protocol=2; knobs=3; threshold=4; deadzone=7; smooth=75; mins=0,0,0; maxs=1023,1023,1023
+HELLO board=Ioruba Nano; fw=0.6.1; protocol=2; knobs=3; mcu=ATmega328P; adcBits=10; threshold=4; deadzone=7; smooth=75; mins=0,0,0; maxs=1023,1023,1023
 512|768|1023
 ```
 
-O app desktop tambem solicita o mesmo handshake com HELLO? sempre que conecta ou reconecta.
+O app desktop também solicita o handshake com `HELLO?` sempre que conecta ou reconecta. O firmware atual usa protocolo 2 e baud padrão 115200; versão de firmware e versão do app são independentes.
 
 Smoke test pratico:
 
@@ -143,4 +143,4 @@ pactl list short sink-inputs
 
 - [QUICKSTART.md](./QUICKSTART.md)
 - [TESTING.md](./TESTING.md)
-- [docs/guides/hardware-setup.md](../../guides/hardware-setup.md)
+- [Guia de setup de hardware](../guides/hardware-setup.md)

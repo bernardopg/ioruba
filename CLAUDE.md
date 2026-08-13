@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-Ioruba turns an Arduino Nano + 3 potentiometer knobs into a tactile desktop audio control deck. Active stack: Tauri 2 + React 19 + TypeScript desktop app, Rust audio backend (`pactl` on Linux), Arduino C++ firmware. Real audio control is Linux-only; macOS/Windows run in UI/demo mode.
+Ioruba turns microcontroller hardware (reference build: Arduino Nano + 3 potentiometers) into a tactile desktop audio control deck. Active stack: Tauri 2 + React 19 + TypeScript desktop app, Rust audio backends, Arduino C++ firmware. Linux has full `pactl` target coverage; Windows (WASAPI) and macOS (CoreAudio) control default-output `master` volume.
 
 ## Commands
 
@@ -47,8 +47,8 @@ Data flow: firmware → serial → shared protocol parsing → Zustand store →
   - `lib/serial.ts` + `hooks/use-serial-runtime.ts` — serial connection via `tauri-plugin-serialplugin`.
   - `lib/backend.ts` — typed wrappers around Tauri `invoke` commands.
   - `lib/profile-config.ts` — JSON profile editing/validation.
-  - `lib/i18n.ts` — translations (en/pt-BR).
-- **`apps/desktop/src-tauri/src/`** — Rust backend: `lib.rs` (Tauri commands, persistence of `ioruba-state.json`), `watch.rs` (structured watch log, auto-trimmed ~1 MiB), `audio/linux.rs` (pactl backend: master/application/source/sink targets), `audio/unsupported.rs` (mac/win stub).
+  - `lib/i18n.ts` — translations (pt-BR source text plus en/es maps).
+- **`apps/desktop/src-tauri/src/`** — Rust backend: `lib.rs` (Tauri commands, persistence, desktop integrations), `watch.rs` (structured watch log, auto-trimmed ~1 MiB), and cfg-gated audio modules: Linux `pactl` (master/application/source/sink), Windows WASAPI (master), macOS CoreAudio (master), plus unsupported fallback.
 
 App data lives in the platform config dir (Linux: `~/.config/io.ioruba.desktop/`): `ioruba-state.json` and `ioruba-watch.log`.
 
@@ -59,5 +59,5 @@ App data lives in the platform config dir (Linux: `~/.config/io.ioruba.desktop/`
 - Update docs when paths, commands, or runtime behavior change. PT-BR doc mirrors live in `docs/translations/pt-br/`.
 - UI direction (`.impeccable.md`): instrument-panel/studio-lab aesthetic, copper + teal accents, connection state always obvious. Avoid neon/gamer styling, glassmorphism, generic SaaS card grids.
 - Node 22 is the CI baseline. `RUSTSEC-2024-0429` (glib `GHSA-wrw7-89jp-8q8g`) is fixed at the source via the vendored `glib-0.18.5` backport in `[patch.crates-io]` (see `src-tauri/vendor/README.md`), so `npm run rust:audit` runs without an `--ignore` for it. Remove the vendor override once the Tauri Linux stack moves to `glib >= 0.20`.
-- `npm run rust:audit` is **not** part of any GitHub workflow — it only runs via `npm run release:check` locally. GitHub-side Rust advisory coverage comes from Dependabot alerts, which do not flag informational advisories; `cargo audit` currently reports 17 such warnings and still exits 0 — 16 `unmaintained` (gtk-rs GTK3 and `unic-*`) plus `event-listener` 5.4.1 `unsound` (RUSTSEC-2026-0221, transitive, no fixed release yet). Run `npm run rust:audit` before cutting a release.
+- `npm run rust:audit` runs locally through `release:check`, and CI installs pinned `cargo-audit` 0.22.2 before scanning the lockfile. `cargo audit` currently reports 16 allowed `unmaintained` warnings from Tauri's GTK3/WebKit dependency line; there are no known vulnerable/unsound crates after pinning `event-listener` 5.4.2. Remove this warning note when Tauri's Linux stack leaves GTK3.
 - `apps/desktop/package.json` pins `@types/jest-axe` because `jest-axe` 11 ships no type declarations. Those types `import from "axe-core"`, which hoists a devDependency-only `axe-core` 3.5.6 alongside the 4.12.1 that `jest-axe` actually loads at runtime. Typecheck and tests pass; leave it. An explicit `axe-core` devDependency adds a third copy, and an `overrides` entry is ignored by npm 12 and forces a full lockfile regeneration.

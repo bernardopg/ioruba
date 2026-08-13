@@ -52,7 +52,7 @@ Arduino Nano
 O firmware atual le as tres entradas analogicas, persiste ajuste e calibracao em EEPROM e emite linhas como:
 
 ```text
-HELLO board=Ioruba Nano; fw=0.5.1; protocol=2; knobs=3; mcu=ATmega328P; adcBits=10; threshold=4; deadzone=7; smooth=75; mins=0,0,0; maxs=1023,1023,1023
+HELLO board=Ioruba Nano; fw=0.6.1; protocol=2; knobs=3; mcu=ATmega328P; adcBits=10; threshold=4; deadzone=7; smooth=75; mins=0,0,0; maxs=1023,1023,1023
 512|768|1023
 ```
 
@@ -96,21 +96,21 @@ Adicione bindings ao perfil pelo array `controls`:
 ]
 ```
 
-No Linux, `mute` usa `pactl set-sink-mute @DEFAULT_SINK@ toggle`; `next` e `prev` usam `playerctl` quando instalado. No Windows, o suporte atual cobre `mute` na saida padrao. Acoes sem suporte sao reportadas no watch log sem derrubar o runtime serial.
+No Linux, `mute` usa `pactl` e pode mirar a saída padrão, sink, source ou aplicação; `next` e `prev` usam `playerctl` quando instalado. No Windows, o suporte atual cobre `mute` na saída padrão. Ações sem suporte são reportadas no watch log sem derrubar o runtime serial. Os bindings podem ser criados em **Configurações → Editor de perfil → Botões e encoders**.
 
 ## Placas suportadas
 
 O build de referencia e o Nano com 3 knobs, mas o firmware e parametrico. A quantidade de knobs vem de `-DIORUBA_NUM_KNOBS=<n>` em compile-time, e os pinos analogicos saem de uma tabela por placa (os primeiros `n` canais). Um `static_assert` quebra o build se `n` exceder os canais analogicos da placa.
 
-| Placa            | MCU          | Bits ADC | Canais analogicos | Max knobs | Ordem dos pinos (primeiros knobs usam nesta ordem) |
-| ---------------- | ------------ | -------- | ----------------- | --------- | --------------------------------------------------- |
-| Arduino Nano     | ATmega328P   | 10       | 8                 | 8         | `A0 A1 A2 A3 A4 A5 A6 A7`                            |
-| Arduino Uno      | ATmega328P   | 10       | 6                 | 6         | `A0 A1 A2 A3 A4 A5`                                  |
-| Arduino Mega2560 | ATmega2560   | 10       | 16                | 16        | `A0 A1 … A15`                                        |
-| Leonardo / Micro | ATmega32U4   | 10       | 12                | 12        | `A0 A1 … A11`                                        |
-| ESP32            | ESP32        | 12       | 6 (so ADC1)       | 6         | `A0 A3 A4 A5 A6 A7` (ADC2 e reservado ao Wi-Fi)     |
-| RP2040 / Pico    | RP2040       | 12       | 3                 | 3         | `A0 A1 A2`                                           |
-| ESP8266 (NodeMCU)| ESP8266      | 10       | 1 (so A0)         | 1         | `A0` (unico pino analogico exposto pelo core Arduino) |
+| Placa | MCU | Bits ADC | Canais analógicos | Máx. knobs | Ordem dos pinos |
+| --- | --- | --- | --- | --- | --- |
+| Arduino Nano | ATmega328P | 10 | 8 | 8 | `A0 A1 A2 A3 A4 A5 A6 A7` |
+| Arduino Uno | ATmega328P | 10 | 6 | 6 | `A0 A1 A2 A3 A4 A5` |
+| Arduino Mega2560 | ATmega2560 | 10 | 16 | 16 | `A0 A1 … A15` |
+| Leonardo / Micro | ATmega32U4 | 10 | 12 | 12 | `A0 A1 … A11` |
+| ESP32 | ESP32 | 12 | 6 (só ADC1) | 6 | `A0 A3 A4 A5 A6 A7` (ADC2 reservado ao Wi-Fi) |
+| RP2040 / Pico | RP2040 | 12 | 3 | 3 | `A0 A1 A2` |
+| ESP8266 (NodeMCU) | ESP8266 | 10 | 1 (só A0) | 1 | `A0` |
 
 Compile para uma placa especifica com `arduino-cli`, ex. um Mega com 8 knobs:
 
@@ -148,7 +148,7 @@ arduino-cli compile --fqbn esp8266:esp8266:nodemcuv2 \
 
 Proximos passos:
 
-1. grave a placa seguindo [NANO_SETUP.md](../../NANO_SETUP.md)
+1. grave a placa seguindo [NANO_SETUP.md](../root/NANO_SETUP.md)
 2. inicie o app com npm run desktop:watch
 3. verifique se a aba Watch recebe frames seriais
 4. no Linux, confirme se os alvos padrao reagem como esperado
@@ -165,7 +165,7 @@ Comportamento do perfil padrao:
 
 - verifique o cabo USB primeiro
 - confirme que o firmware foi gravado
-- confirme 9600 baud
+- confirme 115200 baud para o firmware atual
 - teste no monitor serial da Arduino IDE antes de culpar o app desktop
 
 ### Upload falha
@@ -185,6 +185,6 @@ Encerre a sessao e entre novamente antes de testar.
 
 ## Guias relacionados
 
-- [../../QUICKSTART.md](../../QUICKSTART.md)
-- [../../NANO_SETUP.md](../../NANO_SETUP.md)
-- [../../TESTING.md](../../TESTING.md)
+- [Início rápido](../root/QUICKSTART.md)
+- [Setup do Nano](../root/NANO_SETUP.md)
+- [Testes](../root/TESTING.md)

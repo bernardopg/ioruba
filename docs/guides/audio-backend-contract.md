@@ -8,7 +8,9 @@ how the per-platform dispatch works in `apps/desktop/src-tauri/src/audio/mod.rs`
 
 Three Tauri commands form the whole audio surface. The typed TypeScript
 wrappers live in `apps/desktop/src/lib/backend.ts`; never call `invoke`
-directly from components.
+directly from components. Persistence, profile import/export, telemetry export,
+watch logging, launch-on-login, updater, and other shell commands are outside
+this audio-specific contract.
 
 | Command | TS wrapper | Request | Response |
 | --- | --- | --- | --- |
@@ -51,7 +53,8 @@ platform module:
 - `windows.rs` — WASAPI via the `windows` crate. Master/default output volume
   and mute. Targeted mute (non-master) returns `supported: false` since WASAPI
   only controls the default endpoint.
-- `macos.rs` — hand-rolled CoreAudio FFI. Master/default output volume only.
+- `macos.rs` — hand-rolled CoreAudio FFI. Master/default output volume only;
+  control actions currently report unavailable.
 - `unsupported.rs` — compiled on any other OS; reports everything as
   `unavailable` so the UI can render demo mode with explicit banners.
 - `common.rs` — cfg-free helpers shared by all backends (`describe_target`,

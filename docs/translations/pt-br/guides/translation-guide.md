@@ -86,6 +86,6 @@ Depois de editar i18n:
 
 ## Documentos relacionados
 
-- [../../README.md](../../README.md)
-- [../../TESTING.md](../../TESTING.md)
+- [README PT-BR](../root/README.md)
+- [Testes](../root/TESTING.md)
 - [./profile-examples.md](./profile-examples.md)

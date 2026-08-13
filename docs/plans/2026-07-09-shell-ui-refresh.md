@@ -1,8 +1,9 @@
 # Plano de implementação — Shell UI refresh (pill de status, sidebar enxuto, header actions)
 
-> Plano escrito para ser executado por outra sessão/IA no repositório Ioruba.
-> Data: 2026-07-09 · Versão atual do app: 1.5.3 · Escopo de PR: **desktop-shell**
-> (`packages/shared`, `apps/desktop`, `apps/desktop/src-tauri`).
+> **Status: implementado e preservado como registro histórico.**
+> Escrito em 2026-07-09 para a versão 1.5.3 e concluído nas releases seguintes.
+> Valores, paths e ausência/presença de features abaixo descrevem o momento do
+> planejamento; consulte README, CHANGELOG e o código para o estado atual.
 
 ## Objetivo
 
@@ -16,7 +17,7 @@ Quatro melhorias de UX no shell do app desktop:
 ## Contexto do código (estado atual verificado)
 
 | Fato | Onde |
-|---|---|
+| --- | --- |
 | Versão `1.5.3` sincronizada em 3 arquivos | `package.json`, `apps/desktop/package.json`, `apps/desktop/src-tauri/tauri.conf.json` |
 | Frontend **não exibe versão** em lugar nenhum | — |
 | Sidebar vive inline em `App.tsx` (`<aside>` ~linhas 392–485) | `apps/desktop/src/App.tsx` |
@@ -130,7 +131,7 @@ interface AppNotification {
 - Ações: `pushNotification` (dedup por `id`), `markNotificationsRead`, seletor `unreadCount`.
 - Fontes:
   1. `use-update-watch.ts` — além de `setUpdatePending(true)`, fazer `pushNotification({ id: "update-pending", ... })`.
-  2. `use-release-check.ts` — se `notificationsEnabled` (ver 3.3): fetch em `https://api.github.com/repos/bernardopg/ioruba/releases/latest` no boot + `setInterval` de 6 h; comparar `tag_name` (strip `v`) com `useAppVersion()` por comparação semver simples (split em `.`, comparação numérica — 5 linhas, sem lib); se maior **e** diferente de `persisted.lastNotifiedReleaseVersion`, `pushNotification({ id: `release-${tag}`, url: html_url })` e gravar `lastNotifiedReleaseVersion`. Falha de rede = silêncio (log no watch log com `appendWatchLog`, nível `info`, no máximo).
+  2. `use-release-check.ts` — se `notificationsEnabled` (ver 3.3): fetch em `https://api.github.com/repos/bernardopg/ioruba/releases/latest` no boot + `setInterval` de 6 h; comparar `tag_name` (strip `v`) com `useAppVersion()` por comparação semver simples (split em `.`, comparação numérica — 5 linhas, sem lib); se maior **e** diferente de `persisted.lastNotifiedReleaseVersion`, chamar `pushNotification` com id `release-${tag}` e `html_url`, e gravar `lastNotifiedReleaseVersion`. Falha de rede = silêncio (log no watch log com `appendWatchLog`, nível `info`, no máximo).
 - Bolinha: dot absoluto no botão `Bell` quando `unreadCount > 0`; abrir o dialog marca tudo como lido.
 - Item fixo no rodapé do painel: botão "Repositório do projeto" → abre `https://github.com/bernardopg/ioruba` via opener.
 
@@ -155,8 +156,9 @@ interface AppNotification {
 **Novo arquivo**: `apps/desktop/src/components/shell/settings-dialog.tsx`.
 
 **Conteúdo do modal** (todas as ações já existem ou foram criadas acima):
+
 | Setting | Mecanismo |
-|---|---|
+| --- | --- |
 | Idioma (pt-BR / en / es) | `updateActiveProfileConfig` mutando `ui.language` (avaliar criar ação dedicada `setLanguage` no store espelhando `setThemeMode` — preferível) |
 | Tema (claro/escuro/sistema) | `setThemeMode` (já existe; o select do Painel de controle pode permanecer ou ser removido em favor do modal — recomendação: mover para o modal e remover do Painel de controle para não duplicar) |
 | Notificações de release (on/off) | novo `setNotificationsEnabled` → `persisted.notificationsEnabled`; gates do `use-release-check` |
@@ -174,7 +176,7 @@ Toda string nova em pt-BR nos componentes + entrada em `TEXT_MAP_EN` e `TEXT_MAP
 ## Ordem de execução e gates
 
 | # | Entrega | Gate |
-|---|---|---|
+| --- | --- | --- |
 | 1 | Fase 1 (pill + versão) | `npm run desktop:test` + `npm run verify` |
 | 2 | Fase 2 (sidebar) | `npm run desktop:test` (ajustar `accessibility-shell.test.tsx`) + `npm run verify` |
 | 3 | Fase 3.0 + changelog | `npm run desktop:test` (novo `changelog.test.ts`) |

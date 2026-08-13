@@ -52,7 +52,7 @@ Arduino Nano
 The current firmware reads the three analog inputs, persists tuning and calibration in EEPROM, and emits lines such as:
 
 ```text
-HELLO board=Ioruba Nano; fw=0.5.1; protocol=2; knobs=3; mcu=ATmega328P; adcBits=10; threshold=4; deadzone=7; smooth=75; mins=0,0,0; maxs=1023,1023,1023
+HELLO board=Ioruba Nano; fw=0.6.1; protocol=2; knobs=3; mcu=ATmega328P; adcBits=10; threshold=4; deadzone=7; smooth=75; mins=0,0,0; maxs=1023,1023,1023
 512|768|1023
 ```
 
@@ -96,21 +96,21 @@ Add bindings to a profile with the `controls` array:
 ]
 ```
 
-On Linux, `mute` uses `pactl set-sink-mute @DEFAULT_SINK@ toggle`; `next` and `prev` use `playerctl` when installed. Windows currently supports `mute` for the default output. Unsupported actions are reported in the watch log instead of failing the serial runtime.
+On Linux, `mute` uses `pactl` and can target the default output, a sink, a source, or an application; `next` and `prev` use `playerctl` when installed. Windows currently supports `mute` for the default output. Unsupported actions are reported in the watch log instead of failing the serial runtime. Bindings can be created in **Settings → Profile editor → Buttons and encoders** without editing JSON.
 
 ## Supported boards
 
 The reference build is the Nano with 3 knobs, but the firmware is parametric. The number of knobs is set with `-DIORUBA_NUM_KNOBS=<n>` at compile time, and the analog pins are chosen from a per-board table (the first `n` channels). A `static_assert` fails the build if `n` exceeds the board's analog channels.
 
-| Board            | MCU          | ADC bits | Analog channels | Max knobs | Pin order (first knobs use these in order)        |
-| ---------------- | ------------ | -------- | --------------- | --------- | -------------------------------------------------- |
-| Arduino Nano     | ATmega328P   | 10       | 8               | 8         | `A0 A1 A2 A3 A4 A5 A6 A7`                           |
-| Arduino Uno      | ATmega328P   | 10       | 6               | 6         | `A0 A1 A2 A3 A4 A5`                                 |
-| Arduino Mega2560 | ATmega2560   | 10       | 16              | 16        | `A0 A1 … A15`                                       |
-| Leonardo / Micro | ATmega32U4   | 10       | 12              | 12        | `A0 A1 … A11`                                       |
-| ESP32            | ESP32        | 12       | 6 (ADC1 only)   | 6         | `A0 A3 A4 A5 A6 A7` (ADC2 is reserved for Wi-Fi)   |
-| RP2040 / Pico    | RP2040       | 12       | 3               | 3         | `A0 A1 A2`                                          |
-| ESP8266 (NodeMCU)| ESP8266      | 10       | 1 (A0 only)     | 1         | `A0` (single ADC pin exposed by the Arduino core)   |
+| Board | MCU | ADC bits | Analog channels | Max knobs | Pin order (first knobs use these in order) |
+| --- | --- | --- | --- | --- | --- |
+| Arduino Nano | ATmega328P | 10 | 8 | 8 | `A0 A1 A2 A3 A4 A5 A6 A7` |
+| Arduino Uno | ATmega328P | 10 | 6 | 6 | `A0 A1 A2 A3 A4 A5` |
+| Arduino Mega2560 | ATmega2560 | 10 | 16 | 16 | `A0 A1 … A15` |
+| Leonardo / Micro | ATmega32U4 | 10 | 12 | 12 | `A0 A1 … A11` |
+| ESP32 | ESP32 | 12 | 6 (ADC1 only) | 6 | `A0 A3 A4 A5 A6 A7` (ADC2 is reserved for Wi-Fi) |
+| RP2040 / Pico | RP2040 | 12 | 3 | 3 | `A0 A1 A2` |
+| ESP8266 (NodeMCU) | ESP8266 | 10 | 1 (A0 only) | 1 | `A0` (single ADC pin exposed by the Arduino core) |
 
 Compile for a specific board with `arduino-cli`, e.g. a Mega with 8 knobs:
 
@@ -165,7 +165,7 @@ Default profile behavior:
 
 - check the USB cable first
 - confirm the firmware is flashed
-- confirm `9600` baud
+- confirm `115200` baud for the current firmware
 - try the Arduino serial monitor before blaming the desktop app
 
 ### Upload fails

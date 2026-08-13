@@ -1,6 +1,6 @@
 # Exemplos de Perfil e Correspondencia de Alvos no Linux
 
-Use este guia quando quiser exemplos praticos de JSON para o editor de perfil atual do Ioruba.
+Use este guia quando quiser exemplos práticos de JSON. **Atenção:** este espelho resume o formato; para o schema completo atual (incluindo `firmware`, `calibration`, validação e operações de perfil), consulte o [guia canônico](../../../guides/profile-examples.md). O baud padrão atual é 115200.
 
 ## 🎚️ Exemplo: apenas volume master
 
@@ -10,7 +10,7 @@ Use este guia quando quiser exemplos praticos de JSON para o editor de perfil at
   "name": "Master Only",
   "serial": {
     "preferredPort": null,
-    "baudRate": 9600,
+    "baudRate": 115200,
     "autoConnect": true,
     "heartbeatTimeoutMs": 3000
   },
@@ -43,7 +43,7 @@ Use este guia quando quiser exemplos praticos de JSON para o editor de perfil at
   "name": "Streaming Desk",
   "serial": {
     "preferredPort": "/dev/ttyUSB0",
-    "baudRate": 9600,
+    "baudRate": 115200,
     "autoConnect": true,
     "heartbeatTimeoutMs": 3000
   },
@@ -167,6 +167,6 @@ O backend Linux atual aplica os alvos com a logica abaixo:
 
 ## Documentos relacionados
 
-- [../../README.md](../../README.md)
-- [../../QUICKSTART.md](../../QUICKSTART.md)
-- [../../TESTING.md](../../TESTING.md)
+- [README PT-BR](../root/README.md)
+- [Início rápido](../root/QUICKSTART.md)
+- [Testes](../root/TESTING.md)

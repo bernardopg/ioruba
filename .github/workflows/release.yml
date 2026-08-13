@@ -171,6 +171,12 @@ jobs:
           echo "::error::TAURI_SIGNING_PRIVATE_KEY is required for a release."
           exit 1
 
+      - name: Require Windows signing certificate
+        if: matrix.platform == 'windows-latest' && env.HAS_WINDOWS_CERT != '1'
+        run: |
+          echo "WINDOWS_CERTIFICATE is required for a public Windows release." >&2
+          exit 1
+
       - name: Import Windows certificate
         if: matrix.platform == 'windows-latest' && env.HAS_WINDOWS_CERT == '1'
         env:
@@ -438,12 +444,15 @@ jobs:
             -H "Accept: application/vnd.github+json" \
             "https://api.github.com/repos/${REPO}/releases/tags/${TAG}")"
 
-          APPIMAGE_ASSET_NAME="$(printf '%s' "${RELEASE_JSON}" | jq -r '.assets[]?.name | select(test("\\.AppImage$"; "i"))' | head -n 1)"
+          mapfile -t APPIMAGE_ASSETS < <(printf '%s' "${RELEASE_JSON}" \
+            | jq -r '.assets[]?.name | select(test("\\.AppImage$"; "i"))')
 
-          if [[ -z "${APPIMAGE_ASSET_NAME}" ]]; then
-            echo "No AppImage asset found in release ${TAG}."
+          if [[ "${#APPIMAGE_ASSETS[@]}" -ne 1 ]]; then
+            echo "Expected exactly one AppImage in release ${TAG}; found ${#APPIMAGE_ASSETS[@]}." >&2
+            printf '  %s\n' "${APPIMAGE_ASSETS[@]}" >&2
             exit 1
           fi
+          APPIMAGE_ASSET_NAME="${APPIMAGE_ASSETS[0]}"
 
           APPIMAGE_ASSET_URL="$(printf '%s' "${RELEASE_JSON}" | jq -r --arg NAME "${APPIMAGE_ASSET_NAME}" '.assets[] | select(.name == $NAME) | .browser_download_url')"
 
@@ -796,16 +805,32 @@ jobs:
             --pattern "*-setup.exe" \
             --pattern "*.app.tar.gz" \
             --pattern "*.hex" \
+            --pattern "*.bin" \
             --pattern "*.elf" \
             --pattern "*.eep" \
             --dir release-assets \
             --repo "${GITHUB_REPOSITORY}" \
-            --clobber || true
+            --clobber
 
-          if [ -z "$(ls -A release-assets)" ]; then
-            echo "No release assets found for ${RELEASE_TAG} — nothing to checksum or attest." >&2
-            exit 1
-          fi
+          required_patterns=(
+            "*.deb"
+            "*.rpm"
+            "*.AppImage"
+            "*.msi"
+            "*-setup.exe"
+            "*_aarch64.app.tar.gz"
+            "*_x64.app.tar.gz"
+            "*.hex"
+            "*.bin"
+            "*.elf"
+            "*.eep"
+          )
+          for pattern in "${required_patterns[@]}"; do
+            compgen -G "release-assets/${pattern}" > /dev/null || {
+              echo "Missing required release asset matching ${pattern}." >&2
+              exit 1
+            }
+          done
 
           ls -lh release-assets/
 
@@ -836,6 +861,9 @@ jobs:
             release-assets/*-setup.exe
             release-assets/*.app.tar.gz
             release-assets/*.hex
+            release-assets/*.bin
+            release-assets/*.elf
+            release-assets/*.eep
 
   package-manifests:
     name: Generate Package Manager Manifests

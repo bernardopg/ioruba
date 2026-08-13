@@ -1,11 +1,21 @@
 # Release distribution
 
-The tag workflow builds the supported desktop artifacts, attests them, publishes
-`SHA256SUMS.txt`, and only then generates package-manager manifests. The checksum
-is the trust boundary: installers and manifests must quote the digest of the
-published executable, never a locally recomputed value.
+The tag workflow first reuses the complete CI workflow as a gate, then builds
+the supported desktop and firmware artifacts, publishes signed updater metadata,
+release notes, attestations, and `SHA256SUMS.txt`, and finally generates
+package-manager manifests. The published checksum is the trust boundary:
+installers fail closed when `SHA256SUMS.txt` or the exact asset entry is missing,
+and manifests must quote the digest of the release asset rather than a digest
+copied or recomputed by hand. Public Windows releases also fail closed unless
+the Authenticode certificate secret is provisioned; macOS signing/notarization
+remains the explicitly documented exception below.
 
 ## Generated package-manager manifests
+
+Current desktop artifacts are Linux `.deb`/`.rpm`/AppImage, Windows MSI/NSIS,
+and macOS Apple Silicon/Intel `.app.tar.gz` archives. The release also includes
+firmware output, updater signatures, `latest.json`, checksums, provenance, and
+package metadata.
 
 After a release, the workflow uploads these additional assets:
 
@@ -79,9 +89,10 @@ restart** action, verifies the artifact before installing it, and relaunches
 only after a successful verification. Browser/dev mode keeps the informational
 GitHub release check; it never treats an arbitrary URL as an installable update.
 
-The first tag after this change is the end-to-end production verification: check
-that its release contains `latest.json` and `.sig` files, then install it from a
-previous Ioruba build on Linux and Windows. Apple notarization remains separate.
+For every tag, verify that the release contains `latest.json` and each required
+`.sig`, then test an update from the previous Ioruba build on Linux and Windows.
+Test macOS when the corresponding signed/notarized distribution path is enabled.
+Apple code signing and notarization remain separate from Tauri updater signing.
 
 ## AUR: the PKGBUILD must opt out of LTO
 

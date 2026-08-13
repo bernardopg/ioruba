@@ -1,25 +1,35 @@
-# Documentacao em PT-BR
+# Documentação em português (Brasil)
 
-Este diretorio contem a traducao da documentacao que fica em docs/.
+Este índice acompanha a documentação canônica em inglês. Os espelhos PT-BR são mantidos manualmente; quando houver divergência factual, consulte o código e o documento canônico indicado.
 
-## Documentacao da raiz do repositorio
+## Comece aqui
 
-- [README.md](../../../README.md) -> [README (PT-BR)](./root/README.md)
-- [QUICKSTART.md](../../../QUICKSTART.md) -> [Inicio Rapido (PT-BR)](./root/QUICKSTART.md)
-- [TESTING.md](../../../TESTING.md) -> [Guia de Testes (PT-BR)](./root/TESTING.md)
-- [NANO_SETUP.md](../../../NANO_SETUP.md) -> [Setup do Nano (PT-BR)](./root/NANO_SETUP.md)
-- [CONTRIBUTING.md](../../../CONTRIBUTING.md) -> [Contribuicao (PT-BR)](./root/CONTRIBUTING.md)
-- [CHANGELOG.md](../../../CHANGELOG.md) -> [Changelog (PT-BR)](./root/CHANGELOG.md)
-- [TODO.md](../../../TODO.md) -> ja escrito em PT-BR, sem espelho separado
-- [FUNDING.md](../../../FUNDING.md) -> [Financiamento (PT-BR)](./root/FUNDING.md)
+- [README — visão geral do projeto](root/README.md) ([canônico](../../../README.md))
+- [Início rápido](root/QUICKSTART.md) ([canônico](../../../QUICKSTART.md))
+- [Setup do Arduino Nano](root/NANO_SETUP.md) ([canônico](../../../NANO_SETUP.md))
+- [Guia de setup de hardware](guides/hardware-setup.md) ([canônico](../../guides/hardware-setup.md))
 
-## Guias
+## Configuração e suporte
 
-- [Hardware Setup Guide](../../guides/hardware-setup.md) -> [Guia de Setup de Hardware](./guides/hardware-setup.md)
-- [Audio Backend Contract (Rust <-> TS)](../../guides/audio-backend-contract.md) -> [Contrato do Backend de Audio (Rust <-> TS)](./guides/audio-backend-contract.md)
-- [Profile Examples And Linux Target Matching](../../guides/profile-examples.md) -> [Exemplos de Perfil e Correspondencia de Alvos no Linux](./guides/profile-examples.md)
-- [Translation Guide (PT-BR and EN)](../../guides/translation-guide.md) -> [Guia de Traducoes (PT-BR e EN)](./guides/translation-guide.md)
+- [Exemplos de perfil e alvos Linux](guides/profile-examples.md) ([canônico](../../guides/profile-examples.md))
+- [Playbook de suporte](debug/support.md) ([canônico](../../debug/support.md))
+- [Guia de testes](root/TESTING.md) ([canônico](../../../TESTING.md))
 
-## Depuracao e suporte
+## Arquitetura e contribuição
 
-- [Support Playbook](../../debug/support.md) -> [Playbook de Suporte](./debug/support.md)
+- [Contrato do backend de áudio](guides/audio-backend-contract.md) ([canônico](../../guides/audio-backend-contract.md))
+- [Guia de traduções](guides/translation-guide.md) ([canônico](../../guides/translation-guide.md))
+- [Contribuindo](root/CONTRIBUTING.md) ([canônico](../../../CONTRIBUTING.md))
+
+O guia operacional de distribuição ainda está disponível somente em inglês: [Release distribution](../../guides/release-distribution.md).
+
+## Projeto
+
+- [Roadmap de produto](../../roadmap.md) — já escrito em português
+- [Backlog executável](../../../TODO.md) — já escrito em português
+- [Changelog PT-BR](root/CHANGELOG.md) ([canônico](../../../CHANGELOG.md))
+- [Financiamento](root/FUNDING.md) ([canônico](../../../FUNDING.md))
+
+## Escopo da tradução
+
+A interface do aplicativo oferece `pt-BR`, `en` e `es`. Este diretório cobre a documentação PT-BR; espanhol atualmente se refere à interface, não a um conjunto completo de manuais traduzidos.

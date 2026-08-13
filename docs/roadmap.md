@@ -1,7 +1,7 @@
 # Roadmap de produto
 
 Documento vivo de metas de produto além da paridade com o protótipo legado
-(Python/GTK, aposentado). Atualizado em 2026-08-10.
+(Python/GTK, aposentado). Atualizado em 2026-08-13 para a baseline v1.8.2.
 
 ## Onde estamos
 
@@ -11,8 +11,9 @@ parametrizado por placa com handshake/calibração/EEPROM, persistência atômic
 estado, observabilidade via watch log, perfis com presets e import/export,
 telemetria de sessão exportável, wizard de calibração, botões e encoders com mute
 direcionado a sink/source/aplicação (editor visual, sem JSON) e i18n en/pt-BR/es.
-Releases multiplataforma são empacotadas (deb/rpm/AppImage/nsis/msi/app) com
-provenance SLSA, mas o controle de áudio real é Linux-only.
+Releases multiplataforma são empacotadas (`deb`/`rpm`/AppImage/NSIS/MSI/app)
+com provenance SLSA e atualização in-app assinada. O Linux tem cobertura
+completa de alvos; Windows e macOS controlam a saída padrão (`master`).
 
 ## Resolvido: mais de 3 knobs e outras placas
 
@@ -57,9 +58,10 @@ estado item a item ficam no `TODO.md`; aqui só a intenção de produto.
   hotkeys do sistema dá controle sem o hardware e sem foco na janela. O mute já
   aceita alvo específico (sink/source/aplicação) no Linux desde a v1.7.0.
 - **Múltiplos controladores:** ver a seção acima.
-- **Atualizações automáticas:** integrar `tauri-plugin-updater` + assinatura de
-  artefatos para entregar updates in-app (hoje desabilitado; falta a chave de
-  assinatura e os artefatos `latest.json`).
+- **Atualizações e distribuição confiáveis:** o updater assinado, `latest.json`,
+  Homebrew, Scoop, winget e AUR já existem. O trabalho aberto é concluir
+  assinatura/notarização macOS, provar o caminho de DMG e manter testes de
+  atualização entre versões.
 
 ## Não-objetivos
 

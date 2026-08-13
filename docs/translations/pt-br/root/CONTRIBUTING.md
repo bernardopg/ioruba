@@ -1,59 +1,73 @@
 # Contribuindo com o Ioruba
 
-## Stack ativa
+Obrigado por contribuir com código, firmware, documentação, tradução, testes ou suporte de hardware.
 
-O caminho atual do produto vive em:
+## Áreas do repositório
 
-- apps/desktop para o app desktop Tauri + React
-- apps/desktop/src-tauri para o backend Rust
-- packages/shared para logica de protocolo e runtime compartilhada pela UI
-- firmware/arduino/ioruba-controller para o firmware Arduino
+| Área | Caminho |
+| --- | --- |
+| UI desktop | `apps/desktop/src` |
+| Shell/backend Rust | `apps/desktop/src-tauri` |
+| Domínio compartilhado | `packages/shared` |
+| Firmware | `firmware/arduino/ioruba-controller` |
+| Documentação | raiz e `docs/` |
+| Tema do site | `docs-site/` |
 
-## Setup local
+Protocolo e matemática de runtime pertencem ao shared. Componentes devem usar os wrappers tipados de `apps/desktop/src/lib/backend.ts`.
 
-Instale as dependencias:
+## Setup
 
 ```bash
 npm install
-```
-
-Passe de validacao recomendado:
-
-```bash
 npm run verify
+npm run firmware:compile
 ```
 
-Se voce estiver alterando o shell desktop em si, tambem gere o binario Tauri:
+Shell completo:
 
 ```bash
-npm run desktop:tauri:build
+npm run desktop:watch
 ```
 
-Se voce editar o source do icone em apps/desktop/src-tauri/icons/app-icon.svg, regenere todos os assets derivados para desktop, Android, iOS, icns e ico com:
+## Validação por mudança
 
-```bash
-npm run desktop:icons
-```
+- shared: `npm run shared:typecheck && npm run shared:test`;
+- frontend: `npm run desktop:typecheck && npm run desktop:test && npm run desktop:build`;
+- Rust/Tauri: fmt, clippy, `npm run rust:test` e `npm run desktop:tauri:build`;
+- firmware: `npm run firmware:test && npm run firmware:test:wide && npm run firmware:compile:matrix`;
+- scripts: `npm run lint:scripts && npm run test:installer`;
+- packaging/updater: `npm run test:packaging`;
+- docs: `npm run docs:prepare-site`;
+- release: `npm run release:check`.
 
-Se voce estiver alterando firmware:
+Veja o [Guia de testes](TESTING.md).
 
-```bash
-arduino-cli compile --fqbn arduino:avr:nano firmware/arduino/ioruba-controller
-```
+## Convenções
 
-## Workflow
+- adicione testes junto da mudança;
+- mantenha tipos Rust ↔ TS sincronizados;
+- preserve outcomes explícitos em plataformas sem suporte;
+- atualize normalização de estado persistido ao adicionar campos;
+- documente compatibilidade de protocolo;
+- não edite checksum/manifest gerado à mão;
+- regenere ícones com `npm run desktop:icons`;
+- preserve acessibilidade e a direção visual de `.impeccable.md`;
+- não reintroduza a stack legado.
 
-1. Mantenha as mudancas focadas na stack ativa.
-2. Atualize docs quando caminhos, comandos ou comportamento de runtime mudarem.
-3. Prefira adicionar testes junto de packages/shared, apps/desktop ou apps/desktop/src-tauri quando houver mudanca de comportamento.
-4. Regenere assets gerados, incluindo icones desktop, sempre que os arquivos-fonte mudarem.
-5. Nao reintroduza arquivos Haskell na raiz nem tooling antigo de release.
+## Documentação
 
-## Pull requests
+Ao mudar comportamento, comandos, paths, defaults ou suporte:
 
-Antes de abrir um PR, garanta que:
+1. atualize o documento canônico em inglês;
+2. atualize o espelho PT-BR quando existir;
+3. ajuste índices/navegação;
+4. rode `npm run docs:prepare-site`;
+5. valide exemplos contra firmware 0.6.1, 115200 baud e suporte atual.
 
-- npm run verify passa
-- npm run desktop:tauri:build passa para mudancas no shell desktop
-- firmware continua compilando quando arquivos de firmware mudarem
-- docs refletem o layout atual do repositorio
+## Pull request
+
+Explique problema, solução, efeitos de compatibilidade e testes. Inclua screenshot/vídeo para UI, mantenha o diff focado e não inclua segredos/artefatos locais.
+
+Antes da revisão, confirme `npm run verify`, o build Tauri quando aplicável, checks de firmware/scripts/packaging relevantes e geração das docs.
+
+Detalhes completos: [CONTRIBUTING.md canônico](../../../../CONTRIBUTING.md).

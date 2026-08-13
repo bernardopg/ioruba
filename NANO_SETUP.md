@@ -1,148 +1,186 @@
 # Arduino Nano Setup
 
-This guide focuses on the controller board used by the current Ioruba stack.
+This guide covers the reference Ioruba controller: an Arduino Nano ATmega328P with three potentiometers. For other supported boards, more knobs, buttons, or encoders, use the broader [hardware setup guide](docs/guides/hardware-setup.md).
 
-## Circuit Design
+## Reference circuit
 
 <p align="center">
-  <img src="docs/assets/circuit_schema_arduino_nano_type_c.svg" alt="Circuit Schema"/>
+  <img src="docs/assets/circuit_schema_arduino_nano_type_c.svg" alt="Arduino Nano connected to three potentiometers on A0, A1, and A2" />
 </p>
 
-## Target hardware
+### Parts
 
-- `Arduino Nano ATmega328P`
-- `3x B10K / 10k linear potentiometers`
-- `A0`, `A1`, and `A2` as analog inputs
-- `9600` baud serial output
+- Arduino Nano ATmega328P;
+- three B10K / 10k linear potentiometers;
+- USB data cable;
+- jumper wires and a breadboard or enclosure.
 
-If you still need the physical wiring reference, read [docs/guides/hardware-setup.md](docs/guides/hardware-setup.md) first.
+### Wiring
 
-## Wiring summary
+| Knob | Outer pin | Center/wiper | Other outer pin |
+| --- | --- | --- | --- |
+| 1 | `GND` | `A0` | `5V` |
+| 2 | `GND` | `A1` | `5V` |
+| 3 | `GND` | `A2` | `5V` |
 
-| Knob | Left pin | Center pin | Right pin |
-| ---- | -------- | ---------- | --------- |
-| 1    | `GND`    | `A0`       | `5V`      |
-| 2    | `GND`    | `A1`       | `5V`      |
-| 3    | `GND`    | `A2`       | `5V`      |
+Use a shared ground and 5 V rail. If clockwise motion lowers the value when you want it to raise the value, swap the two outer pins on that potentiometer.
 
-> If a knob feels inverted, swap the two outer pins.
+## Install Arduino CLI and the AVR core
 
-## Recommended firmware
+Follow the [Arduino CLI installation instructions](https://arduino.github.io/arduino-cli/latest/installation/), then install the AVR core:
 
-Use the active sketch:
+```bash
+arduino-cli config init
+arduino-cli core update-index
+arduino-cli core install arduino:avr
+```
 
-- [firmware/arduino/ioruba-controller/ioruba-controller.ino](firmware/arduino/ioruba-controller/ioruba-controller.ino)
-
-What it sends:
-
-- a startup and on-demand handshake such as `HELLO board=Ioruba Nano; fw=0.5.1; protocol=2; knobs=3; threshold=4; deadzone=7; smooth=75; mins=0,0,0; maxs=1023,1023,1023`
-- smoothed analog readings
-- frames roughly every `40 ms` when values move
-- pipe-separated lines such as `512|768|1023`
-
-The desktop runtime still accepts the legacy `P1:512` packet format for compatibility, but the current firmware now also reports controller tuning and calibration data in the handshake.
-
-> **Versioning:** the firmware version (`fw=`) and the desktop app version are tracked independently. `fw=` reflects sketch changes; `protocol=` reflects the serial contract. The desktop only validates `protocol=` against its `SUPPORTED_PROTOCOL_VERSION` (currently `2`) and warns when it differs, so a firmware/app version mismatch on its own is expected and harmless.
-
-## Detect the board
-
-Use `arduino-cli` first:
+Detect the board and serial port:
 
 ```bash
 arduino-cli board list
 ```
 
-You can also inspect the Linux device files directly:
+Typical Linux ports are `/dev/ttyUSB0` for CH340/FTDI-based clones and `/dev/ttyACM0` for native USB serial devices.
+
+## Linux serial permissions
+
+If access is denied, add your user to the serial group used by your distribution:
 
 ```bash
-ls -l /dev/ttyUSB* /dev/ttyACM* 2>/dev/null
+sudo usermod -a -G dialout "$USER"
+sudo usermod -a -G uucp "$USER"
 ```
 
-Typical Nano clone USB chip labels include `CH340` and `FT232R USB UART`.
-
-## Linux permissions
-
-Depending on the distro, add your user to `dialout` or `uucp`:
-
-```bash
-sudo usermod -a -G dialout $USER
-sudo usermod -a -G uucp $USER
-```
-
-Then log out and back in before testing the serial connection again.
+Not every distribution uses both groups. Log out and back in after changing membership.
 
 ## Compile the firmware
 
-```bash
-arduino-cli compile --fqbn arduino:avr:nano firmware/arduino/ioruba-controller
-```
+The active sketch is [`firmware/arduino/ioruba-controller/ioruba-controller.ino`](firmware/arduino/ioruba-controller/ioruba-controller.ino).
 
-## Upload to the Nano
-
-Standard Nano profile:
+Compile from the repository root:
 
 ```bash
-arduino-cli upload -p /dev/ttyUSB0 --fqbn arduino:avr:nano firmware/arduino/ioruba-controller
+npm run firmware:compile
 ```
 
-Old bootloader profile for common clones:
+Equivalent direct command:
 
 ```bash
-arduino-cli upload -p /dev/ttyUSB0 --fqbn arduino:avr:nano:cpu=atmega328old firmware/arduino/ioruba-controller
+arduino-cli compile \
+  --fqbn arduino:avr:nano \
+  firmware/arduino/ioruba-controller
 ```
 
-## Validate serial output
+## Upload
 
-After flashing, the board should emit lines like:
+Standard Nano:
+
+```bash
+arduino-cli upload \
+  -p /dev/ttyUSB0 \
+  --fqbn arduino:avr:nano \
+  firmware/arduino/ioruba-controller
+```
+
+Common Nano clone with the old bootloader:
+
+```bash
+arduino-cli upload \
+  -p /dev/ttyUSB0 \
+  --fqbn arduino:avr:nano:cpu=atmega328old \
+  firmware/arduino/ioruba-controller
+```
+
+Replace the port with the one reported by `arduino-cli board list`.
+
+## Current serial contract
+
+The default firmware configuration is:
+
+- baud rate: **115200**;
+- firmware version: **0.6.1**;
+- protocol version: **2**;
+- three 10-bit analog controls (`0..1023`);
+- frames sent on meaningful movement, with heartbeat support;
+- calibration/tuning persisted in EEPROM.
+
+After startup, or when the desktop sends `HELLO?`, the board emits a handshake followed by knob frames:
 
 ```text
-HELLO board=Ioruba Nano; fw=0.5.1; protocol=2; knobs=3; threshold=4; deadzone=7; smooth=75; mins=0,0,0; maxs=1023,1023,1023
+HELLO board=Ioruba Nano; fw=0.6.1; protocol=2; knobs=3; mcu=ATmega328P; adcBits=10; threshold=4; deadzone=7; smooth=75; mins=0,0,0; maxs=1023,1023,1023
 512|768|1023
 ```
 
-The desktop app also requests the same handshake with `HELLO?` whenever it connects or reconnects.
+`fw=` and the desktop app version are independent. Compatibility is determined by `protocol=`; the current desktop expects protocol 2. The parser also accepts legacy `P1:512` packets.
 
-Practical smoke test:
+## Validate the controller
 
-1. launch the desktop shell with `npm run desktop:watch`
-2. choose the detected serial port if needed
-3. open the `Watch` tab
-4. turn the knobs and confirm the telemetry updates
-5. on Linux, verify the mapped audio targets respond
+### In the desktop app
 
-## If upload fails
+1. Start Ioruba or run `npm run desktop:watch`.
+2. Select the detected serial port if needed.
+3. Confirm connection health becomes connected.
+4. Open **Watch** and verify the handshake and knob frames.
+5. Open Hardware and confirm board, MCU, ADC bits, protocol, and calibration.
+6. Turn each knob through its range and verify telemetry.
+7. Run the calibration wizard if the controls do not reach 0% or 100%.
 
-Common symptoms:
+### In a serial monitor
 
-- `not in sync`
-- `unable to read signature data`
-- the board appears as `Unknown` in `arduino-cli board list`
+Use any monitor configured for **115200 baud**. Close the monitor before connecting Ioruba because only one process can normally own the port.
 
-Practical fixes:
+With Arduino CLI:
 
-- try both Nano processor profiles
-- press `RESET` right before the upload starts
-- make sure no other app is holding `/dev/ttyUSB0`
-- swap the USB cable for a known data cable
-- confirm the board is really a Nano-compatible `ATmega328P`
-- if necessary, reburn the bootloader with an ISP programmer
+```bash
+arduino-cli monitor -p /dev/ttyUSB0 -c baudrate=115200
+```
 
-## Useful debug checks
+## Calibration and firmware commands
 
-Check whether something is already holding the port:
+The desktop synchronizes profile calibration and tuning with the firmware through the `CONFIG` command. The board stores compatible values in EEPROM.
+
+Useful protocol commands include:
+
+- `HELLO?` — request the handshake;
+- `EVENTS ON` / `EVENTS OFF` — enable or disable optional button/encoder frames;
+- `RAW ON` / `RAW OFF` — switch raw ADC capture for calibration workflows;
+- `CONFIG ...` — update threshold, deadzone, smoothing, and calibration values.
+
+Normal users should use the app's Hardware calibration wizard instead of sending these commands manually.
+
+## Upload troubleshooting
+
+### `not in sync` or signature errors
+
+- Try both Nano processor profiles shown above.
+- Press `RESET` immediately before upload starts.
+- Confirm the board is an ATmega328P-compatible Nano.
+- Use a known USB data cable.
+- Close Ioruba, Arduino Serial Monitor, and any other serial tool.
+- Reburn the bootloader with an ISP programmer if both profiles fail.
+
+### Port is busy
+
+On Linux:
 
 ```bash
 fuser -v /dev/ttyUSB0
 ```
 
-List active Linux audio applications:
+Close the process holding the port before uploading or launching Ioruba.
 
-```bash
-pactl list short sink-inputs
-```
+### Noisy or unstable values
 
-## Related guides
+- Keep analog wiring short and share a solid ground.
+- Confirm the center pin is connected to the analog input.
+- Run the calibration wizard.
+- Increase the profile/firmware smoothing only after checking wiring.
+- ESP32/ESP8266 builds disable Wi-Fi because radio activity can add ADC noise; this does not apply to the Nano.
 
-- [QUICKSTART.md](QUICKSTART.md)
-- [TESTING.md](TESTING.md)
-- [docs/guides/hardware-setup.md](docs/guides/hardware-setup.md)
+## Related documentation
+
+- [Quick start](QUICKSTART.md)
+- [Hardware setup and supported boards](docs/guides/hardware-setup.md)
+- [Testing](TESTING.md)
+- [Support playbook](docs/debug/support.md)

@@ -3,7 +3,7 @@
 #
 # Detects the OS and architecture, downloads the matching asset from the latest
 # GitHub release (or a tag passed with --version), verifies it against
-# SHA256SUMS.txt when available, and installs it:
+# SHA256SUMS.txt (failing closed when verification is unavailable), and installs it:
 #   - Linux : AppImage (default, rootless) into ~/.local/bin; or --type deb|rpm
 #   - macOS : the .app bundle for the host architecture into /Applications
 #
@@ -30,10 +30,14 @@ asset_urls() {
     | sed 's/.*"browser_download_url": *"\([^"]*\)".*/\1/'
 }
 
-# Pull the download URL for the first asset whose name matches a pattern.
+# Pull the download URL only when exactly one asset name matches a pattern.
+# Ambiguity is a release error; silently choosing the first asset is unsafe.
 asset_url_for() {
     # $1: extended-regex pattern matched against asset file names.
-    asset_urls | grep -E "$1" | head -n1
+    _matches="$(asset_urls | grep -E "$1" || true)"
+    _count="$(printf '%s\n' "$_matches" | grep -c . || true)"
+    [ "$_count" -eq 1 ] || return 1
+    printf '%s\n' "$_matches"
 }
 
 # Resolve an asset URL or abort naming what the release actually ships.
@@ -110,21 +114,19 @@ checksum_for() {
     ' "$2"
 }
 
-# Verify a downloaded file against SHA256SUMS.txt when the release ships one.
+# Verify a downloaded file against SHA256SUMS.txt. Installation fails closed
+# when the checksum asset or exact entry is missing.
 verify_checksum() {
     file_path="$1"
     file_name="$(basename "$file_path")"
     sums_url="$(asset_url_for 'SHA256SUMS\.txt$')"
-    if [ -z "$sums_url" ]; then
-        warn "No SHA256SUMS.txt in this release; skipping checksum verification."
-        return 0
-    fi
-    curl -fsSL "$sums_url" -o "$tmp/SHA256SUMS.txt" || { warn "Could not download checksums."; return 0; }
+    [ -n "$sums_url" ] \
+        || die "No SHA256SUMS.txt in release ${VERSION}; refusing an unverified install."
+    curl -fsSL "$sums_url" -o "$tmp/SHA256SUMS.txt" \
+        || die "Could not download SHA256SUMS.txt for release ${VERSION}."
     expected="$(checksum_for "$file_name" "$tmp/SHA256SUMS.txt")"
-    if [ -z "$expected" ]; then
-        warn "No checksum entry for ${file_name}; skipping."
-        return 0
-    fi
+    [ -n "$expected" ] \
+        || die "No checksum entry for ${file_name}; refusing an unverified install."
     if command -v sha256sum >/dev/null 2>&1; then
         actual="$(sha256sum "$file_path" | awk '{print $1}')"
     else

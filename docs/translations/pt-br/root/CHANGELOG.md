@@ -1,17 +1,32 @@
 # Changelog
 
-Todas as mudancas relevantes deste projeto sao documentadas neste arquivo.
+Todas as mudanças relevantes deste projeto são documentadas neste arquivo.
+
+> Este espelho PT-BR cobre as releases mais recentes e parte do histórico. Para
+> a sequência completa e os links de comparação de todas as versões, consulte
+> o [`CHANGELOG.md` canônico](../../../../CHANGELOG.md).
 
 O formato segue [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 e este projeto segue [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [1.8.2](https://github.com/bernardopg/ioruba/compare/v1.8.1...v1.8.2) (2026-08-13)
+
+### Segurança
+
+- Atualizado `event-listener` transitivo de 5.4.1 para 5.4.2, corrigindo RUSTSEC-2026-0221. O CI agora executa auditorias npm e RustSec.
+- Instaladores one-line passam a falhar fechados sem `SHA256SUMS.txt`, entrada exata ou asset de arquitetura não ambíguo.
+- Bootstrap do Arduino CLI verifica SHA-256 fixo e repete downloads transitórios; checksums/provenance passam a exigir todos os assets desktop e firmware, incluindo `.bin`, `.elf` e `.eep`.
+- Releases Windows públicas passam a exigir certificado Authenticode em vez de publicar instaladores sem assinatura silenciosamente.
+
 ## [1.8.1](https://github.com/bernardopg/ioruba/compare/v1.8.0...v1.8.1) (2026-08-12)
 
 ### Corrigido
 
 - O `PKGBUILD` do AUR gerado para `ioruba-desktop` agora define `options=('!lto' '!debug')`. O `makepkg.conf` padrão do Arch habilita LTO e injeta `-flto=auto` no `CFLAGS`, então o crate `cc` compilava os fontes C e assembly do crate `ring` como bitcode GIMPLE em vez de objetos ELF nativos; o link final, feito pelo `rust-lld`, falhava com `undefined symbol: ring_core_0_17_14__*` e ninguém conseguia instalar a v1.8.0 a partir do fonte. O linker era pista falsa — só remover o `-flto` resolve. O `PKGBUILD` também recuperou as entradas `provides`/`conflicts`/`replaces` que a v1.8.0 perdeu, de modo que não coexiste mais silenciosamente com `ioruba-desktop-bin`.
+
+## [1.8.0](https://github.com/bernardopg/ioruba/compare/v1.7.1...v1.8.0) (2026-08-10)
 
 ### Adicionado
 
@@ -134,7 +149,7 @@ e este projeto segue [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ### Funcionalidades
 
 - Suporte de firmware para ESP8266 (NodeMCU e placas compativeis): deteccao de placa, ramos `ANALOG_PINS`/`MCU_NAME`, e o override existente `IORUBA_NUM_KNOBS` em compile-time cobre seu unico pino analogico exposto (A0). Validado numa NodeMCU V3 fisica (CH340) — veja `docs/guides/hardware-setup.md` para a flag de build-property necessaria e o job de CI.
-- Comando serial `RAW ON`/`RAW OFF`: um modo opt-in em que o frame periodico carrega leituras de ADC nao filtradas e com oversampling (prefixo `RAW `) em vez do frame calibrado `n|n|n`, para um futuro wizard de calibracao com captura ao vivo. Desabilitado por padrao para nao mudar o formato do frame em hosts existentes.
+- Comando serial `RAW ON`/`RAW OFF`: um modo opt-in em que o frame periodico carrega leituras de ADC nao filtradas e com oversampling (prefixo `RAW`) em vez do frame calibrado `n|n|n`, para um futuro wizard de calibracao com captura ao vivo. Desabilitado por padrao para nao mudar o formato do frame em hosts existentes.
 - Oversampling do ADC: cada leitura de knob agora tira a media de 4 amostras consecutivas de `analogRead()`, reduzindo o ruido de amostra unica em todas as placas.
 - Encoders agora usam interrupcao por mudanca de pino nas placas que suportam `attachInterrupt` nos dois pinos de quadratura (ESP32/ESP8266/RP2040), em vez de serem lidos so uma vez por iteracao do loop — um `Serial.print` bloqueante (handshake, modo RAW) nao pode mais causar perda de passo de quadratura. Placas AVR (Nano/Uno/Mega/Leonardo/Micro), cujos pinos fixos de encoder nao suportam interrupcao, mantem o comportamento de polling anterior inalterado.
 
@@ -347,7 +362,7 @@ e este projeto segue [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 - baseline inicial com tag antes da fase atual de productizacao Haskell-first
 
-[Nao publicado]: https://github.com/bernardopg/ioruba/compare/v1.5.2...HEAD
+[Não publicado]: https://github.com/bernardopg/ioruba/compare/v1.8.2...HEAD
 [0.6.1]: https://github.com/bernardopg/ioruba/releases/tag/v0.6.1
 [0.6.0]: https://github.com/bernardopg/ioruba/releases/tag/v0.6.0
 [0.5.0]: https://github.com/bernardopg/ioruba/releases/tag/v0.5.0

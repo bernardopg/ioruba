@@ -7,11 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.8.2](https://github.com/bernardopg/ioruba/compare/v1.8.1...v1.8.2) (2026-08-13)
+
+### Security
+
+- Updated transitive `event-listener` from 5.4.1 to 5.4.2, fixing RUSTSEC-2026-0221 (`StackSlot` could move non-`Send` tags across threads). CI now runs both npm and RustSec dependency audits.
+- Linux/macOS and Windows one-line installers now fail closed when `SHA256SUMS.txt`, the exact checksum entry, or an unambiguous architecture-specific asset is unavailable.
+- The Arduino CLI bootstrap verifies a pinned SHA-256 and retries transient downloads; release checksum/provenance generation now requires every expected desktop and firmware asset, including `.bin`, `.elf`, and `.eep` files.
+- Public Windows release builds now require the Authenticode certificate instead of silently publishing unsigned installers.
+
 ## [1.8.1](https://github.com/bernardopg/ioruba/compare/v1.8.0...v1.8.1) (2026-08-12)
 
 ### Fixed
 
 - The generated AUR `PKGBUILD` for `ioruba-desktop` now sets `options=('!lto' '!debug')`. Arch's stock `makepkg.conf` enables LTO and injects `-flto=auto` into `CFLAGS`, so the `cc` crate compiled the `ring` crate's C and assembly sources into GIMPLE bitcode instead of native ELF objects; the final link, driven by `rust-lld`, then failed with `undefined symbol: ring_core_0_17_14__*` and no one could install v1.8.0 from source. The linker was a red herring — only removing `-flto` fixes it. The `PKGBUILD` also regained the `provides`/`conflicts`/`replaces` entries that v1.8.0 dropped, so it no longer silently coexists with `ioruba-desktop-bin`.
+
+## [1.8.0](https://github.com/bernardopg/ioruba/compare/v1.7.1...v1.8.0) (2026-08-10)
 
 ### Added
 
@@ -134,7 +145,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Features
 
 - Firmware support for ESP8266 (NodeMCU and compatible boards): board detection, `ANALOG_PINS`/`MCU_NAME` branches, and the existing `IORUBA_NUM_KNOBS` compile-time override cover its single exposed analog pin (A0). Validated on a physical NodeMCU V3 (CH340) — see `docs/guides/hardware-setup.md` for the required build-property flag and CI job.
-- `RAW ON`/`RAW OFF` serial command: an opt-in mode where the periodic frame carries unfiltered, oversampled ADC readings (prefixed `RAW `) instead of the calibrated `n|n|n` frame, for a future live-capture calibration wizard. Disabled by default so existing hosts see no frame-shape change.
+- `RAW ON`/`RAW OFF` serial command: an opt-in mode where the periodic frame carries unfiltered, oversampled ADC readings (prefixed `RAW`) instead of the calibrated `n|n|n` frame, for a future live-capture calibration wizard. Disabled by default so existing hosts see no frame-shape change.
 - ADC oversampling: each knob reading now averages 4 consecutive `analogRead()` samples, reducing single-sample noise on all boards.
 - Encoders now use pin-change interrupts on boards that support `attachInterrupt` on both quadrature pins (ESP32/ESP8266/RP2040), instead of only being sampled once per loop iteration — a blocking `Serial.print` (handshake, RAW mode) can no longer cause a missed quadrature step. AVR boards (Nano/Uno/Mega/Leonardo/Micro), whose fixed encoder pins aren't interrupt-capable, keep the previous polling behavior unchanged.
 
@@ -584,7 +595,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial tagged baseline before the current Haskell-first productization pass
 
-[Unreleased]: https://github.com/bernardopg/ioruba/compare/v1.8.1...HEAD
+[Unreleased]: https://github.com/bernardopg/ioruba/compare/v1.8.2...HEAD
 [1.2.3]: https://github.com/bernardopg/ioruba/compare/v1.2.2...v1.2.3
 [1.2.2]: https://github.com/bernardopg/ioruba/compare/v1.2.1...v1.2.2
 [1.2.1]: https://github.com/bernardopg/ioruba/compare/v1.2.0...v1.2.1
