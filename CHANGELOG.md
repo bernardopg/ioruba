@@ -16,6 +16,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The Arduino CLI bootstrap verifies a pinned SHA-256 and retries transient downloads; release checksum/provenance generation now requires every expected desktop and firmware asset, including `.bin`, `.elf`, and `.eep` files.
 - Public Windows release builds now require the Authenticode certificate instead of silently publishing unsigned installers.
 
+### Changed
+
+- Bumped frontend dependencies: `@vitejs/plugin-react` to 6.1.0, `vite` to 8.2.2, `vitest` to 4.1.11, `@vitest/coverage-v8` to 4.1.11, and `lucide-react` to 1.33.0.
+
 ## [1.8.1](https://github.com/bernardopg/ioruba/compare/v1.8.0...v1.8.1) (2026-08-12)
 
 ### Fixed
