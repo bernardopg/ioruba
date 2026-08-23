@@ -18,6 +18,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- The Windows release pipeline no longer hard-fails when `WINDOWS_CERTIFICATE` is absent; unsigned Windows bundles are published until the Authenticode certificate is configured.
+
+### Changed
+
 - Bumped frontend dependencies: `@vitejs/plugin-react` to 6.1.0, `vite` to 8.2.2, `vitest` to 4.1.11, `@vitest/coverage-v8` to 4.1.11, and `lucide-react` to 1.33.0.
 
 ## [1.8.1](https://github.com/bernardopg/ioruba/compare/v1.8.0...v1.8.1) (2026-08-12)

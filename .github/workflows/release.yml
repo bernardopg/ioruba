@@ -114,7 +114,6 @@ jobs:
     # Expose only their *presence* as job env flags so step conditionals can
     # branch without leaking the secret material into every step's process env.
     env:
-      HAS_WINDOWS_CERT: ${{ secrets.WINDOWS_CERTIFICATE != '' && '1' || '' }}
       HAS_APPLE_CERT: ${{ secrets.APPLE_CERTIFICATE != '' && '1' || '' }}
       # An unsigned latest.json would be a remote-code-execution endpoint.
       HAS_TAURI_UPDATER_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY != '' && '1' || '' }}
@@ -170,51 +169,6 @@ jobs:
         run: |
           echo "::error::TAURI_SIGNING_PRIVATE_KEY is required for a release."
           exit 1
-
-      - name: Require Windows signing certificate
-        if: matrix.platform == 'windows-latest' && env.HAS_WINDOWS_CERT != '1'
-        shell: bash
-        run: |
-          echo "::error::WINDOWS_CERTIFICATE is required for a public Windows release."
-          exit 1
-
-      - name: Import Windows certificate
-        if: matrix.platform == 'windows-latest' && env.HAS_WINDOWS_CERT == '1'
-        env:
-          WINDOWS_CERTIFICATE: ${{ secrets.WINDOWS_CERTIFICATE }}
-          WINDOWS_CERTIFICATE_PASSWORD: ${{ secrets.WINDOWS_CERTIFICATE_PASSWORD }}
-        shell: pwsh
-        run: |
-          New-Item -ItemType Directory -Force -Path certificate | Out-Null
-          Set-Content -Path certificate/tempCert.txt -Value $env:WINDOWS_CERTIFICATE
-          certutil -decode certificate/tempCert.txt certificate/certificate.pfx
-          Remove-Item -Path certificate/tempCert.txt
-          $pwd = ConvertTo-SecureString -String $env:WINDOWS_CERTIFICATE_PASSWORD -Force -AsPlainText
-          $cert = Import-PfxCertificate -FilePath certificate/certificate.pfx `
-            -CertStoreLocation Cert:\CurrentUser\My -Password $pwd
-          echo "WINDOWS_CERTIFICATE_THUMBPRINT=$($cert.Thumbprint)" >> $env:GITHUB_ENV
-          Remove-Item -Path certificate/certificate.pfx
-
-      - name: Import Apple Developer certificate
-        if: startsWith(matrix.platform, 'macos') && env.HAS_APPLE_CERT == '1'
-        env:
-          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
-          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
-          KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
-        run: |
-          echo "$APPLE_CERTIFICATE" | base64 --decode > certificate.p12
-          security create-keychain -p "$KEYCHAIN_PASSWORD" build.keychain
-          security default-keychain -s build.keychain
-          security unlock-keychain -p "$KEYCHAIN_PASSWORD" build.keychain
-          security set-keychain-settings -t 3600 -u build.keychain
-          security import certificate.p12 -k build.keychain \
-            -P "$APPLE_CERTIFICATE_PASSWORD" -T /usr/bin/codesign
-          security set-key-partition-list \
-            -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" build.keychain
-          rm -f certificate.p12
-          CERT_IDENTITY=$(security find-identity -v -p codesigning build.keychain \
-            | grep -o '"[^"]*"' | head -n 1 | tr -d '"')
-          echo "APPLE_SIGNING_IDENTITY=$CERT_IDENTITY" >> "$GITHUB_ENV"
 
       - name: Build and upload installers (with signing)
         if: env.HAS_APPLE_CERT == '1' || !startsWith(matrix.platform, 'macos')
