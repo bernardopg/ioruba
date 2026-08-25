@@ -40,6 +40,12 @@ windows = { version = "0.62.2", features = [
 [target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies]
 tauri-plugin-updater = "2"
 
+[target.'cfg(target_os = "linux")'.dependencies]
+# Usado apenas para instalar um filtro de log GLib e suprimir o aviso de
+# depreciacao do libayatana-appindicator (ver lib.rs). Ja vem no grafo via
+# gtk/wry; a versao acompanha o patch vendorizado abaixo.
+glib = "0.18"
+
 [patch.crates-io]
 # Linux Tauri still pulls gtk-rs GTK3 through wry/webkit2gtk. Upstream fixed
 # GHSA-wrw7-89jp-8q8g in glib >= 0.20, but the current Tauri Linux stack is on

@@ -165,6 +165,24 @@ export async function restartApp(): Promise<void> {
   await invoke("restart_app");
 }
 
+/**
+ * `true` quando o app roda a partir de um pacote de distribuição (pacman/AUR,
+ * apt, dnf). Nesses casos o updater in-app não consegue substituir o binário e
+ * a atualização precisa passar pelo gerenciador de pacotes.
+ */
+export async function isManagedInstall(): Promise<boolean> {
+  if (!isTauri()) {
+    return false;
+  }
+
+  try {
+    return await invoke<boolean>("is_managed_install");
+  } catch {
+    // Um backend antigo sem esse comando não deve travar a checagem de update.
+    return false;
+  }
+}
+
 export async function applySliderTargetsBatch(
   profile: MixerProfile,
   updates: SliderUpdate[],

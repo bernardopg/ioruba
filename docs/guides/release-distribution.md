@@ -6,9 +6,12 @@ release notes, attestations, and `SHA256SUMS.txt`, and finally generates
 package-manager manifests. The published checksum is the trust boundary:
 installers fail closed when `SHA256SUMS.txt` or the exact asset entry is missing,
 and manifests must quote the digest of the release asset rather than a digest
-copied or recomputed by hand. Public Windows releases also fail closed unless
-the Authenticode certificate secret is provisioned; macOS signing/notarization
-remains the explicitly documented exception below.
+copied or recomputed by hand.
+
+Desktop bundles carry **no platform code signature** — see
+[Platform code signing](#platform-code-signing-not-used) below. That is a
+deliberate, permanent choice, and it is independent of the Tauri updater
+signature, which is mandatory.
 
 ## Generated package-manager manifests
 
@@ -44,28 +47,37 @@ would require a dedicated, least-privilege GitHub App or fine-grained token for
 the project fork, neither of which should be substituted by a broad personal
 credential.
 
-## macOS signing, notarization, and DMG
+## Platform code signing: not used
 
-The workflow already imports a Developer ID certificate when the following
-repository secrets exist:
+This project does **not** hold an Apple Developer ID or a Windows Authenticode
+certificate, and does not intend to acquire either. The release workflow has a
+single unconditional build step with no signing branch, no certificate import,
+and no `APPLE_*` / `WINDOWS_CERTIFICATE*` secrets.
 
-- `APPLE_CERTIFICATE` (base64 `.p12`)
-- `APPLE_CERTIFICATE_PASSWORD`
-- `KEYCHAIN_PASSWORD`
-- `APPLE_ID`, `APPLE_PASSWORD` (app-specific password), and `APPLE_TEAM_ID`
+Do not reintroduce conditional signing steps. The previous arrangement branched
+on `secrets.APPLE_CERTIFICATE != ''`, and when the certificate import steps were
+removed in `def4782` the branch survived while the variables it depended on
+(`WINDOWS_CERTIFICATE_THUMBPRINT`, `APPLE_SIGNING_IDENTITY`) silently became
+undefined — a workflow that appeared to sign and did not.
 
-Without the certificate it intentionally uploads an unsigned `.app.tar.gz`.
-The one-line macOS installer and generated Homebrew cask remove the quarantine
-attribute because Gatekeeper cannot validate an unsigned build.
+Consequences to keep documented for users:
 
-Do not enable `.dmg` just by changing the bundle list. Tauri's DMG script asks
-Finder through AppleScript to lay out the mounted image; that operation has been
-intermittently unauthorized on GitHub-hosted macOS runners. Since desktop bundle
-failure aborts the whole release, `.app.tar.gz` is the reproducible artifact
-until a signed release run verifies a reliable DMG path. When the Apple secrets
-are provisioned, run a draft tag on `macos-15`, verify both `codesign --verify
---deep --strict` and `spctl -a -vv`, then add `dmg` and make it a required
-release artifact.
+| Platform | Effect | Mitigation shipped |
+| --- | --- | --- |
+| Windows | SmartScreen shows "unrecognized app" on first run | README instructs *More info → Run anyway*; verify via `SHA256SUMS.txt` |
+| macOS | Gatekeeper refuses an unsigned, unnotarized bundle | One-line installer and Homebrew cask run `xattr -dr com.apple.quarantine` |
+| Linux | No effect — distro packaging carries its own trust | — |
+
+Integrity is still verifiable, through two independent channels that do not
+require a paid certificate:
+
+- `SHA256SUMS.txt`, published per release and required by both installers.
+- GitHub artifact attestations: `gh attestation verify <asset> --repo bernardopg/ioruba`.
+
+`.dmg` stays disabled. Tauri's DMG script asks Finder through AppleScript to lay
+out the mounted image, and that operation is intermittently unauthorized on
+GitHub-hosted macOS runners. Since a desktop bundle failure aborts the whole
+release, `.app.tar.gz` is the reproducible artifact.
 
 ## In-app updater
 
@@ -91,8 +103,17 @@ GitHub release check; it never treats an arbitrary URL as an installable update.
 
 For every tag, verify that the release contains `latest.json` and each required
 `.sig`, then test an update from the previous Ioruba build on Linux and Windows.
-Test macOS when the corresponding signed/notarized distribution path is enabled.
-Apple code signing and notarization remain separate from Tauri updater signing.
+
+Tauri updater signing is unrelated to platform code signing: the updater key is
+a project-owned minisign key, always present, and the absence of an Apple or
+Authenticode certificate does not weaken it.
+
+The updater only offers itself where it can actually succeed. On Linux,
+`tauri-plugin-updater` can replace an AppImage, `.deb` or `.rpm`, but a build
+installed by a distro package manager (AUR, apt, dnf) lives under `/usr` and is
+root-owned; attempting the swap downloads the whole artifact and then fails with
+`Permission denied (os error 13)`. `is_managed_install` detects that case and the
+UI links to the release page instead of offering an install button.
 
 ## AUR: the PKGBUILD must opt out of LTO
 

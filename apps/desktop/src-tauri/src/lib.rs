@@ -602,6 +602,95 @@ fn restart_app(app: AppHandle) {
     app.request_restart();
 }
 
+/// Indica se este binário foi instalado por um gerenciador de pacotes do sistema
+/// (pacman/AUR, apt, dnf) em vez de um bundle que o app controla.
+///
+/// O updater do Tauri no Linux só sabe substituir AppImage, .deb e .rpm, e
+/// decide isso via `bundle_type()`, que é gravado em build time pelo bundler.
+/// Um build feito a partir do source — que é o caso do PKGBUILD do AUR — não
+/// tem esse marcador, então o plugin cai no caminho AppImage e tenta reescrever
+/// o próprio executável. Quando esse executável é `/usr/bin/ioruba-desktop`,
+/// pertencente ao root, o download inteiro (84 MB) acontece antes de a
+/// instalação morrer com `Permission denied (os error 13)`.
+///
+/// Nesses casos a atualização é responsabilidade do gerenciador de pacotes, e a
+/// interface deve mandar o usuário para lá em vez de oferecer um botão que não
+/// pode funcionar.
+#[tauri::command]
+fn is_managed_install() -> bool {
+    managed_install_detected()
+}
+
+#[cfg(target_os = "linux")]
+fn managed_install_detected() -> bool {
+    managed_install_for(
+        std::env::var_os("APPIMAGE").is_some(),
+        std::env::current_exe().ok().as_deref(),
+    )
+}
+
+/// Nucleo testavel de [`managed_install_detected`], separado das leituras de
+/// ambiente para que os casos de borda possam ser exercitados sem mexer em
+/// variaveis globais do processo.
+#[cfg(target_os = "linux")]
+fn managed_install_for(running_as_appimage: bool, exe: Option<&std::path::Path>) -> bool {
+    // Um AppImage sempre exporta $APPIMAGE apontando para o arquivo montado, e
+    // nesse caso o updater funciona: o alvo da escrita e o proprio AppImage, no
+    // home do usuario.
+    if running_as_appimage {
+        return false;
+    }
+
+    let Some(exe) = exe else {
+        // Sem saber onde estamos, o caminho seguro e nao prometer auto-update.
+        return true;
+    };
+
+    // Prefixos que so um gerenciador de pacotes escreve. /opt fica de fora de
+    // proposito: bundles .deb e .rpm do proprio Tauri instalam ali e o updater
+    // sabe atualiza-los.
+    const MANAGED_PREFIXES: [&str; 4] = ["/usr/bin", "/usr/local/bin", "/usr/lib", "/bin"];
+    MANAGED_PREFIXES
+        .iter()
+        .any(|prefix| exe.starts_with(prefix))
+}
+
+#[cfg(not(target_os = "linux"))]
+fn managed_install_detected() -> bool {
+    // Windows e macOS sempre recebem bundles que o updater do Tauri controla.
+    false
+}
+
+/// Silencia o aviso de depreciacao emitido pelo libayatana-appindicator a cada
+/// inicializacao com tray habilitado.
+///
+/// Nao existe correcao upstream: tauri-apps/tray-icon#260 esta marcado como
+/// `wontfix` porque a libayatana-appindicator-glib sugerida pela mensagem ainda
+/// nao tem release utilizavel, e a migracao planejada e para ksni
+/// (tauri-apps/tray-icon#201), bloqueada pela migracao do muda para GTK4.
+/// Ate la o aviso e ruido puro: nao ha acao possivel do lado da aplicacao.
+///
+/// O filtro e restrito ao dominio de log `libayatana-appindicator` e ao nivel
+/// WARNING, entao qualquer outra mensagem GLib -- inclusive erros dessa mesma
+/// biblioteca -- continua visivel.
+#[cfg(target_os = "linux")]
+fn silence_appindicator_deprecation_warning() {
+    use glib::LogLevels;
+
+    glib::log_set_handler(
+        Some("libayatana-appindicator"),
+        LogLevels::LEVEL_WARNING,
+        false,
+        false,
+        |_domain, _level, message| {
+            if message.contains("is deprecated") {
+                return;
+            }
+            eprintln!("libayatana-appindicator: {message}");
+        },
+    );
+}
+
 fn toggle_main_window(app: &AppHandle) {
     if let Some(window) = app.get_webview_window("main") {
         let visible = window.is_visible().unwrap_or(false);
@@ -663,6 +752,9 @@ pub fn run() {
     // Funciona como fallback caso o compositor nao tenha um StatusNotifierWatcher
     // (ex.: Hyprland sem waybar/ironbar configurado com o modulo tray).
     let toggle_shortcut = Shortcut::new(Some(Modifiers::CONTROL | Modifiers::ALT), Code::KeyI);
+
+    #[cfg(target_os = "linux")]
+    silence_appindicator_deprecation_warning();
 
     tauri::Builder::default()
         // A chave pública fica no tauri.conf.json; o plugin rejeita qualquer
@@ -778,7 +870,8 @@ pub fn run() {
             import_profile,
             get_launch_on_login_enabled,
             set_launch_on_login_enabled,
-            restart_app
+            restart_app,
+            is_managed_install
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
@@ -870,5 +963,58 @@ mod tests {
 
         assert!(result.is_err());
         assert_eq!(saved_payload, r#"{"schemaVersion":1,"profiles":[]}"#);
+    }
+
+    // Clicar em "Atualizar e reiniciar" numa instalacao pacman/AUR baixava ~84
+    // MB e so entao falhava com "Permission denied (os error 13)", porque o
+    // updater tentava reescrever /usr/bin/ioruba-desktop, pertencente ao root.
+    #[cfg(target_os = "linux")]
+    #[test]
+    fn distro_packaged_binaries_are_reported_as_managed() {
+        use std::path::Path;
+
+        for path in [
+            "/usr/bin/ioruba-desktop",
+            "/usr/local/bin/ioruba-desktop",
+            "/usr/lib/ioruba/ioruba-desktop",
+            "/bin/ioruba-desktop",
+        ] {
+            assert!(
+                managed_install_for(false, Some(Path::new(path))),
+                "{path} deveria ser tratado como instalacao gerenciada"
+            );
+        }
+    }
+
+    #[cfg(target_os = "linux")]
+    #[test]
+    fn self_updatable_bundles_are_not_reported_as_managed() {
+        use std::path::Path;
+
+        // Um AppImage se atualiza sozinho mesmo que esteja montado sob /usr.
+        assert!(!managed_install_for(
+            true,
+            Some(Path::new("/usr/bin/ioruba-desktop"))
+        ));
+
+        // /opt e onde os bundles .deb e .rpm do proprio Tauri instalam, e o
+        // updater sabe substitui-los.
+        assert!(!managed_install_for(
+            false,
+            Some(Path::new("/opt/ioruba/ioruba-desktop"))
+        ));
+
+        assert!(!managed_install_for(
+            false,
+            Some(Path::new("/home/user/Downloads/Ioruba.AppImage"))
+        ));
+    }
+
+    #[cfg(target_os = "linux")]
+    #[test]
+    fn unknown_location_defaults_to_managed() {
+        // Sem saber onde o binario esta, prometer auto-update arrisca repetir a
+        // falha silenciosa; melhor mandar o usuario ao gerenciador de pacotes.
+        assert!(managed_install_for(false, None));
     }
 }

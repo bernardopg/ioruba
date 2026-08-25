@@ -86,11 +86,67 @@ describe("homebrewCask", () => {
     assert.match(cask, new RegExp(`intel: "${"a".repeat(64)}"`));
   });
 
-  it("interpolates version and arch in the url rather than hardcoding one build", () => {
+  it("templates only the arch, taking the rest of the url from the real asset", () => {
     const cask = homebrewCask(release());
 
-    assert.match(cask, /Ioruba_#\{version\}_#\{arch\}\.app\.tar\.gz/);
+    assert.match(
+      cask,
+      /url "https:\/\/github\.com\/bernardopg\/ioruba\/releases\/download\/v1\.7\.1\/Ioruba_1\.7\.1_#\{arch\}\.app\.tar\.gz"/
+    );
     assert.match(cask, /version "1\.7\.1"/);
+  });
+
+  // Regressao da v1.8.3: a tag foi criada sem commit de bump, entao os bundles
+  // sairam como 1.8.2 enquanto o release dizia 1.8.3. O cask reconstruia a URL
+  // a partir de `version` e apontava para Ioruba_1.8.3_x64.app.tar.gz, que
+  // retorna 404 -- `brew install --cask ioruba` quebrava por completo.
+  it("stays installable when the tag and the bundle version disagree", () => {
+    const drifted = {
+      version: "1.8.3",
+      repo: REPO,
+      releasedAt: "2026-08-23T19:22:04.000Z",
+      assets: [
+        {
+          name: "Ioruba_1.8.2_x64.app.tar.gz",
+          url: `https://github.com/${REPO}/releases/download/v1.8.3/Ioruba_1.8.2_x64.app.tar.gz`,
+          sha256: "a".repeat(64)
+        },
+        {
+          name: "Ioruba_1.8.2_aarch64.app.tar.gz",
+          url: `https://github.com/${REPO}/releases/download/v1.8.3/Ioruba_1.8.2_aarch64.app.tar.gz`,
+          sha256: "b".repeat(64)
+        }
+      ]
+    };
+
+    const cask = homebrewCask(drifted);
+
+    // A URL segue o arquivo que existe de fato, nao a versao anunciada.
+    assert.match(cask, /download\/v1\.8\.3\/Ioruba_1\.8\.2_#\{arch\}\.app\.tar\.gz/);
+    assert.doesNotMatch(cask, /Ioruba_1\.8\.3_/);
+  });
+
+  it("refuses macOS bundles that differ by more than the architecture", () => {
+    const inconsistent = {
+      ...release(),
+      assets: [
+        {
+          name: "Ioruba_1.7.1_x64.app.tar.gz",
+          url: `https://github.com/${REPO}/releases/download/v1.7.1/Ioruba_1.7.1_x64.app.tar.gz`,
+          sha256: "a".repeat(64)
+        },
+        {
+          name: "Ioruba_1.7.0_aarch64.app.tar.gz",
+          url: `https://github.com/${REPO}/releases/download/v1.7.1/Ioruba_1.7.0_aarch64.app.tar.gz`,
+          sha256: "b".repeat(64)
+        }
+      ]
+    };
+
+    assert.throws(
+      () => homebrewCask(inconsistent),
+      /must differ only by architecture/
+    );
   });
 
   it("strips quarantine, because the bundle is not notarized", () => {
@@ -122,6 +178,19 @@ describe("scoopManifest", () => {
       parsed.installer.script.some((line) => line.includes("/S /D=$dir"))
     );
     assert.ok(parsed.uninstaller.script.some((line) => line.includes("/S")));
+  });
+
+  // O bloco autoupdate e o que o Scoop expande nas proximas versoes. Escrito a
+  // mao, ele repetia a suposicao que quebrou o cask do Homebrew.
+  it("derives the autoupdate template from the url that actually shipped", () => {
+    const parsed = JSON.parse(scoopManifest(release()));
+
+    assert.equal(
+      parsed.autoupdate.architecture["64bit"].url,
+      `https://github.com/${REPO}/releases/download/v$version/Ioruba_$version_x64-setup.exe`
+    );
+    // O literal da versao publicada nao pode vazar para o template.
+    assert.doesNotMatch(parsed.autoupdate.architecture["64bit"].url, /1\.7\.1/);
   });
 });
 

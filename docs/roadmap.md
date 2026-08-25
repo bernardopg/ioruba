@@ -59,9 +59,11 @@ estado item a item ficam no `TODO.md`; aqui só a intenção de produto.
   aceita alvo específico (sink/source/aplicação) no Linux desde a v1.7.0.
 - **Múltiplos controladores:** ver a seção acima.
 - **Atualizações e distribuição confiáveis:** o updater assinado, `latest.json`,
-  Homebrew, Scoop, winget e AUR já existem. O trabalho aberto é concluir
-  assinatura/notarização macOS, provar o caminho de DMG e manter testes de
-  atualização entre versões.
+  Homebrew, Scoop, winget e AUR já existem. Assinatura de plataforma (Apple e
+  Authenticode) foi descartada por decisão de projeto — a confiança vem de
+  `SHA256SUMS.txt`, das attestations do GitHub e da chave própria do updater. O
+  trabalho aberto é provar o caminho de DMG e manter testes de atualização entre
+  versões.
 
 ## Não-objetivos
 

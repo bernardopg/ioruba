@@ -52,8 +52,15 @@ Turn a knob and Ioruba reads the serial frame, applies the active profile, updat
 | Platform | Audio support | Distribution notes |
 | --- | --- | --- |
 | **Linux** | Full: `master`, `application`, `sink`, and `source` through a PulseAudio-compatible `pactl` interface. | `.deb`, `.rpm`, AppImage, AUR source package, and AUR binary package. |
-| **Windows** | Partial: default output (`master`) volume and mute through WASAPI. | MSI and NSIS installers; the public release workflow requires Authenticode signing; Scoop and winget manifests. |
-| **macOS** | Partial: default output (`master`) volume through CoreAudio. | Apple Silicon and Intel `.app.tar.gz`; Homebrew cask. Current bundles may be unsigned and are not yet notarized. |
+| **Windows** | Partial: default output (`master`) volume and mute through WASAPI. | MSI and NSIS installers; Scoop and winget manifests. Bundles are unsigned — SmartScreen shows "unrecognized app"; choose **More info → Run anyway**. |
+| **macOS** | Partial: default output (`master`) volume through CoreAudio. | Apple Silicon and Intel `.app.tar.gz`; Homebrew cask. Bundles are unsigned and not notarized; the installer and cask strip the quarantine attribute. |
+
+The project holds no Apple Developer ID or Windows Authenticode certificate, so
+desktop bundles carry no platform code signature. Verify any download with the
+published `SHA256SUMS.txt`, or with
+`gh attestation verify <asset> --repo bernardopg/ioruba`. In-app updates are
+signed independently with the project's own updater key and are always verified
+before installation.
 
 Serial input, profiles, demo mode, telemetry, and diagnostics work on all three desktop platforms. Application/source/sink targets remain Linux-only.
 

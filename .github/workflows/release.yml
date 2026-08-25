@@ -62,6 +62,57 @@ jobs:
 
           echo "Tag '${TAG}' validada com sucesso."
 
+      # A tag sozinha nao prova que houve bump de versao. A v1.8.3 foi criada em
+      # cima do commit de hotfix da v1.8.2 apenas para reexecutar o workflow: os
+      # manifestos declaravam 1.8.3 mas todo bundle saiu como 1.8.2, e o
+      # latest.json resultante prendeu usuarios 1.8.2 num loop de update que
+      # nunca converge. Comparar a tag com as fontes de versao custa segundos e
+      # torna esse modo de falha impossivel de repetir.
+      - name: Checkout sources at tag
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 1
+          ref: ${{ env.RELEASE_TAG }}
+          persist-credentials: false
+
+      - name: Validate version consistency
+        run: |
+          set -euo pipefail
+          VERSION="${RELEASE_TAG#v}"
+          FAILED=0
+
+          check_json() {
+            local file="$1"
+            local found
+            found="$(jq -r '.version' "${file}")"
+            if [ "${found}" != "${VERSION}" ]; then
+              echo "::error file=${file}::${file} declara versao '${found}', mas a tag e '${VERSION}'."
+              FAILED=1
+            fi
+          }
+
+          check_json package.json
+          check_json apps/desktop/package.json
+          check_json apps/desktop/src-tauri/tauri.conf.json
+
+          CARGO_VERSION="$(awk '/^\[package\]/{p=1;next} /^\[/{p=0} p && /^version = /{gsub(/["version = ]/,"");print;exit}' apps/desktop/src-tauri/Cargo.toml)"
+          if [ "${CARGO_VERSION}" != "${VERSION}" ]; then
+            echo "::error file=apps/desktop/src-tauri/Cargo.toml::Cargo.toml declara versao '${CARGO_VERSION}', mas a tag e '${VERSION}'."
+            FAILED=1
+          fi
+
+          if ! grep -q "^## \[${VERSION}\]" CHANGELOG.md; then
+            echo "::error file=CHANGELOG.md::CHANGELOG.md nao tem secao '## [${VERSION}]'."
+            FAILED=1
+          fi
+
+          if [ "${FAILED}" -ne 0 ]; then
+            echo "::error::A tag ${RELEASE_TAG} nao corresponde as versoes no codigo. Faca o commit de bump antes de taggear."
+            exit 1
+          fi
+
+          echo "Versao ${VERSION} consistente em todas as fontes."
+
   ci-gate:
     name: CI Gate
     needs:
@@ -114,7 +165,6 @@ jobs:
     # Expose only their *presence* as job env flags so step conditionals can
     # branch without leaking the secret material into every step's process env.
     env:
-      HAS_APPLE_CERT: ${{ secrets.APPLE_CERTIFICATE != '' && '1' || '' }}
       # An unsigned latest.json would be a remote-code-execution endpoint.
       HAS_TAURI_UPDATER_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY != '' && '1' || '' }}
 
@@ -170,18 +220,20 @@ jobs:
           echo "::error::TAURI_SIGNING_PRIVATE_KEY is required for a release."
           exit 1
 
-      - name: Build and upload installers (with signing)
-        if: env.HAS_APPLE_CERT == '1' || !startsWith(matrix.platform, 'macos')
+      # Este projeto nao possui certificado Authenticode (Windows) nem Apple
+      # Developer ID, e nao pretende adquiri-los. Os bundles saem sem assinatura
+      # de plataforma de proposito: um unico passo, sem ramificacao por secret.
+      #
+      # Isso NAO afeta a assinatura do updater. TAURI_SIGNING_PRIVATE_KEY e uma
+      # chave minisign propria do Tauri, usada para assinar os artefatos que o
+      # latest.json aponta, e continua obrigatoria (ver "Require updater signing
+      # key" acima). O que se perde e apenas a reputacao junto ao SmartScreen e
+      # ao Gatekeeper -- coberta pelas instrucoes de contorno no README e pelo
+      # `xattr -dr com.apple.quarantine` do cask do Homebrew.
+      - name: Build and upload installers
         uses: tauri-apps/tauri-action@1deb371b0cd8bd54025b384f1cd735e725c4060f # v1.0.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TAURI_WINDOWS_CERTIFICATE_THUMBPRINT: ${{ env.WINDOWS_CERTIFICATE_THUMBPRINT }}
-          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
-          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
-          APPLE_SIGNING_IDENTITY: ${{ env.APPLE_SIGNING_IDENTITY }}
-          APPLE_ID: ${{ secrets.APPLE_ID }}
-          APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
-          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         with:
@@ -220,38 +272,6 @@ jobs:
           fi
 
           scripts/validate-appimage.sh --require-launch "${APPIMAGE}"
-
-      - name: Build and upload installers (unsigned macOS)
-        # tauri-action passes APPLE_CERTIFICATE even when empty, triggering a
-        # codesign attempt that fails on unsigned CI runners. Run without any
-        # signing env vars when no Apple certificate secret is configured.
-        if: env.HAS_APPLE_CERT != '1' && startsWith(matrix.platform, 'macos')
-        uses: tauri-apps/tauri-action@1deb371b0cd8bd54025b384f1cd735e725c4060f # v1.0.0
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
-          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
-        with:
-          projectPath: apps/desktop
-          tagName: ${{ env.RELEASE_TAG }}
-          releaseName: Ioruba ${{ env.RELEASE_TAG }}
-          releaseBody: |
-            Cross-platform installers for the Tauri 2 desktop app.
-
-            Verify any download with `SHA256SUMS.txt` or with GitHub artifact attestations:
-            `gh attestation verify <asset> --repo bernardopg/ioruba`
-          releaseDraft: false
-          prerelease: false
-          # macOS code-signing/notarization is separate; updater signatures are
-          # still required and independently verified on every platform.
-          uploadUpdaterJson: false
-          uploadUpdaterSignatures: true
-          args: ${{ matrix.args }}
-
-      - name: Clean up keychain
-        if: startsWith(matrix.platform, 'macos') && always()
-        run: |
-          security delete-keychain build.keychain 2>/dev/null || true
 
   updater-json:
     name: Publish Signed Updater Manifest
@@ -863,6 +883,17 @@ jobs:
             --release-json release.json \
             --sums release-assets/SHA256SUMS.txt \
             --out release-dist/manifests
+
+      # Roda ANTES de qualquer publicacao. Um manifesto so e verificavel depois
+      # de gerado, mas empurra-lo para o tap/bucket e irreversivel na pratica:
+      # o usuario que rodar `brew install` no intervalo leva o erro. Na v1.8.3 o
+      # cask apontava para Ioruba_1.8.3_x64.app.tar.gz, que nunca existiu, e a
+      # instalacao via Homebrew ficou 100% quebrada sem nenhum sinal no CI.
+      - name: Verify every manifest URL resolves
+        run: |
+          set -euo pipefail
+          node scripts/packaging/verify-published-manifests.mjs \
+            --manifest-dir release-dist/manifests
 
       - name: Publish manifests to the release
         env:

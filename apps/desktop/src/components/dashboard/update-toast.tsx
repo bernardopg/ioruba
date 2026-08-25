@@ -1,5 +1,6 @@
 import { RefreshCcw, X } from "lucide-react";
 import { useState } from "react";
+import { openUrl } from "@tauri-apps/plugin-opener";
 
 import { Button } from "@/components/ui/button";
 import { restartApp } from "@/lib/backend";
@@ -35,6 +36,14 @@ export function UpdateToast({
     await signedUpdate.install();
   }
 
+  const releaseUrl = signedUpdate.version
+    ? `https://github.com/bernardopg/ioruba/releases/tag/v${signedUpdate.version}`
+    : "https://github.com/bernardopg/ioruba/releases/latest";
+
+  async function handleOpenRelease() {
+    await openUrl(releaseUrl);
+  }
+
   return (
     <div
       role="status"
@@ -59,13 +68,27 @@ export function UpdateToast({
                 "Reinicie o Ioruba para aplicar. Fechar a janela agora também reinicia automaticamente."
               )}
         </p>
+        {hasSignedUpdate && signedUpdate.managed ? (
+          <p className="mt-1 text-xs text-[var(--color-muted)]">
+            {lt(
+              "Esta instalação é gerenciada pelo gerenciador de pacotes do sistema. Atualize por ele.",
+            )}
+          </p>
+        ) : null}
+        {/* O detalhe do erro (ex.: "Permission denied (os error 13)") só ia
+            para o watch log, então uma falha de instalação parecia um clique
+            sem efeito. */}
         {hasSignedUpdate && signedUpdate.error ? (
           <p className="mt-1 text-xs text-[var(--color-danger)]">
-            {lt("Não foi possível instalar a atualização. Tente novamente.")}
+            {lt("Não foi possível instalar a atualização:")} {signedUpdate.error}
           </p>
         ) : null}
         <div className="mt-2 flex gap-2">
-          {hasSignedUpdate ? (
+          {hasSignedUpdate && signedUpdate.managed ? (
+            <Button size="small" onClick={() => void handleOpenRelease()}>
+              {lt("Ver release no GitHub")}
+            </Button>
+          ) : hasSignedUpdate ? (
             <Button
               size="small"
               onClick={() => void handleSignedInstall()}

@@ -72,4 +72,17 @@ describe("buildUpdaterManifest", () => {
       /Missing detached signature for Ioruba_1.8.0_x64-setup.exe/,
     );
   });
+
+  // Regressao da v1.8.3: a tag foi criada sobre o commit da v1.8.2 sem bump de
+  // versao, entao o manifesto anunciava 1.8.3 apontando para binarios 1.8.2.
+  // As assinaturas eram validas, entao o cliente instalava, voltava como 1.8.2
+  // e recebia o mesmo toast de novo -- indefinidamente.
+  it("refuses a tag whose version does not match the bundled artifacts", () => {
+    const staleBundles = release({ tag_name: "v1.8.3" });
+
+    assert.throws(
+      () => buildUpdaterManifest(staleBundles, signatures()),
+      /nao contem a versao '1\.8\.3'/,
+    );
+  });
 });

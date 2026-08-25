@@ -50,14 +50,46 @@ export function requireAsset(assets, pattern, description) {
 }
 
 /**
+ * Builds the `#{arch}`-interpolated URL a cask needs from the two real asset
+ * URLs, instead of assuming the filenames embed `version`.
+ *
+ * The cask has one `url` stanza for both architectures, so a template is
+ * unavoidable. Reconstructing it from `version` is what broke v1.8.3: the tag
+ * said 1.8.3, the bundles were named 1.8.2, and the cask pointed at
+ * `Ioruba_1.8.3_x64.app.tar.gz`, which 404s. Deriving the template from the
+ * names that were actually published -- and asserting the two differ only by
+ * the architecture token -- keeps the cask installable even if that invariant
+ * is ever violated again upstream of this generator.
+ */
+function archTemplatedUrl(intel, arm) {
+  const template = (asset, token) => {
+    const slash = asset.url.lastIndexOf("/");
+    const base = asset.url.slice(0, slash);
+    const name = asset.url.slice(slash + 1);
+    return `${base}/${name.replace(token, "#{arch}")}`;
+  };
+
+  const fromIntel = template(intel, "x64");
+  const fromArm = template(arm, "aarch64");
+
+  if (fromIntel !== fromArm) {
+    throw new Error(
+      `macOS bundles must differ only by architecture; got ${intel.url} and ${arm.url}`
+    );
+  }
+
+  return fromIntel;
+}
+
+/**
  * Homebrew cask for macOS.
  *
  * Points at the `.app.tar.gz` bundles rather than a `.dmg`, because the `.dmg`
  * is best-effort in CI while the tarballs always ship. `depends_on arch:` picks
  * the right one per machine.
  *
- * The app is not notarized, so the cask carries the quarantine strip the
- * one-line installer already does. Remove it the moment signing lands.
+ * The app is unsigned and unnotarized by project policy (no Apple Developer ID),
+ * so the cask carries the same quarantine strip the one-line installer does.
  */
 export function homebrewCask({ version, repo, assets }) {
   const intel = requireAsset(assets, /_x64\.app\.tar\.gz$/, "x64 .app bundle");
@@ -74,7 +106,7 @@ export function homebrewCask({ version, repo, assets }) {
   sha256 arm:   "${arm.sha256}",
          intel: "${intel.sha256}"
 
-  url "https://github.com/${repo}/releases/download/v#{version}/Ioruba_#{version}_#{arch}.app.tar.gz",
+  url "${archTemplatedUrl(intel, arm)}",
       verified: "github.com/${repo}/"
   name "Ioruba"
   desc "Tactile audio mixer for Arduino-based control surfaces"
@@ -84,8 +116,8 @@ export function homebrewCask({ version, repo, assets }) {
 
   app "Ioruba.app"
 
-  # The bundle is unsigned and unnotarized, so Gatekeeper would refuse to open
-  # it. Drop this once the release is signed and notarized.
+  # The bundle is unsigned and unnotarized by project policy, so Gatekeeper
+  # would refuse to open it.
   postflight do
     system_command "/usr/bin/xattr",
                    args: ["-dr", "com.apple.quarantine", "#{appdir}/Ioruba.app"],
@@ -104,6 +136,13 @@ end
 /** Scoop manifest (Windows), installed from the NSIS setup executable. */
 export function scoopManifest({ version, repo, assets }) {
   const setup = requireAsset(assets, /_x64-setup\.exe$/, "x64 NSIS installer");
+
+  // `autoupdate` is the template Scoop expands for *future* versions, so it has
+  // to be written in terms of $version. Deriving it from the URL that actually
+  // shipped -- rather than hand-writing the filename layout -- means the
+  // template cannot drift from Tauri's bundle naming. A literal replacement
+  // function avoids `$` being read as a regex replacement pattern.
+  const autoupdateUrl = setup.url.replaceAll(version, () => "$version");
 
   return `${JSON.stringify(
     {
@@ -137,7 +176,7 @@ export function scoopManifest({ version, repo, assets }) {
       autoupdate: {
         architecture: {
           "64bit": {
-            url: `https://github.com/${repo}/releases/download/v$version/Ioruba_$version_x64-setup.exe`
+            url: autoupdateUrl
           }
         }
       }

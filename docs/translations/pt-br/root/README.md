@@ -42,8 +42,14 @@ Ao girar um knob, o Ioruba lê o frame serial, aplica o perfil ativo, atualiza a
 | Plataforma | Áudio | Distribuição |
 | --- | --- | --- |
 | **Linux** | Completo: `master`, `application`, `sink` e `source` via interface `pactl` compatível com PulseAudio/PipeWire. | `.deb`, `.rpm`, AppImage e AUR. |
-| **Windows** | Parcial: volume e mute da saída padrão (`master`) via WASAPI. | MSI/NSIS; o workflow público passa a exigir Authenticode; Scoop e manifests winget. |
-| **macOS** | Parcial: volume da saída padrão (`master`) via CoreAudio. | `.app.tar.gz` para Apple Silicon/Intel e cask Homebrew; bundles podem estar sem assinatura/notarização. |
+| **Windows** | Parcial: volume e mute da saída padrão (`master`) via WASAPI. | MSI/NSIS; Scoop e manifests winget. Bundles sem assinatura — o SmartScreen alerta "aplicativo não reconhecido"; use **Mais informações → Executar assim mesmo**. |
+| **macOS** | Parcial: volume da saída padrão (`master`) via CoreAudio. | `.app.tar.gz` para Apple Silicon/Intel e cask Homebrew. Bundles sem assinatura e sem notarização; o instalador e o cask removem o atributo de quarentena. |
+
+O projeto não possui certificado Apple Developer ID nem Authenticode da
+Microsoft, então os bundles não carregam assinatura de plataforma. Verifique
+qualquer download com o `SHA256SUMS.txt` publicado, ou com
+`gh attestation verify <asset> --repo bernardopg/ioruba`. As atualizações in-app
+usam a chave própria do updater e são sempre verificadas antes de instalar.
 
 Serial, perfis, modo demo, telemetria e diagnósticos funcionam nas três plataformas. Alvos por aplicação/source/sink continuam exclusivos do Linux.
 

@@ -42,6 +42,22 @@ export function buildUpdaterManifest(release, signatures) {
     }
 
     const asset = matches[0];
+
+    // A versao do manifesto vem da tag, mas os bundles carregam a versao que
+    // estava em tauri.conf.json no momento do build. Quando a tag e criada sem
+    // commit de bump (v1.8.3), os dois divergem: o manifesto anuncia a versao
+    // nova apontando para um binario antigo, e todo cliente que "atualiza"
+    // reinstala a versao que ja tinha e recebe o mesmo toast de novo, para
+    // sempre. A assinatura e valida nesse cenario, entao o cliente nao tem como
+    // se defender -- a checagem precisa acontecer aqui.
+    if (!asset.name.includes(version)) {
+      throw new Error(
+        `${target.key}: asset '${asset.name}' nao contem a versao '${version}' anunciada pela tag. ` +
+          `Isso indica uma tag criada sem commit de bump de versao; publicar este manifesto ` +
+          `prenderia os usuarios num loop de atualizacao.`,
+      );
+    }
+
     const signature = signatures.get(`${asset.name}.sig`);
     if (!signature) {
       throw new Error(`Missing detached signature for ${asset.name}`);

@@ -541,6 +541,10 @@ const TEXT_MAP_EN: Record<string, string> = {
     "v{version} was verified by Ioruba's signature.",
   "Não foi possível instalar a atualização. Tente novamente.":
     "The update could not be installed. Try again.",
+  "Não foi possível instalar a atualização:": "The update could not be installed:",
+  "Esta instalação é gerenciada pelo gerenciador de pacotes do sistema. Atualize por ele.":
+    "This installation is managed by your system package manager. Update through it.",
+  "Ver release no GitHub": "View release on GitHub",
   "Baixando atualização...": "Downloading update...",
   "Atualizar e reiniciar": "Update and restart",
   "Reinicie o Ioruba para aplicar. Fechar a janela agora também reinicia automaticamente.":
@@ -1115,6 +1119,10 @@ const TEXT_MAP_ES: Record<string, string> = {
     "v{version} fue verificada por la firma de Ioruba.",
   "Não foi possível instalar a atualização. Tente novamente.":
     "No se pudo instalar la actualización. Inténtalo de nuevo.",
+  "Não foi possível instalar a atualização:": "No se pudo instalar la actualización:",
+  "Esta instalação é gerenciada pelo gerenciador de pacotes do sistema. Atualize por ele.":
+    "Esta instalación está gestionada por el gestor de paquetes del sistema. Actualízala desde ahí.",
+  "Ver release no GitHub": "Ver release en GitHub",
   "Baixando atualização...": "Descargando actualización...",
   "Atualizar e reiniciar": "Actualizar y reiniciar",
   "Reinicie o Ioruba para aplicar. Fechar a janela agora também reinicia automaticamente.":
