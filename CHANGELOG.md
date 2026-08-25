@@ -7,6 +7,70 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.8.4](https://github.com/bernardopg/ioruba/compare/v1.8.2...v1.8.4) (2026-08-25)
+
+> **Nota sobre a v1.8.3:** a tag `v1.8.3` foi criada apenas para reexecutar o
+> workflow de release da v1.8.2 após uma falha de CI no Windows, sem commit de
+> bump de versão. Os artefatos publicados nela são, na verdade, binários 1.8.2,
+> e o `latest.json` correspondente anunciava 1.8.3 apontando para eles — o que
+> deixava o updater in-app num loop infinito. A v1.8.3 foi despromovida de
+> `releases/latest`; use a v1.8.4.
+
+### Fixed
+
+- O manifesto do updater (`latest.json`) agora valida que cada artefato
+  referenciado carrega a versão anunciada no nome. Um release cuja tag não bate
+  com os bundles falha o pipeline em vez de publicar um manifesto que empurra
+  usuários para um binário mais antigo.
+- O updater in-app não é mais oferecido em instalações gerenciadas por
+  gerenciador de pacotes (pacman/AUR, apt, dnf). Antes, clicar em "Atualizar e
+  reiniciar" falhava com `Permission denied (os error 13)` ao tentar sobrescrever
+  um executável em `/usr`, sem explicação visível na interface.
+- O toast de atualização passa a exibir o motivo real da falha e um botão para
+  abrir a página do release, em vez de uma mensagem genérica.
+- O cask do Homebrew voltou a ser instalável. A URL era remontada a partir da
+  versão anunciada (`Ioruba_#{version}_#{arch}.app.tar.gz`), o que na v1.8.3
+  apontou para um arquivo inexistente e fez `brew install --cask ioruba` retornar
+  404 em toda máquina. Agora ela deriva do nome que foi realmente publicado, e
+  só a arquitetura é interpolada.
+- O bloco `autoupdate` do Scoop passa a ser derivado da URL publicada em vez de
+  escrito à mão, eliminando a mesma suposição que quebrou o cask.
+
+### Added
+
+- O workflow de release ganhou um gate de consistência de versão que compara a
+  tag com `package.json`, `apps/desktop/package.json`, `tauri.conf.json`,
+  `Cargo.toml` e a existência da seção correspondente no `CHANGELOG.md` antes de
+  iniciar qualquer build.
+- Novo passo `Verify every manifest URL resolves`: antes de publicar no tap do
+  Homebrew, no bucket do Scoop ou no release, toda URL de download dos
+  manifestos gerados precisa responder HTTP 200. Rodado contra a v1.8.3, ele
+  reprova com os dois 404 que passaram despercebidos.
+
+### Removed
+
+- Assinatura de código de plataforma (Apple Developer ID e Windows Authenticode)
+  foi removida do pipeline por decisão de projeto: os certificados não existem e
+  não serão adquiridos. Saíram os secrets `APPLE_*`/`WINDOWS_CERTIFICATE*`, a
+  ramificação condicional por presença de certificado, o passo duplicado de build
+  para macOS e a limpeza de keychain — restou um único passo de build.
+
+  Isso corrige um estado em que o workflow *aparentava* assinar sem assinar: o
+  hotfix `def4782` removeu os passos que definiam `WINDOWS_CERTIFICATE_THUMBPRINT`
+  e `APPLE_SIGNING_IDENTITY`, mas manteve os consumidores dessas variáveis e o
+  condicional `HAS_APPLE_CERT`.
+
+  A assinatura do **updater** (minisign, chave própria do projeto) permanece
+  obrigatória e inalterada; a integridade dos downloads segue verificável por
+  `SHA256SUMS.txt` e por attestations do GitHub.
+
+### Changed
+
+- O warning `libayatana-appindicator is deprecated` deixa de poluir o stdout em
+  builds de release no Linux. A causa é upstream (`tauri-apps/tray-icon#260`,
+  marcado `wontfix`) e não tem correção disponível; o app agora silencia
+  especificamente esse domínio de log, preservando todos os demais avisos GLib.
+
 ## [1.8.2](https://github.com/bernardopg/ioruba/compare/v1.8.1...v1.8.2) (2026-08-13)
 
 ### Security
