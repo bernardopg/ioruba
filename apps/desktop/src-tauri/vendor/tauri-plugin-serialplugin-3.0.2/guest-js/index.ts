@@ -1,0 +1,40 @@
+export { SerialPort } from './serial-port';
+export {
+  DEFAULT_SERIAL_TIMEOUT_MS,
+  DataBits,
+  FlowControl,
+  Parity,
+  StopBits,
+  ClearBuffer,
+} from './types';
+export { LogLevel } from './logger';
+export type { LogLevel as LogLevelType } from './logger';
+export type {
+  PortInfo,
+  Capabilities,
+  SerialEvent,
+  WatchOptions,
+  WatchHandlers,
+  WatchHandle,
+  AvailablePortsOptions,
+  WatchPortsOptions,
+  WatchPortsHandlers,
+  PortListEvent,
+  SerialportOptions,
+  Options,
+  ReadOptions,
+  BaudRate,
+  AutoReconnectOptions,
+  AutoReconnectInfo,
+  ExchangeOptions,
+  ExchangeResponse,
+  RxPrepareMode,
+  AtParseStatus,
+  ExchangeMatch,
+  AtSessionOptions,
+  AtCommandOptions,
+  AtCommandResult,
+  AtPhase,
+  AtResultFormat,
+  SendSmsPduOptions,
+} from './types';

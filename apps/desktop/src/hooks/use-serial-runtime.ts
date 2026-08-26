@@ -434,9 +434,38 @@ export function useSerialRuntime() {
           detail: `${portPath} | conexao em ${Math.round(performance.now() - connectStartedAt)}ms`,
         });
 
+        let receivedAnyData = false;
         const watchHandle = await port.watch({
+          // Sem estes handlers, erros de leitura e desconexao emitidos pelo
+          // plugin sao ignorados pelo app; o log mostraria apenas "Sem
+          // leituras seriais recentes", sem informar a causa.
+          onError: (message) => {
+            appendWatchLog({
+              scope: "serial",
+              level: "error",
+              message: "Erro de leitura serial",
+              detail: `${portPath} | ${message}`,
+            });
+          },
+          onDisconnect: (reason) => {
+            appendWatchLog({
+              scope: "serial",
+              level: "warning",
+              message: "Porta serial desconectada pelo driver",
+              detail: `${portPath} | ${reason}`,
+            });
+          },
           onData: (data) => {
             const chunk = normalizeIncomingData(data);
+            if (!receivedAnyData) {
+              receivedAnyData = true;
+              appendWatchLog({
+                scope: "serial",
+                level: "info",
+                message: "Primeiro dado serial recebido",
+                detail: `${portPath} | ${chunk.length} caracteres | ${JSON.stringify(chunk.slice(0, 60))}`,
+              });
+            }
             lastPacketAt = Date.now();
             heartbeatWarningRef.current = false;
             serialBufferRef.current += chunk;

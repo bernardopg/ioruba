@@ -51,3 +51,6 @@ glib = "0.18"
 # GHSA-wrw7-89jp-8q8g in glib >= 0.20, but the current Tauri Linux stack is on
 # glib 0.18.x, so we backport the one-line fix locally until upstream moves.
 glib = { path = "vendor/glib-0.18.5" }
+# v3.0.2 strips every ordinary stream line terminator before emitting `onData`.
+# That corrupts line-framed protocols; retain the terminators until upstream fixes it.
+tauri-plugin-serialplugin = { path = "vendor/tauri-plugin-serialplugin-3.0.2" }

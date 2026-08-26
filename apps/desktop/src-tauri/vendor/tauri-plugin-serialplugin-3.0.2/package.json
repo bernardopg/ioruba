@@ -1,0 +1,61 @@
+{
+  "name": "tauri-plugin-serialplugin-api",
+  "version": "3.0.2",
+  "license": "MIT or APACHE-2.0",
+  "type": "module",
+  "types": "./dist-js/index.d.ts",
+  "main": "./dist-js/index.cjs",
+  "module": "./dist-js/index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/s00d/tauri-plugin-serialplugin.git"
+  },
+  "exports": {
+    "types": "./dist-js/index.d.ts",
+    "import": {
+      "development": "./guest-js/index.ts",
+      "default": "./dist-js/index.js"
+    },
+    "require": "./dist-js/index.cjs"
+  },
+  "scripts": {
+    "build": "rollup -c",
+    "tauri": "tauri",
+    "check": "tsc --noEmit -p tsconfig.json",
+    "check:watch": "tsc --noEmit -p tsconfig.json --watch",
+    "check:demo": "pnpm --dir examples/serialport-test run build",
+    "release": "standard-version",
+    "release:publish": "pnpm publish && cargo publish",
+    "playground": "pnpm --dir examples/serialport-test run tauri dev",
+    "test": "jest --config jest.config.js",
+    "test:watch": "jest --config jest.config.js --watch"
+  },
+  "files": [
+    "dist-js",
+    "guest-js",
+    "README.md",
+    "LICENSE_MIT",
+    "LICENSE_APACHE-2.0",
+    "LICENSE.spdx"
+  ],
+  "dependencies": {
+    "@tauri-apps/api": ">=2.0.0-beta.6"
+  },
+  "devDependencies": {
+    "@rollup/plugin-node-resolve": "15.3.1",
+    "@rollup/plugin-terser": "0.4.4",
+    "@rollup/plugin-typescript": "^12.1.4",
+    "@types/jest": "^29.5.12",
+    "@types/node": "^20.17.22",
+    "jest": "^29.7.0",
+    "jest-environment-jsdom": "^30.0.2",
+    "jest-junit": "^16.0.0",
+    "jsdom": "^26.1.0",
+    "rollup": "4.34.9",
+    "standard-version": "^9.5.0",
+    "ts-jest": "^29.1.2",
+    "tslib": "^2.8.1",
+    "typescript": "5.6.3"
+  },
+  "packageManager": "pnpm@9.15.4+sha512.b2dc20e2fc72b3e18848459b37359a32064663e5627a51e4c74b2c29dd8e8e0491483c3abb40789cfd578bf362fb6ba8261b05f0387d76792ed6e23ea3b1b6a0"
+}

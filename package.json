@@ -17,7 +17,7 @@
     "desktop:tauri:build": "npm --workspace @ioruba/desktop run tauri build -- --no-bundle",
     "shared:typecheck": "npm --workspace @ioruba/shared run typecheck",
     "shared:test": "npm --workspace @ioruba/shared run test",
-    "rust:test": "cargo test --manifest-path apps/desktop/src-tauri/Cargo.toml",
+    "rust:test": "cargo test --manifest-path apps/desktop/src-tauri/Cargo.toml && cargo test --manifest-path apps/desktop/src-tauri/Cargo.toml -p tauri-plugin-serialplugin line_router_preserves_stream_line_endings",
     "rust:audit": "cargo audit --file apps/desktop/src-tauri/Cargo.lock",
     "firmware:compile": "arduino-cli compile --fqbn arduino:avr:nano firmware/arduino/ioruba-controller",
     "firmware:compile:matrix": "for fqbn in arduino:avr:nano arduino:avr:uno arduino:avr:mega arduino:avr:leonardo arduino:avr:micro; do echo \"== $fqbn ==\"; arduino-cli compile --fqbn $fqbn firmware/arduino/ioruba-controller || exit 1; done",
