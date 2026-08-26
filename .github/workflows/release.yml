@@ -550,6 +550,13 @@ jobs:
             'pkgname = ioruba-desktop' \
             > "release-dist/arch/.SRCINFO"
 
+          # Heredoc NAO-quotado: ${VERSION} e ${APPIMAGE_ASSET_NAME} precisam ser
+          # interpolados aqui. Como consequencia, tudo que deve chegar literal ao
+          # PKGBUILD tem de ser escapado -- \${pkgdir}, \${srcdir} e, em especial,
+          # o "\$@" do wrapper: sem a barra ele era expandido pelos parametros
+          # posicionais deste job (vazios), e o wrapper publicado saia com "",
+          # descartando os argumentos do usuario e ainda repassando uma string
+          # vazia como argv[1] para o AppRun.
           cat > "release-dist/arch/PKGBUILD-bin" <<EOF
           pkgname=ioruba-desktop-bin
           pkgver=${VERSION}
@@ -594,9 +601,13 @@ jobs:
           StartupWMClass=io.ioruba.desktop
           DESKTOP
 
+            # Os install -D acima criam apenas /opt/ioruba e /usr/share/...; o
+            # redirecionamento abaixo nao cria diretorio, entao /usr/bin precisa
+            # existir antes.
+            install -dm755 "\${pkgdir}/usr/bin"
             printf '%s\n' \
               '#!/usr/bin/env sh' \
-              'exec /opt/ioruba/run-appimage-compat.sh /opt/ioruba/ioruba.AppImage "$@"' \
+              'exec /opt/ioruba/run-appimage-compat.sh /opt/ioruba/ioruba.AppImage "\$@"' \
               > "\${pkgdir}/usr/bin/ioruba-desktop"
             chmod 755 "\${pkgdir}/usr/bin/ioruba-desktop"
           }
