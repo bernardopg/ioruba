@@ -52,7 +52,7 @@ Arduino Nano
 The current firmware reads the three analog inputs, persists tuning and calibration in EEPROM, and emits lines such as:
 
 ```text
-HELLO board=Ioruba Nano; fw=0.6.1; protocol=2; knobs=3; mcu=ATmega328P; adcBits=10; threshold=4; deadzone=7; smooth=75; mins=0,0,0; maxs=1023,1023,1023
+HELLO board=Ioruba Nano; fw=0.6.2; protocol=2; knobs=3; buttons=0; encoders=0; knobPins=A0,A1,A2; buttonPins=none; encoderPins=none; mcu=ATmega328P; adcBits=10; threshold=4; deadzone=7; smooth=75; mins=0,0,0; maxs=1023,1023,1023
 512|768|1023
 ```
 
@@ -70,14 +70,26 @@ arduino-cli compile --fqbn arduino:avr:nano \
   firmware/arduino/ioruba-controller
 ```
 
-Default digital pin order:
+The firmware now provides a **board-specific, conflict-free default map**. On a Nano/Uno, it uses the following enabled pin order:
 
 | Input | Pins | Wiring |
 | ----- | ---- | ------ |
 | Buttons | `D2 D3 D4 D5 D6 D7 D8 D9` | one side to the pin, the other to `GND`; firmware uses `INPUT_PULLUP` |
-| Encoders | `D6/D7`, `D8/D9`, `D10/D11`, `D12/D13` | channel A/B to the pair, common to `GND`; firmware uses `INPUT_PULLUP` |
+| Encoders | `D10/D11`, `D12/D13` | channel A/B to the pair, common to `GND`; firmware uses `INPUT_PULLUP` |
 
-Avoid overlapping pins when you enable both buttons and encoders. For example, `-DIORUBA_NUM_BUTTONS=2 -DIORUBA_NUM_ENCODERS=1` uses buttons on `D2/D3` and encoder 0 on `D6/D7`.
+The build fails with a readable `static_assert` if an enabled pin overlaps a knob, another button, or either encoder channel. The active map is included in every `HELLO` packet (`knobPins`, `buttonPins`, `encoderPins`) and appears in the desktop **Hardware** panel.
+
+### Custom digital maps
+
+Override the default lists at compile time when your enclosure needs a different layout. Lists are comma-separated; the first `IORUBA_NUM_*` entries are used.
+
+```bash
+arduino-cli compile --fqbn arduino:avr:nano \
+  --build-property "compiler.cpp.extra_flags=-DIORUBA_NUM_BUTTONS=2 -DIORUBA_NUM_ENCODERS=1 -DIORUBA_BUTTON_PINS=4,5 -DIORUBA_ENCODER_A_PINS=10 -DIORUBA_ENCODER_B_PINS=11" \
+  firmware/arduino/ioruba-controller
+```
+
+Each enabled pin must be unique. On Nano/Uno, the supplied default map supports up to eight buttons or two encoders; boards with more usable GPIO (Mega, Leonardo/Micro, ESP32, RP2040) expose four default encoder pairs. ESP8266 exposes four button pins and one encoder pair, avoiding boot-strapping pins.
 
 The desktop opts in by sending `EVENTS ON` after connecting. Until that command is received, the firmware only emits knob frames, which keeps older desktop builds compatible. Once enabled, event frames look like:
 

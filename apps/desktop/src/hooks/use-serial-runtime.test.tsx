@@ -295,7 +295,7 @@ describe("useSerialRuntime", () => {
     expect(useIorubaStore.getState().snapshot.status).toBe("connected");
   });
 
-  it("turns an invalid frame from the serial simulator into an error status", async () => {
+  it("discards a malformed serial frame without dropping a healthy connection", async () => {
     setupSerialRuntime();
     await flushRuntime();
 
@@ -305,14 +305,15 @@ describe("useSerialRuntime", () => {
       await Promise.resolve();
     });
 
-    expect(useIorubaStore.getState().snapshot.status).toBe("error");
-    expect(
-      useIorubaStore.getState().snapshot.statusText
-    ).toContain("Invalid slider value");
+    expect(useIorubaStore.getState().snapshot.status).toBe("connected");
     expect(
       useIorubaStore
         .getState()
-        .watchLog.some((entry) => entry.message === "Falha ao processar frame serial")
+        .watchLog.some(
+          (entry) =>
+            entry.message === "Frame serial descartado" &&
+            entry.detail?.includes("Invalid slider value"),
+        ),
     ).toBe(true);
   });
 });

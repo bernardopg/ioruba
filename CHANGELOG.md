@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Firmware `0.6.2` publishes its effective knob, button and encoder pin map in
+  the protocol-v2 handshake. Pin maps are board-specific, customizable at
+  compile time and rejected by `static_assert` when any enabled input overlaps.
+- The Hardware panel now presents a responsive, accessible wiring card with the
+  active pins, encoder A/B pairs and a conflict-free connection summary.
+
+### Fixed
+
+- The desktop serial stream retains line terminators and buffers split lines in
+  the vendored serial plugin. A firmware `HELLO` split across reads can no
+  longer be merged into a corrupt frame.
+- Boot noise and individual malformed serial frames are logged and discarded
+  without marking a live serial connection as failed.
+
 ## [1.8.4](https://github.com/bernardopg/ioruba/compare/v1.8.2...v1.8.4) (2026-08-25)
 
 > **Nota sobre a v1.8.3:** a tag `v1.8.3` foi criada apenas para reexecutar o

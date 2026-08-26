@@ -133,9 +133,10 @@ impl LineRouter {
                 actions.push(RxRouteAction::StreamData(raw_line.into_bytes()));
             }
         }
-        if !self.partial.is_empty() {
-            actions.push(RxRouteAction::StreamData(std::mem::take(&mut self.partial).into_bytes()));
-        }
+        // A serial stream can split a line at any byte. Keep the incomplete
+        // tail until its terminator arrives instead of emitting it now: an
+        // early `HELL` followed by `O ...\n` is otherwise indistinguishable to
+        // consumers from one corrupt `HELLHELLO ...` frame.
         actions
     }
 }
@@ -756,6 +757,20 @@ mod tests {
             .flatten()
             .collect::<Vec<_>>();
         assert_eq!(stream, b"512|768|1023\r\n0|1|2\n");
+    }
+
+    #[test]
+    fn line_router_waits_for_a_split_line_terminator() {
+        let mut router = LineRouter::default();
+        assert!(router.route_streaming(b"HELLO board=Ioruba", &[]).is_empty());
+
+        let actions = router.route_streaming(b" Nano\r\n", &[]);
+        assert_eq!(
+            actions,
+            vec![RxRouteAction::StreamData(
+                b"HELLO board=Ioruba Nano\r\n".to_vec()
+            )]
+        );
     }
 
     #[test]

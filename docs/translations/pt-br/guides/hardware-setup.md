@@ -52,7 +52,7 @@ Arduino Nano
 O firmware atual le as tres entradas analogicas, persiste ajuste e calibracao em EEPROM e emite linhas como:
 
 ```text
-HELLO board=Ioruba Nano; fw=0.6.1; protocol=2; knobs=3; mcu=ATmega328P; adcBits=10; threshold=4; deadzone=7; smooth=75; mins=0,0,0; maxs=1023,1023,1023
+HELLO board=Ioruba Nano; fw=0.6.2; protocol=2; knobs=3; buttons=0; encoders=0; knobPins=A0,A1,A2; buttonPins=none; encoderPins=none; mcu=ATmega328P; adcBits=10; threshold=4; deadzone=7; smooth=75; mins=0,0,0; maxs=1023,1023,1023
 512|768|1023
 ```
 
@@ -70,14 +70,26 @@ arduino-cli compile --fqbn arduino:avr:nano \
   firmware/arduino/ioruba-controller
 ```
 
-Ordem padrao dos pinos digitais:
+O firmware agora fornece um **mapa padrao sem conflitos, específico por placa**. No Nano/Uno, a ordem de pinos habilitados é:
 
 | Input | Pinos | Ligacao |
 | ----- | ----- | ------- |
 | Botoes | `D2 D3 D4 D5 D6 D7 D8 D9` | um lado no pino, outro no `GND`; o firmware usa `INPUT_PULLUP` |
-| Encoders | `D6/D7`, `D8/D9`, `D10/D11`, `D12/D13` | canais A/B no par, comum no `GND`; o firmware usa `INPUT_PULLUP` |
+| Encoders | `D10/D11`, `D12/D13` | canais A/B no par, comum no `GND`; o firmware usa `INPUT_PULLUP` |
 
-Evite sobrepor pinos quando habilitar botoes e encoders juntos. Por exemplo, `-DIORUBA_NUM_BUTTONS=2 -DIORUBA_NUM_ENCODERS=1` usa botoes em `D2/D3` e o encoder 0 em `D6/D7`.
+O build falha com um `static_assert` legível se um pino habilitado se sobrepõe a um knob, outro botão ou canal de encoder. O mapa ativo é incluído em todo pacote `HELLO` (`knobPins`, `buttonPins`, `encoderPins`) e aparece no painel **Hardware** do desktop.
+
+### Mapas digitais personalizados
+
+Sobrescreva as listas padrão em compile-time quando o seu gabinete exigir outra disposição. As listas são separadas por vírgula; as primeiras `IORUBA_NUM_*` entradas são usadas.
+
+```bash
+arduino-cli compile --fqbn arduino:avr:nano \
+  --build-property "compiler.cpp.extra_flags=-DIORUBA_NUM_BUTTONS=2 -DIORUBA_NUM_ENCODERS=1 -DIORUBA_BUTTON_PINS=4,5 -DIORUBA_ENCODER_A_PINS=10 -DIORUBA_ENCODER_B_PINS=11" \
+  firmware/arduino/ioruba-controller
+```
+
+Todo pino habilitado precisa ser único. No Nano/Uno, o mapa fornecido suporta até oito botões ou dois encoders; placas com mais GPIO utilizável (Mega, Leonardo/Micro, ESP32, RP2040) expõem quatro pares de encoder padrão. ESP8266 expõe quatro pinos de botão e um par de encoder, evitando os pinos de boot.
 
 O desktop faz opt-in enviando `EVENTS ON` depois da conexao. Ate esse comando chegar, o firmware so emite frames de knob, mantendo compatibilidade com builds desktop antigos. Depois de habilitado, os eventos aparecem assim:
 

@@ -579,6 +579,16 @@ const TEXT_MAP_EN: Record<string, string> = {
   "Abrir notificações": "Open notifications",
   "Abrir configurações do app": "Open app settings",
   "Nova versão disponível": "New version available",
+  "Pinagem ativa": "Active pin map",
+  "Mapa reportado pelo firmware e validado contra conflitos antes da compilação.":
+    "Map reported by firmware and validated for conflicts before compilation.",
+  "conexões sem conflito": "conflict-free connections",
+  "Entradas analógicas": "Analog inputs",
+  "Botões": "Buttons",
+  "INPUT_PULLUP para GND": "INPUT_PULLUP to GND",
+  "não habilitados": "not enabled",
+  "Encoders": "Encoders",
+  "Canais A/B com INPUT_PULLUP": "A/B channels with INPUT_PULLUP",
 };
 
 const TEXT_MAP_ES: Record<string, string> = {
@@ -1157,6 +1167,16 @@ const TEXT_MAP_ES: Record<string, string> = {
   "Abrir notificações": "Abrir notificaciones",
   "Abrir configurações do app": "Abrir configuración de la aplicación",
   "Nova versão disponível": "Nueva versión disponible",
+  "Pinagem ativa": "Mapa de pines activo",
+  "Mapa reportado pelo firmware e validado contra conflitos antes da compilação.":
+    "Mapa informado por el firmware y validado contra conflictos antes de la compilación.",
+  "conexões sem conflito": "conexiones sin conflictos",
+  "Entradas analógicas": "Entradas analógicas",
+  "Botões": "Botones",
+  "INPUT_PULLUP para GND": "INPUT_PULLUP a GND",
+  "não habilitados": "no habilitados",
+  "Encoders": "Codificadores",
+  "Canais A/B com INPUT_PULLUP": "Canales A/B con INPUT_PULLUP",
 };
 
 const LANGUAGE_TEXT_MAPS: Record<

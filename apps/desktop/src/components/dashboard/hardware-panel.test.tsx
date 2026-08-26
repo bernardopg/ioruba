@@ -12,6 +12,13 @@ const firmware: FirmwareInfo = {
   protocolVersion: 2,
   protocolSupported: true,
   knobCount: 3,
+  buttonCount: 2,
+  encoderCount: 1,
+  pinMap: {
+    knobPins: ["A0", "A1", "A2"],
+    buttonPins: ["GP2", "GP3"],
+    encoderPins: [{ a: "GP10", b: "GP11" }],
+  },
   mcu: "RP2040",
   adcBits: 12,
   controllerConfig: {
@@ -36,6 +43,9 @@ describe("HardwarePanel", () => {
     expect(screen.getByText("RP2040")).not.toBeNull();
     expect(screen.getByText("12-bit")).not.toBeNull();
     expect(screen.getByText("0–4095")).not.toBeNull();
+    expect(screen.getByText(/pinagem ativa/i)).not.toBeNull();
+    expect(screen.getByText("GP2")).not.toBeNull();
+    expect(screen.getByText("GP10")).not.toBeNull();
     // Calibration rows render the raw min/max per knob.
     expect(screen.getAllByText("4095").length).toBeGreaterThanOrEqual(1);
   });

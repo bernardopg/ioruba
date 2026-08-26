@@ -129,6 +129,15 @@ export interface AudioInventory {
   diagnostics: string[];
 }
 
+export interface FirmwarePinMap {
+  /** Pin labels used by the active knobs, in frame order. */
+  knobPins: string[];
+  /** Pin labels used by enabled buttons, in control-id order. */
+  buttonPins: string[];
+  /** Pin labels used by enabled encoder A/B channels, in control-id order. */
+  encoderPins: Array<{ a: string; b: string }>;
+}
+
 export interface FirmwareInfo {
   boardName: string;
   firmwareVersion: string;
@@ -140,6 +149,15 @@ export interface FirmwareInfo {
    */
   protocolSupported: boolean;
   knobCount: number | null;
+  /** Quantidade de botões habilitados pelo firmware (`buttons=`). */
+  buttonCount: number | null;
+  /** Quantidade de encoders habilitados pelo firmware (`encoders=`). */
+  encoderCount: number | null;
+  /**
+   * Pinagem efetiva reportada pelo firmware (`*Pins=`). `null` em firmwares
+   * anteriores a esse campo aditivo do protocolo v2.
+   */
+  pinMap: FirmwarePinMap | null;
   /**
    * Nome do microcontrolador reportado pelo handshake (`mcu=`), p.ex.
    * `"ATmega328P"`, `"ESP32"`. `null` quando o firmware não informa (campo

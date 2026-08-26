@@ -4,6 +4,7 @@ import type {
   FirmwareCalibration,
   FirmwareControllerConfig,
   FirmwareInfo,
+  FirmwarePinMap,
   MixerProfile,
   SerialPacket,
   SliderPacket
@@ -188,6 +189,89 @@ function assertSliderValue(value: number, label: string): void {
   }
 }
 
+function parsePinLabel(value: string, label: string): string {
+  if (!/^[A-Za-z][A-Za-z0-9_.-]*$/.test(value)) {
+    throw new Error(`Invalid ${label}: ${value}`);
+  }
+  return value;
+}
+
+function parsePinList(value: string, label: string): string[] {
+  if (value === "none") {
+    return [];
+  }
+
+  const pins = value.split(",").map((entry) => parsePinLabel(entry.trim(), label));
+  if (pins.length === 0 || new Set(pins).size !== pins.length) {
+    throw new Error(`Invalid ${label}: ${value}`);
+  }
+  return pins;
+}
+
+function parseEncoderPinList(value: string): FirmwarePinMap["encoderPins"] {
+  if (value === "none") {
+    return [];
+  }
+
+  const pins = value.split(",").map((entry) => {
+    const pair = entry.trim().split("/");
+    if (pair.length !== 2) {
+      throw new Error(`Invalid encoder pins: ${entry}`);
+    }
+    const [a, b] = pair.map((pin) => parsePinLabel(pin.trim(), "encoder pin"));
+    if (a === b) {
+      throw new Error(`Invalid encoder pins: ${entry}`);
+    }
+    return { a, b };
+  });
+  const flattened = pins.flatMap(({ a, b }) => [a, b]);
+  if (pins.length === 0 || new Set(flattened).size !== flattened.length) {
+    throw new Error(`Invalid encoder pins: ${value}`);
+  }
+  return pins;
+}
+
+function parseFirmwarePinMap(
+  fields: Record<string, string>,
+  knobCount: number | null,
+  buttonCount: number | null,
+  encoderCount: number | null,
+): FirmwarePinMap | null {
+  const values = [fields.knobpins, fields.buttonpins, fields.encoderpins];
+  if (values.every((value) => value === undefined)) {
+    return null;
+  }
+  if (values.some((value) => value === undefined)) {
+    throw new Error("Incomplete handshake pin map");
+  }
+  if (knobCount === null || buttonCount === null || encoderCount === null) {
+    throw new Error("Handshake pin map requires input counts");
+  }
+
+  const pinMap = {
+    knobPins: parsePinList(fields.knobpins!, "knob pins"),
+    buttonPins: parsePinList(fields.buttonpins!, "button pins"),
+    encoderPins: parseEncoderPinList(fields.encoderpins!),
+  };
+  if (
+    pinMap.knobPins.length !== knobCount ||
+    pinMap.buttonPins.length !== buttonCount ||
+    pinMap.encoderPins.length !== encoderCount
+  ) {
+    throw new Error("Handshake pin map count does not match enabled inputs");
+  }
+
+  const allPins = [
+    ...pinMap.knobPins,
+    ...pinMap.buttonPins,
+    ...pinMap.encoderPins.flatMap(({ a, b }) => [a, b]),
+  ];
+  if (new Set(allPins).size !== allPins.length) {
+    throw new Error("Handshake pin map contains overlapping pins");
+  }
+  return pinMap;
+}
+
 function parseHandshakePacket(payload: string): FirmwareInfo | null {
   const normalized = payload.trimStart();
   if (!normalized.toUpperCase().startsWith(`${handshakePrefix} `)) {
@@ -240,16 +324,22 @@ function parseHandshakePacket(payload: string): FirmwareInfo | null {
     throw new Error(`Invalid handshake protocol version: ${protocolValue}`);
   }
 
-  const knobValue = fields.knobs;
-  let knobCount: number | null = null;
-  if (knobValue !== undefined) {
-    const parsedKnobCount = Number.parseInt(knobValue, 10);
-    if (!Number.isInteger(parsedKnobCount) || parsedKnobCount < 0) {
-      throw new Error(`Invalid handshake knob count: ${knobValue}`);
+  const parseInputCount = (field: "knobs" | "buttons" | "encoders"): number | null => {
+    const value = fields[field];
+    if (value === undefined) {
+      return null;
     }
+    const parsed = Number.parseInt(value, 10);
+    if (!Number.isInteger(parsed) || parsed < 0) {
+      throw new Error(`Invalid handshake ${field} count: ${value}`);
+    }
+    return parsed;
+  };
 
-    knobCount = parsedKnobCount;
-  }
+  const knobCount = parseInputCount("knobs");
+  const buttonCount = parseInputCount("buttons");
+  const encoderCount = parseInputCount("encoders");
+  const pinMap = parseFirmwarePinMap(fields, knobCount, buttonCount, encoderCount);
 
   const mcu = fields.mcu ?? null;
 
@@ -272,6 +362,9 @@ function parseHandshakePacket(payload: string): FirmwareInfo | null {
     protocolVersion,
     protocolSupported: protocolVersion === SUPPORTED_PROTOCOL_VERSION,
     knobCount,
+    buttonCount,
+    encoderCount,
+    pinMap,
     mcu,
     adcBits,
     controllerConfig

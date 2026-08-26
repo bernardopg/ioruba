@@ -451,6 +451,13 @@ describe("desktop accessibility shell", () => {
       protocolVersion: 2,
       protocolSupported: true,
       knobCount: 3,
+      buttonCount: 2,
+      encoderCount: 1,
+      pinMap: {
+        knobPins: ["A0", "A1", "A2"],
+        buttonPins: ["D2", "D3"],
+        encoderPins: [{ a: "D10", b: "D11" }]
+      },
       mcu: "ATmega328P",
       adcBits: 10,
       controllerConfig: {

@@ -1,4 +1,14 @@
-import { Cpu, Gauge, Microchip, Radio, SlidersHorizontal } from "lucide-react";
+import {
+  Cable,
+  CircleDot,
+  Cpu,
+  Gauge,
+  Microchip,
+  Radio,
+  RotateCw,
+  ShieldCheck,
+  SlidersHorizontal,
+} from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import {
@@ -9,7 +19,7 @@ import {
   CardTitle
 } from "@/components/ui/card";
 import { translateText } from "@/lib/i18n";
-import type { FirmwareInfo, UiLanguage } from "@ioruba/shared";
+import type { FirmwareInfo, FirmwarePinMap, UiLanguage } from "@ioruba/shared";
 
 /**
  * Painel de hardware: consolida o que o firmware reporta no handshake
@@ -115,6 +125,8 @@ export function HardwarePanel({
           />
         </div>
 
+        {firmware.pinMap ? <FirmwarePinMapPanel pinMap={firmware.pinMap} lt={lt} /> : null}
+
         {config ? (
           <div className="rounded-[22px] border border-(--color-border) bg-[color-mix(in_oklab,var(--color-panel)_92%,var(--color-shell)_8%)] px-4 py-4">
             <p className="text-xs uppercase tracking-[0.24em] text-(--color-muted)">
@@ -163,6 +175,143 @@ export function HardwarePanel({
         ) : null}
       </CardContent>
     </Card>
+  );
+}
+
+function FirmwarePinMapPanel({
+  pinMap,
+  lt,
+}: {
+  pinMap: FirmwarePinMap;
+  lt: (text: string) => string;
+}) {
+  const activeConnections =
+    pinMap.knobPins.length + pinMap.buttonPins.length + pinMap.encoderPins.length * 2;
+
+  return (
+    <section
+      aria-labelledby="active-pin-map-title"
+      className="overflow-hidden rounded-[22px] border border-(--color-border) bg-[linear-gradient(135deg,color-mix(in_oklab,var(--color-panel)_94%,var(--accent-teal)_6%),var(--color-panel))]"
+    >
+      <div className="flex flex-col gap-4 border-b border-(--color-border) px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex min-w-0 items-start gap-3">
+          <div className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl border border-[color-mix(in_oklab,var(--accent-teal)_35%,var(--color-border))] bg-[color-mix(in_oklab,var(--accent-teal)_11%,var(--color-shell))]">
+            <Cable className="h-4 w-4 text-(--accent-teal)" />
+          </div>
+          <div>
+            <h3 className="text-sm font-semibold text-(--color-ink)" id="active-pin-map-title">
+              {lt("Pinagem ativa")}
+            </h3>
+            <p className="mt-1 text-sm leading-5 text-(--color-muted)">
+              {lt("Mapa reportado pelo firmware e validado contra conflitos antes da compilação.")}
+            </p>
+          </div>
+        </div>
+        <div className="inline-flex shrink-0 items-center gap-1.5 self-start rounded-full border border-[color-mix(in_oklab,var(--accent-teal)_32%,var(--color-border))] bg-[color-mix(in_oklab,var(--accent-teal)_10%,var(--color-panel))] px-3 py-1.5 text-xs font-semibold text-(--color-ink)">
+          <ShieldCheck className="h-3.5 w-3.5 text-(--accent-teal)" />
+          {activeConnections} {lt("conexões sem conflito")}
+        </div>
+      </div>
+
+      <div className="grid divide-y divide-(--color-border) md:grid-cols-3 md:divide-x md:divide-y-0">
+        <PinGroup
+          icon={SlidersHorizontal}
+          label={lt("Knobs")}
+          detail={lt("Entradas analógicas")}
+          pins={pinMap.knobPins}
+          emptyLabel={lt("não habilitados")}
+        />
+        <PinGroup
+          icon={CircleDot}
+          label={lt("Botões")}
+          detail={lt("INPUT_PULLUP para GND")}
+          pins={pinMap.buttonPins}
+          emptyLabel={lt("não habilitados")}
+        />
+        <EncoderPinGroup
+          pairs={pinMap.encoderPins}
+          emptyLabel={lt("não habilitados")}
+          lt={lt}
+        />
+      </div>
+    </section>
+  );
+}
+
+function PinGroup({
+  icon: Icon,
+  label,
+  detail,
+  pins,
+  emptyLabel,
+}: {
+  icon: typeof Cpu;
+  label: string;
+  detail: string;
+  pins: string[];
+  emptyLabel: string;
+}) {
+  return (
+    <div className="min-w-0 px-4 py-4">
+      <div className="flex items-center gap-2">
+        <Icon className="h-4 w-4 text-(--accent-teal)" />
+        <p className="text-sm font-semibold text-(--color-ink)">{label}</p>
+      </div>
+      <p className="mt-1 text-xs leading-5 text-(--color-muted)">{detail}</p>
+      {pins.length > 0 ? (
+        <ul className="mt-3 flex flex-wrap gap-1.5" aria-label={label}>
+          {pins.map((pin, index) => (
+            <li
+              className="rounded-lg border border-(--color-border) bg-(--color-shell) px-2 py-1 font-mono text-xs font-semibold text-(--color-copy)"
+              key={`${pin}-${index}`}
+            >
+              {pin}
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="mt-3 text-sm font-medium text-(--color-muted)">{emptyLabel}</p>
+      )}
+    </div>
+  );
+}
+
+function EncoderPinGroup({
+  pairs,
+  emptyLabel,
+  lt,
+}: {
+  pairs: FirmwarePinMap["encoderPins"];
+  emptyLabel: string;
+  lt: (text: string) => string;
+}) {
+  return (
+    <div className="min-w-0 px-4 py-4">
+      <div className="flex items-center gap-2">
+        <RotateCw className="h-4 w-4 text-(--accent-teal)" />
+        <p className="text-sm font-semibold text-(--color-ink)">{lt("Encoders")}</p>
+      </div>
+      <p className="mt-1 text-xs leading-5 text-(--color-muted)">{lt("Canais A/B com INPUT_PULLUP")}</p>
+      {pairs.length > 0 ? (
+        <ul className="mt-3 grid gap-1.5" aria-label={lt("Encoders")}>
+          {pairs.map(({ a, b }, index) => (
+            <li
+              className="flex min-w-0 items-center gap-2 rounded-lg border border-(--color-border) bg-(--color-shell) px-2 py-1.5"
+              key={`${a}-${b}`}
+            >
+              <span className="w-5 shrink-0 text-[0.68rem] font-semibold uppercase tracking-[0.12em] text-(--color-muted)">
+                {index + 1}
+              </span>
+              <span className="min-w-0 font-mono text-xs font-semibold text-(--color-copy)">{a}</span>
+              <span className="text-(--color-muted)" aria-hidden="true">↔</span>
+              <span className="min-w-0 font-mono text-xs font-semibold text-(--color-copy)">{b}</span>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="mt-3 text-sm font-medium text-(--color-muted)">{emptyLabel}</p>
+      )}
+    </div>
   );
 }
 

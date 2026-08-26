@@ -134,6 +134,9 @@ jobs:
       - name: Test firmware config parser (host, default)
         run: npm run firmware:test
 
+      - name: Test firmware pin-map guards (host)
+        run: npm run firmware:test:pins
+
       - name: Test firmware config parser (host, wide — 8 knobs / 12-bit)
         run: npm run firmware:test:wide
 
@@ -177,6 +180,13 @@ jobs:
 
       - name: Compile firmware (${{ matrix.fqbn }})
         run: arduino-cli compile --fqbn ${{ matrix.fqbn }} firmware/arduino/ioruba-controller
+
+      - name: Compile Nano with buttons and encoders
+        if: matrix.fqbn == 'arduino:avr:nano'
+        run: >
+          arduino-cli compile --fqbn arduino:avr:nano
+          --build-property "compiler.cpp.extra_flags=-DIORUBA_NUM_BUTTONS=4 -DIORUBA_NUM_ENCODERS=2"
+          firmware/arduino/ioruba-controller
 
   firmware-arch:
     name: Firmware Arch (${{ matrix.target.key }})

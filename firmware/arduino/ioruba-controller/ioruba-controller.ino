@@ -10,6 +10,7 @@
 #endif
 
 #include "config_parser.h"
+#include "pin_map.h"
 
 // Active Ioruba controller firmware for Arduino/ESP32-compatible boards.
 //
@@ -70,36 +71,8 @@ const int NUM_KNOBS = IORUBA_NUM_KNOBS;
 const int NUM_BUTTONS = IORUBA_NUM_BUTTONS;
 const int NUM_ENCODERS = IORUBA_NUM_ENCODERS;
 
-// Tabela de pinos analogicos por placa, selecionada em compile-time. Os knobs
-// usam os primeiros NUM_KNOBS canais desta lista. O teto de knobs por placa e a
-// quantidade de canais aqui (Mega habilita >6; ESP32 usa apenas pinos do ADC1,
-// pois o ADC2 conflita com o Wi-Fi). Os pinos AVR sao contiguos a partir de A0;
-// no ESP32 nao sao, por isso a lista explicita.
-#if defined(ARDUINO_AVR_MEGA2560)
-const uint8_t ANALOG_PINS[] = {A0, A1, A2,  A3,  A4,  A5,  A6,  A7,
-                               A8, A9, A10, A11, A12, A13, A14, A15};
-#elif defined(ARDUINO_AVR_LEONARDO) || defined(ARDUINO_AVR_MICRO)
-const uint8_t ANALOG_PINS[] = {A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11};
-#elif defined(ARDUINO_AVR_NANO)
-const uint8_t ANALOG_PINS[] = {A0, A1, A2, A3, A4, A5, A6, A7};
-#elif defined(ESP32) || defined(ARDUINO_ARCH_ESP32)
-// ESP32: somente entradas do ADC1 (GPIO32..39), livres durante o uso do Wi-Fi.
-const uint8_t ANALOG_PINS[] = {A0, A3, A4, A5, A6, A7};
-#elif defined(ARDUINO_ARCH_RP2040)
-// RP2040/Pico: ADC0..ADC2 (GPIO26..28); ADC3 e usado para sensar VSYS.
-const uint8_t ANALOG_PINS[] = {A0, A1, A2};
-#elif defined(ESP8266) || defined(ARDUINO_ARCH_ESP8266)
-// ESP8266 (NodeMCU/Wemos): o core so expoe um unico pino ADC (A0, 0..1V ou
-// 0..3V3 dependendo do divisor da placa). IORUBA_NUM_KNOBS precisa ser
-// sobrescrito para 1 nesta placa (ver static_assert abaixo).
-const uint8_t ANALOG_PINS[] = {A0};
-#else
-// Uno e fallback generico: A0..A5 (universalmente expostos).
-const uint8_t ANALOG_PINS[] = {A0, A1, A2, A3, A4, A5};
-#endif
-
-constexpr int ANALOG_PIN_COUNT =
-  static_cast<int>(sizeof(ANALOG_PINS) / sizeof(ANALOG_PINS[0]));
+// Mapas de pinos por placa, labels de handshake e os helpers constexpr de
+// validacao vivem em pin_map.h. Os knobs usam os primeiros NUM_KNOBS canais.
 
 // Codigo alcancavel a partir de uma ISR de encoder precisa viver em RAM de
 // instrucao no ESP8266/ESP32 (senao crasha ao ser chamado enquanto o cache de
@@ -122,22 +95,30 @@ static_assert(IORUBA_NUM_ENCODERS >= 0,
 static_assert(IORUBA_NUM_KNOBS <= ANALOG_PIN_COUNT,
               "IORUBA_NUM_KNOBS excede os canais analogicos da placa selecionada");
 
-#if IORUBA_NUM_BUTTONS > 0
-const uint8_t BUTTON_PINS[] = {2, 3, 4, 5, 6, 7, 8, 9};
-constexpr int BUTTON_PIN_COUNT =
-  static_cast<int>(sizeof(BUTTON_PINS) / sizeof(BUTTON_PINS[0]));
 static_assert(IORUBA_NUM_BUTTONS <= BUTTON_PIN_COUNT,
-              "IORUBA_NUM_BUTTONS excede os pinos digitais padrao");
-#endif
-
-#if IORUBA_NUM_ENCODERS > 0
-const uint8_t ENCODER_A_PINS[] = {6, 8, 10, 12};
-const uint8_t ENCODER_B_PINS[] = {7, 9, 11, 13};
-constexpr int ENCODER_PIN_COUNT =
-  static_cast<int>(sizeof(ENCODER_A_PINS) / sizeof(ENCODER_A_PINS[0]));
+              "IORUBA_NUM_BUTTONS excede os pinos de botoes disponiveis");
 static_assert(IORUBA_NUM_ENCODERS <= ENCODER_PIN_COUNT,
-              "IORUBA_NUM_ENCODERS excede os pares digitais padrao");
-#endif
+              "IORUBA_NUM_ENCODERS excede os pares de encoder disponiveis");
+static_assert(iorubaPinListIsUnique(ANALOG_PINS, IORUBA_NUM_KNOBS),
+              "os knobs nao podem compartilhar um pino analogico");
+static_assert(iorubaPinListIsUnique(BUTTON_PINS, IORUBA_NUM_BUTTONS),
+              "os botoes nao podem compartilhar um pino");
+static_assert(iorubaPinListIsUnique(ENCODER_A_PINS, IORUBA_NUM_ENCODERS) &&
+              iorubaPinListIsUnique(ENCODER_B_PINS, IORUBA_NUM_ENCODERS),
+              "os canais A/B dos encoders nao podem repetir pinos");
+static_assert(iorubaPinListsAreDisjoint(ANALOG_PINS, IORUBA_NUM_KNOBS,
+                                         BUTTON_PINS, IORUBA_NUM_BUTTONS) &&
+              iorubaPinListsAreDisjoint(ANALOG_PINS, IORUBA_NUM_KNOBS,
+                                         ENCODER_A_PINS, IORUBA_NUM_ENCODERS) &&
+              iorubaPinListsAreDisjoint(ANALOG_PINS, IORUBA_NUM_KNOBS,
+                                         ENCODER_B_PINS, IORUBA_NUM_ENCODERS) &&
+              iorubaPinListsAreDisjoint(BUTTON_PINS, IORUBA_NUM_BUTTONS,
+                                         ENCODER_A_PINS, IORUBA_NUM_ENCODERS) &&
+              iorubaPinListsAreDisjoint(BUTTON_PINS, IORUBA_NUM_BUTTONS,
+                                         ENCODER_B_PINS, IORUBA_NUM_ENCODERS) &&
+              iorubaPinListsAreDisjoint(ENCODER_A_PINS, IORUBA_NUM_ENCODERS,
+                                         ENCODER_B_PINS, IORUBA_NUM_ENCODERS),
+              "knobs, botoes e encoders precisam usar pinos distintos");
 
 const long BAUD_RATE = 115200;
 // Prefixo IORUBA_ evita colisao com a macro BOARD_NAME definida por alguns cores
@@ -167,7 +148,7 @@ const char MCU_NAME[] = "unknown";
 // em packages/shared). Bump FIRMWARE_VERSION em qualquer mudanca de comportamento
 // do controlador; bump PROTOCOL_VERSION apenas em mudanca incompativel do frame
 // ou do handshake.
-const char FIRMWARE_VERSION[] = "0.6.1";
+const char FIRMWARE_VERSION[] = "0.6.2";
 const int PROTOCOL_VERSION = 2;
 const int ADC_MIN = IORUBA_ADC_MIN;
 const int ADC_MAX = IORUBA_ADC_MAX;
@@ -245,16 +226,21 @@ IORUBA_ISR_ATTR void updateEncoderQuadrature(int index) {
 }
 
 // Uma ISR por indice: attachInterrupt exige ponteiro de funcao sem argumento,
-// entao nao da pra fechar sobre `index` diretamente. ENCODER_PIN_COUNT e o
-// teto de encoders suportado pela tabela de pinos (ver acima).
+// entao nao da pra fechar sobre `index` diretamente. Quatro trampolins cobrem
+// o maior mapa padrão; o static_assert mantém qualquer mapa futuro dentro desse
+// teto antes de o firmware ser gravado.
 IORUBA_ISR_ATTR void encoderIsr0() { updateEncoderQuadrature(0); }
 IORUBA_ISR_ATTR void encoderIsr1() { updateEncoderQuadrature(1); }
 IORUBA_ISR_ATTR void encoderIsr2() { updateEncoderQuadrature(2); }
 IORUBA_ISR_ATTR void encoderIsr3() { updateEncoderQuadrature(3); }
 
-void (*const ENCODER_ISR_TRAMPOLINES[ENCODER_PIN_COUNT])() = {
+void (*const ENCODER_ISR_TRAMPOLINES[])() = {
   encoderIsr0, encoderIsr1, encoderIsr2, encoderIsr3
 };
+constexpr int ENCODER_ISR_TRAMPOLINE_COUNT =
+  static_cast<int>(sizeof(ENCODER_ISR_TRAMPOLINES) / sizeof(ENCODER_ISR_TRAMPOLINES[0]));
+static_assert(ENCODER_PIN_COUNT <= ENCODER_ISR_TRAMPOLINE_COUNT,
+              "o mapa de encoders excede os trampolins de interrupcao disponiveis");
 #endif
 
 int clampAdcValue(int value) {
@@ -426,6 +412,50 @@ void sendEncoderEvent(int encoderIndex, int delta) {
   Serial.println(delta);
 }
 
+void sendDigitalPinLabel(uint8_t pin) {
+  Serial.print(IORUBA_DIGITAL_PIN_PREFIX);
+  Serial.print(pin);
+}
+
+void sendKnobPinList() {
+  for (int index = 0; index < NUM_KNOBS; index++) {
+    Serial.print(ANALOG_PIN_LABELS[index]);
+    if (index < NUM_KNOBS - 1) {
+      Serial.print(",");
+    }
+  }
+}
+
+void sendButtonPinList() {
+  if (NUM_BUTTONS == 0) {
+    Serial.print("none");
+    return;
+  }
+
+  for (int index = 0; index < NUM_BUTTONS; index++) {
+    sendDigitalPinLabel(BUTTON_PINS[index]);
+    if (index < NUM_BUTTONS - 1) {
+      Serial.print(",");
+    }
+  }
+}
+
+void sendEncoderPinList() {
+  if (NUM_ENCODERS == 0) {
+    Serial.print("none");
+    return;
+  }
+
+  for (int index = 0; index < NUM_ENCODERS; index++) {
+    sendDigitalPinLabel(ENCODER_A_PINS[index]);
+    Serial.print("/");
+    sendDigitalPinLabel(ENCODER_B_PINS[index]);
+    if (index < NUM_ENCODERS - 1) {
+      Serial.print(",");
+    }
+  }
+}
+
 void sendHandshake() {
   Serial.print("HELLO board=");
   Serial.print(IORUBA_BOARD_NAME);
@@ -439,6 +469,12 @@ void sendHandshake() {
   Serial.print(NUM_BUTTONS);
   Serial.print("; encoders=");
   Serial.print(NUM_ENCODERS);
+  Serial.print("; knobPins=");
+  sendKnobPinList();
+  Serial.print("; buttonPins=");
+  sendButtonPinList();
+  Serial.print("; encoderPins=");
+  sendEncoderPinList();
   Serial.print("; mcu=");
   Serial.print(MCU_NAME);
   Serial.print("; adcBits=");

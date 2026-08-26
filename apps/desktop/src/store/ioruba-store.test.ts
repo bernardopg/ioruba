@@ -287,6 +287,9 @@ describe("ioruba store", () => {
       protocolVersion: 2,
       protocolSupported: true,
       knobCount: 3,
+      buttonCount: null,
+      encoderCount: null,
+      pinMap: null,
       mcu: null,
       adcBits: null,
       controllerConfig: {
@@ -310,6 +313,9 @@ describe("ioruba store", () => {
       protocolVersion: 2,
       protocolSupported: true,
       knobCount: 3,
+      buttonCount: null,
+      encoderCount: null,
+      pinMap: null,
       mcu: null,
       adcBits: null,
       controllerConfig: {

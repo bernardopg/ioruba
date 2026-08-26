@@ -488,12 +488,25 @@ export function useSerialRuntime() {
                 >["controlActions"] = [];
 
                 for (const rawLine of completeLines) {
-                  const result = processSerialLine(rawLine);
-                  hasPendingAudioChanges =
-                    stageAudioUpdates(result.sliderUpdates) ||
-                    hasPendingAudioChanges;
-                  if (result.controlActions.length > 0) {
-                    controlActions.push(...result.controlActions);
+                  try {
+                    const result = processSerialLine(rawLine);
+                    hasPendingAudioChanges =
+                      stageAudioUpdates(result.sliderUpdates) ||
+                      hasPendingAudioChanges;
+                    if (result.controlActions.length > 0) {
+                      controlActions.push(...result.controlActions);
+                    }
+                  } catch (error) {
+                    // Abrir uma FTDI reinicia a placa; bytes de boot ou uma
+                    // linha cortada podem chegar antes do HELLO íntegro. Um
+                    // frame inválido não derruba uma conexão que continua
+                    // recebendo dados válidos logo em seguida.
+                    appendWatchLog({
+                      scope: "serial",
+                      level: "warning",
+                      message: "Frame serial descartado",
+                      detail: error instanceof Error ? error.message : String(error),
+                    });
                   }
                 }
 
@@ -518,6 +531,12 @@ export function useSerialRuntime() {
                 );
               });
           },
+        }, {
+          // Frames de knobs chegam a cada 40 ms no firmware. Um flush curto
+          // mantém o indicador e a UI responsivos, sem acumular uma rajada de
+          // dados no IPC sob sessões longas.
+          serialDataFlushIntervalMs: 40,
+          size: 256,
         });
 
         if (cancelled) {

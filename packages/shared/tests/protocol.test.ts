@@ -24,6 +24,9 @@ const firmware12Bit = {
   protocolVersion: 2,
   protocolSupported: true,
   knobCount: 3,
+  buttonCount: null,
+  encoderCount: null,
+  pinMap: null,
   mcu: "RP2040",
   adcBits: 12,
   controllerConfig: null,
@@ -81,6 +84,9 @@ describe("serial protocol parity", () => {
         protocolVersion: 2,
         protocolSupported: true,
         knobCount: 3,
+        buttonCount: null,
+        encoderCount: null,
+        pinMap: null,
         mcu: null,
         adcBits: null,
         controllerConfig: {
@@ -108,6 +114,41 @@ describe("serial protocol parity", () => {
       expect(packet.info.adcBits).toBe(12);
       expect(packet.info.controllerConfig?.calibrations[0]?.maxRaw).toBe(4095);
     }
+  });
+
+  it("parses a complete, conflict-free firmware pin map", () => {
+    const packet = parseSerialPacket(
+      "HELLO board=Ioruba Nano; fw=0.6.2; protocol=2; knobs=3; buttons=2; encoders=1; knobPins=A0,A1,A2; buttonPins=D2,D3; encoderPins=D10/D11",
+    );
+
+    expect(packet).toEqual({
+      kind: "handshake",
+      info: {
+        boardName: "Ioruba Nano",
+        firmwareVersion: "0.6.2",
+        protocolVersion: 2,
+        protocolSupported: true,
+        knobCount: 3,
+        buttonCount: 2,
+        encoderCount: 1,
+        pinMap: {
+          knobPins: ["A0", "A1", "A2"],
+          buttonPins: ["D2", "D3"],
+          encoderPins: [{ a: "D10", b: "D11" }],
+        },
+        mcu: null,
+        adcBits: null,
+        controllerConfig: null,
+      },
+    });
+  });
+
+  it("rejects a handshake pin map with overlapping inputs", () => {
+    expect(() =>
+      parseSerialPacket(
+        "HELLO board=Ioruba Nano; fw=0.6.2; protocol=2; knobs=1; buttons=1; encoders=0; knobPins=A0; buttonPins=A0; encoderPins=none",
+      ),
+    ).toThrow("Handshake pin map contains overlapping pins");
   });
 
   it("rejects handshake adcBits outside the supported range", () => {
@@ -182,6 +223,9 @@ describe("serial protocol parity", () => {
       protocolVersion: 2,
       protocolSupported: true,
       knobCount: 3,
+      buttonCount: null,
+      encoderCount: null,
+      pinMap: null,
       mcu: null,
       adcBits: null,
       controllerConfig: buildFirmwareControllerConfig(defaultProfile),
