@@ -71,6 +71,37 @@ describe("serial protocol parity", () => {
     expect(encodeSliderPacket([1, 2, 3])).toBe("1|2|3");
   });
 
+  it("resyncs a handshake glued after corrupted garbage from a lost-newline burst", () => {
+    // Rajada real observada em produção (2026-09-14): glitch USB perdeu os
+    // \n e o buffer acumulou fragmentos de HELLO + um HELLO íntegro.
+    const corrupted =
+      "uba Nano; fw=0.6.2; protocol=2; knobs=3; buttonHELLO board=Ioruba Nano; " +
+      "fw=0.6.2; protocol=2; knobs=3; buttons=0; encoders=0; knobPins=A0,A1,A2; " +
+      "buttonPins=none; encoderPins=none; mcu=ATmega328P; adcBits=10; threshold=4; " +
+      "deadzone=7; smooth=75; mins=0,0,0; maxs=1023,1023,1023";
+
+    expect(parseSerialPacket(corrupted)).toMatchObject({
+      kind: "handshake",
+      info: {
+        boardName: "Ioruba Nano",
+        firmwareVersion: "0.6.2",
+        protocolVersion: 2,
+        knobCount: 3,
+      },
+    });
+  });
+
+  it("anchors handshake resync on the first HELLO occurrence", () => {
+    const duplicated =
+      "lixo HELLO board=Primeira; fw=1.0.0; protocol=2; knobs=1 " +
+      "HELLO board=Segunda; fw=2.0.0; protocol=2; knobs=2";
+
+    expect(parseSerialPacket(duplicated)).toMatchObject({
+      kind: "handshake",
+      info: { boardName: "Primeira" },
+    });
+  });
+
   it("parses firmware handshake packets", () => {
     expect(
       parseSerialPacket(

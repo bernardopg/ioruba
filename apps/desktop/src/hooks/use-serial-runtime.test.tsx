@@ -152,6 +152,50 @@ describe("useSerialRuntime", () => {
     ).toBe(true);
   });
 
+  it("flushes a stale partial line on heartbeat timeout and keeps the next frame intact", async () => {
+    setupSerialRuntime();
+    await flushRuntime();
+
+    const port = serialPortInstances[0];
+
+    // Glitch USB: bytes parciais sem \n ficam no buffer de re-montagem.
+    await act(async () => {
+      port?.emit("1023|1023|10");
+      await Promise.resolve();
+    });
+    expect(mockApplySliderTargetsBatch).not.toHaveBeenCalled();
+
+    // Janela de heartbeat expira: o partial line é descartado (resync).
+    await act(async () => {
+      vi.advanceTimersByTime(4000);
+      await Promise.resolve();
+    });
+    expect(
+      useIorubaStore
+        .getState()
+        .watchLog.some(
+          (entry) => entry.message === "Buffer serial parcial descartado"
+        )
+    ).toBe(true);
+
+    // O próximo frame íntegro é processado limpo, sem colar no lixo antigo.
+    await act(async () => {
+      port?.emit("555|555|555\n");
+      await Promise.resolve();
+      await vi.runOnlyPendingTimersAsync();
+    });
+    expect(mockApplySliderTargetsBatch).toHaveBeenCalledTimes(1);
+    const batch = mockApplySliderTargetsBatch.mock.calls.at(-1) as unknown[];
+    const updates = batch?.[1] as Array<{ sliderId: number; rawValue: number }>;
+    expect(updates).toHaveLength(3);
+    expect(updates.every((update) => update.rawValue === 555)).toBe(true);
+    expect(
+      useIorubaStore
+        .getState()
+        .watchLog.some((entry) => entry.message === "Frame serial descartado")
+    ).toBe(false);
+  });
+
   it("marks the session as stalled when the heartbeat window expires without frames", async () => {
     setupSerialRuntime();
     await flushRuntime();

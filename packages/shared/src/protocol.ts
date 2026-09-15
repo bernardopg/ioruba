@@ -82,6 +82,24 @@ export function parseSerialPacket(payload: string | Uint8Array): SerialPacket {
     };
   }
 
+  // Re-sincronia de handshake: rajadas corrompidas (glitch USB que perde
+  // `\n`, reinício da placa com buffer parcial) colam lixo antes de um
+  // HELLO íntegro — ex.: `uba Nano; fw=0.6.2; ... buttonHELLO board=...`.
+  // Em vez de descartar o frame inteiro, re-ancora no primeiro HELLO e
+  // extrai o handshake dali.
+  if (clean.length > handshakePrefix.length) {
+    const resyncIndex = clean.indexOf(handshakePrefix, 1);
+    if (resyncIndex > 0) {
+      const resynced = parseHandshakePacket(clean.slice(resyncIndex));
+      if (resynced) {
+        return {
+          kind: "handshake",
+          info: resynced
+        };
+      }
+    }
+  }
+
   const controlEvent = parseControlEventPacket(clean);
   if (controlEvent) {
     return controlEvent;

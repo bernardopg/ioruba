@@ -581,6 +581,21 @@ export function useSerialRuntime() {
 
     const heartbeatTimer = window.setInterval(() => {
       if (Date.now() - lastPacketAt > profile.serial.heartbeatTimeoutMs) {
+        // Resync por timeout: um partial line remanescente no buffer é lixo
+        // de rajada corrompida (glitch USB perdeu os \n). Sem este flush, a
+        // próxima linha íntegra do firmware cola nesse lixo e vira mais um
+        // frame descartado (e um heartbeat a mais de silêncio útil).
+        if (serialBufferRef.current.length > 0) {
+          const droppedLength = serialBufferRef.current.length;
+          serialBufferRef.current = "";
+          appendWatchLog({
+            scope: "serial",
+            level: "warning",
+            message: "Buffer serial parcial descartado",
+            detail: `${droppedLength} caracteres sem \\n | resync por timeout`,
+          });
+        }
+
         if (heartbeatWarningRef.current) {
           return;
         }
