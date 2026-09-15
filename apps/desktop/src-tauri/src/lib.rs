@@ -634,6 +634,21 @@ fn managed_install_detected() -> bool {
 /// variaveis globais do processo.
 #[cfg(target_os = "linux")]
 fn managed_install_for(running_as_appimage: bool, exe: Option<&std::path::Path>) -> bool {
+    // O wrapper de compatibilidade (ioruba-appimage-compat / run-appimage-compat.sh)
+    // extrai o AppImage para um cache próprio
+    // (~/.cache/ioruba/appimage-runtime/<sha>/squashfs-root). Nesse modo $APPIMAGE
+    // aponta para um arquivo DENTRO do cache, e o updater, ao substitui-lo,
+    // envenena a extração: o wrapper passa a relançar o binário gravado pelo
+    // updater fora da camada de reparo (sem as libs de display do host), o que
+    // derruba o WebKit com aborts SIGABRT no boot (EGL_BAD_PARAMETER contra o
+    // Mesa do host; ver tauri#15976). Atualização ali é responsabilidade de
+    // quem instala (wrapper/pacote), então trata como instalação gerenciada.
+    if let Some(exe) = exe {
+        if exe_in_wrapper_runtime_cache(exe) {
+            return true;
+        }
+    }
+
     // Um AppImage sempre exporta $APPIMAGE apontando para o arquivo montado, e
     // nesse caso o updater funciona: o alvo da escrita e o proprio AppImage, no
     // home do usuario.
@@ -653,6 +668,14 @@ fn managed_install_for(running_as_appimage: bool, exe: Option<&std::path::Path>)
     MANAGED_PREFIXES
         .iter()
         .any(|prefix| exe.starts_with(prefix))
+}
+
+/// True quando o executável vive dentro do cache de extração do wrapper de
+/// compatibilidade (qualquer XDG_CACHE_HOME, não só ~/.cache).
+#[cfg(target_os = "linux")]
+fn exe_in_wrapper_runtime_cache(exe: &std::path::Path) -> bool {
+    exe.components()
+        .any(|component| component.as_os_str() == "appimage-runtime")
 }
 
 #[cfg(not(target_os = "linux"))]
@@ -995,6 +1018,22 @@ mod tests {
         assert!(!managed_install_for(
             true,
             Some(Path::new("/usr/bin/ioruba-desktop"))
+        ));
+
+        // Extração do wrapper de compatibilidade: $APPIMAGE aponta para dentro
+        // do cache, e o updater NÃO pode gravar lá (envenena a extração e
+        // derruba o WebKit no próximo boot — coredumps SIGABRT de 2026-09).
+        assert!(managed_install_for(
+            true,
+            Some(Path::new(
+                "/home/user/.cache/ioruba/appimage-runtime/18e17f5/squashfs-root/usr/bin/ioruba-desktop"
+            ))
+        ));
+        assert!(managed_install_for(
+            false,
+            Some(Path::new(
+                "/home/user/.cache/XDG/ioruba/appimage-runtime/abc/squashfs-root/usr/bin/ioruba-desktop"
+            ))
         ));
 
         // /opt e onde os bundles .deb e .rpm do proprio Tauri instalam, e o
