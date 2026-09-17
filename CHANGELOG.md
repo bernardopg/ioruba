@@ -7,6 +7,41 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.9.2](https://github.com/bernardopg/ioruba/compare/v1.9.1...v1.9.2) (2026-09-17)
+
+### Fixed
+
+- O updater não substitui mais o executável quando o app roda de dentro do cache
+  do wrapper de compatibilidade (`*/appimage-runtime/*`). Relançar a partir dessa
+  camada de reparo deixava o WebKit sem as bibliotecas de display do host e o
+  processo morria com `EGL_BAD_PARAMETER`/SIGABRT no autostart da sessão; agora a
+  instalação é tratada como gerenciada e a UI aponta para o canal correto
+  (wrapper/pacote).
+- Handshake serial colado é reancorado: quando um glitch de USB engole os `\n` e
+  vários payloads `HELLO` chegam numa linha só, `parseSerialPacket` reancora no
+  primeiro `HELLO` íntegro em vez de descartar o buffer inteiro como valor
+  inválido. No vencimento da janela de heartbeat, a linha parcial travada é
+  descartada para permitir a ressincronização.
+
+### Security
+
+- `rustls` atualizado para 0.23.45, corrigindo RUSTSEC-2026-0285 (mensagens de
+  handshake TLS 1.3 aceitas indevidamente através de fronteiras de nível de
+  criptografia). `cargo audit` volta a ficar sem vulnerabilidades.
+
+### Changed
+
+- Dependências npm atualizadas dentro dos ranges declarados: React e
+  `@types/react`/`@types/react-dom` 19.3.0, Vite 8.3.0, `@vitest/coverage-v8`
+  5.0.1, `lucide-react` 1.46.0, `tailwind-merge` 3.7.0, `jsdom` 30.1.0,
+  `tauri-plugin-serialplugin-api` 3.0.7 e `@types/node` 26.6.1.
+- `Cargo.lock` atualizado (jiff, rustix, open, uuid, toml, zlib-rs e demais
+  transitivas).
+- GitHub Actions: `github/codeql-action` v4.38.0 e `trufflesecurity/trufflehog`
+  v3.97.5 (ambos repinados por SHA).
+- Runtime de Node nos workflows de CI, release e Pages migrado de 22 para 24,
+  alinhando com o LTS ativo e com o ambiente de desenvolvimento.
+
 ## [1.9.1](https://github.com/bernardopg/ioruba/compare/v1.9.0...v1.9.1) (2026-09-09)
 
 ### Fixed
