@@ -97,7 +97,7 @@ if [ "\$1" = "--appimage-extract" ]; then
     cat > squashfs-root/AppRun <<'APP_RUN'
 #!/usr/bin/env sh
 printf 'launcher-executado\n' > "${fixture_result6}"
-printf 'WEBKIT_DISABLE_DMABUF_RENDERER=%s\n' "\${WEBKIT_DISABLE_DMABUF_RENDERER-unset}" >> "${fixture_result6}"
+printf 'WEBKIT_DISABLE_DMABUF_RENDERER=%s\n' "\${WEBKIT_DISABLE_DMABUF_RENDERER-MISSING}" >> "${fixture_result6}"
 APP_RUN
     chmod 0755 squashfs-root/AppRun
 fi
@@ -121,8 +121,8 @@ check "entrada desktop usa o comando compativel" \
     "$home6/.local/bin/ioruba-desktop" "$desktop_exec6"
 HOME="$home6" XDG_CACHE_HOME="${TMPDIR_TEST}/cache6" "$desktop_exec6" >/dev/null
 check "launcher executa o AppImage pelo wrapper" "launcher-executado" "$(sed -n '1p' "$fixture_result6")"
-check "launcher nao injeta workaround insuficiente do WebKit" \
-    "WEBKIT_DISABLE_DMABUF_RENDERER=unset" "$(sed -n '2p' "$fixture_result6")"
+check "launcher propaga o workaround DMABUF exportado pelo wrapper" \
+    "WEBKIT_DISABLE_DMABUF_RENDERER=1" "$(sed -n '2p' "$fixture_result6")"
 
 printf '\n%d checks, %d failures\n' "$checks" "$failures"
 exit "$((failures > 0 ? 1 : 0))"
