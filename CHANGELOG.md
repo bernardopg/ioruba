@@ -7,6 +7,39 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **AUR `-bin`: AppImage chegava truncado (81 MB → 923 KiB).** O `strip`/
+  extração de debuginfo padrão do `makepkg` reescrevia o ELF `static-pie` e
+  cortava o payload squashfs anexado — `strip` reproduzido localmente reduz
+  o AppImage íntegro a exatos 923 KiB. O pacote instalado continha só o
+  runtime vazio; o app nem iniciava pelo `/opt`, e a sessão caía para o
+  AppImage de dev em `~/.local/bin` (via `PATH`), com WebKit defasado. O
+  template do `PKGBUILD-bin` em `.github/workflows/release.yml` agora emite
+  `options=('!strip' '!debug')` (validado: pacote rebuildado com 81 MB e
+  `sha256` idêntico ao asset do release).
+- **Wrapper de compatibilidade exporta `WEBKIT_DISABLE_DMABUF_RENDERER=1`.**
+  O fix existia só no wrapper instalado à mão em `~/.local/bin` (2026-09-14)
+  e nunca foi formalizado no repo — nem o wrapper do AUR o tinha. Sem ele o
+  WebKit embutido aborta (`EGL_BAD_PARAMETER`/SIGABRT) no autostart sob
+  Mesa 26 + Iris Xe. `scripts/run-appimage-compat.sh` (fonte da verdade para
+  `dev-deploy`, `~/.local/bin` e `/opt`) agora exporta a variável; os dois
+  wrappers instalados foram sincronizados.
+
+### Diagnóstico (2026-09-17, Doctor de coredump do full-upgrade)
+
+- `WebKitWebProcess (8x)` em 14 dias, todos de
+  `/tmp/.mount_ioruba*/.../webkit2gtk-4.1/WebKitWebProcess` com `SIGABRT` ~2 s
+  após `Started ioruba-desktop` (autostart, janela oculta). GDB mostra o abort
+  dentro de `libwebkit2gtk-4.1.so.0` via `JSC::RunLoop`, sem símbolos do app —
+  assinatura de abort gráfico, não de lógica JS/Rust.
+- Cadeia causal em duas camadas: (1) pacote AUR com AppImage truncado pelo
+  `strip` → (2) fallback para AppImage dev com WebKit antigo + wrapper sem
+  `WEBKIT_DISABLE_DMABUF_RENDERER` no repo/AUR → abort EGL no Mesa 26.
+  O updater interno (`use-signed-updater` + `managed_install_for`) estava
+  correto e inocentado: versão local 1.9.2 == `latest.json`, `check()` retorna
+  nulo sem download.
+
 ## [1.9.2](https://github.com/bernardopg/ioruba/compare/v1.9.1...v1.9.2) (2026-09-17)
 
 ### Fixed

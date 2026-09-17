@@ -25,6 +25,13 @@ CACHE_ROOT="${XDG_CACHE_HOME:-${HOME}/.cache}/ioruba/appimage-runtime"
 RUNTIME_DIR="${CACHE_ROOT}/${APP_SHA}"
 APPDIR="${RUNTIME_DIR}/squashfs-root"
 
+# WebKitGTK embutido no AppImage nao cria display EGL contra o Mesa do host
+# (EGL_BAD_PARAMETER -> abort -> coredump SIGABRT). Desativa o renderer DMABUF.
+# Diagnosticado em 2026-09-14 em sessao local (wrapper instalado a mao) e
+# formalizado aqui em 2026-09-17 junto ao fix do strip do AUR: sem esta linha
+# o WebKit do bundle aborta no autostart sob Mesa 26 + Iris Xe.
+export WEBKIT_DISABLE_DMABUF_RENDERER=1
+
 if [ ! -x "${APPDIR}/AppRun" ]; then
     rm -rf "$RUNTIME_DIR"
     mkdir -p "$RUNTIME_DIR"

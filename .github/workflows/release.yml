@@ -579,6 +579,14 @@ jobs:
           # padrao. Isso deixa no srcdir apenas o runtime ELF (~924 KiB), que o
           # package() copiava como se fosse o app completo.
           noextract=("${APPIMAGE_ASSET_NAME}")
+          # O AppImage e um ELF static-pie com o squashfs anexado apos o offset
+          # do runtime. O `strip`/extracao de debuginfo padrao do makepkg
+          # reescreve o ELF e trunca o payload (81 MB -> 923 KiB de runtime
+          # puro, que monta vazio). Diagnosticado em 2026-09-17: o pacote AUR
+          # 1.9.2 instalava só o runtime, e o app caia para o AppImage de dev
+          # do ~/.local/bin via PATH — com WebKit antigo, gerando os SIGABRT
+          # recorrentes do Doctor de coredump.
+          options=('!strip' '!debug')
           sha256sums=('${APPIMAGE_SHA256}' '${ICON_SHA256}' '${ICON_SVG_SHA256}' '${COMPAT_SHA256}')
 
           package() {
