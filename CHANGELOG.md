@@ -7,8 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.9.3](https://github.com/bernardopg/ioruba/compare/v1.9.2...v1.9.3) (2026-09-17)
+
 ### Fixed
 
+- **Teste do launcher de dev alinhado ao export do DMABUF.** A asserção
+  comportamental que exigia que o launcher **não** injetasse
+  `WEBKIT_DISABLE_DMABUF_RENDERER` (decisão de 2026-09-14, quando o workaround
+  sozinho era insuficiente contra a janela cinza) ficou obsoleta com o
+  diagnóstico de coredumps de 2026-09-17: sem o export, o WebKit embutido
+  aborta no autostart (`EGL_BAD_PARAMETER`/SIGABRT) sob Mesa 26 + Iris Xe, e o
+  export foi formalizado no wrapper (`a3e162c`). O teste agora exige
+  `WEBKIT_DISABLE_DMABUF_RENDERER=1` na sessão do app, com sentinela
+  (`MISSING`) para que a ausência do export continue sendo detectável. A
+  limpeza do ABI gráfico empacotado segue verificada como antes.
 - **AUR `-bin`: AppImage chegava truncado (81 MB → 923 KiB).** O `strip`/
   extração de debuginfo padrão do `makepkg` reescrevia o ELF `static-pie` e
   cortava o payload squashfs anexado — `strip` reproduzido localmente reduz
