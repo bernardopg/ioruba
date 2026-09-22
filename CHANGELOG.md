@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.9.4](https://github.com/bernardopg/ioruba/compare/v1.9.3...v1.9.4) (2026-09-22)
+
+### Changed
+
+- Atualizadas as dependências JavaScript dentro das faixas declaradas e as dependências Rust compatíveis no `Cargo.lock`, incluindo Tauri 2.11.6, `tauri-plugin-single-instance` 2.4.5, `tauri-plugin-updater` 2.12.0 e `lucide-react` 1.47.0. O npm audit permanece sem vulnerabilidades.
+- Atualizada a GitHub CodeQL Action para v4.38.1.
+- No pacote AUR `-bin`, o nome local do script de compatibilidade agora inclui a versão do release durante o download, evitando colisões de cache entre versões; a instalação mantém o nome estável do wrapper.
+
 ## [1.9.3](https://github.com/bernardopg/ioruba/compare/v1.9.2...v1.9.3) (2026-09-17)
 
 ### Fixed
