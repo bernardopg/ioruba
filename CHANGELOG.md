@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.9.5](https://github.com/bernardopg/ioruba/compare/v1.9.4...v1.9.5) (2026-10-05)
+
+### Changed
+
+- Atualizadas as dependências npm dentro das faixas declaradas (`@tauri-apps/api`/`cli` 2.12.1, `plugin-opener` 2.7.0, `plugin-updater` 2.13.1, `lucide-react` 1.52.0, `vite` 8.3.2, `vitest`/`coverage-v8` 5.0.3, `jsdom` 30.1.2, `@types/node` 26.6.4, `@vitejs/plugin-react` 6.1.2). O `npm audit` permanece sem vulnerabilidades.
+- Atualizadas as dependências Rust compatíveis no `Cargo.lock` (Tauri 2.12.1, `tauri-build` 2.7.1, `autostart` 2.7.0, `dialog` 2.8.1, `opener` 2.7.0, `single-instance` 2.5.2, `updater` 2.13.1 e transitivos); patches vendorizados `glib`/`serialplugin` preservados.
+- Pins de GH Actions: `dtolnay/rust-toolchain` v1 (`02cb101` → `7e38f4b`) e `trufflesecurity/trufflehog` v3.97.9 → v3.98.0.
+
 ## [1.9.4](https://github.com/bernardopg/ioruba/compare/v1.9.3...v1.9.4) (2026-09-22)
 
 ### Changed
