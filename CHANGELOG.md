@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.9.6](https://github.com/bernardopg/ioruba/compare/v1.9.5...v1.9.6) (2026-10-14)
+
+### Changed
+
+- Atualizadas as dependências npm dentro das faixas declaradas (`@radix-ui/react-switch` 1.4.1, `@radix-ui/react-tabs` 1.2.1, `@tauri-apps/api` 2.12.3, `@tauri-apps/cli` 2.12.2, `plugin-opener` 2.7.1, `plugin-updater` 2.13.3, `lucide-react` 1.57.0, `tauri-plugin-serialplugin-api` 3.0.8, `vite` 8.3.4, `vitest`/`coverage-v8` 5.0.4, `@types/node` 26.6.5). O `npm audit` permanece sem vulnerabilidades.
+- Atualizadas as especificações Rust em `Cargo.toml` e o `Cargo.lock` compatível (Tauri 2.12.3, `tauri-build` 2.7.2, `tauri-plugin-dialog` 2.8.2, `global-shortcut` 2.4.1, `opener` 2.7.1, `single-instance` 2.5.3, `updater` 2.13.3, `serde_json` 1.0.154 e transitivos); patches vendorizados `glib`/`serialplugin` preservados.
+- Pins de GH Actions: `actions/setup-node` v7.0.0 → v7.1.0, `github/codeql-action` v4.38.2 → v4.38.3 e `trufflesecurity/trufflehog` v3.98.0 → v3.99.2. Arduino CLI permanece em v1.5.1 (já a última).
+
 ## [1.9.5](https://github.com/bernardopg/ioruba/compare/v1.9.4...v1.9.5) (2026-10-05)
 
 ### Changed
