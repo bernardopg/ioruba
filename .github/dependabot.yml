@@ -31,6 +31,9 @@ updates:
         update-types:
           - minor
           - patch
+    cooldown:
+      default: 7
+      semver-major: 30
 
   - package-ecosystem: cargo
     directory: "/apps/desktop/src-tauri"
@@ -46,6 +49,22 @@ updates:
     labels:
       - dependencies
       - rust
+    ignore:
+      # Vendorizados com patch local em src-tauri/vendor via [patch.crates-io];
+      # bump de spec sem re-vendorizar quebraria o backport (glib 0.18.x) e o
+      # fix de terminadores de linha (serialplugin 3.0.2).
+      - dependency-name: glib
+      - dependency-name: tauri-plugin-serialplugin
+    groups:
+      cargo-minor-and-patch:
+        patterns:
+          - "*"
+        update-types:
+          - minor
+          - patch
+    cooldown:
+      default: 7
+      semver-major: 30
 
   - package-ecosystem: github-actions
     directory: "/"
@@ -69,3 +88,6 @@ updates:
           - "*"
         exclude-patterns:
           - dtolnay/rust-toolchain
+    cooldown:
+      default: 7
+      semver-major: 30
