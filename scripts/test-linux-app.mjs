@@ -75,6 +75,7 @@ await test("Linux native app", { timeout: 180_000 }, async t => {
     await t.test("boots with real Linux audio inventory and isolated persistence", async () => {
       await until(async () => (await ipc("load_watch_log_entries")).value?.some(x => x.message === "Boot do runtime concluido"), "App failed to boot");
       assert.equal(await execute("return !!window.__TAURI_INTERNALS__"), true);
+      if (process.env.IORUBA_EXPECT_VERSION) assert.equal((await ipc("plugin:app|version")).value, process.env.IORUBA_EXPECT_VERSION);
       const inventory = await ipc("list_audio_inventory");
       assert.equal(inventory.ok, true);
       assert.equal(inventory.value.backend, "pactl");

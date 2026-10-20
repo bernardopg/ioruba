@@ -250,3 +250,7 @@ para o backport de segurança Windows e seus limites de validação.
 `npm run rust:test` também executa os testes upstream do updater, incluindo
 assinatura e integridade do payload. O CI nativo Windows/macOS executa o mesmo
 target. O [README de vendor](../../../../apps/desktop/src-tauri/vendor/README.md) documenta a origem e a remoção do backport zip 9; não suprimir seus avisos.
+
+Para validar um artefato publicado, defina `IORUBA_BINARY` com o executável
+extraído do pacote e `IORUBA_EXPECT_VERSION` com a versão publicada. O boot
+confere a versão real via IPC, além dos metadados do pacote.

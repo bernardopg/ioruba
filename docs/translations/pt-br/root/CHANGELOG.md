@@ -11,6 +11,8 @@ e este projeto segue [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [1.10.0](https://github.com/bernardopg/ioruba/compare/v1.9.6...v1.10.0) (2026-10-20)
+
 ### Adicionado
 - Testes nativos Linux para IPC/WebKit real, áudio isolado, Nano, responsividade,
   teclado/foco, temas, bandeja, login e seletores GTK.

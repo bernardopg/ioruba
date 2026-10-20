@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.10.0](https://github.com/bernardopg/ioruba/compare/v1.9.6...v1.10.0) (2026-10-20)
+
 ### Added
 - Native Linux integration tests for real WebKit/Tauri IPC, isolated audio targets,
   Nano communication, nine sections at six window widths, keyboard/focus,

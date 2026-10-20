@@ -2,7 +2,7 @@
 
 This batch updates dependencies/workflows, redesigns the mixer and adds Linux,
 serial and firmware regression coverage. User-facing notes are in the
-`Unreleased` section of [CHANGELOG.md](../../CHANGELOG.md).
+`1.10.0` section of [CHANGELOG.md](../../CHANGELOG.md).
 
 ## Evidence
 
@@ -48,9 +48,10 @@ check does not establish updater/installer runtime behavior on Windows.
 
 ## Before tagging
 
-1. Select the next desktop version and synchronize root, desktop and shared
+1. Select the next desktop version and synchronize root and desktop
    `package.json`, `package-lock.json`, Cargo package/lock and `tauri.conf.json`.
-   This commit retains desktop 1.9.6; firmware source is 0.6.3, protocol 2.
+   Release preparation sets desktop/root to 1.10.0; the private shared package
+   keeps its independent 0.6.4 version. Firmware source is 0.6.3, protocol 2.
 2. Move `Unreleased` notes to a dated version heading, preserving older entries.
 3. Run `npm run release:check` with Node 26.12.0/npm 12.2.0 and the documented
    Rust/Arduino/security tooling; require remote CI to pass on the pushed head.
@@ -60,7 +61,7 @@ check does not establish updater/installer runtime behavior on Windows.
    updating from the previous release on Linux and Windows. Regenerate package
    manifests from release checksums rather than editing digests manually.
 
-No tag/release is published by this preparation. The installed AUR package and
+This preparation is now used for release v1.10.0. The installed AUR package and
 Nano firmware were not replaced. Windows/macOS runtime, fresh logout/login,
 panel-icon pixel clicks and published updater/installers remain release checks;
 Linux Xvfb/D-Bus evidence does not certify those paths. Platform code signing is

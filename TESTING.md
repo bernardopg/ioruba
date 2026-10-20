@@ -346,3 +346,7 @@ signature/payload validation. The crate is an explicit workspace member for
 these dev-dependencies. Native macOS/Windows CI runs the same test target.
 See [vendor provenance and removal conditions](apps/desktop/src-tauri/vendor/README.md#updater-2140-zip-9-backport).
 A clean cargo audit is required; do not add advisory exceptions for zip.
+
+For release artifact smoke tests, set `IORUBA_BINARY` to the extracted packaged
+executable and `IORUBA_EXPECT_VERSION` to the published version. The native boot
+case verifies the runtime version through Tauri IPC, in addition to packaging metadata.
