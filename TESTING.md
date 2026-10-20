@@ -338,3 +338,11 @@ selectors, parses their contents and checks cancellation. No logout/reboot is
 performed. This verifies the launch entry and execution path, not a new session
 started by the compositor. The menu is activated through its dbusmenu protocol;
 pixel hit testing of the panel icon is not part of the suite.
+
+### Vendored updater security backport
+
+`npm run rust:test` also executes the upstream updater unit tests, including
+signature/payload validation. The crate is an explicit workspace member for
+these dev-dependencies. Native macOS/Windows CI runs the same test target.
+See [vendor provenance and removal conditions](apps/desktop/src-tauri/vendor/README.md#updater-2140-zip-9-backport).
+A clean cargo audit is required; do not add advisory exceptions for zip.

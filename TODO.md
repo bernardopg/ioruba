@@ -1,5 +1,12 @@
 # TODO
 
+## Backport updater zip — 2026-10-20
+
+- [x] Aplicar somente a correção upstream zip 9 no updater vendorizado, com origem e condição de remoção documentadas.
+- [x] Resolver lockfile sem zip 4 e executar audit sem supressões.
+- [x] Executar 25 testes upstream do updater e verificar zip no target Windows; adicionar testes no CI nativo.
+- [ ] Confirmar CI Windows/macOS e validar update publicado antes do release.
+
 ## Bandeja, login e seletores Linux — 2026-10-20
 
 - [x] Verificar fechamento para a bandeja, processo ativo, menu real, restauração e saída.

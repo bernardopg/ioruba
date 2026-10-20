@@ -34,4 +34,4 @@ O guia operacional de distribuição ainda está disponível somente em inglês:
 
 A interface do aplicativo oferece `pt-BR`, `en` e `es`. Este diretório cobre a documentação PT-BR; espanhol atualmente se refere à interface, não a um conjunto completo de manuais traduzidos.
 
-- [Preparação de release — 2026-10-20](../../maintenance/release-preparation-2026-10-20.md) — evidências e bloqueio de segurança no updater Windows (em inglês).
+- [Preparação de release — 2026-10-20](../../maintenance/release-preparation-2026-10-20.md) — evidências e backport de segurança no updater Windows (em inglês).

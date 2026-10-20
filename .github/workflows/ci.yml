@@ -337,6 +337,9 @@ jobs:
       - name: Build and test Rust backend
         run: cargo test --manifest-path apps/desktop/src-tauri/Cargo.toml
 
+      - name: Test updater backport on native platform
+        run: cargo test --manifest-path apps/desktop/src-tauri/Cargo.toml -p tauri-plugin-updater --lib --locked
+
   repo-smoke:
     name: Repo Smoke
     runs-on: ubuntu-latest

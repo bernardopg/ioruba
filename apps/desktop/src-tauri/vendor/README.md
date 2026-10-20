@@ -37,3 +37,23 @@ strips ordinary line endings and flushes partial frames prematurely. Enable
 Tauri's test feature in dependencies, as in our previous vendor, so the existing
 `cargo test -p tauri-plugin-serialplugin line_router_` gate remains runnable.
 Remove this override once upstream preserves framing and passes these tests.
+
+## Updater 2.14.0: zip 9 backport
+
+- Source: crates.io `tauri-plugin-updater` 2.14.0, with licenses and original
+  `.cargo_vcs_info.json` retained. Registry marker and the crate's standalone
+  lockfile are omitted; the application lockfile is authoritative.
+- Patch: only the Windows `zip` requirement changes from `4` to `9`, in both
+  normalized/original manifests (trailing whitespace in the upstream changelog
+  is normalized), matching upstream
+  https://github.com/tauri-apps/plugins-workspace/pull/3698 (merged 2026-10-16).
+- Purpose: remove RUSTSEC-2026-0367/0368/0369 without suppressing advisories.
+  Application lockfile resolves zip 9.0.5. Updater Rust/JS implementation,
+  mandatory signature verification, platform features and public key stay intact.
+- The crate is a workspace member so its upstream unit tests can run with the
+  application's dependency patches: `cargo test --manifest-path
+  apps/desktop/src-tauri/Cargo.toml -p tauri-plugin-updater --lib --locked`.
+- Removal: once a stable 2.x updater containing #3698 is published (currently
+  queued for 2.14.1), update the registry dependency, delete this vendor override,
+  workspace member and vendor directory, and retain updater tests through an
+  appropriate upstream/native CI gate. Re-run audits and platform checks.

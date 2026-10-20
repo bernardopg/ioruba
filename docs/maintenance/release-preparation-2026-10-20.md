@@ -17,19 +17,34 @@ the desktop-shell extension passed 15 reported results (14 cases and suite
 parent). Coverage is measured including unimported files, not imported-only.
 Read the individual reports for evidence scope and artifact paths.
 
-## Publication blocker found by the final gate
+## Windows updater advisory backport
 
-`npm run release:check` passed npm audit, TypeScript checks/tests, Rust tests
-and the web build, then failed at `cargo audit`. The refreshed advisory database
-reports three vulnerabilities in `zip 4.6.1`: RUSTSEC-2026-0367,
-RUSTSEC-2026-0368 and RUSTSEC-2026-0369. `cargo tree --target all -i zip`
-identifies `tauri-plugin-updater 2.14.0` as its parent; that plugin requires
-`zip = "4"` only on Windows. The advisories require zip >=9.0.0, so a compatible
-lockfile update cannot resolve them. No advisory suppression was added.
+The initial release gate failed at cargo audit on zip 4.6.1:
+RUSTSEC-2026-0367/0368/0369. Upstream already merged
+[PR #3698](https://github.com/tauri-apps/plugins-workspace/pull/3698), while
+stable updater 2.14.1 was still queued in release PR #3712.
 
-Do not publish until the Windows updater dependency is fixed and the complete
-release gate passes. Linux runtime results do not clear a Windows dependency
-vulnerability. Four additional unmaintained-dependency warnings were reported.
+Ioruba now vendors crates.io updater 2.14.0 and backports only its Windows
+`zip = "9"` requirement. `Cargo.toml` and `Cargo.toml.orig` contain the dependency change; the
+upstream changelog only has trailing whitespace normalized. No updater
+implementation or signature verification is changed. Root lockfile resolves zip 9.0.5. Provenance and removal conditions
+are in [vendor README](../../apps/desktop/src-tauri/vendor/README.md).
+
+Cargo audit passes without vulnerabilities; four unmaintained-dependency
+warnings remain. All 25 upstream updater unit tests pass, including signed
+version, payload integrity and tampering checks. The zip crate also passes
+`cargo check --target x86_64-pc-windows-gnu -p zip --locked`.
+Final local validation with this backport: `npm run release:check` passed
+end-to-end (220 TypeScript tests, 74 Rust tests including 25 updater tests,
+npm/cargo audits, host firmware tests and AVR build matrix, shell/installer/
+packaging checks, secret scans and documentation build). `actionlint` and
+`git diff --check` passed. The rebuilt Linux release binary passed the
+15-result native desktop-shell suite; artifacts are at
+`/tmp/ioruba-native-test-YhCOib/`. These are local results, not remote CI proof.
+
+Full local Windows updater cross-check requires missing MinGW GCC; native
+Windows/macOS CI now explicitly runs updater unit tests. Passing zip's target
+check does not establish updater/installer runtime behavior on Windows.
 
 ## Before tagging
 

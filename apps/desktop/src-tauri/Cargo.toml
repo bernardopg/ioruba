@@ -54,3 +54,9 @@ glib = { path = "vendor/glib-0.18.5" }
 # v3.0.9 strips every ordinary stream line terminator before emitting `onData`.
 # That corrupts line-framed protocols; retain the terminators until upstream fixes it.
 tauri-plugin-serialplugin = { path = "vendor/tauri-plugin-serialplugin-3.0.9" }
+
+# Backport upstream #3698 until a stable updater release includes zip 9.
+tauri-plugin-updater = { path = "vendor/tauri-plugin-updater-2.14.0" }
+
+[workspace]
+members = ["vendor/tauri-plugin-updater-2.14.0"]

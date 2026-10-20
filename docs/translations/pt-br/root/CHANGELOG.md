@@ -25,14 +25,16 @@ e este projeto segue [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   framing preservado, Node 26.12.0/npm 12.2.0, actions e imagens de CI atualizados.
 
 ### Corrigido
+- Backport local da correção upstream do updater para zip 9 elimina
+  RUSTSEC-2026-0367/0368/0369 sem alterar a verificação obrigatória de assinatura.
 - Demo agora acumula estatísticas e permite exportação JSON/CSV.
 - Níveis respeitam valor aplicado, inversão e resolução ADC; sem primeira leitura,
   os canais indicam espera em vez de volume incorreto.
 - Firmware 0.6.3 configura a resolução real do ADC em ESP32/RP2040; protocolo 2.
 
 ### Validação de release
-- Publicação bloqueada por três avisos RustSec em `zip 4.6.1`, dependência do
-  updater Windows; nenhum aviso foi suprimido.
+- Os três avisos do zip no updater Windows foram resolvidos pelo backport
+  local documentado; CI Windows e validação do update publicado ainda são necessários.
 - Consulte as [notas de preparação](../../../maintenance/release-preparation-2026-10-20.md)
   para evidências e pendências. O pacote instalado e o firmware do Nano não foram
   substituídos; atualizações publicadas e uma nova sessão gráfica ainda exigem teste.

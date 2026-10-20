@@ -26,6 +26,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   and runner images. See the dependency update report for the verified snapshot.
 
 ### Fixed
+- Backported the upstream updater zip 9 dependency fix locally, removing
+  RUSTSEC-2026-0367/0368/0369 while preserving signed-update verification.
 - Demo frames now accumulate session statistics, enabling JSON/CSV exports.
 - Channel levels reflect applied values, inversion and the controller ADC range;
   channels without a first reading show a waiting state instead of a false level.
@@ -34,8 +36,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   the advertised range; protocol remains version 2.
 
 ### Release validation
-- Publication is blocked by three RustSec advisories affecting the Windows
-  updater dependency `zip 4.6.1`; see the release preparation notes.
+- The Windows updater zip advisories are resolved by the documented local
+  backport; native Windows CI and published-update validation remain required.
 - Linux evidence and outstanding platform checks are recorded in
   [the release preparation notes](docs/maintenance/release-preparation-2026-10-20.md).
   Native tests used a rebuilt release binary; they do not replace validation of

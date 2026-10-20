@@ -24,7 +24,7 @@ Choose a path below. The Markdown in this repository is the canonical documentat
 - [Translation guide](guides/translation-guide.md) — PT-BR source strings, English/Spanish maps, and validation
 - [Contributing](../CONTRIBUTING.md) — repository conventions and pull-request checklist
 
-- [Release preparation, 2026-10-20](maintenance/release-preparation-2026-10-20.md) — validation evidence and Windows updater security blocker
+- [Release preparation, 2026-10-20](maintenance/release-preparation-2026-10-20.md) — validation evidence and Windows updater security backport
 
 ## Project status
 

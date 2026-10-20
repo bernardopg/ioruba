@@ -245,4 +245,8 @@ Não faz logout/reboot nem testa clique por pixel no ícone. A opção serial en
 a configuração do perfil de teste: preserve calibração personalizada antes de
 usá-la. Consulte o [guia canônico](../../../../TESTING.md) para pré-requisitos,
 limites e evidências completos, e a [preparação do release](../../../maintenance/release-preparation-2026-10-20.md)
-para o bloqueio de segurança Windows identificado pelo gate final.
+para o backport de segurança Windows e seus limites de validação.
+
+`npm run rust:test` também executa os testes upstream do updater, incluindo
+assinatura e integridade do payload. O CI nativo Windows/macOS executa o mesmo
+target. O [README de vendor](../../../../apps/desktop/src-tauri/vendor/README.md) documenta a origem e a remoção do backport zip 9; não suprimir seus avisos.
