@@ -26,6 +26,8 @@ Choose a path below. The Markdown in this repository is the canonical documentat
 
 - [Release preparation, 2026-10-20](maintenance/release-preparation-2026-10-20.md) — validation evidence and Windows updater security backport
 
+- [Published release 1.10.0 validation](maintenance/release-1.10.0-validation.md) — artifact signatures, provenance, Linux runtime and real update proof
+
 ## Project status
 
 - [Product roadmap](roadmap.md) — product direction and non-goals

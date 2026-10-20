@@ -67,3 +67,7 @@ panel-icon pixel clicks and published updater/installers remain release checks;
 Linux Xvfb/D-Bus evidence does not certify those paths. Platform code signing is
 intentionally not used; Tauri updater signing remains mandatory as described in
 [release distribution](../guides/release-distribution.md).
+
+## Published outcome
+
+Release v1.10.0 completed successfully. See [published validation](release-1.10.0-validation.md) for artifact checks, distribution state, real Linux package/update proof and remaining platform limits.

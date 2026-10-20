@@ -5,7 +5,8 @@
 - [x] Aplicar somente a correção upstream zip 9 no updater vendorizado, com origem e condição de remoção documentadas.
 - [x] Resolver lockfile sem zip 4 e executar audit sem supressões.
 - [x] Executar 25 testes upstream do updater e verificar zip no target Windows; adicionar testes no CI nativo.
-- [ ] Confirmar CI Windows/macOS e validar update publicado antes do release.
+- [x] Confirmar CI Windows/macOS e validar update publicado no Linux; evidências em [release 1.10.0](docs/maintenance/release-1.10.0-validation.md).
+- [ ] Executar instalação/update em GUI Windows/macOS reais antes de afirmar validação manual dessas plataformas.
 
 ## Bandeja, login e seletores Linux — 2026-10-20
 
