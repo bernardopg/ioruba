@@ -92,7 +92,7 @@ The reusable `.github/workflows/ci.yml` workflow contains these jobs:
 - **Firmware AVR matrix:** Nano, Uno, Mega, Leonardo, and Micro.
 - **Firmware architecture matrix:** ESP32, RP2040/Pico, and ESP8266.
 - **Installer Scripts Lint:** ShellCheck, installer fixtures, package/updater manifest tests, and PSScriptAnalyzer.
-- **Native Audio Smoke:** Rust clippy/tests on `windows-latest` and `macos-15` so cfg-gated audio modules compile on their native platforms.
+- **Native Audio Smoke:** Rust clippy/tests on `windows-latest` and `macos-latest` so cfg-gated audio modules compile on their native platforms.
 - **Repo Smoke:** required files and removal of retired root/legacy build surfaces.
 
 Separate workflows run CodeQL and secret scanning.
@@ -274,3 +274,67 @@ Log out and back in.
 Install the [Tauri 2 prerequisites](https://v2.tauri.app/start/prerequisites/) for your distribution, including WebKitGTK 4.1, GTK 3, librsvg, and app-indicator development libraries.
 
 For deeper triage, use the [Support playbook](docs/debug/support.md).
+
+## Native Linux integration (real WebKit and IPC)
+
+Requires Node 26, `tauri-driver`, `WebKitWebDriver`, `pactl`, `pacat`, and a running
+Linux desktop/audio session. Install the driver with `cargo install tauri-driver --locked`.
+Close other Ioruba instances first: the app enforces a single instance.
+
+```bash
+npm run desktop:tauri:build
+npm run test:linux:app
+# Opt in to a connected controller:
+IORUBA_TEST_SERIAL_PORT=/dev/ttyUSB0 npm run test:linux:app
+```
+
+The suite launches the production binary in a temporary `XDG_CONFIG_HOME` and
+uses an unmatched application target. Audio tests create and remove their own
+null sink and silent stream. They never redirect or adjust the default output.
+The optional controller test sends the test profile's firmware configuration;
+run it on a controller with default calibration, or preserve its tuning first.
+Screenshots, native logs and axe results are saved to the printed temporary
+artifact directory. Device movement still requires a person. Actual file-picker exports and tray/login behavior require the desktop-shell
+opt-in below. Signed installation and hardware flashing are not covered. Axe's contrast check may remain incomplete with CSS Color 4.
+
+`npm run firmware:test:runtime` executes the actual sketch using host I/O stubs
+for Nano, RP2040 and a button/encoder build. It checks serial command framing,
+rejection/recovery, EEPROM write avoidance, modes, ADC resolution and calibration;
+this complements the parser tests and physical checks, not ADC hardware proof.
+
+Desktop and shared coverage include unimported source files and enforce baseline
+thresholds. Compare percentages from the same configuration: imported-only
+coverage overstates coverage. The current native audit and known gaps are in
+[the Linux audit](docs/maintenance/linux-runtime-audit-2026-10-20.md).
+
+### Mixer visual regression checks
+
+The native suite checks all nine sections at 640, 800, 1024, 1280, 1440 and
+1920 pixels, asserts no document overflow, and saves mixer screenshots and
+`responsive.json`. It verifies initial Mixer selection, destination-edit focus,
+and the waiting-for-input state. `contrast.json` records seven core mixer text
+selectors in light/dark themes, resolving CSS Color 4 via canvas to sRGB before
+calculating contrast. These targeted checks complement axe; they are not a
+complete accessibility certification. See the
+[visual implementation report](docs/maintenance/visual-redesign-2026-10-20.md).
+
+### Native tray, login and file selectors
+
+```bash
+IORUBA_TEST_DESKTOP_SHELL=1 xvfb-run -a npm run test:linux:app
+```
+
+Requires `xdotool`, system Python with PyGObject/Gio, libX11, and a real session
+D-Bus with `org.kde.StatusNotifierWatcher`, in addition to the native suite
+prerequisites. Run with a dedicated Xvfb display: selector keyboard input stays
+on that display. The suite also isolates `HOME`, because the autostart library
+uses `~/.config/autostart` regardless of `XDG_CONFIG_HOME`.
+
+Checks native close-to-tray, registration/menu callbacks on the actual desktop
+D-Bus, restore and Quit; toggles login through the UI and verifies persistence
+and the generated/removed desktop entry; relaunches with `--autostart` and checks
+hidden startup. Saves profile JSON, session JSON/CSV and watch JSONL through GTK
+selectors, parses their contents and checks cancellation. No logout/reboot is
+performed. This verifies the launch entry and execution path, not a new session
+started by the compositor. The menu is activated through its dbusmenu protocol;
+pixel hit testing of the panel icon is not part of the suite.

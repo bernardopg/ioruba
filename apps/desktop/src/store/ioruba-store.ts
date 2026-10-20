@@ -1364,6 +1364,7 @@ export const useIorubaStore = create<IorubaState>((rawSet, get) => {
         appliedValues,
         outcomes,
         telemetry,
+        sessionStats: updateSessionStats(state.sessionStats, telemetryPoints),
         lastSerialLine: `demo:${tick}`,
         lastFrameAt: Date.now(),
         snapshot: createSnapshot({

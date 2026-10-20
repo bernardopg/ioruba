@@ -149,16 +149,11 @@ jobs:
           # Tauri's generated bundle script invokes Finder/AppleScript
           # operations that are not always authorized in CI. Build the .app
           # bundle instead so the release can still publish the macOS binary.
-          # Pinned to macos-15 (not macos-latest): the macos-latest label migrates
-          # to macOS 26 from 2026-06-15 (actions/runner-images#14167). Release
-          # builds must be reproducible, so pin to the known-good GA image. Step
-          # conditionals below match on startsWith(matrix.platform, 'macos') so
-          # the pinned version can change without touching every `if:`.
           - label: macos-aarch64
-            platform: macos-15
+            platform: macos-latest
             args: "--bundles app --target aarch64-apple-darwin"
           - label: macos-x86_64
-            platform: macos-15
+            platform: macos-latest
             args: "--bundles app --target x86_64-apple-darwin"
     runs-on: ${{ matrix.platform }}
     # Secrets cannot be referenced in step-level `if:` expressions directly.
@@ -180,11 +175,14 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
-          node-version: 24
+          node-version: 26.12.0
           cache: npm
 
+      - name: Setup npm
+        run: npm install --global npm@12.2.0
+
       - name: Setup Rust stable
-        uses: dtolnay/rust-toolchain@7e38f4b43b4db5c8dd498af069a4f6196df1d067 # v1
+        uses: dtolnay/rust-toolchain@683b588c487a69d01f6c6ddf40f036ff682cc2c8 # v1
         with:
           toolchain: stable
           targets: ${{ startsWith(matrix.platform, 'macos') && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
@@ -580,7 +578,7 @@ jobs:
           # package() copiava como se fosse o app completo.
           noextract=("${APPIMAGE_ASSET_NAME}")
           # O AppImage e um ELF static-pie com o squashfs anexado apos o offset
-          # do runtime. O `strip`/extracao de debuginfo padrao do makepkg
+          # do runtime. O strip/extracao de debuginfo padrao do makepkg
           # reescreve o ELF e trunca o payload (81 MB -> 923 KiB de runtime
           # puro, que monta vazio). Diagnosticado em 2026-09-17: o pacote AUR
           # 1.9.2 instalava só o runtime, e o app caia para o AppImage de dev

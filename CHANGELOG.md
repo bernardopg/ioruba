@@ -7,6 +7,41 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Native Linux integration tests for real WebKit/Tauri IPC, isolated audio targets,
+  Nano communication, nine sections at six window widths, keyboard/focus,
+  persistence, theme contrast, tray menus, autostart and GTK export selectors.
+- Firmware sketch runtime tests for Nano, RP2040 and optional buttons/encoders,
+  plus desktop regression coverage for persistence, updater, backend and mixer.
+
+### Changed
+- Mixer is now the initial workspace, with tactile channel strips, prominent
+  applied levels, readable audio destinations and direct channel editing.
+- Compact navigation adapts to windows from 640 × 600; Home is an operational
+  summary. Refined copper/teal themes, typography, focus and reduced motion.
+- Runtime states and audio destinations are localized in Portuguese, English and
+  Spanish; signal diagnostics remain available in collapsed details.
+- Updated JavaScript/Rust dependencies, vendored serial plugin to 3.0.9 while
+  retaining the line-framing patch, Node to 26.12.0, npm to 12.2.0, CI actions
+  and runner images. See the dependency update report for the verified snapshot.
+
+### Fixed
+- Demo frames now accumulate session statistics, enabling JSON/CSV exports.
+- Channel levels reflect applied values, inversion and the controller ADC range;
+  channels without a first reading show a waiting state instead of a false level.
+- Improved primary-button contrast and responsiveness for long channel names.
+- Firmware 0.6.3 configures the physical ADC resolution on ESP32/RP2040 to match
+  the advertised range; protocol remains version 2.
+
+### Release validation
+- Publication is blocked by three RustSec advisories affecting the Windows
+  updater dependency `zip 4.6.1`; see the release preparation notes.
+- Linux evidence and outstanding platform checks are recorded in
+  [the release preparation notes](docs/maintenance/release-preparation-2026-10-20.md).
+  Native tests used a rebuilt release binary; they do not replace validation of
+  published installers, a signed updater, or a fresh graphical login session.
+
+
 ## [1.9.6](https://github.com/bernardopg/ioruba/compare/v1.9.5...v1.9.6) (2026-10-14)
 
 ### Changed

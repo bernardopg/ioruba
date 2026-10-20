@@ -168,6 +168,10 @@ describe("ioruba store", () => {
     useIorubaStore.getState().runDemoStep();
 
     expect(useIorubaStore.getState().snapshot.status).toBe("demo");
+    const firstCount = useIorubaStore.getState().sessionStats.sampleCount;
+    expect(firstCount).toBe(useIorubaStore.getState().snapshot.knobs.length);
+    useIorubaStore.getState().runDemoStep();
+    expect(useIorubaStore.getState().sessionStats.sampleCount).toBe(firstCount * 2);
     expect(useIorubaStore.getState().snapshot.telemetry.length).toBeGreaterThan(
       0,
     );

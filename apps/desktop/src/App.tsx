@@ -1,4 +1,4 @@
-import { useMemo, useState, type KeyboardEvent } from "react";
+import { useEffect, useMemo, useState, type KeyboardEvent } from "react";
 
 import {
   Activity,
@@ -7,7 +7,6 @@ import {
   Cog,
   Cpu,
   FolderCog,
-  Gauge,
   HeartPulse,
   Home,
   LaptopMinimal,
@@ -57,7 +56,7 @@ import {
   listAudioInventory,
   setLaunchOnLoginEnabled
 } from "@/lib/backend";
-import { translateText } from "@/lib/i18n";
+import { formatRuntimeStatus, translateText } from "@/lib/i18n";
 import {
   parseProfileDraft,
   serializeProfileDraft
@@ -71,22 +70,6 @@ import {
   sessionStatsToJson,
   type ThemeMode
 } from "@ioruba/shared";
-
-function toneForStatus(status: string): "neutral" | "positive" | "warning" | "critical" {
-  switch (status) {
-    case "connected":
-    case "demo":
-      return "positive";
-    case "searching":
-    case "connecting":
-    case "disconnected":
-      return "warning";
-    case "error":
-      return "critical";
-    default:
-      return "neutral";
-  }
-}
 
 type AppSection =
   | "home"
@@ -156,9 +139,10 @@ export default function App() {
   const audioInventory = useIorubaStore((state) => state.audioInventory);
   const activeProfile = resolveActiveProfile(persisted);
   const language = activeProfile.ui.language;
+  useEffect(() => { document.documentElement.lang = language; }, [language]);
   const lt = (text: string) => translateText(language, text);
   const [launchOnLoginPending, setLaunchOnLoginPending] = useState(false);
-  const [activeSection, setActiveSection] = useState<AppSection>("home");
+  const [activeSection, setActiveSection] = useState<AppSection>("channels");
 
   useThemeSync(activeProfile.ui.theme);
 
@@ -185,31 +169,16 @@ export default function App() {
   const launchOnLoginTitleId = "launch-on-login-title";
   const launchOnLoginDescriptionId = "launch-on-login-description";
   const statusCardDescriptionId = "session-status-description";
-  const liveStatusMessage = `${lt("Sessão")} ${snapshot.status}: ${lt(snapshot.statusText)}. ${lt(snapshot.diagnostics.hint)} ${lt("Perfil")}: ${draftStatusLabel}. ${draftStatusHint}`;
+  const liveStatusMessage = `${lt("Sessão")}: ${formatRuntimeStatus(language, snapshot.status)}. ${lt("Perfil")}: ${draftStatusLabel}. ${draftStatusHint}`;
   const navigationGroups = useMemo<NavGroup[]>(
     () => [
       {
         id: "operation",
         label: lt("Operação"),
         items: [
-          {
-            id: "home" as const,
-            label: lt("Home"),
-            description: lt("Visão geral da bancada e status operacional."),
-            icon: Home
-          },
-          {
-            id: "control" as const,
-            label: lt("Painel de controle"),
-            description: lt("Conexão, sessão e preferências de runtime."),
-            icon: PanelsTopLeft
-          },
-          {
-            id: "channels" as const,
-            label: lt("Canais"),
-            description: lt("Knobs ao vivo e seus destinos de áudio."),
-            icon: SlidersHorizontal
-          }
+          { id: "channels" as const, label: lt("Mixer"), description: lt("Controle o volume de cada destino com seus knobs."), icon: SlidersHorizontal },
+          { id: "home" as const, label: lt("Home"), description: lt("Seu controlador, áudio e perfil em um só lugar."), icon: Home },
+          { id: "control" as const, label: lt("Painel de controle"), description: lt("Conecte seu controlador e escolha como usar o Ioruba."), icon: PanelsTopLeft }
         ]
       },
       {
@@ -231,7 +200,7 @@ export default function App() {
           {
             id: "diagnostics" as const,
             label: lt("Diagnósticos"),
-            description: lt("Logs e checklist técnico da integração."),
+            description: lt("Encontre o que precisa de atenção na conexão e no áudio."),
             icon: HeartPulse
           }
         ]
@@ -384,14 +353,13 @@ export default function App() {
         {lt("Pular para o conteúdo principal")}
       </a>
       <UpdateToast language={language} signedUpdate={signedUpdate} />
-      <StatusPill />
       <div className="ambient-grid fixed inset-0 opacity-70" />
-      <div className="relative mx-auto grid min-h-screen w-full max-w-[108rem] gap-5 px-4 py-5 sm:px-6 lg:grid-cols-[14rem_minmax(0,1fr)] lg:gap-6 lg:px-8 xl:px-10">
-        <aside className="sidebar-shell lg:sticky lg:top-5 lg:h-[calc(100vh-2.5rem)]">
+      <div className="app-workspace">
+        <aside className="sidebar-shell">
           <div className="sidebar-panel">
-            <p className="eyebrow px-1 py-1">{lt("Ioruba Control Deck")}</p>
+            <div className="brand-lockup"><AudioLines aria-hidden="true" /><span>Ioruba<small>{lt("Controle de áudio")}</small></span></div>
 
-            <div className="mt-4">
+            <div className="sidebar-health">
               <ConnectionHealthIndicator
                 language={language}
                 lastFrameAt={lastFrameAt}
@@ -400,7 +368,7 @@ export default function App() {
               />
             </div>
 
-            <nav className="mt-4">
+            <nav className="workspace-nav">
               <div
                 aria-label={lt("Navegação principal do Ioruba")}
                 className="sidebar-nav"
@@ -458,135 +426,38 @@ export default function App() {
           role="tabpanel"
           tabIndex={0}
         >
-          <section className="dashboard-ribbon">
-            <HeaderActions language={language} />
-            <div className="dashboard-ribbon-heading">
-              <p className="eyebrow">{currentSection.label}</p>
-              <h2 className="mt-3 font-display text-2xl leading-tight text-(--color-ink) md:text-3xl xl:text-4xl">
-                {currentSection.description}
-              </h2>
-              <p className="mt-3 max-w-3xl text-sm leading-6 text-(--color-copy) md:text-base">
-                {lt("Distribuímos o runtime em áreas menores para manter foco operacional sem perder contexto da sessão.")}
-              </p>
+          <header className="workspace-header">
+            <div className="workspace-heading">
+              <h1>{currentSection.label}</h1>
+              <p>{currentSection.description}</p>
             </div>
-            <div className="dashboard-ribbon-meta">
-              <Metric icon={PlugZap} label={lt("Sessão")} value={snapshot.status} />
-              <Metric icon={Gauge} label={lt("Perfil ativo")} value={activeProfile.name} />
-            </div>
-          </section>
+            <div className="workspace-tools"><StatusPill /><HeaderActions language={language} /></div>
+          </header>
 
           {activeSection === "home" ? (
             <>
               {!persisted.onboardingDismissed ? (
-                <OnboardingChecklist
-                  audioInventory={audioInventory}
-                  language={language}
-                  onDismiss={dismissOnboarding}
-                  snapshot={snapshot}
-                />
+                <OnboardingChecklist audioInventory={audioInventory} language={language} onDismiss={dismissOnboarding} snapshot={snapshot} />
               ) : null}
-              <AudioBackendBanner
-                backend={audioInventory.backend}
-                diagnostics={audioInventory.diagnostics}
-                language={language}
-              />
-              <section className="grid gap-5 xl:grid-cols-[minmax(0,1.2fr)_minmax(320px,0.8fr)]">
-                <section className="rounded-[28px] border border-(--color-border) bg-[linear-gradient(135deg,color-mix(in_oklab,var(--color-shell)_84%,var(--accent-copper)_8%)_0%,color-mix(in_oklab,var(--color-shell)_84%,var(--accent-teal)_12%)_100%)] px-5 py-6 sm:px-7 [box-shadow:var(--shadow-hero)]">
-                  <div className="flex flex-wrap items-center gap-3">
-                    <Badge tone={toneForStatus(snapshot.status)}>{snapshot.status}</Badge>
-                    <Badge tone="neutral">{lt("Arduino C++")}</Badge>
-                    <Badge tone="neutral">{lt("Painel segmentado")}</Badge>
-                  </div>
-                  <div className="mt-8 max-w-3xl">
-                    <p className="eyebrow">{lt("Home")}</p>
-                    <h3 className="mt-3 font-display text-2xl leading-tight text-(--color-ink) md:text-3xl xl:text-4xl">
-                      {lt("Operação central com leitura clara de hardware, backend e perfil")}
-                    </h3>
-                    <p className="mt-4 max-w-2xl text-sm text-(--color-copy) md:text-base">
-                      {lt(
-                        "Agora cada área do Ioruba vive em uma rota visual própria: a home resume o estado atual da bancada e aponta rapidamente para os próximos passos."
-                      )}
-                    </p>
-                  </div>
-                  <div className="mt-8 grid gap-3 md:grid-cols-3">
-                    <Metric
-                      icon={PlugZap}
-                      label={lt("Porta ativa")}
-                      value={snapshot.connectionPort ?? lt("nenhuma")}
-                    />
-                    <Metric
-                      icon={Waves}
-                      label={lt("Audio backend")}
-                      value={snapshot.diagnostics.backend}
-                    />
-                    <Metric
-                      icon={AudioLines}
-                      label={lt("Targets ativos")}
-                      value={String(
-                        activeProfile.sliders.reduce(
-                          (total, slider) => total + slider.targets.length,
-                          0
-                        )
-                      )}
-                    />
-                  </div>
-                </section>
-
-                <Card className="overflow-hidden">
-                  <CardHeader className="border-b border-(--color-border) pb-5">
-                    <div>
-                      <CardTitle>{lt("Conexão e sessão")}</CardTitle>
-                      <CardDescription>
-                        {lt("Resumo da sessão viva, pronto para orientar a operação antes de abrir uma área específica.")}
-                      </CardDescription>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="grid gap-4 pt-6">
-                    <StatusLine label={lt("Status atual")} value={lt(snapshot.statusText)} />
-                    <StatusLine label={lt("Backend áudio")} value={snapshot.diagnostics.backend} />
-                    <StatusLine label={lt("Perfil ativo")} value={activeProfile.name} />
-                    <StatusLine label={lt("Hint operacional")} value={lt(snapshot.diagnostics.hint)} />
-                  </CardContent>
-                </Card>
+              <AudioBackendBanner backend={audioInventory.backend} diagnostics={audioInventory.diagnostics} language={language} />
+              <section className="session-overview" aria-label={lt("Resumo da sessão")}>
+                <div className="session-overview-main">
+                  <span className="session-eyebrow">{lt("Seu espaço de áudio")}</span>
+                  <h2>{activeProfile.name}</h2>
+                  <p>{snapshot.diagnostics.firmware?.boardName ?? lt("Conecte o controlador para começar.")}</p>
+                  <Button onClick={() => setActiveSection("channels")}><SlidersHorizontal aria-hidden="true" className="h-4 w-4" />{lt("Abrir mixer")}</Button>
+                </div>
+                <dl className="session-facts">
+                  <div><dt>{lt("Sessão")}</dt><dd>{formatRuntimeStatus(language, snapshot.status)}</dd></div>
+                  <div><dt>{lt("Porta ativa")}</dt><dd>{snapshot.connectionPort ?? lt("nenhuma")}</dd></div>
+                  <div><dt>{lt("Canais")}</dt><dd>{snapshot.knobs.length}</dd></div>
+                  <div><dt>{lt("Áudio do sistema")}</dt><dd>{audioInventory.backend === "unsupported" ? lt("Indisponível") : lt("Disponível")}</dd></div>
+                </dl>
               </section>
-
-              <section className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-                <QuickJumpCard
-                  description={lt("Acione conexão, demo mode e preferências de sessão.")}
-                  icon={PanelsTopLeft}
-                  onOpen={() => setActiveSection("control")}
-                  title={lt("Abrir painel de controle")}
-                />
-                <QuickJumpCard
-                  description={lt("Ajuste os knobs ao vivo e seus destinos de áudio.")}
-                  icon={SlidersHorizontal}
-                  onOpen={() => setActiveSection("channels")}
-                  title={lt("Abrir canais")}
-                />
-                <QuickJumpCard
-                  description={lt("Monitore a timeline dos canais e o comportamento dos knobs.")}
-                  icon={Activity}
-                  onOpen={() => setActiveSection("telemetry")}
-                  title={lt("Abrir telemetria")}
-                />
-                <QuickJumpCard
-                  description={lt("Veja placa, MCU, resolução do ADC e o backend de áudio.")}
-                  icon={Cpu}
-                  onOpen={() => setActiveSection("hardware")}
-                  title={lt("Abrir hardware")}
-                />
-                <QuickJumpCard
-                  description={lt("Revise logs, inventário do backend e saúde da integração.")}
-                  icon={HeartPulse}
-                  onOpen={() => setActiveSection("diagnostics")}
-                  title={lt("Abrir diagnósticos")}
-                />
-                <QuickJumpCard
-                  description={lt("Editar perfis, portas, targets e preferências persistidas.")}
-                  icon={Cog}
-                  onOpen={() => setActiveSection("settings")}
-                  title={lt("Abrir configurações")}
-                />
+              <section className="home-actions">
+                <QuickJumpCard description={lt("Escolha a porta ou experimente o modo demo.")} icon={PlugZap} onOpen={() => setActiveSection("control")} title={lt("Conexão e sessão")} />
+                <QuickJumpCard description={lt("Personalize os canais e seus destinos de áudio.")} icon={FolderCog} onOpen={() => setActiveSection("settings-editor")} title={lt("Editar perfil")} />
+                <QuickJumpCard description={lt("Verifique o sinal, os dispositivos e os avisos.")} icon={HeartPulse} onOpen={() => setActiveSection("diagnostics")} title={lt("Diagnósticos")} />
               </section>
             </>
           ) : null}
@@ -744,16 +615,33 @@ export default function App() {
           ) : null}
 
           {activeSection === "channels" ? (
-            <section className="grid gap-5 md:grid-cols-2 2xl:grid-cols-3">
-              {snapshot.knobs.map((knob) => (
-                <KnobPanel
-                  key={knob.id}
-                  knob={knob}
-                  language={language}
-                  transitionDurationMs={snapshot.transitionDurationMs}
-                />
-              ))}
-            </section>
+            <>
+              <AudioBackendBanner backend={audioInventory.backend} diagnostics={audioInventory.diagnostics} language={language} />
+              <section className="mixer-session" aria-label={lt("Conexão e sessão")}>
+                <div className="mixer-profile"><span>{lt("Perfil ativo")}</span><strong>{activeProfile.name}</strong><small>{snapshot.connectionPort ?? lt("Nenhuma porta conectada")}</small></div>
+                <div className="mixer-actions">
+                  <Button onClick={() => snapshot.status === "connected" ? disconnect(lt("Conexão serial encerrada")) : requestConnect()} variant={snapshot.status === "connected" ? "secondary" : "primary"}>{lt(snapshot.status === "connected" ? "Desconectar" : "Conectar")}</Button>
+                  <Button onClick={() => setDemoMode(!persisted.demoMode)} variant="secondary">{lt(persisted.demoMode ? "Sair do demo" : "Experimentar demo")}</Button>
+                  <Button onClick={() => setActiveSection("settings-editor")} variant="ghost"><FolderCog aria-hidden="true" className="h-4 w-4" />{lt("Editar perfil")}</Button>
+                </div>
+              </section>
+              <section className="mixer-console" aria-label={lt("Canais do mixer")}>
+                <div className="mixer-console-heading"><span>{lt(persisted.demoMode ? "Nível simulado" : "Nível enviado ao áudio")}</span><span>{snapshot.knobs.length} {lt("canais")}</span></div>
+                <div className="mixer-grid">
+                  {snapshot.knobs.map((knob) => (
+                    <KnobPanel key={knob.id} knob={knob} hasReading={lastFrameAt !== null || persisted.demoMode} demoMode={persisted.demoMode} audioInventory={audioInventory} language={language} transitionDurationMs={snapshot.transitionDurationMs}
+                      inverted={activeProfile.sliders.find(slider => slider.id === knob.id)?.inverted ?? false}
+                      adcMax={adcMaxForBits(snapshot.diagnostics.firmware?.adcBits ?? DEFAULT_ADC_BITS)}
+                      onEditTargets={() => {
+                        setActiveSection("settings-editor");
+                        requestAnimationFrame(() => document.getElementById(`profile-channel-${knob.id}`)?.focus());
+                      }} />
+                  ))}
+                </div>
+                <p className="mixer-footnote">{lt(persisted.demoMode ? "Simulação ativa. O áudio do sistema não é alterado." : "Gire os knobs do controlador para ajustar o áudio. Os níveis acompanham o perfil ativo.")}</p>
+              </section>
+              {!persisted.onboardingDismissed ? <OnboardingChecklist audioInventory={audioInventory} language={language} onDismiss={dismissOnboarding} snapshot={snapshot} /> : null}
+            </>
           ) : null}
 
           {activeSection === "telemetry" ? (
@@ -781,6 +669,7 @@ export default function App() {
                   <KnobPanel
                     key={knob.id}
                     knob={knob}
+                  audioInventory={audioInventory}
                     language={language}
                     transitionDurationMs={snapshot.transitionDurationMs}
                   />
@@ -866,23 +755,6 @@ export default function App() {
                 />
               </section>
 
-              <Card>
-                <CardHeader>
-                  <div>
-                    <CardTitle>{lt("Checklist da migração")}</CardTitle>
-                    <CardDescription>
-                      {lt("Itens essenciais já cobertos pelo novo stack.")}
-                    </CardDescription>
-                  </div>
-                </CardHeader>
-                <CardContent className="grid gap-3 md:grid-cols-2">
-                  <ChecklistItem label={lt("Protocolo serial legado e frame completo")} />
-                  <ChecklistItem label={lt("Redução de ruído e aplicação incremental")} />
-                  <ChecklistItem label={lt("Persistência local em JSON")} />
-                  <ChecklistItem label={lt("Telemetria com Recharts")} />
-                  <ChecklistItem label={lt("Backend de áudio em Rust para Linux")} />
-                </CardContent>
-              </Card>
             </>
           ) : null}
 
@@ -924,39 +796,6 @@ export default function App() {
         </div>
       </div>
     </main>
-  );
-}
-
-function Metric({
-  icon: Icon,
-  label,
-  value
-}: {
-  icon: typeof PlugZap;
-  label: string;
-  value: string;
-}) {
-  return (
-    <div className="metric-card">
-      <div className="metric-body">
-        <div className="metric-icon">
-          <Icon className="h-5 w-5" />
-        </div>
-        <div className="metric-copy">
-          <p className="metric-label">{label}</p>
-          <p className="metric-value">{value}</p>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function StatusLine({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex items-start justify-between gap-4 rounded-[18px] border border-(--color-border) bg-(--color-panel) px-4 py-3">
-      <span className="text-xs uppercase tracking-[0.2em] text-(--color-muted)">{label}</span>
-      <span className="text-right text-sm font-semibold text-(--color-ink)">{value}</span>
-    </div>
   );
 }
 
@@ -1012,15 +851,6 @@ function InventoryBlock({
           ))
         )}
       </div>
-    </div>
-  );
-}
-
-function ChecklistItem({ label }: { label: string }) {
-  return (
-    <div className="flex items-center gap-3 rounded-[18px] border border-(--color-border) bg-(--color-panel) px-4 py-3">
-      <div className="h-2.5 w-2.5 rounded-full bg-(--accent-teal)" />
-      <span className="text-sm text-(--color-copy)">{label}</span>
     </div>
   );
 }

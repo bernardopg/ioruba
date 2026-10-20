@@ -27,3 +27,13 @@ still load-bearing: the `glib` 0.18 line ended at `0.18.5` with no upstream
 patch release, the fix landed only in `glib >= 0.20`, and `gtk 0.18.2` — the
 final GTK3 binding release — requires `glib ^0.18`, so no version bump anywhere
 in the stack can replace this.
+
+## Serial plugin 3.0.9
+
+Vendored from https://crates.io/crates/tauri-plugin-serialplugin/3.0.9.
+Keep the existing LineRouter patch and its two regression tests (and adjust the upstream binary-route test to expect preserved
+newlines): upstream still
+strips ordinary line endings and flushes partial frames prematurely. Enable
+Tauri's test feature in dependencies, as in our previous vendor, so the existing
+`cargo test -p tauri-plugin-serialplugin line_router_` gate remains runnable.
+Remove this override once upstream preserves framing and passes these tests.

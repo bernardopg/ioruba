@@ -13,7 +13,14 @@ export function usePersistence() {
     }
 
     const timeout = window.setTimeout(() => {
-      void savePersistedState(persisted);
+      void savePersistedState(persisted).catch((error: unknown) => {
+        useIorubaStore.getState().appendWatchLog({
+          scope: "backend",
+          level: "error",
+          message: "Falha ao salvar configuracoes",
+          detail: error instanceof Error ? error.message : String(error),
+        });
+      });
     }, 250);
 
     return () => {

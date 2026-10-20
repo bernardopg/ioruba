@@ -222,3 +222,27 @@ Antes de cortar release publica, verifique:
 12. tagged releases enviam metadados Arch (PKGBUILD, .SRCINFO, PKGBUILD-bin, .SRCINFO-bin) e source tarball usado por PKGBUILD
 
 Se voce precisa de checklist de suporte para triagem manual, leia [Playbook de suporte](../debug/support.md).
+
+## Integração nativa Linux e seletores
+
+```bash
+npm run desktop:tauri:build
+npm run test:linux:app
+IORUBA_TEST_SERIAL_PORT=/dev/ttyUSB0 npm run test:linux:app
+IORUBA_TEST_DESKTOP_SHELL=1 xvfb-run -a npm run test:linux:app
+```
+
+A suíte usa WebKit/IPC reais e configurações temporárias. O opt-in de desktop
+isola também `HOME`: a biblioteca de login usa `~/.config/autostart`, mesmo com
+`XDG_CONFIG_HOME` diferente. Requer tauri-driver, WebKitWebDriver, pactl/pacat;
+a extensão de desktop requer xdotool, Python com PyGObject/Gio, libX11 e
+StatusNotifierWatcher no D-Bus da sessão. O teclado dos seletores fica no Xvfb.
+
+Verifica nove telas em seis larguras, contraste central do mixer, persistência,
+bandeja via dbusmenu, opção de login pela UI, boot oculto `--autostart` e
+exportações/cancelamentos de perfil JSON, estatísticas JSON/CSV e logs JSONL.
+Não faz logout/reboot nem testa clique por pixel no ícone. A opção serial envia
+a configuração do perfil de teste: preserve calibração personalizada antes de
+usá-la. Consulte o [guia canônico](../../../../TESTING.md) para pré-requisitos,
+limites e evidências completos, e a [preparação do release](../../../maintenance/release-preparation-2026-10-20.md)
+para o bloqueio de segurança Windows identificado pelo gate final.

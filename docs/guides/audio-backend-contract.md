@@ -64,7 +64,7 @@ platform module:
 
 Only one platform module is ever compiled into a binary. On Linux this means
 `windows.rs`/`macos.rs` are **not** compiled by `npm run verify` — the
-`native-audio-smoke` CI jobs (windows-latest, macos-15) are the gate that
+`native-audio-smoke` CI jobs (windows-latest, macos-latest) are the gate that
 proves they still build.
 
 ## Outcome model

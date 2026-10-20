@@ -148,7 +148,7 @@ const char MCU_NAME[] = "unknown";
 // em packages/shared). Bump FIRMWARE_VERSION em qualquer mudanca de comportamento
 // do controlador; bump PROTOCOL_VERSION apenas em mudanca incompativel do frame
 // ou do handshake.
-const char FIRMWARE_VERSION[] = "0.6.2";
+const char FIRMWARE_VERSION[] = "0.6.3";
 const int PROTOCOL_VERSION = 2;
 const int ADC_MIN = IORUBA_ADC_MIN;
 const int ADC_MAX = IORUBA_ADC_MAX;
@@ -693,6 +693,11 @@ void setup() {
 #if defined(ESP8266) || defined(ARDUINO_ARCH_ESP8266)
   WiFi.forceSleepBegin();
 #endif
+#endif
+
+#if defined(ESP32) || defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_RP2040)
+  // Match the real ADC range to the resolution advertised in the handshake.
+  analogReadResolution(IORUBA_ADC_BITS);
 #endif
 
   Serial.begin(BAUD_RATE);

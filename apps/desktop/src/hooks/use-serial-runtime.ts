@@ -5,6 +5,8 @@ import { applySliderTargetsBatch, dispatchControlAction } from "@/lib/backend";
 import { classifySerialOpenError, resolveSerialPort } from "@/lib/serial";
 import { useIorubaStore } from "@/store/ioruba-store";
 import {
+  adcMaxForBits,
+  DEFAULT_ADC_BITS,
   encodeFirmwareConfigCommand,
   firmwareConfigMatchesProfile,
   resolveActiveProfile,
@@ -135,7 +137,8 @@ export function useSerialRuntime() {
 
       try {
         const startedAt = performance.now();
-        const outcomes = await applySliderTargetsBatch(profile, updates);
+        const adcMax = adcMaxForBits(useIorubaStore.getState().firmwareInfo?.adcBits ?? DEFAULT_ADC_BITS);
+        const outcomes = await applySliderTargetsBatch(profile, updates, adcMax);
         const latencyMs = Math.round(performance.now() - startedAt);
         commitAppliedResults(updates, outcomes);
 

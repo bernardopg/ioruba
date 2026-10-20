@@ -98,6 +98,67 @@ describe("serial helpers", () => {
       sameSerialPorts(["/dev/ttyUSB0", "/dev/ttyACM0"], ["/dev/ttyACM0", "/dev/ttyUSB0"])
     ).toBe(true);
   });
+
+  it("falls back to lastPort when the preferred port is not connected", () => {
+    const persisted = {
+      ...defaultPersistedState,
+      profiles: [
+        {
+          ...defaultProfile,
+          id: "active",
+          serial: {
+            ...defaultProfile.serial,
+            preferredPort: "/dev/ttyUSB9"
+          }
+        }
+      ],
+      selectedProfileId: "active",
+      lastPort: "/dev/ttyUSB0"
+    };
+
+    expect(resolveSerialPort(persisted, ["/dev/ttyUSB0"])).toBe("/dev/ttyUSB0");
+  });
+
+  it("returns null when there is no usable port at all", () => {
+    const persisted = {
+      ...defaultPersistedState,
+      profiles: [
+        {
+          ...defaultProfile,
+          id: "active",
+          serial: { ...defaultProfile.serial, preferredPort: null }
+        }
+      ],
+      selectedProfileId: "active",
+      lastPort: null
+    };
+
+    expect(resolveSerialPort(persisted, [])).toBeNull();
+  });
+
+  it("drops unknown and duplicate paths and noisy bluetooth ports", () => {
+    expect(
+      normalizeSerialPorts([
+        "Unknown",
+        "/dev/ttyUSB0",
+        { path: "/dev/ttyUSB0" },
+        "/dev/rfcomm0",
+        { port_name: "" }
+      ])
+    ).toEqual(["/dev/ttyUSB0"]);
+  });
+
+  it("prefers stable by-id links over raw device nodes", () => {
+    expect(
+      normalizeSerialPorts([
+        "/dev/ttyUSB0",
+        "/dev/serial/by-id/usb-FTDI_FT232R_A5069RR4-if00"
+      ])
+    ).toEqual([
+      "/dev/serial/by-id/usb-FTDI_FT232R_A5069RR4-if00",
+      "/dev/ttyUSB0"
+    ]);
+  });
 });
 
 describe("classifySerialOpenError", () => {

@@ -17,6 +17,8 @@ Protocolo e matemática de runtime pertencem ao shared. Componentes devem usar o
 
 ## Setup
 
+Ferramentas de build: Node.js >=26.12.0, npm >=12.2.0 e Rust >=1.99.1.
+
 ```bash
 npm install
 npm run verify

@@ -2,7 +2,7 @@ import { ChevronDown, Radio } from "lucide-react";
 import { useState } from "react";
 
 import { useAppVersion } from "@/hooks/use-app-version";
-import { translateText } from "@/lib/i18n";
+import { formatRuntimeStatus, translateText } from "@/lib/i18n";
 import { useIorubaStore } from "@/store/ioruba-store";
 import { resolveActiveProfile } from "@ioruba/shared";
 
@@ -30,9 +30,9 @@ export function StatusPill() {
         type="button"
       >
         <span className="status-pill-summary">
-          <span aria-hidden="true" className="status-pill-dot" data-status={snapshot.status} />
+          <span aria-hidden="true" className="status-pill-dot" data-status={formatRuntimeStatus(language, snapshot.status)} />
           <span className="status-pill-version">v{version}</span>
-          <span className="status-pill-current">{lt(snapshot.statusText)}</span>
+          <span className="status-pill-current">{formatRuntimeStatus(language, snapshot.status)}</span>
         </span>
         <ChevronDown aria-hidden="true" className="h-4 w-4" />
       </button>

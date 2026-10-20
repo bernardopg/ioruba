@@ -5,27 +5,27 @@ description = "Ioruba desktop control deck"
 authors = ["Bernardo Gomes"]
 license = "MIT"
 edition = "2021"
-rust-version = "1.77.2"
+rust-version = "1.99.1"
 
 [lib]
 name = "ioruba_desktop_lib"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
 [build-dependencies]
-tauri-build = { version = "2.7.2", features = [] }
+tauri-build = { version = "2.7.3", features = [] }
 
 [dependencies]
-serde = { version = "1.0", features = ["derive"] }
-serde_json = "1.0"
-tauri = { version = "2.12.3", features = ["tray-icon"] }
-tauri-plugin-autostart = "2.5.1"
-tauri-plugin-dialog = "2.8.2"
+serde = { version = "1.0.229", features = ["derive"] }
+serde_json = "1.0.154"
+tauri = { version = "2.12.4", features = ["tray-icon"] }
+tauri-plugin-autostart = "2.7.0"
+tauri-plugin-dialog = "2.8.3"
 tauri-plugin-global-shortcut = "2.4.1"
-tauri-plugin-opener = "2.7.1"
-tauri-plugin-process = "2"
-tauri-plugin-serialplugin = "3.0.0"
-tauri-plugin-single-instance = "2.5.3"
-thiserror = "2.0"
+tauri-plugin-opener = "2.7.2"
+tauri-plugin-process = "2.4.0"
+tauri-plugin-serialplugin = "3.0.9"
+tauri-plugin-single-instance = "2.5.4"
+thiserror = "2.0.21"
 
 [target.'cfg(windows)'.dependencies]
 windows = { version = "0.62.2", features = [
@@ -38,7 +38,7 @@ windows = { version = "0.62.2", features = [
 ] }
 
 [target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies]
-tauri-plugin-updater = "2.13.3"
+tauri-plugin-updater = "2.14.0"
 
 [target.'cfg(target_os = "linux")'.dependencies]
 # Usado apenas para instalar um filtro de log GLib e suprimir o aviso de
@@ -51,6 +51,6 @@ glib = "0.18"
 # GHSA-wrw7-89jp-8q8g in glib >= 0.20, but the current Tauri Linux stack is on
 # glib 0.18.x, so we backport the one-line fix locally until upstream moves.
 glib = { path = "vendor/glib-0.18.5" }
-# v3.0.2 strips every ordinary stream line terminator before emitting `onData`.
+# v3.0.9 strips every ordinary stream line terminator before emitting `onData`.
 # That corrupts line-framed protocols; retain the terminators until upstream fixes it.
-tauri-plugin-serialplugin = { path = "vendor/tauri-plugin-serialplugin-3.0.2" }
+tauri-plugin-serialplugin = { path = "vendor/tauri-plugin-serialplugin-3.0.9" }

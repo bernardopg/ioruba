@@ -235,7 +235,8 @@ export function WatchLogPanel({
                 {lt("Seguir fim")}
               </span>
               <Switch
-                checked={autoScrollEnabled}
+                aria-label={lt("Seguir fim")}
+              checked={autoScrollEnabled}
                 onCheckedChange={setAutoScrollEnabled}
               />
             </label>

@@ -52,7 +52,7 @@ updates:
     ignore:
       # Vendorizados com patch local em src-tauri/vendor via [patch.crates-io];
       # bump de spec sem re-vendorizar quebraria o backport (glib 0.18.x) e o
-      # fix de terminadores de linha (serialplugin 3.0.2).
+      # fix de terminadores de linha (serialplugin 3.0.9).
       - dependency-name: glib
       - dependency-name: tauri-plugin-serialplugin
     groups:

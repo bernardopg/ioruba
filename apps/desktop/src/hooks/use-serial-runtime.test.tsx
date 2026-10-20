@@ -131,6 +131,17 @@ describe("useSerialRuntime", () => {
     vi.useRealTimers();
   });
 
+  it("passes the controller ADC range to audio IPC", async () => {
+    setupSerialRuntime();
+    await flushRuntime();
+    await act(async () => {
+      serialPortInstances[0]?.emit("HELLO board=Pico; fw=0.6.3; protocol=2; knobs=3; adcBits=12\n2048|2048|2048\n");
+      await Promise.resolve();
+      await vi.runOnlyPendingTimersAsync();
+    });
+    expect((mockApplySliderTargetsBatch.mock.calls.at(-1) as unknown[])?.[2]).toBe(4095);
+  });
+
   it("requests a new handshake after a successful reconnect from the serial simulator", async () => {
     setupSerialRuntime();
     await flushRuntime();

@@ -1,6 +1,7 @@
 import { isTauri, invoke } from "@tauri-apps/api/core";
 import {
   defaultPersistedState,
+  DEFAULT_ADC_MAX,
   normalizePersistedState,
   sliderToAppliedNormalized,
   type AudioInventory,
@@ -186,6 +187,7 @@ export async function isManagedInstall(): Promise<boolean> {
 export async function applySliderTargetsBatch(
   profile: MixerProfile,
   updates: SliderUpdate[],
+  adcMax: number = DEFAULT_ADC_MAX,
 ): Promise<Record<number, SliderOutcome>> {
   if (updates.length === 0) {
     return {};
@@ -204,7 +206,7 @@ export async function applySliderTargetsBatch(
         return {
           sliderId: slider.id,
           sliderName: slider.name,
-          normalizedValue: sliderToAppliedNormalized(slider, update.rawValue),
+          normalizedValue: sliderToAppliedNormalized(slider, update.rawValue, adcMax),
           targets: slider.targets,
         };
       })

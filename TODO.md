@@ -1,5 +1,33 @@
 # TODO
 
+## Bandeja, login e seletores Linux — 2026-10-20
+
+- [x] Verificar fechamento para a bandeja, processo ativo, menu real, restauração e saída.
+- [x] Alternar login pela UI, conferir persistência e criação/remoção da entrada; validar boot oculto com `--autostart`.
+- [x] Salvar e cancelar perfil JSON, estatísticas JSON/CSV e watch log JSONL pelos seletores GTK, com validação dos arquivos.
+- [x] Corrigir estatísticas ausentes no demo e cobrir acumulação com regressão.
+
+Evidências e limites: [revisão de integração com o desktop](docs/maintenance/linux-shell-review-2026-10-20.md). Sem logout/reboot e sem substituir o pacote instalado.
+
+## Revisão visual do mixer — 2026-10-20
+
+Objetivo: um instrumento de áudio claro e próprio do Ioruba, preservando os fluxos existentes.
+
+- [x] Tornar o mixer a tela inicial, com conexão e perfil visíveis e ações diretas.
+- [x] Compactar a navegação: lateral no desktop e faixa horizontal em janelas menores, com teclado e foco preservados.
+- [x] Reduzir a Home a um resumo operacional e atalhos úteis; retirar textos sobre implementação.
+- [x] Redesenhar os canais como módulos de uma mesa de áudio: nível de saída prioritário, destinos próximos e detalhes técnicos recolhidos.
+- [x] Explicar inversão e distinguir sinal recebido de nível enviado ao áudio; traduzir estados e tipos de destino em pt-BR/en/es.
+- [x] Unificar superfícies, bordas, tipografia e cores cobre/teal, com temas claro/escuro e movimento reduzido.
+- [x] Verificar 640/800/1024/1280/1440/1920 px, títulos longos, vários canais e ausência de rolagem horizontal global.
+- [x] Revalidar testes, teclado, acessibilidade, persistência e app Tauri Linux real; registrar evidências e limites.
+
+Critérios de aceite: canais e nível de áudio aparecem antes dos detalhes; conexão continua evidente; nenhuma função existente é removida; textos são voltados à operação; controles têm nomes e foco visível; layout funciona sem cortes nas larguras verificadas.
+
+
+
+Validação concluída: 220 testes TypeScript, 49 Rust e 12 resultados na suíte nativa Linux (incluindo handshake e frames do Nano). Nove telas × seis larguras; contraste principal do mixer ≥4,80:1 claro e ≥5,04:1 escuro. Evidências e limites: [relatório visual](docs/maintenance/visual-redesign-2026-10-20.md).
+
 Roadmap executável do Ioruba. Baseline revisada em `2026-08-12` a partir do
 estado real do release **v1.8.2**.
 

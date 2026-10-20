@@ -65,7 +65,7 @@ encaminham para o modulo da plataforma:
 Apenas um modulo de plataforma e compilado em cada binario. No Linux isso
 significa que `windows.rs`/`macos.rs` **nao** sao compilados pelo
 `npm run verify` — os jobs de CI `native-audio-smoke` (windows-latest,
-macos-15) sao o gate que prova que eles ainda compilam.
+macos-latest) sao o gate que prova que eles ainda compilam.
 
 ## Modelo de outcome
 

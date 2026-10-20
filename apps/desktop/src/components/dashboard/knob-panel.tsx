@@ -1,10 +1,13 @@
 import type { HTMLAttributes } from "react";
 
+import { Settings2 } from "lucide-react";
+
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { translateText } from "@/lib/i18n";
+import { Card } from "@/components/ui/card";
+import { formatAudioTarget, translateText } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
-import type { RuntimeKnobSnapshot, RuntimeTargetOutcome, SliderOutcome, UiLanguage } from "@ioruba/shared";
+import { sliderValueToNormalized } from "@ioruba/shared";
+import type { AudioInventory, RuntimeKnobSnapshot, RuntimeTargetOutcome, UiLanguage } from "@ioruba/shared";
 
 function accentColor(accent: string): string {
   switch (accent) {
@@ -18,21 +21,6 @@ function accentColor(accent: string): string {
       return "var(--accent-lime)";
     default:
       return "var(--accent-sky)";
-  }
-}
-
-function toneForOutcome(
-  severity: SliderOutcome["severity"]
-): "neutral" | "positive" | "warning" | "critical" {
-  switch (severity) {
-    case "success":
-      return "positive";
-    case "warning":
-      return "warning";
-    case "error":
-      return "critical";
-    default:
-      return "neutral";
   }
 }
 
@@ -71,204 +59,69 @@ function toneForTargetStatus(
 }
 
 export function KnobPanel({
-  className,
-  knob,
-  language = "pt-BR",
-  transitionDurationMs = 300
+  className, knob, language = "pt-BR", transitionDurationMs = 300,
+  inverted, adcMax = 1023, onEditTargets, audioInventory, demoMode = false, hasReading = true,
 }: {
   className?: HTMLAttributes<HTMLDivElement>["className"];
   knob: RuntimeKnobSnapshot;
   language?: UiLanguage;
   transitionDurationMs?: number;
+  inverted?: boolean;
+  adcMax?: number;
+  onEditTargets?: () => void;
+  audioInventory?: AudioInventory;
+  demoMode?: boolean;
+  hasReading?: boolean;
 }) {
   const lt = (text: string) => translateText(language, text);
   const accent = accentColor(knob.accent);
-  // A barra de resposta respeita o tempo de transição configurado em
-  // profile.audio.transitionDurationMs em vez de um valor fixo de 300ms.
-  const barTransition = `width ${Math.max(0, transitionDurationMs)}ms ease-out`;
+  const applied = sliderValueToNormalized(knob.appliedRawValue, adcMax);
+  const percent = inverted === undefined ? knob.percent : Math.round((inverted ? 1 - applied : applied) * 100);
+  const idle = knob.outcome.targets.some(target => target.status === "idle");
+  const severityLabel = demoMode ? "Simulação" : { info: "Aguardando leitura", success: "Aplicado", warning: idle ? "Aguardando áudio" : "Destino indisponível", error: "Falha ao ajustar áudio" }[knob.outcome.severity];
+  const levelLabel = lt(demoMode ? "Nível simulado" : "Nível enviado ao áudio");
 
   return (
-    <Card
-      className={cn(
-        "relative min-w-0 overflow-hidden bg-[linear-gradient(155deg,color-mix(in_oklab,var(--color-panel)_92%,transparent)_0%,color-mix(in_oklab,var(--color-shell)_90%,transparent)_100%)]",
-        className
-      )}
-    >
-      <div
-        className="pointer-events-none absolute inset-x-0 top-0 h-20 opacity-70"
-        style={{
-          background: `linear-gradient(180deg, color-mix(in oklab, ${accent} 18%, transparent) 0%, transparent 100%)`
-        }}
-      />
-      <CardHeader className="relative flex-row flex-wrap items-start justify-between gap-3 pb-3">
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2">
-            <span
-              className="h-2.5 w-2.5 shrink-0 rounded-full"
-              style={{ backgroundColor: accent }}
-            />
-            <CardTitle className="min-w-0 wrap-break-word text-[clamp(1rem,0.6vw+0.9rem,1.35rem)] leading-tight">
-              {knob.name}
-            </CardTitle>
-          </div>
-          <CardDescription className="wrap-break-word">
-            {lt("Leitura bruta")} {knob.rawValue} | {lt("aplicada")} {knob.appliedRawValue}
-          </CardDescription>
+    <Card className={cn("channel-strip", className)} style={{ "--channel-accent": accent } as React.CSSProperties}>
+      <header className="channel-heading">
+        <span className="channel-number" aria-hidden="true">{String(knob.id + 1).padStart(2, "0")}</span>
+        <h2 title={knob.name}>{knob.name}</h2>
+        {onEditTargets ? <button className="icon-button channel-edit" aria-label={`${lt("Editar destinos")}: ${knob.name}`} onClick={onEditTargets} type="button"><Settings2 aria-hidden="true" className="h-4 w-4" /></button> : null}
+      </header>
+      <div className="channel-level">
+        <meter className="sr-only" aria-label={`${levelLabel}: ${knob.name}`} min={0} max={100} value={hasReading ? percent : 0} aria-valuetext={hasReading ? `${percent}%` : lt("Aguardando leitura")}>{hasReading ? `${percent}%` : lt("Aguardando leitura")}</meter>
+        <div className="channel-dial" data-has-signal={hasReading} style={{ "--dial-angle": `${-135 + percent * 2.7}deg` } as React.CSSProperties}>
+          <div className="channel-dial-face"><span className="channel-dial-pointer" /></div>
         </div>
-        <Badge className="shrink-0 self-start" tone="neutral">
-          {knob.targets.length} {lt("alvo(s)")}
-        </Badge>
-      </CardHeader>
-      <CardContent className="relative grid min-w-0 gap-5 pt-2">
-        <div className="grid gap-4 sm:grid-cols-[auto_minmax(0,1fr)] sm:items-center">
-          <div
-            className="relative mx-auto h-28 w-28 rounded-full border border-(--color-border) [box-shadow:inset_0_1px_0_var(--edge-highlight)] sm:mx-0 sm:h-32 sm:w-32"
-            style={{
-              background: `conic-gradient(${accent} 0deg ${knob.percent * 3.6
-                }deg, color-mix(in oklab, var(--color-border) 44%, transparent) ${knob.percent * 3.6}deg 360deg)`
-            }}
-          >
-            <div className="absolute inset-3 rounded-full border border-[color-mix(in_oklab,var(--color-border)_75%,transparent)] bg-[color-mix(in_oklab,var(--color-shell)_95%,var(--color-panel)_5%)]" />
-            <div className="absolute inset-[26%] grid place-items-center rounded-full border border-(--color-border) bg-[color-mix(in_oklab,var(--color-panel)_95%,var(--color-shell)_5%)]">
-              <div className="text-center">
-                <span className="font-display text-base font-semibold text-(--color-ink) sm:text-lg">
-                  {knob.percent}%
-                </span>
-                <p className="mt-0.5 text-[0.62rem] font-semibold uppercase tracking-[0.2em] text-(--color-muted)">
-                  {lt("nível")}
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div className="grid min-w-0 grid-cols-2 gap-3">
-            <DialStat accent={accent} label={lt("Entrada")} value={String(knob.rawValue)} />
-            <DialStat accent={accent} label={lt("Saida")} value={String(knob.appliedRawValue)} />
-          </div>
-        </div>
-
-        <div className="grid min-w-0 gap-4">
-          <div className="rounded-[22px] border border-(--color-border) bg-[color-mix(in_oklab,var(--color-panel)_94%,var(--color-shell)_6%)] px-4 py-4">
-            <div className="flex items-center justify-between gap-3">
-              <p className="text-xs uppercase tracking-[0.24em] text-(--color-muted)">
-                {lt("Resposta do canal")}
-              </p>
-              <span className="text-sm font-semibold text-(--color-ink)">
-                {knob.percent}%
-              </span>
-            </div>
-            <div className="mt-3 h-2 overflow-hidden rounded-full bg-[color-mix(in_oklab,var(--color-border)_55%,transparent)]">
-              <div
-                className="h-full rounded-full motion-reduce:transition-none"
-                style={{
-                  width: `${knob.percent}%`,
-                  transition: barTransition,
-                  background: `linear-gradient(90deg, ${accent}, color-mix(in oklab, ${accent} 68%, var(--color-glow)))`
-                }}
-              />
-            </div>
-            <p className="mt-3 text-sm leading-6 text-(--color-copy)">
-              {lt("Valor aplicado pronto para audio backend e telemetria.")}
-            </p>
-          </div>
-
-          <div>
-            <p className="text-xs uppercase tracking-[0.24em] text-(--color-muted)">
-              {lt("Destinos ativos")}
-            </p>
-            <div className="mt-3 flex flex-wrap gap-2">
-              {knob.targets.map((target) => (
-                <span
-                  key={target}
-                  className="inline-flex min-h-9 max-w-full items-center rounded-full border border-(--color-border) bg-(--color-panel) px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-(--color-copy) break-all"
-                >
-                  {target}
-                </span>
-              ))}
-            </div>
-          </div>
-
-          <div
-            aria-atomic="true"
-            aria-live="polite"
-            className="rounded-[22px] border border-(--color-border) bg-(--color-panel) px-4 py-4"
-            role="status"
-          >
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <p className="text-xs uppercase tracking-[0.24em] text-(--color-muted)">
-                {lt("Ultimo resultado")}
-              </p>
-              <Badge tone={toneForOutcome(knob.outcome.severity)}>
-                {knob.outcome.severity}
-              </Badge>
-            </div>
-            <p className="mt-3 wrap-break-word text-sm leading-6 text-(--color-copy)">
-              {knob.outcome.summary}
-            </p>
-
-            {knob.outcome.targets.length > 0 ? (
-              <div className="mt-4 grid gap-3">
-                {knob.outcome.targets.map((targetOutcome) => (
-                  <div
-                    className="rounded-[18px] border border-(--color-border) bg-[color-mix(in_oklab,var(--color-shell)_75%,var(--color-panel)_25%)] px-3 py-3"
-                    key={`${targetOutcome.target}-${targetOutcome.status}`}
-                  >
-                    <div className="flex flex-wrap items-center justify-between gap-2">
-                      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-(--color-ink)">
-                        {targetOutcome.target}
-                      </p>
-                      <Badge tone={toneForTargetStatus(targetOutcome.status)}>
-                        {labelForTargetStatus(targetOutcome.status, lt)}
-                      </Badge>
-                    </div>
-                    <p className="mt-2 wrap-break-word text-sm leading-6 text-(--color-copy)">
-                      {targetOutcome.detail}
-                    </p>
-
-                    {targetOutcome.matched.length > 0 ? (
-                      <div className="mt-3 flex flex-wrap gap-2">
-                        {targetOutcome.matched.map((matched) => (
-                          <span
-                            className="inline-flex max-w-full items-center rounded-full border border-(--color-border) bg-(--color-panel) px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-(--color-muted) break-all"
-                            key={matched}
-                          >
-                            {matched}
-                          </span>
-                        ))}
-                      </div>
-                    ) : null}
-                  </div>
-                ))}
-              </div>
-            ) : null}
-          </div>
-        </div>
-      </CardContent>
+        <p className="channel-percent">{hasReading ? percent : "—"}{hasReading ? <span>%</span> : null}</p>
+        <p className="channel-level-label">{levelLabel}</p>
+        <div className="channel-meter" aria-hidden="true"><span style={{ width: `${hasReading ? percent : 0}%`, transition: `width ${Math.max(0, transitionDurationMs)}ms ease-out` }} /></div>
+        <div className="channel-scale" aria-hidden="true"><span>0</span><span>50</span><span>100</span></div>
+      </div>
+      <div className="channel-destinations">
+        <h3>{lt("Destinos de áudio")}</h3>
+        <ul>{knob.targets.map((target, index) => <li key={`${target}-${index}`}>{formatAudioTarget(language, target, audioInventory)}</li>)}</ul>
+      </div>
+      <div className="channel-feedback" data-severity={knob.outcome.severity} role="status" aria-label={`${lt("Ultimo resultado")}: ${knob.name}`}>
+        <span aria-hidden="true" className="channel-feedback-dot" />
+        <span>{lt(severityLabel)}</span><span className="sr-only">{knob.outcome.summary}</span>
+      </div>
+      {!demoMode && (knob.outcome.severity === "warning" || knob.outcome.severity === "error") ? <p className="channel-help">{lt(idle ? "Abra o aplicativo e inicie a reprodução." : "Confira o destino em Editar destinos.")}</p> : null}
+      {inverted ? <p className="channel-inversion" title={lt("O nível de áudio diminui quando o valor do knob aumenta.")}>{lt("Sentido invertido")}</p> : null}
+      <details className="channel-details">
+        <summary>{lt("Detalhes do sinal")}</summary>
+        <dl className="channel-readings">
+          <div><dt>{lt("Sinal recebido")}</dt><dd>{knob.rawValue}</dd></div>
+          <div><dt>{lt("Sinal aplicado")}</dt><dd>{knob.appliedRawValue}</dd></div>
+        </dl>
+        {inverted ? <p>{lt("O nível de áudio diminui quando o valor do knob aumenta.")}</p> : null}
+        <p>{knob.outcome.summary}</p>
+        {knob.outcome.targets.map((target, index) => <div className="channel-target-detail" key={`${target.target}-${index}`}>
+          <div><strong>{formatAudioTarget(language, target.target, audioInventory)}</strong><Badge tone={toneForTargetStatus(target.status)}>{labelForTargetStatus(target.status, lt)}</Badge></div>
+          <p>{target.detail}</p>
+          {target.matched.length > 0 ? <ul>{target.matched.map((name, i) => <li key={`${name}-${i}`}>{name}</li>)}</ul> : null}
+        </div>)}
+      </details>
     </Card>
-  );
-}
-
-function DialStat({
-  accent,
-  label,
-  value
-}: {
-  accent: string;
-  label: string;
-  value: string;
-}) {
-  return (
-    <div className="rounded-[18px] border border-(--color-border) bg-(--color-panel) px-3 py-3">
-      <p className="text-[0.66rem] font-semibold uppercase tracking-[0.24em] text-(--color-muted)">
-        {label}
-      </p>
-      <p className="mt-2 text-lg font-semibold text-(--color-ink)">{value}</p>
-      <div
-        className="mt-3 h-1.5 rounded-full"
-        style={{
-          background: `linear-gradient(90deg, ${accent}, color-mix(in oklab, ${accent} 32%, transparent))`
-        }}
-      />
-    </div>
   );
 }

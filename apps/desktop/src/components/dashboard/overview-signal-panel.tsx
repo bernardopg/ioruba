@@ -9,7 +9,7 @@ import {
 
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { translateText } from "@/lib/i18n";
+import { formatRuntimeStatus, translateText } from "@/lib/i18n";
 import type { RuntimeKnobSnapshot, RuntimeSnapshot, UiLanguage } from "@ioruba/shared";
 
 function toneForStatus(status: string): "neutral" | "positive" | "warning" | "critical" {
@@ -78,7 +78,7 @@ export function OverviewSignalPanel({
           </CardDescription>
         </div>
         <Badge className="self-start" tone={toneForStatus(snapshot.status)}>
-          {snapshot.status}
+          {formatRuntimeStatus(language, snapshot.status)}
         </Badge>
       </CardHeader>
       <CardContent className="grid gap-4 pt-6">

@@ -890,6 +890,10 @@ export function ProfileWorkbench({
                   return (
                     <div
                       className="rounded-3xl border border-(--color-border) bg-[color-mix(in_oklab,var(--color-panel)_94%,var(--color-shell)_6%)] px-4 py-4"
+                      role="group"
+                      aria-label={slider.name}
+                      id={`profile-channel-${slider.id}`}
+                      tabIndex={-1}
                       key={slider.id}
                     >
                       <div className="flex flex-wrap items-center justify-between gap-3">

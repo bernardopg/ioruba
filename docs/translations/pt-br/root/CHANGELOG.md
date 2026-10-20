@@ -11,6 +11,33 @@ e este projeto segue [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Adicionado
+- Testes nativos Linux para IPC/WebKit real, áudio isolado, Nano, responsividade,
+  teclado/foco, temas, bandeja, login e seletores GTK.
+- Testes do sketch de firmware e regressões de persistência, updater e mixer.
+
+### Alterado
+- Mixer como tela inicial, canais com níveis aplicados e edição direta dos
+  destinos, navegação compacta desde 640 × 600 e Home operacional.
+- Temas cobre/teal, tipografia, contraste, movimento reduzido e estados/destinos
+  traduzidos em português, inglês e espanhol.
+- Dependências JavaScript/Rust, plugin serial vendorizado 3.0.9 com patch de
+  framing preservado, Node 26.12.0/npm 12.2.0, actions e imagens de CI atualizados.
+
+### Corrigido
+- Demo agora acumula estatísticas e permite exportação JSON/CSV.
+- Níveis respeitam valor aplicado, inversão e resolução ADC; sem primeira leitura,
+  os canais indicam espera em vez de volume incorreto.
+- Firmware 0.6.3 configura a resolução real do ADC em ESP32/RP2040; protocolo 2.
+
+### Validação de release
+- Publicação bloqueada por três avisos RustSec em `zip 4.6.1`, dependência do
+  updater Windows; nenhum aviso foi suprimido.
+- Consulte as [notas de preparação](../../../maintenance/release-preparation-2026-10-20.md)
+  para evidências e pendências. O pacote instalado e o firmware do Nano não foram
+  substituídos; atualizações publicadas e uma nova sessão gráfica ainda exigem teste.
+
+
 ## [1.9.4](https://github.com/bernardopg/ioruba/compare/v1.9.3...v1.9.4) (2026-09-22)
 
 ### Alterado

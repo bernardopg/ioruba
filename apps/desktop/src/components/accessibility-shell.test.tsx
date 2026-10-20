@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { axe, toHaveNoViolations } from "jest-axe";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -143,6 +143,14 @@ describe("desktop accessibility shell", () => {
     cleanup();
   });
 
+  it("opens on the mixer and focuses the selected channel when editing its destinations", async () => {
+    render(<App />);
+    expect(screen.getByRole("tab", { name: "Mixer" }).getAttribute("aria-selected")).toBe("true");
+    fireEvent.click(screen.getByRole("button", { name: /editar destinos: master volume/i }));
+    expect(screen.getByRole("tab", { name: "Editor" }).getAttribute("aria-selected")).toBe("true");
+    await waitFor(() => expect(document.activeElement?.id).toBe("profile-channel-0"));
+  });
+
   it("renders a skip link that targets the primary tabs container", () => {
     render(<App />);
 
@@ -194,7 +202,7 @@ describe("desktop accessibility shell", () => {
 
     const statusRegions = screen.getAllByRole("status");
     expect(statusRegions.length).toBeGreaterThanOrEqual(2);
-    expect(statusRegions.some((region) => region.textContent?.includes("Sessão ready"))).toBe(true);
+    expect(statusRegions.some((region) => region.textContent?.includes("Sessão: Pronto"))).toBe(true);
     expect(statusRegions.some((region) => region.textContent?.includes("Pronto para conectar"))).toBe(true);
   });
 
@@ -253,7 +261,7 @@ describe("desktop accessibility shell", () => {
     render(<KnobPanel knob={knob} />);
 
     const outcomeStatus = screen.getByRole("status");
-    expect(outcomeStatus.textContent?.includes("Ultimo resultado")).toBe(true);
+    expect(outcomeStatus.getAttribute("aria-label")?.includes("Ultimo resultado")).toBe(true);
     expect(outcomeStatus.textContent?.includes(knob.outcome.summary)).toBe(true);
   });
 
@@ -284,7 +292,7 @@ describe("desktop accessibility shell", () => {
 
     render(<App />);
 
-    expect(screen.getByText("Ioruba Control Deck")).not.toBeNull();
+    expect(screen.getByText("Ioruba")).not.toBeNull();
     expect(screen.getByRole("button", { name: /open changelog/i })).not.toBeNull();
     expect(screen.getByRole("button", { name: /open app settings/i })).not.toBeNull();
 
@@ -336,6 +344,7 @@ describe("desktop accessibility shell", () => {
     render(<App />);
 
     const homeTab = screen.getByRole("tab", { name: /home/i });
+    fireEvent.click(homeTab);
     homeTab.focus();
 
     fireEvent.keyDown(homeTab, { key: "ArrowDown" });
@@ -351,7 +360,7 @@ describe("desktop accessibility shell", () => {
     // Navegação circular: avançar a partir do último volta ao primeiro.
     fireEvent.keyDown(lastTab, { key: "ArrowRight" });
     expect(
-      screen.getByRole("tab", { name: /home/i }).getAttribute("aria-selected")
+      screen.getByRole("tab", { name: "Mixer" }).getAttribute("aria-selected")
     ).toBe("true");
   });
 
@@ -362,7 +371,7 @@ describe("desktop accessibility shell", () => {
 
     render(<App />);
 
-    expect(screen.getByText("Ioruba Control Deck")).not.toBeNull();
+    expect(screen.getByText("Ioruba")).not.toBeNull();
     expect(screen.getByRole("tab", { name: /panel de control/i })).not.toBeNull();
     expect(
       screen.getByRole("button", { name: /abrir configuración de la aplicación/i })

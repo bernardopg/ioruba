@@ -41,8 +41,8 @@ export function ChangelogDialog({
               {release.date ? <time>{release.date}</time> : null}
             </summary>
             <div className="changelog-release">
-              {release.sections.map((section) => (
-                <section key={section.title}>
+              {release.sections.map((section, sectionIndex) => (
+                <section key={`${sectionIndex}-${section.title}`}>
                   <h3>{section.title}</h3>
                   <ul>
                     {section.items.map((item) => (

@@ -26,6 +26,8 @@ Protocol and knob-to-value behavior belong in `packages/shared`; components shou
 
 Prerequisites are listed in the [README](README.md#development-setup). Install dependencies from the repository root:
 
+Build tools: Node.js >=26.12.0, npm >=12.2.0 and Rust >=1.99.1.
+
 ```bash
 npm install
 ```

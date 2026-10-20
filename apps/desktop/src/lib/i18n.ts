@@ -1,4 +1,4 @@
-import type { UiLanguage } from "@ioruba/shared";
+import type { AudioInventory, RuntimeStatus, UiLanguage } from "@ioruba/shared";
 
 // pt-BR é o idioma-fonte: as chaves são o texto exatamente como escrito nos
 // componentes. Para adicionar um idioma: estender `UiLanguage` no shared,
@@ -1179,6 +1179,108 @@ const TEXT_MAP_ES: Record<string, string> = {
   "Canais A/B com INPUT_PULLUP": "Canales A/B con INPUT_PULLUP",
 };
 
+Object.assign(TEXT_MAP_EN, {
+  "Controle de áudio": "Audio control",
+  "Mixer": "Mixer",
+  "Controle o volume de cada destino com seus knobs.": "Control each audio destination with your knobs.",
+  "Seu controlador, áudio e perfil em um só lugar.": "Your controller, audio and profile at a glance.",
+  "Conecte seu controlador e escolha como usar o Ioruba.": "Connect your controller and choose how to use Ioruba.",
+  "Encontre o que precisa de atenção na conexão e no áudio.": "Find connection and audio issues that need attention.",
+  "Resumo da sessão": "Session overview",
+  "Seu espaço de áudio": "Your audio workspace",
+  "Conecte o controlador para começar.": "Connect your controller to get started.",
+  "Abrir mixer": "Open mixer",
+  "Áudio do sistema": "System audio",
+  "Disponível": "Available",
+  "Indisponível": "Unavailable",
+  "Escolha a porta ou experimente o modo demo.": "Choose a port or try demo mode.",
+  "Personalize os canais e seus destinos de áudio.": "Customize channels and audio destinations.",
+  "Verifique o sinal, os dispositivos e os avisos.": "Check the signal, devices and alerts.",
+  "Editar perfil": "Edit profile",
+  "Nenhuma porta conectada": "No port connected",
+  "Sair do demo": "Exit demo",
+  "Experimentar demo": "Try demo",
+  "Canais do mixer": "Mixer channels",
+  "Nível enviado ao áudio": "Audio output level",
+  "canais": "channels",
+  "Gire os knobs do controlador para ajustar o áudio. Os níveis acompanham o perfil ativo.": "Turn the controller knobs to adjust audio. Levels follow your active profile.",
+  "Destinos de áudio": "Audio destinations",
+  "Editar destinos": "Edit destinations",
+  "Detalhes do sinal": "Signal details",
+  "Sinal recebido": "Received signal",
+  "Sinal aplicado": "Applied signal",
+  "Sentido invertido": "Inverted direction",
+  "O nível de áudio diminui quando o valor do knob aumenta.": "Audio level decreases as the knob value increases.",
+  "Aguardando leitura": "Waiting for input",
+  "Aplicado": "Applied",
+  "Atenção": "Attention",
+  "Aplicativo": "Application",
+  "Entrada de áudio": "Audio input",
+  "Saída de áudio": "Audio output"
+});
+
+Object.assign(TEXT_MAP_ES, {
+  "Controle de áudio": "Control de audio",
+  "Mixer": "Mezclador",
+  "Controle o volume de cada destino com seus knobs.": "Controla el volumen de cada destino con tus mandos.",
+  "Seu controlador, áudio e perfil em um só lugar.": "Tu controlador, audio y perfil en un solo lugar.",
+  "Conecte seu controlador e escolha como usar o Ioruba.": "Conecta tu controlador y elige cómo usar Ioruba.",
+  "Encontre o que precisa de atenção na conexão e no áudio.": "Encuentra problemas de conexión y audio que necesitan atención.",
+  "Resumo da sessão": "Resumen de la sesión",
+  "Seu espaço de áudio": "Tu espacio de audio",
+  "Conecte o controlador para começar.": "Conecta el controlador para empezar.",
+  "Abrir mixer": "Abrir mezclador",
+  "Áudio do sistema": "Audio del sistema",
+  "Disponível": "Disponible",
+  "Indisponível": "No disponible",
+  "Escolha a porta ou experimente o modo demo.": "Elige un puerto o prueba el modo demo.",
+  "Personalize os canais e seus destinos de áudio.": "Personaliza los canales y sus destinos de audio.",
+  "Verifique o sinal, os dispositivos e os avisos.": "Revisa la señal, los dispositivos y los avisos.",
+  "Editar perfil": "Editar perfil",
+  "Nenhuma porta conectada": "Ningún puerto conectado",
+  "Sair do demo": "Salir de demo",
+  "Experimentar demo": "Probar demo",
+  "Canais do mixer": "Canales del mezclador",
+  "Nível enviado ao áudio": "Nivel enviado al audio",
+  "canais": "canales",
+  "Gire os knobs do controlador para ajustar o áudio. Os níveis acompanham o perfil ativo.": "Gira los mandos del controlador para ajustar el audio. Los niveles siguen el perfil activo.",
+  "Destinos de áudio": "Destinos de audio",
+  "Editar destinos": "Editar destinos",
+  "Detalhes do sinal": "Detalles de la señal",
+  "Sinal recebido": "Señal recibida",
+  "Sinal aplicado": "Señal aplicada",
+  "Sentido invertido": "Sentido invertido",
+  "O nível de áudio diminui quando o valor do knob aumenta.": "El nivel de audio disminuye al aumentar el valor del mando.",
+  "Aguardando leitura": "Esperando lectura",
+  "Aplicado": "Aplicado",
+  "Atenção": "Atención",
+  "Aplicativo": "Aplicación",
+  "Entrada de áudio": "Entrada de audio",
+  "Saída de áudio": "Salida de audio"
+});
+
+Object.assign(TEXT_MAP_EN, {
+  "Nível simulado": "Simulated level",
+  "Simulação": "Simulation",
+  "Simulação ativa. O áudio do sistema não é alterado.": "Simulation is active. System audio is unchanged.",
+  "Aguardando áudio": "Waiting for audio",
+  "Destino indisponível": "Destination unavailable",
+  "Falha ao ajustar áudio": "Could not adjust audio",
+  "Abra o aplicativo e inicie a reprodução.": "Open the application and start playback.",
+  "Confira o destino em Editar destinos.": "Check the destination using Edit destinations."
+});
+
+Object.assign(TEXT_MAP_ES, {
+  "Nível simulado": "Nivel simulado",
+  "Simulação": "Simulación",
+  "Simulação ativa. O áudio do sistema não é alterado.": "Simulación activa. El audio del sistema no se modifica.",
+  "Aguardando áudio": "Esperando audio",
+  "Destino indisponível": "Destino no disponible",
+  "Falha ao ajustar áudio": "No se pudo ajustar el audio",
+  "Abra o aplicativo e inicie a reprodução.": "Abre la aplicación e inicia la reproducción.",
+  "Confira o destino em Editar destinos.": "Revisa el destino en Editar destinos."
+});
+
 const LANGUAGE_TEXT_MAPS: Record<
   Exclude<UiLanguage, "pt-BR">,
   Record<string, string>
@@ -1206,4 +1308,24 @@ export function translateTemplate(
     (result, [key, value]) => result.split(`{${key}}`).join(value),
     translated,
   );
+}
+
+const RUNTIME_LABELS: Record<RuntimeStatus, string> = {
+  booting: "Iniciando", ready: "Pronto", searching: "Procurando", connecting: "Conectando",
+  connected: "Conectado", demo: "Demo", disconnected: "Desconectado", error: "Erro",
+};
+
+export function formatRuntimeStatus(language: UiLanguage, status: RuntimeStatus): string {
+  return translateText(language, RUNTIME_LABELS[status]);
+}
+
+export function formatAudioTarget(language: UiLanguage, target: string, inventory?: AudioInventory): string {
+  const labels: Record<string, string> = { master: "Áudio do sistema", app: "Aplicativo", application: "Aplicativo", source: "Entrada de áudio", sink: "Saída de áudio" };
+  const separator = target.indexOf(":");
+  const kind = separator === -1 ? target : target.slice(0, separator);
+  const label = labels[kind];
+  const name = separator === -1 ? "" : target.slice(separator + 1);
+  const endpoints = kind === "sink" ? inventory?.sinks : kind === "source" ? inventory?.sources : undefined;
+  const displayName = endpoints?.find(endpoint => endpoint.name === name)?.description ?? name;
+  return label ? `${translateText(language, label)}${separator === -1 ? "" : ` · ${displayName}`}` : target;
 }
