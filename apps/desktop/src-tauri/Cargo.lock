@@ -1869,6 +1869,7 @@ dependencies = [
 name = "ioruba-desktop"
 version = "1.10.0"
 dependencies = [
+ "auto-launch",
  "glib",
  "serde",
  "serde_json",

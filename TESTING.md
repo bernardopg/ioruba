@@ -332,7 +332,8 @@ uses `~/.config/autostart` regardless of `XDG_CONFIG_HOME`.
 
 Checks native close-to-tray, registration/menu callbacks on the actual desktop
 D-Bus, restore and Quit; toggles login through the UI and verifies persistence
-and the generated/removed desktop entry; relaunches with `--autostart` and checks
+and the generated/removed desktop entry; launches the actual entry command parsed
+by Gio/GLib and checks
 hidden startup. Saves profile JSON, session JSON/CSV and watch JSONL through GTK
 selectors, parses their contents and checks cancellation. No logout/reboot is
 performed. This verifies the launch entry and execution path, not a new session
@@ -353,10 +354,12 @@ case verifies the runtime version through Tauri IPC, in addition to packaging me
 
 ### Installed AUR AppImage testing
 
-The wrapper uses bundled WebKit 2.50.4. A newer system WebKitWebDriver can fail
+The published v1.10.0 AppImage bundles WebKit 2.50.4. A newer system WebKitWebDriver can fail
 with `Automation.resolveBrowsingContext was not found`; use the matching driver
 through tauri-driver's `--native-driver` option, without replacing system libraries.
 The native suite trims rendered control labels to tolerate WebKit line-break differences.
 Autostart must match the exact launcher path: a substring match also accepts a
 cached `.../squashfs-root/usr/bin/ioruba-desktop` and misses a broken login entry.
+For `/usr/bin/ioruba-desktop`, the suite also replaces an enabled entry with a
+legacy cache path and verifies automatic repair without changing its enabled state.
 See the [installed-package audit](docs/maintenance/installed-aur-firmware-2026-10-20.md).

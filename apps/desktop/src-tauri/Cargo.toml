@@ -45,6 +45,7 @@ tauri-plugin-updater = "2.14.0"
 # depreciacao do libayatana-appindicator (ver lib.rs). Ja vem no grafo via
 # gtk/wry; a versao acompanha o patch vendorizado abaixo.
 glib = "0.18"
+auto-launch = "0.6.0"
 
 [patch.crates-io]
 # Linux Tauri still pulls gtk-rs GTK3 through wry/webkit2gtk. Upstream fixed

@@ -11,6 +11,9 @@ e este projeto segue [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Corrigido
+- Login automático do AppImage AUR usa o launcher estável, repara entradas antigas habilitadas e preserva preferências desativadas.
+
 ## [1.10.0](https://github.com/bernardopg/ioruba/compare/v1.9.6...v1.10.0) (2026-10-20)
 
 ### Adicionado

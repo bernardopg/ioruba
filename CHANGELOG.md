@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- AUR AppImage launch-on-login now uses the stable compatibility launcher, repairs enabled legacy cache entries, and preserves disabled preferences.
+
 ## [1.10.0](https://github.com/bernardopg/ioruba/compare/v1.9.6...v1.10.0) (2026-10-20)
 
 ### Added

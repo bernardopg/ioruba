@@ -17,6 +17,7 @@ use tauri::{
     tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
     AppHandle, Emitter, Manager, WindowEvent,
 };
+#[cfg(not(target_os = "linux"))]
 use tauri_plugin_autostart::ManagerExt;
 use tauri_plugin_dialog::DialogExt;
 use tauri_plugin_global_shortcut::{Code, GlobalShortcutExt, Modifiers, Shortcut, ShortcutState};
@@ -330,10 +331,49 @@ async fn import_profile(app: tauri::AppHandle) -> Result<Option<String>, String>
     Ok(Some(payload))
 }
 
+#[cfg(target_os = "linux")]
+fn linux_autostart_path(exe: &Path, appimage: Option<&Path>, launcher: Option<&Path>) -> PathBuf {
+    if exe_in_wrapper_runtime_cache(exe) {
+        if let Some(launcher) = launcher {
+            return launcher.to_path_buf();
+        }
+    }
+    appimage.unwrap_or(exe).to_path_buf()
+}
+
+#[cfg(target_os = "linux")]
+fn login_manager(app: &AppHandle) -> Result<auto_launch::AutoLaunch, String> {
+    let exe = std::env::current_exe().map_err(|error| error.to_string())?;
+    let launcher = Path::new("/usr/bin/ioruba-desktop");
+    let managed = exe_in_wrapper_runtime_cache(&exe) && launcher.is_file();
+    let path = linux_autostart_path(
+        &exe,
+        app.env().appimage.as_deref().map(Path::new),
+        managed.then_some(launcher),
+    );
+    let manager = auto_launch::AutoLaunchBuilder::new()
+        .set_app_name(&app.package_info().name)
+        .set_app_path(&path.to_string_lossy())
+        .set_args(&["--autostart"])
+        .build()
+        .map_err(|error| error.to_string())?;
+    // Repair enabled entries after an AUR upgrade; cache executables bypass AppRun.
+    if managed && manager.is_enabled().map_err(|error| error.to_string())? {
+        manager.enable().map_err(|error| error.to_string())?;
+    }
+    Ok(manager)
+}
+
+#[cfg(not(target_os = "linux"))]
+fn login_manager(
+    app: &AppHandle,
+) -> Result<tauri::State<'_, tauri_plugin_autostart::AutoLaunchManager>, String> {
+    Ok(app.autolaunch())
+}
+
 #[tauri::command]
 fn get_launch_on_login_enabled(app: tauri::AppHandle) -> Result<bool, String> {
-    let enabled = app
-        .autolaunch()
+    let enabled = login_manager(&app)?
         .is_enabled()
         .map_err(|error| error.to_string())?;
 
@@ -350,7 +390,7 @@ fn get_launch_on_login_enabled(app: tauri::AppHandle) -> Result<bool, String> {
 
 #[tauri::command]
 fn set_launch_on_login_enabled(app: tauri::AppHandle, enabled: bool) -> Result<bool, String> {
-    let autostart = app.autolaunch();
+    let autostart = login_manager(&app)?;
 
     if enabled {
         autostart.enable().map_err(|error| error.to_string())?;
@@ -903,6 +943,35 @@ pub fn run() {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[cfg(target_os = "linux")]
+    #[test]
+    fn autostart_uses_stable_aur_launcher_instead_of_cached_executable() {
+        let cached = Path::new(
+            "/home/user/.cache/ioruba/appimage-runtime/hash/squashfs-root/usr/bin/ioruba-desktop",
+        );
+        let launcher = Path::new("/usr/bin/ioruba-desktop");
+        assert_eq!(
+            linux_autostart_path(
+                cached,
+                Some(Path::new("/opt/ioruba/ioruba.AppImage")),
+                Some(launcher)
+            ),
+            launcher
+        );
+        assert_eq!(
+            linux_autostart_path(
+                Path::new("/tmp/.mount_Ioruba/usr/bin/ioruba-desktop"),
+                Some(Path::new("/home/user/Ioruba.AppImage")),
+                Some(launcher)
+            ),
+            Path::new("/home/user/Ioruba.AppImage")
+        );
+        assert_eq!(
+            linux_autostart_path(launcher, None, Some(launcher)),
+            launcher
+        );
+    }
 
     #[test]
     fn snapshot_changed_detects_mtime_or_size_diff() {

@@ -33,3 +33,38 @@ The user's login preference was already disabled and is preserved. A production 
 ## Limits
 
 No new manual sweep of the physical knobs or independent ADC voltage measurement was done. No user calibration was inferred or changed. Real Wayland serial boot was observed in logs; GUI automation ran on an isolated X11 display. Cua could identify the Wayland window but could not attest its screenshot/accessibility surface, so it was not used as visual proof.
+
+## Autostart correction follow-up
+
+The Linux backend now reuses the existing `auto-launch` dependency with the stable
+`/usr/bin/ioruba-desktop` path when running from the managed AUR extraction cache.
+Native and standalone AppImage paths retain their existing behavior; macOS and
+Windows keep the Tauri plugin. Reading an enabled legacy entry repairs its command.
+A disabled entry is never enabled by this repair.
+
+Installed a locally rebuilt `ioruba-desktop-bin 1.10.0-1.1` through pacman, preserving
+all 18 package-owned files (`pacman -Qkk`: zero alterations). This is a local hotfix,
+not a replacement of the signed public v1.10.0 release. Local AppImage SHA256:
+`d1600707efc08b1d4a003ddefdb3102d565976e9143639d1cf28150263f766e9`.
+The original package and private state backup are under
+`~/.local/state/ioruba/package-backups/autostart-2026-10-20/`.
+Rollback, if needed: install the original package from that directory with `pacman -U`.
+The real user's `launchOnLogin=false` and controller calibration remain unchanged.
+
+`npm run verify` passes: 220 TypeScript tests, 46 desktop Rust tests, 4 serial
+regressions and 25 updater tests, plus typechecks and frontend build. Clippy with
+`-D warnings` passes. Rust audit succeeds with the four existing allowed warnings;
+no advisory exception was added. The rebuilt AppImage works with the system
+WebKitWebDriver, without the temporary old-driver workaround.
+
+The regression checks exact Exec, repairs a deliberately obsolete enabled entry,
+and starts the command parsed from the generated `.desktop` file using Gio/GLib.
+The first full native run proved those login cases but caught a test race: a second
+watch-log export was attempted before the first operation reset its busy state.
+The test now waits for the enabled export button before testing cancellation.
+
+Final native run: **16/16 passed**, including physical Nano handshake/frames, real
+audio, 9 sections at 6 widths, theme contrast, GTK exports/cancellation, tray,
+legacy-entry repair and generated-entry hidden launch. Artifacts:
+`/tmp/ioruba-native-test-5kWhBV/`. Verification logs are copied to the private
+package-backup directory. No logout/reboot or new firmware flash was performed.

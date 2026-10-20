@@ -263,3 +263,7 @@ O AppImage usa WebKit 2.50.4; um WebKitWebDriver mais novo pode rejeitar
 normalizam espaços nos rótulos e exigem o caminho exato do launcher de login:
 uma busca por substring aceitava indevidamente o executável dentro do cache.
 Consulte o [diagnóstico instalado](../../../maintenance/installed-aur-firmware-2026-10-20.md).
+
+A regressão de login executa o comando da entrada real, interpretado por Gio/GLib.
+Para `/usr/bin/ioruba-desktop`, também substitui uma entrada habilitada pelo caminho
+antigo do cache e verifica seu reparo automático. Preferências desativadas são preservadas.

@@ -271,8 +271,14 @@ await test("Linux native app", { timeout: 180_000 }, async t => {
         await until(async () => JSON.parse((await ipc("load_persisted_state")).value).launchOnLogin === true, "Login setting not persisted");
         const entry = await readFile(path.join(shellHome, ".config", "autostart", "Ioruba.desktop"), "utf8");
         assert.match(entry, /--autostart/);
-        assert.equal(entry.split("\n").find(line => line.startsWith("Exec=")), `Exec=${binary} --autostart`, "Autostart must use the exact launcher, not a cached executable");
         await writeFile(path.join(artifacts, "autostart.desktop"), entry);
+        assert.equal(entry.split("\n").find(line => line.startsWith("Exec=")), `Exec=${binary} --autostart`, "Autostart must use the exact launcher, not a cached executable");
+        if (binary === "/usr/bin/ioruba-desktop") {
+          const desktop = path.join(shellHome, ".config", "autostart", "Ioruba.desktop");
+          await writeFile(desktop, entry.replace(`Exec=${binary} --autostart`, "Exec=/obsolete/cache/usr/bin/ioruba-desktop --autostart"));
+          assert.equal((await ipc("get_launch_on_login_enabled")).value, true);
+          assert.equal(await readFile(desktop, "utf8"), entry, "Enabled legacy entry must be repaired");
+        }
         assert.equal((await ipc("get_launch_on_login_enabled")).value, true);
         await click("return document.querySelector(arguments[0])", '[role="switch"][aria-labelledby="launch-on-login-title"]');
         await until(async () => (await ipc("get_launch_on_login_enabled")).value === false, "Login switch did not disable autostart");
@@ -310,6 +316,7 @@ await test("Linux native app", { timeout: 180_000 }, async t => {
         await chooser("Exportar watch log", logPath);
         await until(async () => { try { return (await readFile(logPath, "utf8")).length > 0; } catch { return false; } }, "No watch export");
         for (const line of (await readFile(logPath, "utf8")).trim().split("\n")) assert.ok(JSON.parse(line).message);
+        await until(async () => await execute('return [...document.querySelectorAll("button")].some(x => x.innerText.trim() === "Exportar" && !x.disabled)'), "Watch export did not finish");
         await button("Exportar"); await chooser("Exportar watch log", null);
         await until(async () => !(await text()).includes("Exportando"), "Cancel left export busy");
       });
@@ -329,7 +336,10 @@ await test("Linux native app", { timeout: 180_000 }, async t => {
     if (process.env.IORUBA_TEST_DESKTOP_SHELL) await t.test("autostart launches hidden, tray opens it and Quit ends the process", async () => {
       await request("DELETE", `/session/${id}`); id = undefined;
       await delay(500);
-      const session = await request("POST", "/session", { capabilities: { alwaysMatch: { "tauri:options": { application: binary, args: ["--autostart"] } } } });
+      const command = JSON.parse(execFileSync("/usr/bin/python", ["-c",
+        "import json,sys; from gi.repository import Gio,GLib; app=Gio.DesktopAppInfo.new_from_filename(sys.argv[1]); assert app; print(json.dumps(GLib.shell_parse_argv(app.get_commandline())[1]))",
+        path.join(artifacts, "autostart.desktop")], { encoding: "utf8" }));
+      const session = await request("POST", "/session", { capabilities: { alwaysMatch: { "tauri:options": { application: command[0], args: command.slice(1) } } } });
       id = session.sessionId;
       const tray = action => JSON.parse(execFileSync("/usr/bin/python", [path.join(root, "scripts/linux-tray-probe.py"), path.dirname(config), ...(action ? [action] : [])], { encoding: "utf8" }));
       await until(async () => (await ipc("plugin:window|is_visible", { label: "main" })).value === false, "Autostart window was not hidden");
