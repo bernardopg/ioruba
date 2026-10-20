@@ -59,8 +59,8 @@ await test("Linux native app", { timeout: 180_000 }, async t => {
     assert.ok(element, `Missing control: ${args}`);
     await request("POST", `/session/${id}/element/${Object.values(element)[0]}/click`, {});
   }
-  const tab = label => click('return [...document.querySelectorAll("[role=tab]")].find(x=>x.innerText===arguments[0])', label);
-  const button = label => click('return [...document.querySelectorAll("button")].find(x=>x.innerText===arguments[0])', label);
+  const tab = label => click('return [...document.querySelectorAll("[role=tab]")].find(x=>x.innerText.trim()===arguments[0])', label);
+  const button = label => click('return [...document.querySelectorAll("button")].find(x=>x.innerText.trim()===arguments[0])', label);
   const text = () => execute("return document.body.innerText");
   async function shot(name) { await writeFile(path.join(artifacts, `${name}.png`), Buffer.from(await request("GET", `/session/${id}/screenshot`), "base64")); }
   try {
@@ -83,7 +83,7 @@ await test("Linux native app", { timeout: 180_000 }, async t => {
       assert.equal(JSON.parse(saved.value).profiles[0].serial.autoConnect, false);
     });
     await t.test("mixer opens first and destination editing focuses the correct channel", async () => {
-      assert.equal(await execute('return document.querySelector("[role=tab][aria-selected=true]").innerText'), "Mixer");
+      assert.equal(await execute('return document.querySelector("[role=tab][aria-selected=true]").innerText.trim()'), "Mixer");
       assert.equal(await execute('return document.querySelectorAll(".channel-level meter").length'), 3);
       assert.equal(await execute('return document.querySelector(".channel-percent").textContent'), "—");
       await click("return document.querySelector(arguments[0])", 'button[aria-label^="Editar destinos"]');
@@ -131,7 +131,7 @@ await test("Linux native app", { timeout: 180_000 }, async t => {
       await tab("Home");
       const active = await execute('return document.querySelector("[role=tab][aria-selected=true]")');
       await request("POST", `/session/${id}/element/${Object.values(active)[0]}/value`, { text: "\uE015" });
-      assert.equal(await execute('return document.querySelector("[role=tab][aria-selected=true]").innerText'), "Painel de controle");
+      assert.equal(await execute('return document.querySelector("[role=tab][aria-selected=true]").innerText.trim()'), "Painel de controle");
     });
     await t.test("all sections fit window widths from 640 to 1920 pixels", async () => {
       const report = [];
@@ -229,7 +229,7 @@ await test("Linux native app", { timeout: 180_000 }, async t => {
       const route = `/session/${id}/element/${Object.values(element)[0]}`;
       await request("POST", route + "/clear", {});
       await request("POST", route + "/value", { text: "{broken json" });
-      assert.equal(await execute('return [...document.querySelectorAll("button")].find(x=>x.innerText==="Salvar perfil").disabled'), true);
+      assert.equal(await execute('return [...document.querySelectorAll("button")].find(x=>x.innerText.trim()==="Salvar perfil").disabled'), true);
       await delay(350);
       assert.equal((await ipc("load_persisted_state")).value, before);
       assert.match(await text(), /JSON|inválid|erro/i);
@@ -271,7 +271,7 @@ await test("Linux native app", { timeout: 180_000 }, async t => {
         await until(async () => JSON.parse((await ipc("load_persisted_state")).value).launchOnLogin === true, "Login setting not persisted");
         const entry = await readFile(path.join(shellHome, ".config", "autostart", "Ioruba.desktop"), "utf8");
         assert.match(entry, /--autostart/);
-        assert.ok(entry.includes(binary), "Autostart must use the tested executable");
+        assert.equal(entry.split("\n").find(line => line.startsWith("Exec=")), `Exec=${binary} --autostart`, "Autostart must use the exact launcher, not a cached executable");
         await writeFile(path.join(artifacts, "autostart.desktop"), entry);
         assert.equal((await ipc("get_launch_on_login_enabled")).value, true);
         await click("return document.querySelector(arguments[0])", '[role="switch"][aria-labelledby="launch-on-login-title"]');

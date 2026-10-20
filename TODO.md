@@ -1,5 +1,9 @@
 # TODO
 
+## AUR: login automático — 2026-10-20
+
+- [ ] Corrigir a entrada de login do pacote AppImage para executar `/usr/bin/ioruba-desktop --autostart`, preservando o wrapper. A entrada atual usa o binário do cache e falha ao iniciar o processo WebKit; diagnóstico em [auditoria instalada](docs/maintenance/installed-aur-firmware-2026-10-20.md).
+
 ## Backport updater zip — 2026-10-20
 
 - [x] Aplicar somente a correção upstream zip 9 no updater vendorizado, com origem e condição de remoção documentadas.

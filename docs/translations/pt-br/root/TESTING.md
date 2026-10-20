@@ -254,3 +254,12 @@ target. O [README de vendor](../../../../apps/desktop/src-tauri/vendor/README.md
 Para validar um artefato publicado, defina `IORUBA_BINARY` com o executável
 extraído do pacote e `IORUBA_EXPECT_VERSION` com a versão publicada. O boot
 confere a versão real via IPC, além dos metadados do pacote.
+
+### Pacote AUR instalado
+
+O AppImage usa WebKit 2.50.4; um WebKitWebDriver mais novo pode rejeitar
+`Automation.resolveBrowsingContext`. Use o driver da mesma versão com
+`tauri-driver --native-driver`, sem trocar bibliotecas do sistema. Os testes
+normalizam espaços nos rótulos e exigem o caminho exato do launcher de login:
+uma busca por substring aceitava indevidamente o executável dentro do cache.
+Consulte o [diagnóstico instalado](../../../maintenance/installed-aur-firmware-2026-10-20.md).

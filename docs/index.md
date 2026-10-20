@@ -28,6 +28,8 @@ Choose a path below. The Markdown in this repository is the canonical documentat
 
 - [Published release 1.10.0 validation](maintenance/release-1.10.0-validation.md) — artifact signatures, provenance, Linux runtime and real update proof
 
+- [Installed AUR package and Nano audit](maintenance/installed-aur-firmware-2026-10-20.md) — firmware update proof and confirmed login launcher defect
+
 ## Project status
 
 - [Product roadmap](roadmap.md) — product direction and non-goals

@@ -350,3 +350,13 @@ A clean cargo audit is required; do not add advisory exceptions for zip.
 For release artifact smoke tests, set `IORUBA_BINARY` to the extracted packaged
 executable and `IORUBA_EXPECT_VERSION` to the published version. The native boot
 case verifies the runtime version through Tauri IPC, in addition to packaging metadata.
+
+### Installed AUR AppImage testing
+
+The wrapper uses bundled WebKit 2.50.4. A newer system WebKitWebDriver can fail
+with `Automation.resolveBrowsingContext was not found`; use the matching driver
+through tauri-driver's `--native-driver` option, without replacing system libraries.
+The native suite trims rendered control labels to tolerate WebKit line-break differences.
+Autostart must match the exact launcher path: a substring match also accepts a
+cached `.../squashfs-root/usr/bin/ioruba-desktop` and misses a broken login entry.
+See the [installed-package audit](docs/maintenance/installed-aur-firmware-2026-10-20.md).
