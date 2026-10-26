@@ -2126,6 +2126,27 @@ mod offline_tests {
         base64::engine::general_purpose::STANDARD.encode(value)
     }
 
+    #[test]
+    fn base64_signature_text_decodes_standard_padded_input() {
+        assert_eq!(base64_to_string("dGVzdA==").unwrap(), "test");
+        assert_eq!(base64_to_string(&encode(SIGNATURE)).unwrap(), SIGNATURE);
+    }
+
+    #[test]
+    fn base64_signature_text_rejects_malformed_input() {
+        for value in ["%%%", "dGVzdA", "dGVzdA==="] {
+            assert!(matches!(base64_to_string(value), Err(Error::Base64(_))));
+        }
+    }
+
+    #[test]
+    fn base64_signature_text_rejects_non_utf8() {
+        assert!(matches!(
+            base64_to_string("/w=="),
+            Err(Error::SignatureUtf8(_))
+        ));
+    }
+
     fn builder() -> UpdaterBuilder {
         let app = tauri::test::mock_app();
         let config = Config {

@@ -11,6 +11,14 @@ e este projeto segue [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [1.10.2](https://github.com/bernardopg/ioruba/compare/v1.10.1...v1.10.2) (2026-10-26)
+
+### Alterado
+- Dependência base64 do updater vendorizado atualizada de 0.22.1 para 0.23.1 nos dois manifestos e no lockfile da aplicação, preservando a verificação de assinaturas e o backport de segurança zip 9.
+
+### Testes
+- Adicionada cobertura para texto de assinatura com padding, Base64 malformado e UTF-8 inválido; testes do updater também executados no Linux no CI, além de Windows/macOS.
+
 ## [1.10.1](https://github.com/bernardopg/ioruba/compare/v1.10.0...v1.10.1) (2026-10-26)
 
 ### Alterado

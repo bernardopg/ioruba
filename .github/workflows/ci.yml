@@ -92,6 +92,9 @@ jobs:
       - name: Run Rust tests
         run: cargo test --manifest-path apps/desktop/src-tauri/Cargo.toml
 
+      - name: Test updater backport on Linux
+        run: cargo test --manifest-path apps/desktop/src-tauri/Cargo.toml -p tauri-plugin-updater --lib --locked
+
       - name: Audit Rust dependencies
         run: |
           cargo install cargo-audit --locked --version 0.22.2

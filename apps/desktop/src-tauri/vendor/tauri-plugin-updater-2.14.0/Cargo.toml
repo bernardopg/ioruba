@@ -83,7 +83,7 @@ name = "tauri_plugin_updater"
 path = "src/lib.rs"
 
 [dependencies.base64]
-version = "0.22"
+version = "0.23"
 
 [dependencies.futures-util]
 version = "0.3"
