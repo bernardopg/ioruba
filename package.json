@@ -1,7 +1,7 @@
 {
   "name": "ioruba",
   "private": true,
-  "version": "1.10.0",
+  "version": "1.10.1",
   "workspaces": [
     "apps/*",
     "packages/*"
@@ -36,9 +36,9 @@
     "test:linux:app": "node --test scripts/test-linux-app.mjs",
     "firmware:test:runtime": "for target in nano rp2040 controls; do flags=\"\"; if [ \"$target\" = rp2040 ]; then flags=\"-DARDUINO_ARCH_RP2040\"; fi; if [ \"$target\" = controls ]; then flags=\"-DIORUBA_NUM_BUTTONS=1 -DIORUBA_NUM_ENCODERS=1\"; fi; g++ -std=c++17 -Wall -Wextra -Werror $flags -Ifirmware/arduino/ioruba-controller/tests/stubs firmware/arduino/ioruba-controller/tests/sketch_runtime_test.cpp -o \"/tmp/ioruba-sketch-$target-test\" && \"/tmp/ioruba-sketch-$target-test\" || exit 1; done"
   },
-  "packageManager": "npm@12.2.0",
+  "packageManager": "npm@12.2.1",
   "engines": {
-    "node": ">=26.12.0",
-    "npm": ">=12.2.0"
+    "node": ">=26.12.1",
+    "npm": ">=12.2.1"
   }
 }

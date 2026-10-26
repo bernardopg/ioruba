@@ -11,6 +11,14 @@ e este projeto segue [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [1.10.1](https://github.com/bernardopg/ioruba/compare/v1.10.0...v1.10.1) (2026-10-26)
+
+### Alterado
+- Node.js 26.12.1 e npm 12.2.1 sincronizados nas ferramentas locais e workflows.
+- Vite, Zustand, Lucide, Tauri CLI, Tauri Rust/build e dependências transitivas atualizados; patches locais de segurança e framing serial preservados.
+- Actions rust-cache, CodeQL e TruffleHog atualizadas, mantendo pins por SHA.
+- Detalhes de validação no [relatório de atualização](../../../maintenance/dependency-update-2026-10-26.md).
+
 ### Corrigido
 - Login automático do AppImage AUR usa o launcher estável, repara entradas antigas habilitadas e preserva preferências desativadas.
 
