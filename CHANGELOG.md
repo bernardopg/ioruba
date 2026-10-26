@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.10.1](https://github.com/bernardopg/ioruba/compare/v1.10.0...v1.10.1) (2026-10-26)
+
+### Changed
+- Updated Node.js to 26.12.1 and npm to 12.2.1 across local tooling and workflows.
+- Updated Vite, Zustand, Lucide, Tauri CLI, Tauri Rust/build and compatible transitive dependencies; retained required local security and serial-framing patches.
+- Updated rust-cache, CodeQL and TruffleHog Actions, retaining commit SHA pins.
+- Validation details: [dependency update report](docs/maintenance/dependency-update-2026-10-26.md).
+
 ### Fixed
 - AUR AppImage launch-on-login now uses the stable compatibility launcher, repairs enabled legacy cache entries, and preserves disabled preferences.
 

@@ -46,10 +46,10 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
-          node-version: 26.12.0
+          node-version: 26.12.1
 
       - name: Setup npm
-        run: npm install --global npm@12.2.0
+        run: npm install --global npm@12.2.1
 
       - name: Prepare documentation source
         run: npm run docs:prepare-site
