@@ -11,6 +11,14 @@ e este projeto segue [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [1.10.3](https://github.com/bernardopg/ioruba/compare/v1.10.2...v1.10.3) (2026-11-10)
+
+### Alterado
+- jsdom atualizado de 30.1.3 para 31.0.0 nos testes do desktop.
+- Atualizados Vite 8.3.6, @vitejs/plugin-react 6.2.1, @tailwindcss/vite 4.3.4, Vitest e @vitest/coverage-v8 5.1.0, Lucide React 1.70.0, @tauri-apps/plugin-updater 2.14.1 e @types/node 26.6.6.
+- Dependências Rust atualizadas: zip 9.4.1, flate2 1.1.11, log 0.4.35, tauri-plugin-dialog 2.8.4 e tauri-plugin-single-instance 2.5.5.
+- Actions do CodeQL 4.39.3, action-gh-release 3.0.4 e TruffleHog 3.99.8 atualizadas.
+
 ## [1.10.2](https://github.com/bernardopg/ioruba/compare/v1.10.1...v1.10.2) (2026-10-26)
 
 ### Alterado
