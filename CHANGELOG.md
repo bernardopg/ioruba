@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.10.4](https://github.com/bernardopg/ioruba/compare/v1.10.3...v1.10.4) (2026-11-16)
+
 ### Changed
 - Updated the serial plugin to the upstream 4.2.2 line on both sides (Rust `tauri-plugin-serialplugin` and JS `tauri-plugin-serialplugin-api`). Upstream now forwards stream lines byte-for-byte with their terminators and holds split lines, so the vendored 3.0.9 line-framing patch is removed. The JS API used by the app is unchanged; a physical Nano handshake and frame stream were validated on Linux.
 - Replaced the vendored `tauri-plugin-updater` 2.14.0 backport with the upstream 2.14.1 release, which ships zip 9 and base64 0.23. Signature verification and platform features are unchanged; only the `glib` 0.18.5 security backport stays vendored.
