@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- Updated the serial plugin to the upstream 4.2.2 line on both sides (Rust `tauri-plugin-serialplugin` and JS `tauri-plugin-serialplugin-api`). Upstream now forwards stream lines byte-for-byte with their terminators and holds split lines, so the vendored 3.0.9 line-framing patch is removed. The JS API used by the app is unchanged; a physical Nano handshake and frame stream were validated on Linux.
+- Replaced the vendored `tauri-plugin-updater` 2.14.0 backport with the upstream 2.14.1 release, which ships zip 9 and base64 0.23. Signature verification and platform features are unchanged; only the `glib` 0.18.5 security backport stays vendored.
+- Updated Tauri 2.12.6, tauri-build 2.7.5, tauri-plugin-opener 2.7.3, @tauri-apps/api and CLI 2.12.5, zip 9.6.1 and compatible Rust transitive dependencies. Dropping the old serial plugin removes OpenSSL/native-tls from the lockfile.
+- Updated Zustand 5.1.0, Lucide React 1.73.0, Vite 8.3.8, @vitejs/plugin-react 6.3.0, @tailwindcss/vite 4.3.5 and jsdom 31.0.1.
+- Updated Node.js to 26.13.1, npm to 12.2.2, the Rust floor to 1.100.0, Arduino CLI to 1.6.0, cargo-audit to 0.23.0 and the TruffleHog Action to 3.99.9.
+- `cargo audit` now reports 0 vulnerabilities and 4 allowed `unmaintained` warnings (down from 6).
+
 ## [1.10.3](https://github.com/bernardopg/ioruba/compare/v1.10.2...v1.10.3) (2026-11-10)
 
 ### Changed

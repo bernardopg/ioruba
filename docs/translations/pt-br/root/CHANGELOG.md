@@ -11,6 +11,14 @@ e este projeto segue [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Alterado
+- Plugin serial atualizado para a linha upstream 4.2.2 nos dois lados (Rust `tauri-plugin-serialplugin` e JS `tauri-plugin-serialplugin-api`). O upstream agora repassa as linhas do stream byte a byte, com terminadores, e segura linhas partidas; por isso o patch vendorizado de framing da 3.0.9 foi removido. A API JS usada pelo app não mudou; handshake e frames de um Nano físico foram validados no Linux.
+- Backport vendorizado do `tauri-plugin-updater` 2.14.0 substituído pela release upstream 2.14.1, que já traz zip 9 e base64 0.23. Verificação de assinatura e recursos de plataforma inalterados; apenas o backport de segurança do `glib` 0.18.5 continua vendorizado.
+- Atualizados Tauri 2.12.6, tauri-build 2.7.5, tauri-plugin-opener 2.7.3, @tauri-apps/api e CLI 2.12.5, zip 9.6.1 e dependências Rust transitivas compatíveis. Sem o plugin serial antigo, OpenSSL/native-tls saem do lockfile.
+- Atualizados Zustand 5.1.0, Lucide React 1.73.0, Vite 8.3.8, @vitejs/plugin-react 6.3.0, @tailwindcss/vite 4.3.5 e jsdom 31.0.1.
+- Node.js 26.13.1, npm 12.2.2, piso do Rust 1.100.0, Arduino CLI 1.6.0, cargo-audit 0.23.0 e Action do TruffleHog 3.99.9.
+- `cargo audit` agora reporta 0 vulnerabilidades e 4 avisos `unmaintained` permitidos (antes 6).
+
 ## [1.10.3](https://github.com/bernardopg/ioruba/compare/v1.10.2...v1.10.3) (2026-11-10)
 
 ### Alterado
