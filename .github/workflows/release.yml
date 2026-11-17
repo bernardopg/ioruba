@@ -175,11 +175,11 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
-          node-version: 26.12.1
+          node-version: 26.13.1
           cache: npm
 
       - name: Setup npm
-        run: npm install --global npm@12.2.1
+        run: npm install --global npm@12.2.2
 
       - name: Setup Rust stable
         uses: dtolnay/rust-toolchain@683b588c487a69d01f6c6ddf40f036ff682cc2c8 # v1

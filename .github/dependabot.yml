@@ -50,11 +50,9 @@ updates:
       - dependencies
       - rust
     ignore:
-      # Vendorizados com patch local em src-tauri/vendor via [patch.crates-io];
-      # bump de spec sem re-vendorizar quebraria o backport (glib 0.18.x) e o
-      # fix de terminadores de linha (serialplugin 3.0.9).
+      # Vendorizado com patch local em src-tauri/vendor via [patch.crates-io];
+      # bump de spec sem re-vendorizar quebraria o backport (glib 0.18.x).
       - dependency-name: glib
-      - dependency-name: tauri-plugin-serialplugin
     groups:
       cargo-minor-and-patch:
         patterns:

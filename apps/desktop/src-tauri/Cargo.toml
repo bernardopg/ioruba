@@ -5,26 +5,26 @@ description = "Ioruba desktop control deck"
 authors = ["Bernardo Gomes"]
 license = "MIT"
 edition = "2021"
-rust-version = "1.99.1"
+rust-version = "1.100.0"
 
 [lib]
 name = "ioruba_desktop_lib"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
 [build-dependencies]
-tauri-build = { version = "2.7.4", features = [] }
+tauri-build = { version = "2.7.5", features = [] }
 
 [dependencies]
 serde = { version = "1.0.229", features = ["derive"] }
 serde_json = "1.0.154"
-tauri = { version = "2.12.5", features = ["tray-icon"] }
+tauri = { version = "2.12.6", features = ["tray-icon"] }
 tauri-plugin-autostart = "2.7.0"
-tauri-plugin-dialog = "2.8.3"
+tauri-plugin-dialog = "2.8.4"
 tauri-plugin-global-shortcut = "2.4.1"
-tauri-plugin-opener = "2.7.2"
+tauri-plugin-opener = "2.7.3"
 tauri-plugin-process = "2.4.0"
-tauri-plugin-serialplugin = "3.0.9"
-tauri-plugin-single-instance = "2.5.4"
+tauri-plugin-serialplugin = "4.2.2"
+tauri-plugin-single-instance = "2.5.5"
 thiserror = "2.0.21"
 
 [target.'cfg(windows)'.dependencies]
@@ -38,7 +38,7 @@ windows = { version = "0.62.2", features = [
 ] }
 
 [target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies]
-tauri-plugin-updater = "2.14.0"
+tauri-plugin-updater = "2.14.1"
 
 [target.'cfg(target_os = "linux")'.dependencies]
 # Usado apenas para instalar um filtro de log GLib e suprimir o aviso de
@@ -52,12 +52,3 @@ auto-launch = "0.6.0"
 # GHSA-wrw7-89jp-8q8g in glib >= 0.20, but the current Tauri Linux stack is on
 # glib 0.18.x, so we backport the one-line fix locally until upstream moves.
 glib = { path = "vendor/glib-0.18.5" }
-# v3.0.9 strips every ordinary stream line terminator before emitting `onData`.
-# That corrupts line-framed protocols; retain the terminators until upstream fixes it.
-tauri-plugin-serialplugin = { path = "vendor/tauri-plugin-serialplugin-3.0.9" }
-
-# Backport upstream #3698 until a stable updater release includes zip 9.
-tauri-plugin-updater = { path = "vendor/tauri-plugin-updater-2.14.0" }
-
-[workspace]
-members = ["vendor/tauri-plugin-updater-2.14.0"]
