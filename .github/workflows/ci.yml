@@ -222,7 +222,7 @@ jobs:
           - key: esp8266
             core: esp8266:esp8266
             fqbn: esp8266:esp8266:nodemcuv2
-            url: http://arduino.esp8266.com/stable/package_esp8266com_index.json
+            url: https://arduino.esp8266.com/stable/package_esp8266com_index.json
             extraFlags: "-DIORUBA_NUM_KNOBS=1"
 
     steps:
@@ -247,6 +247,17 @@ jobs:
           arduino-cli config init --overwrite
           arduino-cli core update-index --additional-urls ${{ matrix.target.url }}
           arduino-cli core install ${{ matrix.target.core }} --additional-urls ${{ matrix.target.url }}
+
+      - name: Apply upstream ESP8266 Python compatibility fix
+        if: matrix.target.key == 'esp8266'
+        shell: bash
+        run: |
+          elf2bin="$(arduino-cli config get directories.data)/packages/esp8266/hardware/esp8266/3.1.2/tools/elf2bin.py"
+          if [[ -f "$elf2bin" ]]; then
+            # esp8266/Arduino#9034 is pending a release after core 3.1.2.
+            sed -i "s/re\.split('\(\\\\s+\)'/re.split(r'\1'/g" "$elf2bin"
+            python3 -W error::SyntaxWarning -m py_compile "$elf2bin"
+          fi
 
       - name: Compile firmware (${{ matrix.target.fqbn }})
         run: |
@@ -288,8 +299,14 @@ jobs:
       - name: PSScriptAnalyzer (install.ps1)
         shell: pwsh
         run: |
-          Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
-          Install-Module PSScriptAnalyzer -Force -Scope CurrentUser
+          $analyzerVersion = [version]'1.25.0'
+          $analyzer = Get-Module -ListAvailable -Name PSScriptAnalyzer |
+            Where-Object Version -eq $analyzerVersion
+          if (-not $analyzer) {
+            Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
+            Install-Module PSScriptAnalyzer -RequiredVersion $analyzerVersion -Force -Scope CurrentUser
+          }
+          Import-Module PSScriptAnalyzer -RequiredVersion $analyzerVersion
           $results = Invoke-ScriptAnalyzer -Path scripts/install.ps1 -Severity Warning,Error
           if ($results) { $results | Format-Table -AutoSize }
           $errors = @($results | Where-Object { $_.Severity -eq 'Error' })
