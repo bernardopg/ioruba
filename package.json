@@ -6,6 +6,9 @@
     "apps/*",
     "packages/*"
   ],
+  "allowScripts": {
+    "fsevents": false
+  },
   "scripts": {
     "docs:prepare-site": "node scripts/build-pages.mjs",
     "desktop:dev": "npm --workspace @ioruba/desktop run dev",

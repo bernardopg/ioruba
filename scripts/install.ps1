@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
   Ioruba installer for Windows.
 
@@ -25,7 +25,7 @@ param(
 $ErrorActionPreference = "Stop"
 if ([string]::IsNullOrEmpty($Repo)) { $Repo = "bernardopg/ioruba" }
 
-function Write-Step($msg) { Write-Host "▸ $msg" -ForegroundColor Cyan }
+function Write-Step($msg) { Write-Information "▸ $msg" -InformationAction Continue }
 
 function Get-ExactChecksum([string]$Path, [string]$AssetName) {
   foreach ($line in Get-Content -Path $Path) {
@@ -50,12 +50,12 @@ $release = Invoke-RestMethod -Uri $apiUrl -Headers @{ "User-Agent" = "ioruba-ins
 $arch = if ($env:PROCESSOR_ARCHITECTURE -eq "ARM64") { "arm64" } else { "x64" }
 
 function Get-Asset($pattern, [string]$Description) {
-  $matches = @($release.assets | Where-Object { $_.name -match $pattern })
-  if ($matches.Count -gt 1) {
-    $names = ($matches | ForEach-Object { $_.name }) -join ", "
-    throw "Ambiguous $Description in release $Version: $names"
+  $matchingAssets = @($release.assets | Where-Object { $_.name -match $pattern })
+  if ($matchingAssets.Count -gt 1) {
+    $names = ($matchingAssets | ForEach-Object { $_.name }) -join ", "
+    throw "Ambiguous $Description in release ${Version}: $names"
   }
-  if ($matches.Count -eq 1) { return $matches[0] }
+  if ($matchingAssets.Count -eq 1) { return $matchingAssets[0] }
   return $null
 }
 
@@ -102,7 +102,7 @@ try {
   if ($process.ExitCode -notin @(0, 3010)) {
     throw "Installer exited with code $($process.ExitCode)."
   }
-  Write-Host "✓ Ioruba installed." -ForegroundColor Green
+  Write-Information "✓ Ioruba installed." -InformationAction Continue
 } finally {
   Remove-Item -Recurse -Force $tmp -ErrorAction SilentlyContinue
 }
