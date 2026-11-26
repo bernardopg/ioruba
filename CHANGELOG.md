@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.10.5](https://github.com/bernardopg/ioruba/compare/v1.10.4...v1.10.5) (2026-11-25)
+
+### Security
+
+- Updated the Rust `url` crate to 2.5.9 and `cookie` to 0.18.3 to address [RUSTSEC-2026-0592](https://rustsec.org/advisories/RUSTSEC-2026-0592.html) and [RUSTSEC-2026-0594](https://rustsec.org/advisories/RUSTSEC-2026-0594.html). Also updated `form_urlencoded` to 1.2.3.
+- Updated the TruffleHog action to 3.100.0 and switched CI to Gitleaks 8.30.1. CI verifies the Gitleaks download with a pinned SHA-256, scans Git history including merge changes, and uploads a redacted SARIF report.
+- Switched the ESP8266 package index to HTTPS and explicitly kept the optional `fsevents` install script blocked in npm.
+- npm and Cargo audits found zero vulnerabilities. Cargo still reports five upstream maintenance advisories for `chrono`, `proc-macro-error`, `zbus_names`, `zvariant`, and `zvariant_derive`.
+
+### Changed
+
+- Updated Tauri to 2.12.7, `tauri-build`, `tauri-codegen`, and `tauri-macros` to 2.7.6, `tauri-runtime` to 2.12.4, `tauri-runtime-wry` to 2.12.5, and `tauri-utils` to 2.10.4.
+- Updated the Tauri CLI to 2.12.6, Lucide React to 1.77.0, `tailwind-merge` to 3.7.1, and `@vitest/coverage-v8` to 5.1.1 in the desktop and shared packages.
+
+### Fixed
+
+- Applied the upstream Python compatibility fix to the ESP8266 3.1.2 firmware build tool.
+- Fixed ambiguous-asset reporting and PowerShell analyzer warnings in the Windows installer. The installer continues to require an exact SHA-256 checksum match before launching a downloaded asset.
+- Reused PSScriptAnalyzer 1.25.0 on CI runners that already have it, avoiding reinstallation while the module is in use.
+
 ## [1.10.4](https://github.com/bernardopg/ioruba/compare/v1.10.3...v1.10.4) (2026-11-16)
 
 ### Changed
@@ -887,7 +907,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial tagged baseline before the current Haskell-first productization pass
 
-[Unreleased]: https://github.com/bernardopg/ioruba/compare/v1.9.1...HEAD
+[Unreleased]: https://github.com/bernardopg/ioruba/compare/v1.10.5...HEAD
 [1.2.3]: https://github.com/bernardopg/ioruba/compare/v1.2.2...v1.2.3
 [1.2.2]: https://github.com/bernardopg/ioruba/compare/v1.2.1...v1.2.2
 [1.2.1]: https://github.com/bernardopg/ioruba/compare/v1.2.0...v1.2.1

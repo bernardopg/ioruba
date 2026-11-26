@@ -11,6 +11,26 @@ e este projeto segue [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [1.10.5](https://github.com/bernardopg/ioruba/compare/v1.10.4...v1.10.5) (2026-11-25)
+
+### Segurança
+
+- Atualizados `url` para 2.5.9 e `cookie` para 0.18.3 para corrigir [RUSTSEC-2026-0592](https://rustsec.org/advisories/RUSTSEC-2026-0592.html) e [RUSTSEC-2026-0594](https://rustsec.org/advisories/RUSTSEC-2026-0594.html). `form_urlencoded` também foi atualizado para 1.2.3.
+- Atualizada a ação do TruffleHog para 3.100.0 e migrado o CI para Gitleaks 8.30.1. O CI verifica o download do Gitleaks com SHA-256 fixo, varre o histórico Git incluindo as alterações de merges e publica um relatório SARIF com os valores sensíveis ocultados.
+- O índice de pacotes do ESP8266 passou a usar HTTPS, e o script de instalação opcional do `fsevents` continua bloqueado explicitamente no npm.
+- As auditorias npm e Cargo encontraram zero vulnerabilidades. O Cargo ainda aponta cinco avisos de manutenção em dependências upstream: `chrono`, `proc-macro-error`, `zbus_names`, `zvariant` e `zvariant_derive`.
+
+### Alterado
+
+- Atualizados Tauri para 2.12.7, `tauri-build`, `tauri-codegen` e `tauri-macros` para 2.7.6, `tauri-runtime` para 2.12.4, `tauri-runtime-wry` para 2.12.5 e `tauri-utils` para 2.10.4.
+- Atualizados o CLI do Tauri para 2.12.6, Lucide React para 1.77.0, `tailwind-merge` para 3.7.1 e `@vitest/coverage-v8` para 5.1.1 nos pacotes desktop e compartilhado.
+
+### Corrigido
+
+- Aplicada a correção upstream de compatibilidade com Python na ferramenta de compilação do firmware ESP8266 3.1.2.
+- Corrigidos a mensagem de erro para assets ambíguos e os avisos do analisador PowerShell no instalador Windows. O instalador continua exigindo a correspondência exata do SHA-256 antes de executar o asset baixado.
+- O CI reutiliza o PSScriptAnalyzer 1.25.0 quando o runner já tem essa versão instalada, evitando reinstalar o módulo enquanto está em uso.
+
 ## [1.10.4](https://github.com/bernardopg/ioruba/compare/v1.10.3...v1.10.4) (2026-11-16)
 
 ### Alterado
